@@ -32,7 +32,16 @@ yerde olmadığı bir haftalık program üretir. Yönetici sonucu görür, elle 
 - Ders atama: şube görünümü (her derse öğretmen seç) ve öğretmen görünümü (toplam ders yükü)
 - Öğretmen müsaitliği: gelemez (zorunlu) ve tercih etmez (esnek)
 - Okul geneli kısıtlar (bkz. bölüm 7)
+- Öğretmenin günlük ders sınırı: bir öğretmen günde en fazla M saat derse girer (zorunlu,
+  varsayılan 8, okul değiştirebilir)
+- Öğretmene boş gün: her öğretmene hedeflenen sayıda (varsayılan 1) boş gün kazandırılır (esnek,
+  ağırlığı ayarlanabilir). Amaç en fazla sıkıştırma değil, hedefe ulaşmaktır
 - Program üretme: kuyruk üzerinden, durum takibiyle
+- Çözülemezlik açıklaması: çözüm yoksa nedeni kullanıcının diliyle söylenir (ör. "Ayşe Yılmaz'ın
+  24 saat dersi var, müsait olduğu 20 saat var"), ön kontrolün yakalayamadığı durumlarda da
+  çelişen kısıtlar bulunur
+- En az değişiklikle güncelleme: mevcut bir program temel alınarak yeniden üretilir, ondan farklı
+  her yerleşim ceza getirir (öğretmen değişikliği gibi durumlarda program baştan dağılmaz)
 - Sonucu sınıf ve öğretmen bazında görüntüleme
 - Elle düzeltme: dersi sürükleyip taşıma, çakışma uyarısı, hücre kilitleme
 - PDF ve Excel çıktısı
@@ -130,7 +139,7 @@ Tüm tablolarda `id` (uuid) ve `okul_id` (FK) bulunur. Aşağıda yalnızca diğ
 | `ders_atama` | sinif_id, ders_id, ogretmen_id (boş olabilir), haftalik_saat | Çözücünün asıl girdisi |
 | `musaitlik` | ogretmen_id, gun, saat, durum (gelemez / tercih_etmez) | |
 | `kisit` | tur, parametreler (JSON), zorunlu, agirlik | Okul geneli kurallar |
-| `program` | ad, durum, hata_mesaji, olusturma, bitis | Her üretim denemesi bir kayıt |
+| `program` | ad, durum, hata_mesaji, temel_program_id (boş olabilir), olusturma, bitis | Her üretim denemesi bir kayıt. `temel_program_id` doluysa en az değişiklikle güncellemedir |
 | `yerlesim` | program_id, ders_atama_id, gun, saat, kilitli | Programın hücreleri |
 
 `program.durum` değerleri: `bekliyor`, `uretiliyor`, `hazir`, `basarisiz`.
@@ -149,19 +158,33 @@ Her ders ataması, gün ve saat üçlüsü için bir boolean değişken: "bu ata
 - Öğretmen "gelemez" işaretli saatlere yerleştirilmez.
 - Kilitli hücreler yerinde kalır.
 - Aynı ders bir sınıfa günde en fazla N saat konur (varsayılan 2, kısıt parametresi).
+- Bir öğretmen günde en fazla M saat derse girer (varsayılan 8, kısıt parametresi).
 
 ### Esnek kısıtlar (ihlali ceza puanı getirir, toplam ceza en aza indirilir)
 - Öğretmenin "tercih etmez" saatlerinden kaçınma.
 - Öğretmenin gün içindeki boş (pencere) saatlerini azaltma.
 - Aynı dersin günde iki saati varsa arka arkaya olması.
 - Sınıfın programında boş saat bırakmama (dersler günün başından itibaren dolsun).
+- Öğretmene boş gün: parametre hedef boş gün sayısıdır (varsayılan 1).
+  Hedef gün = max(⌈toplam saat / günlük sınır⌉, gün sayısı − hedef boş gün). Burada günlük sınır =
+  min(M, okulun günlük ders saati). Ceza = max(0, ders verilen gün − hedef gün). Hedefe ulaşan
+  öğretmen daha fazla sıkıştırılmaz. Yükü yüzünden boş günü mümkün olmayan öğretmene ceza
+  yazılmaz.
+- En az değişiklik (yalnızca temel program verildiğinde): temel programdaki bir yerleşim yeni
+  programda yoksa ceza.
+
+Her esnek kısıtın ağırlığı okul tarafından ayarlanabilir, 0 kuralı kapatır.
 
 ### Davranış
 - Süre sınırı parametredir (varsayılan 60 saniye). Süre dolunca bulunan en iyi çözüm döner.
-- Çözüm yoksa nedenini anlamaya yardımcı bir mesaj döner.
 - Çözücü çağrılmadan önce ön kontroller yapılır ve anlaşılır hata verilir: öğretmeni seçilmemiş
   atama, bir sınıfın toplam saati haftalık kapasiteyi aşıyor, bir öğretmenin toplam saati müsait
-  olduğu saatlerden fazla.
+  olduğu saatlerden fazla (her gün için müsait saat ile M'nin küçüğü sayılır). Mesajlar kimlik
+  değil ad kullanır.
+- Ön kontrolden geçip çözüm yine yoksa, çelişen zorunlu kısıt grupları bulunur ve kullanıcının
+  diliyle açıklanır.
+- İsteğe bağlı olarak temel bir program girdi alınır. Bu durumda değişiklik cezası devreye girer ve
+  temel program çözücüye başlangıç ipucu olarak da verilir.
 
 ### Test veri setleri
 - **Mini:** 3 sınıf, 5 öğretmen. Hata ayıklama için, sonucu gözle kontrol edilebilir.
@@ -174,19 +197,26 @@ ve öğretmenin toplam saati kapasiteyi aşmayacak şekilde, çözümü olan set
 Her çözüm için otomatik doğrulama testi yazılır: çakışma yok, tüm saatler yerleşmiş, zorunlu
 kısıtların hepsi sağlanmış.
 
+Gerçekçi ve büyük setlerde yalnızca toplam süre değil, zamana göre kalite de ölçülür: 10, 30, 60
+ve 120. saniyede toplam ceza ve her esnek ölçü. 60 saniyedeki kalite yetersizse iyileştirmeler
+(ör. önce yalnızca zorunlu kısıtlarla çözüp sonucu başlangıç ipucu olarak vermek) ölçülerek
+değerlendirilir.
+
 ## 8. Yapım sırası
 
 Her adımın sonunda çalışan ve test edilen bir şey olmalı. Bir adım bitmeden sonrakine geçilmez.
 
 1. **Çözücü.** Saf Python paketi, üç veri seti, doğrulama testleri. Komut satırından çalışır ve
-   programı tablo olarak yazdırır. Kabul: gerçekçi set süre sınırı içinde çözülür, testler geçer.
+   programı tablo olarak yazdırır. Çözülemezlik açıklaması ve temel programla güncelleme dahil.
+   Kabul: gerçekçi set süre sınırı içinde çözülür, testler geçer, zamana göre kalite ölçülmüştür.
 2. **Veritabanı ve API temeli.** Docker Compose, tablolar, migration, okul izolasyonu, temel CRUD
    endpoint'leri. Kabul: iki okul oluşturulur, biri diğerinin verisine erişemez (testle kanıtlanır).
 3. **Kuyruk ve worker.** Program üretme isteği, durum takibi, sonucun kaydedilmesi.
    Kabul: API'den istek atılır, durum `bekliyor` → `uretiliyor` → `hazir` olarak değişir.
 4. **Kimlik doğrulama.** Okul kaydı, giriş, oturum.
 5. **Arayüz: veri girişi.** Okul ayarları, listeler, seviye şablonu, ders atama, müsaitlik çizelgesi.
-6. **Arayüz: program.** Üretme, durum göstergesi, sınıf ve öğretmen görünümü.
+6. **Arayüz: program.** Üretme, durum göstergesi, sınıf ve öğretmen görünümü, çözülemezlik
+   açıklamasının gösterilmesi, mevcut programı temel alarak yeniden üretme.
 7. **Elle düzeltme ve çıktı.** Sürükle bırak, çakışma uyarısı, kilitleme, PDF ve Excel.
 8. **Excel'den içe aktarma ve öğretmen paylaşım linki.**
 
