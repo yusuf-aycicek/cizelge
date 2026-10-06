@@ -4,9 +4,11 @@ from cozucu.kisitlar import esnek, zorunlu  # noqa: F401  (kayıt için)
 from cozucu.kisitlar.temel import KAYIT_DEFTERI, Baglam, GirdiHatasi, KisitKurali, kural_olustur
 from cozucu.kisitlar.zorunlu import TEMEL_KURALLAR
 from cozucu.model import (
+    BOS_GUN_TURU,
     GUNLUK_DERS_SINIRI_TURU,
     OGRETMEN_GUNLUK_SINIRI_TURU,
     VARSAYILAN_GUNLUK_DERS_SINIRI,
+    VARSAYILAN_HEDEF_BOS_GUN,
     VARSAYILAN_OGRETMEN_GUNLUK_SINIRI,
     CozumGirdisi,
     KisitTanimi,
@@ -20,6 +22,8 @@ VARSAYILAN_KISITLAR: tuple[KisitTanimi, ...] = (
     KisitTanimi("ogretmen_penceresi", zorunlu=False, agirlik=3),
     KisitTanimi("sinif_boslugu", zorunlu=False, agirlik=10),
     KisitTanimi("ardisik_ders", zorunlu=False, agirlik=2),
+    KisitTanimi(BOS_GUN_TURU, {"hedef_bos_gun": VARSAYILAN_HEDEF_BOS_GUN}, zorunlu=False, agirlik=4),
+    KisitTanimi("degisiklik", zorunlu=False, agirlik=20),  # yalnızca temel program varsa etkili
 )
 
 

@@ -21,16 +21,17 @@ from cozucu.model import (
     OkulAyari,
     Ogretmen,
     Sinif,
+    TemelYerlesim,
     Yerlesim,
+    temel_program,
 )
 
 __all__ = [
     "Celiski",
     "CozumDurumu",
-    "CpSatCozucu",
-    "dogrula",
     "CozumGirdisi",
     "CozumSonucu",
+    "CpSatCozucu",
     "Ders",
     "DersAtama",
     "KaliteOlcumu",
@@ -41,6 +42,9 @@ __all__ = [
     "Ogretmen",
     "ProgramCozucu",
     "Sinif",
+    "TemelYerlesim",
     "Yerlesim",
+    "dogrula",
     "olc",
+    "temel_program",
 ]

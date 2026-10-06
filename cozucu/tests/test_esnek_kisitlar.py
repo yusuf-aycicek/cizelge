@@ -251,3 +251,133 @@ def test_kalite_olcumu_elle_kurulmus_program():
     assert olcum.ogretmen_penceresi == 1 + 1  # o1 gün 0 + o2 gün 1
     assert olcum.bolunmus_ders == 1
     assert olcum.tercih_etmez == 1
+
+
+# --- öğretmene boş gün --------------------------------------------------------------
+
+from cozucu import TemelYerlesim, temel_program  # noqa: E402
+from cozucu.kalite import ders_gunleri  # noqa: E402
+
+
+def bes_tek_saat(ogretmen="o1"):
+    """o1'in 9-A'ya beş ayrı dersi, her biri haftada 1 saat (5 gün x 6 saat)."""
+    return [atama(f"d{i}", ogretmen=ogretmen) for i in range(5)]
+
+
+def test_bos_gun_hedefe_ulasilir():
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=bes_tek_saat(), kisitlar=yalniz("bos_gun"))
+    sonuc = coz(girdi)
+    assert ders_gunleri(girdi, sonuc.yerlesimler)["o1"] <= 4
+    assert sonuc.toplam_ceza == 0
+
+
+def test_bos_gun_hedefe_ulasan_ogretmen_daha_fazla_sikistirilmaz():
+    # Dersler dört ayrı güne kilitli: 1 boş gün var, hedef tuttu. Tek güne toplamak mümkün
+    # olsa da ceza 0'dır; kural "en az gün" değil "hedef boş gün" ister.
+    girdi = girdi_kur(
+        ayar=OkulAyari(5, 6),
+        atamalar=bes_tek_saat(),
+        kilitli_yerlesimler=[kilit("d0", 0, 0), kilit("d1", 1, 0), kilit("d2", 2, 0), kilit("d3", 3, 0)],
+        kisitlar=yalniz("bos_gun"),
+    )
+    sonuc = coz(girdi)
+    assert sonuc.toplam_ceza == 0
+    assert olc(girdi, sonuc.yerlesimler).eksik_bos_gun == 0
+
+
+def test_bos_gun_kacinilamazsa_ceza():
+    kilitler = [kilit(f"d{g}", g, 0) for g in range(5)]
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=bes_tek_saat(), kilitli_yerlesimler=kilitler,
+                      kisitlar=yalniz("bos_gun"))
+    sonuc = coz(girdi)
+    assert sonuc.toplam_ceza == 4
+    assert olc(girdi, sonuc.yerlesimler).eksik_bos_gun == 1
+
+
+def test_bos_gun_hedef_parametresi():
+    tanimlar = yalniz("bos_gun") + [KisitTanimi("bos_gun", {"hedef_bos_gun": 2}, zorunlu=False, agirlik=4)]
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=bes_tek_saat(), kisitlar=tanimlar)
+    sonuc = coz(girdi)
+    assert ders_gunleri(girdi, sonuc.yerlesimler)["o1"] <= 3 and sonuc.toplam_ceza == 0
+
+
+def test_yuku_yuksek_ogretmene_ceza_yazilmaz():
+    # 25 saat, günde en fazla 6: 4 günde (24) bitmez, hedef 5 gün. Her gün çalışır, ceza 0.
+    atamalar = [atama(f"a{i}", sinif=f"s{i}", saat=5) for i in range(5)]
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=atamalar, kisitlar=yalniz("bos_gun"))
+    sonuc = coz(girdi)
+    assert ders_gunleri(girdi, sonuc.yerlesimler)["o1"] == 5
+    assert sonuc.toplam_ceza == 0
+
+
+def test_bos_gun_ogretmen_gunluk_sinirini_hesaba_katar():
+    # 17 saat: M=8 (gün 6 saat) ile 4 güne sığar, hedef 4 gün. M=4 ile 4 x 4 = 16 < 17,
+    # hedef 5 gün olur ve her gün çalışan öğretmene ceza yazılmaz.
+    atamalar = [atama(f"a{i}", sinif=f"s{i}", saat=h) for i, h in enumerate((4, 4, 4, 5))]
+    m4 = yalniz("bos_gun") + [KisitTanimi("ogretmen_gunluk_siniri", {"m": 4})]
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=atamalar, kisitlar=m4)
+    sonuc = coz(girdi)
+    assert ders_gunleri(girdi, sonuc.yerlesimler)["o1"] == 5
+    assert sonuc.toplam_ceza == 0
+
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=atamalar, kisitlar=yalniz("bos_gun"))
+    assert ders_gunleri(girdi, coz(girdi).yerlesimler)["o1"] == 4
+
+
+# --- en az değişiklik ---------------------------------------------------------------
+
+
+def test_temel_program_yoksa_degisiklik_kurali_etkisiz():
+    girdi = girdi_kur(ayar=OkulAyari(1, 3), atamalar=[atama("a")], kisitlar=yalniz("degisiklik"))
+    assert coz(girdi).toplam_ceza == 0
+
+
+def test_uygun_temel_program_aynen_korunur():
+    atamalar = [atama("a", ogretmen="o1", saat=2), atama("b", ogretmen="o2", saat=2)]
+    temel = [TemelYerlesim("s1", "a", 0, 3), TemelYerlesim("s1", "a", 1, 0),
+             TemelYerlesim("s1", "b", 0, 1), TemelYerlesim("s1", "b", 1, 5)]
+    girdi = girdi_kur(ayar=OkulAyari(2, 6), atamalar=atamalar, temel_yerlesimler=temel,
+                      kisitlar=yalniz("degisiklik"))
+    sonuc = coz(girdi)
+    assert sonuc.toplam_ceza == 0
+    assert set(temel_program(girdi.atamalar, sonuc.yerlesimler)) == set(temel)
+
+
+def test_musaitlik_degisince_yalnizca_gereken_ders_kayar():
+    # Temel: a 1. saatte, b 2. saatte. o1 artık 1. saatte gelemez. b'yi kaydırıp a'yı 2. saate
+    # almak 2 değişiklik; a'yı boş 3. saate almak 1 değişiklik.
+    temel = [TemelYerlesim("s1", "a", 0, 0), TemelYerlesim("s1", "b", 0, 1)]
+    girdi = girdi_kur(
+        ayar=OkulAyari(1, 3),
+        atamalar=[atama("a", ogretmen="o1"), atama("b", ogretmen="o2")],
+        musaitlikler=[gelemez("o1", 0, 0)],
+        temel_yerlesimler=temel,
+        kisitlar=yalniz("degisiklik"),
+    )
+    sonuc = coz(girdi)
+    assert saatler(sonuc, "a") == [2] and saatler(sonuc, "b") == [1]
+    assert sonuc.toplam_ceza == 20
+    assert olc(girdi, sonuc.yerlesimler).degisen_yerlesim == 1
+
+
+def test_eslestirme_sinif_ders_ile_ogretmen_degisse_de_korunur():
+    # Temel program eski atamadan (o1) geldi; ders artık yeni bir atamayla (o2) veriliyor.
+    temel = [TemelYerlesim("s1", "mat", 0, 2)]
+    girdi = girdi_kur(
+        ayar=OkulAyari(1, 4),
+        atamalar=[atama("yeni-atama", ders="mat", ogretmen="o2")],
+        temel_yerlesimler=temel,
+        kisitlar=yalniz("degisiklik"),
+    )
+    sonuc = coz(girdi)
+    assert saatler(sonuc, "yeni-atama") == [2] and sonuc.toplam_ceza == 0
+
+
+def test_kaldirilan_dersin_hucresi_degisiklik_sayilir():
+    temel = [TemelYerlesim("s1", "a", 0, 0), TemelYerlesim("s1", "kaldirildi", 0, 1)]
+    girdi = girdi_kur(ayar=OkulAyari(1, 3), atamalar=[atama("a")], temel_yerlesimler=temel,
+                      kisitlar=yalniz("degisiklik"))
+    sonuc = coz(girdi)
+    assert saatler(sonuc, "a") == [0]
+    assert sonuc.toplam_ceza == 20
+    assert olc(girdi, sonuc.yerlesimler).degisen_yerlesim == 1

@@ -11,8 +11,8 @@ testler geçer ve zamana göre kalite ölçülmüştür.
 | 2 | Zorunlu kısıtlar, `CpSatCozucu`, doğrulayıcı, mini set | Bitti |
 | 3 | Esnek kısıtlar | Bitti |
 | 4 | Ön kontroller ve çözülemezlik açıklaması | Bitti |
-| 5 | Ek hedefler: öğretmene boş gün, en az değişiklikle güncelleme | **Sıradaki** |
-| 6 | Veri üretici, gerçekçi ve büyük setler, CLI, zamana göre kalite ölçümü | Bekliyor |
+| 5 | Ek hedefler: öğretmene boş gün, en az değişiklikle güncelleme | Bitti |
+| 6 | Veri üretici, gerçekçi ve büyük setler, CLI, zamana göre kalite ölçümü | **Sıradaki** |
 
 Kapsam güncellemesi (3. alt adımdan sonra): öğretmene boş gün, çözülemezlik açıklaması ve en az
 değişiklikle güncelleme eklendi. Süre ölçümü, zamana göre kalite ölçümüne genişletildi.
@@ -186,7 +186,7 @@ Amaç: çözüm yoksa kullanıcı nedenini kendi diliyle öğrenir, kimlik deği
     denetiminden geçer.
   - Türkçe iyelik eki (`Ayşe Yılmaz'ın`, `Mehmet Kaya'nın`) ünlü uyumuna göre üretilir.
 
-### 5. Ek hedefler: öğretmene boş gün, en az değişiklikle güncelleme
+### 5. Ek hedefler: öğretmene boş gün, en az değişiklikle güncelleme (bitti)
 - **Öğretmene boş gün** (`BosGun`, esnek, varsayılan ağırlık 4, parametre `hedef_bos_gun`,
   varsayılan 1):
   - Her öğretmen ve gün için "bu gün dersi var" boolean'ı tutulur.
@@ -200,7 +200,10 @@ Amaç: çözüm yoksa kullanıcı nedenini kendi diliyle öğrenir, kimlik deği
     edilir. Bu kural yalnızca gün sayısını azaltır.
   - `kalite.py`: `eksik_bos_gun` ölçüsü (hedefe göre eksik kalan boş gün toplamı).
 - **En az değişiklikle güncelleme** (`Degisiklik`, esnek, varsayılan ağırlık 20):
-  - `CozumGirdisi.temel_yerlesimler: list[Yerlesim]` (isteğe bağlı, varsayılan boş).
+  - `CozumGirdisi.temel_yerlesimler: list[TemelYerlesim]` (isteğe bağlı, varsayılan boş).
+    Plandaki `list[Yerlesim]` yerine (sınıf, ders, gün, saat) taşıyan ayrı bir yapı seçildi.
+    Atama silinip yeniden oluşturulunca eski kimlik çözücü girdisinde artık bulunmaz; (sınıf, ders)
+    bilgisini worker sağlar. `temel_program(atamalar, yerlesimler)` bir çözümü bu biçime çevirir.
   - Eşleştirme atama kimliğiyle değil, (sınıf, ders, gün, saat) ile yapılır. Böylece öğretmeni
     değişen ya da yeniden oluşturulan atama da "aynı ders" sayılır.
   - Ceza: temel programdaki her (sınıf, ders, gün, saat) için yeni programda o ders o saatte
@@ -217,6 +220,21 @@ Amaç: çözüm yoksa kullanıcı nedenini kendi diliyle öğrenir, kimlik deği
 - ADR 0006: en az değişiklikle güncelleme (ceza + ipucu, (sınıf, ders) eşleştirmesi). Boş gün
   için ayrı ADR yazılmaz. Mevcut desenlerin (ADR 0002, 0004) bir uygulaması olduğu için plan
   dosyasında not olarak kalır.
+- Uygulama sırasında verilen kararlar ve gözlemler:
+  - Temel programda olup artık var olmayan dersler (ders kaldırılmış, okul saati kısalmış) sabit
+    ceza olarak eklenir. En iyi programı değiştirmez, ama toplam ceza bağımsız ölçümle tutarlı kalır.
+  - Kapsam notu (bir sınıf, bir ders, bir öğretmen kalıcı): (sınıf, ders) bazındaki kararların
+    "ileride aynı derse birden fazla atama" gerekçesi geçersizleşti. Kod değişmedi, çünkü tek
+    atamayla da aynı şekilde çalışıyor. En az değişiklik eşleştirmesi için bu anahtar hâlâ doğru
+    seçim.
+  - Mini set ölçümü (boş gün kapalı → açık): sınıf boşluğu, pencere, bölünmüş ders ve tercih
+    etmez 0 kaldı. Eksik boş gün 3 → 0 oldu.
+  - Mini set ölçümü (Mehmet bir gün gelemez, temel programda o gün 5 dersi var): sıfırdan üretim
+    71 hücreden 54'ünü değiştirdi. Temel programla ağırlık 20'de 5 hücre değişti, ama 3 sınıf
+    boşluğu oluştu. Ağırlık 8'de 7 hücre değişti ve 1 boşluk kaldı, ağırlık 2'de 9 hücre değişti
+    ve boşluk kalmadı. Varsayılan ağırlık proje sahibine soruldu.
+  - Çok iş parçacıklı CP-SAT aynı girdide farklı (eşit cezalı) programlar üretebilir. Bu, 6. adımın
+    ölçümlerinde tohum tekrarıyla ele alınacak.
 
 ### 6. Veri üretici, setler, CLI, zamana göre kalite ölçümü
 - Sabit tohumlu üretici: Önce gizli bir geçerli program kurulur, veri ondan türetilir. Böylece

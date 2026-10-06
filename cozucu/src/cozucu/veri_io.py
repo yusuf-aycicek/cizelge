@@ -24,6 +24,7 @@ from cozucu.model import (
     OkulAyari,
     Ogretmen,
     Sinif,
+    TemelYerlesim,
     Yerlesim,
 )
 
@@ -45,6 +46,7 @@ def girdi_from_dict(veri: dict[str, Any]) -> CozumGirdisi:
         ],
         kisitlar=[KisitTanimi(**k) for k in veri.get("kisitlar", [])],
         kilitli_yerlesimler=[Yerlesim(**y) for y in veri.get("kilitli_yerlesimler", [])],
+        temel_yerlesimler=[TemelYerlesim(**t) for t in veri.get("temel_yerlesimler", [])],
     )
 
 

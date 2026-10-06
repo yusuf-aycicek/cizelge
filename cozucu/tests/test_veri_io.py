@@ -10,6 +10,7 @@ from cozucu import (
     OkulAyari,
     Ogretmen,
     Sinif,
+    TemelYerlesim,
     Yerlesim,
 )
 from cozucu.veri_io import (
@@ -32,6 +33,7 @@ def ornek_girdi() -> CozumGirdisi:
         musaitlikler=[Musaitlik(ogretmen_id="o1", gun=0, saat=0, durum=MusaitlikDurumu.GELEMEZ)],
         kisitlar=[KisitTanimi(tur="gunluk_ders_siniri", parametreler={"n": 2})],
         kilitli_yerlesimler=[Yerlesim(ders_atama_id="a1", gun=1, saat=2, kilitli=True)],
+        temel_yerlesimler=[TemelYerlesim(sinif_id="s1", ders_id="d1", gun=0, saat=3)],
     )
 
 

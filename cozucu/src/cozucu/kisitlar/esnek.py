@@ -13,7 +13,14 @@ from __future__ import annotations
 
 from cozucu.kisitlar.temel import Baglam, CezaTerimi, KisitKurali, kaydet
 from cozucu.kisitlar.zorunlu import sinif_ders_gruplari
-from cozucu.model import MusaitlikDurumu
+from cozucu.model import (
+    BOS_GUN_TURU,
+    OGRETMEN_GUNLUK_SINIRI_TURU,
+    VARSAYILAN_HEDEF_BOS_GUN,
+    VARSAYILAN_OGRETMEN_GUNLUK_SINIRI,
+    MusaitlikDurumu,
+    TemelYerlesim,
+)
 
 
 class EsnekKural(KisitKurali):
@@ -110,6 +117,86 @@ class ArdisikDers(EsnekKural):
                 ceza = baglam.model.new_int_var(0, len(saatler), "")
                 baglam.model.add(ceza >= sum(dolu) - sum(bitisik) - 1)
                 cezalar.append((ceza, self.agirlik))
+        return cezalar
+
+
+@kaydet
+class BosGun(EsnekKural):
+    """Her öğretmene hedeflenen sayıda boş gün kazandırmak.
+
+    Amaç en fazla sıkıştırma değil, hedefe ulaşmaktır:
+        günlük sınır = min(öğretmen günlük sınırı M, okulun günlük ders saati)
+        hedef gün    = max(⌈toplam saat / günlük sınır⌉, gün sayısı − hedef boş gün)
+        ceza         = max(0, ders verilen gün − hedef gün)
+    Hedefe ulaşan öğretmen daha fazla sıkıştırılmaz. Yükü yüzünden boş günü mümkün olmayan
+    öğretmenin hedefi zaten bütün günlerdir, ona ceza yazılmaz.
+    """
+
+    tur = BOS_GUN_TURU
+
+    def __init__(self, hedef_bos_gun: int = VARSAYILAN_HEDEF_BOS_GUN) -> None:
+        if hedef_bos_gun < 0:
+            raise ValueError(f"hedef_bos_gun negatif olamaz: {hedef_bos_gun}")
+        self.hedef_bos_gun = hedef_bos_gun
+
+    def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
+        gun_sayisi = len(baglam.gunler)
+        m = baglam.girdi.zorunlu_parametre(
+            OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI
+        )
+        gunluk_sinir = min(m or len(baglam.saatler), len(baglam.saatler))
+        cezalar: list[CezaTerimi] = []
+        for atamalar in baglam.ogretmen_atamalari.values():
+            yuk = sum(a.haftalik_saat for a in atamalar)
+            hedef_gun = max(-(-yuk // gunluk_sinir), gun_sayisi - self.hedef_bos_gun)
+            if hedef_gun >= gun_sayisi:
+                continue  # her gün çalışması serbest: ceza hiç doğmaz
+            gun_var = []
+            for g in baglam.gunler:
+                var = baglam.model.new_bool_var("")
+                for s in baglam.saatler:
+                    baglam.model.add(var >= baglam.dolu(atamalar, g, s))
+                gun_var.append(var)
+            fazla = baglam.model.new_int_var(0, gun_sayisi, "")
+            baglam.model.add(fazla >= sum(gun_var) - hedef_gun)
+            cezalar.append((fazla, self.agirlik))
+        return cezalar
+
+
+@kaydet
+class Degisiklik(EsnekKural):
+    """En az değişiklikle güncelleme: temel programdaki her hücre yeni programda yoksa ceza.
+
+    Hücreler (sınıf, ders, gün, saat) ile eşleştirilir. Temel program yoksa kural hiçbir şey
+    yapmaz. Temel program ayrıca CP-SAT'a başlangıç ipucu olarak verilir: arama oradan başlar,
+    ama ipucu sonucu zorlamaz (bkz. docs/adr/0006).
+
+    Temel programda olup artık var olmayan dersler (ders kaldırılmış, okul saati kısalmış)
+    kaçınılmaz değişikliklerdir. Sabit ceza olarak eklenirler; en iyi programı etkilemezler
+    ama toplam ceza, `kalite.degisen_yerlesim` ölçümüyle birebir tutarlı kalır.
+    """
+
+    tur = "degisiklik"
+
+    def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
+        temel = set(baglam.girdi.temel_yerlesimler)
+        if not temel:
+            return []
+        gruplar = sinif_ders_gruplari(baglam)
+        cezalar: list[CezaTerimi] = []
+        for t in temel:
+            atamalar = gruplar.get((t.sinif_id, t.ders_id))
+            if atamalar is None or t.gun not in baglam.gunler or t.saat not in baglam.saatler:
+                cezalar.append((1, self.agirlik))
+            else:
+                cezalar.append((1 - baglam.dolu(atamalar, t.gun, t.saat), self.agirlik))
+
+        for (sinif_id, ders_id), atamalar in gruplar.items():
+            for a in atamalar:
+                for g in baglam.gunler:
+                    for s in baglam.saatler:
+                        temelde = TemelYerlesim(sinif_id, ders_id, g, s) in temel
+                        baglam.model.add_hint(baglam.x[a.id, g, s], temelde)
         return cezalar
 
 
