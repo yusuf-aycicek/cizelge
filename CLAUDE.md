@@ -11,6 +11,7 @@ yerde olmadığı bir haftalık program üretir. Yönetici sonucu görür, elle 
 
 - İlk gerçek kullanıcı: bir okul müdürü (test verisi onun okulundan gelecek).
 - Hedef: birden fazla okulun birbirinden bağımsız kullanabilmesi.
+- Hedef kademe: lise ve ortaokul.
 - Proje aynı zamanda bir yazılım tasarımı ve mimarisi dersinde sunulacak. Mimari kararların
   gerekçeli ve belgelenmiş olması, kodun çalışması kadar önemli.
 
@@ -46,9 +47,12 @@ yerde olmadığı bir haftalık program üretir. Yönetici sonucu görür, elle 
 - Elle düzeltme: dersi sürükleyip taşıma, çakışma uyarısı, hücre kilitleme
 - PDF ve Excel çıktısı
 
+### Kapsam dışı (planlanmıyor)
+- Mekan takibi ve mekan çakışması (laboratuvar, spor salonu)
+- Bölünen ya da birleşen şube, bir derse birden fazla öğretmenin girmesi. Model kalıcı olarak
+  "bir sınıf, bir ders, bir öğretmen"dir: her (sınıf, ders) çifti için tek bir ders ataması vardır.
+
 ### İlk sürümde yok (model buna açık kalmalı)
-- Bir derse birden fazla öğretmenin girmesi, sınıfın gruplara bölünmesi, şubelerin birleşmesi
-- Mekan çakışması (laboratuvar, spor salonu)
 - Dönem ve yıl yönetimi
 - İkili öğretim
 - Öğretmen hesapları
@@ -236,8 +240,8 @@ Her adımın sonunda çalışan ve test edilen bir şey olmalı. Bir adım bitme
 
 Okul müdüründen beklenen bilgiler. Cevaplar geldikçe ilgili bölümler güncellenir.
 
-- Okulun kademesi, şube ve öğretmen sayısı, günlük ders saati, ikili öğretim durumu
+- Şube ve öğretmen sayısı, günlük ders saati, ikili öğretim durumu
 - Bu yılın ders dağıtım çizelgesi ve mevcut haftalık programı (test verisi)
 - Programı şu an nasıl hazırladıkları ve en çok neyin uğraştırdığı
 - Hangi kuralların gerçekten gerekli olduğu (boş gün talepleri, başka okulda da görevli öğretmen,
-  blok dersler, paylaşılan mekanlar, bölünen ve birleşen dersler)
+  blok dersler)
