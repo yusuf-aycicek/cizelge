@@ -8,8 +8,8 @@ testler geçer.
 | # | Alt adım | Durum |
 |---|---|---|
 | 1 | Paket iskeleti, veri modeli, arayüz, ADR'ler | Bitti (commit `1ff93f3`) |
-| 2 | Zorunlu kısıtlar, `CpSatCozucu`, doğrulayıcı, mini set | **Sıradaki** |
-| 3 | Esnek kısıtlar | Bekliyor |
+| 2 | Zorunlu kısıtlar, `CpSatCozucu`, doğrulayıcı, mini set | Bitti |
+| 3 | Esnek kısıtlar | **Sıradaki** |
 | 4 | Ön kontroller ve çözümsüzlük mesajı | Bekliyor |
 | 5 | Veri üretici, gerçekçi ve büyük setler, CLI tablo çıktısı, süre ölçümü | Bekliyor |
 
@@ -62,7 +62,7 @@ Köşeli parantezdeki sayı, dosyanın hangi alt adımda yazıldığını göste
 - `veri_io.py`: JSON'a yazma ve okuma.
 - ADR'ler: 0001 (arayüz ve CP-SAT), 0002 (strategy deseni), 0003 (veri formatı).
 
-### 2. Zorunlu kısıtlar, CpSatCozucu, doğrulayıcı, mini set (sıradaki)
+### 2. Zorunlu kısıtlar, CpSatCozucu, doğrulayıcı, mini set (bitti)
 - `KisitKurali` taban sınıfında tek metot bulunur: `uygula(baglam)`. `baglam` CP-SAT modelini,
   `x[atama, gun, saat]` değişkenlerini ve girdiden hazırlanmış dizinleri taşır. Kayıt defteri
   `tur` adını sınıfa eşler.
@@ -81,6 +81,18 @@ Köşeli parantezdeki sayı, dosyanın hangi alt adımda yazıldığını göste
   - her kısıt için küçük bir senaryo
   - doğrulayıcının bilerek bozulmuş programları yakalaması
   - mini setin çözülüp doğrulayıcıdan geçmesi
+- Uygulama sırasında verilen kararlar:
+  - Varsayılan N (`VARSAYILAN_GUNLUK_DERS_SINIRI`) `model.py` içindedir. Böylece doğrulayıcı
+    çözücü koduna bağımlı olmadan aynı değeri okur.
+  - Temel beş kural (`TEMEL_KURALLAR`) kayıt defterinde yer almaz ve her zaman uygulanır. Kayıt
+    defterinde yalnızca okul geneli kurallar bulunur (şimdilik `gunluk_ders_siniri`).
+  - Kayıp referans, aralık dışında gün/saat, bilinmeyen kısıt türü ya da hatalı parametre
+    `GirdiHatasi` fırlatır. `CpSatCozucu` bunu `on_kontrol_hatasi` durumuna çevirir. Ayrıntılı ön
+    kontrol 4. alt adımda yapılacak.
+  - `zorunlu=False` olarak tanımlanmış bir kural şimdilik zorunlu sürümünü kapatır ve not
+    bırakır. Kuralın esnek sürümü 3. alt adımda eklenecek.
+  - Mini set: 5 gün × 6 saat. Gelemez: Ayşe pazartesi, Fatma cuma, Mehmet çarşamba 1-2. saat.
+    Kilitli hücre: 9-A matematik, salı 1. saat.
 
 ### 3. Esnek kısıtlar
 - Esnek kurallar `(ceza_ifadesi, agirlik)` döndürür. Çözücü toplam cezayı en aza indirir.

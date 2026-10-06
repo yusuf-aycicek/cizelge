@@ -5,6 +5,8 @@ alır, çıktı olarak `CozumSonucu` (yerleşim listesi) döner.
 """
 
 from cozucu.arayuz import ProgramCozucu
+from cozucu.cpsat import CpSatCozucu
+from cozucu.dogrulama import dogrula
 from cozucu.model import (
     CozumDurumu,
     CozumGirdisi,
@@ -22,6 +24,8 @@ from cozucu.model import (
 
 __all__ = [
     "CozumDurumu",
+    "CpSatCozucu",
+    "dogrula",
     "CozumGirdisi",
     "CozumSonucu",
     "Ders",

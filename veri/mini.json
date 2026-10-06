@@ -1,0 +1,69 @@
+{
+ "ayar": {"gun_sayisi": 5, "gunluk_ders_saati": 6},
+ "ogretmenler": [
+  {"id": "o-ayse", "ad": "Ayşe Yılmaz", "brans": "Matematik"},
+  {"id": "o-mehmet", "ad": "Mehmet Kaya", "brans": "Türk Dili ve Edebiyatı"},
+  {"id": "o-zeynep", "ad": "Zeynep Demir", "brans": "Fen Bilimleri"},
+  {"id": "o-ali", "ad": "Ali Çelik", "brans": "İngilizce"},
+  {"id": "o-fatma", "ad": "Fatma Şahin", "brans": "Sosyal Bilimler"}
+ ],
+ "siniflar": [
+  {"id": "s-9a", "ad": "9-A", "seviye": 9},
+  {"id": "s-9b", "ad": "9-B", "seviye": 9},
+  {"id": "s-10a", "ad": "10-A", "seviye": 10}
+ ],
+ "dersler": [
+  {"id": "d-mat", "ad": "Matematik", "kisa_ad": "MAT"},
+  {"id": "d-tde", "ad": "Türk Dili ve Edebiyatı", "kisa_ad": "TDE"},
+  {"id": "d-fiz", "ad": "Fizik", "kisa_ad": "FIZ"},
+  {"id": "d-kim", "ad": "Kimya", "kisa_ad": "KIM"},
+  {"id": "d-ing", "ad": "İngilizce", "kisa_ad": "ING"},
+  {"id": "d-tar", "ad": "Tarih", "kisa_ad": "TAR"},
+  {"id": "d-cog", "ad": "Coğrafya", "kisa_ad": "COG"}
+ ],
+ "atamalar": [
+  {"id": "a-9a-mat", "sinif_id": "s-9a", "ders_id": "d-mat", "ogretmen_id": "o-ayse", "haftalik_saat": 6},
+  {"id": "a-9a-tde", "sinif_id": "s-9a", "ders_id": "d-tde", "ogretmen_id": "o-mehmet", "haftalik_saat": 5},
+  {"id": "a-9a-fiz", "sinif_id": "s-9a", "ders_id": "d-fiz", "ogretmen_id": "o-zeynep", "haftalik_saat": 3},
+  {"id": "a-9a-kim", "sinif_id": "s-9a", "ders_id": "d-kim", "ogretmen_id": "o-zeynep", "haftalik_saat": 3},
+  {"id": "a-9a-ing", "sinif_id": "s-9a", "ders_id": "d-ing", "ogretmen_id": "o-ali", "haftalik_saat": 4},
+  {"id": "a-9a-tar", "sinif_id": "s-9a", "ders_id": "d-tar", "ogretmen_id": "o-fatma", "haftalik_saat": 3},
+
+  {"id": "a-9b-mat", "sinif_id": "s-9b", "ders_id": "d-mat", "ogretmen_id": "o-ayse", "haftalik_saat": 6},
+  {"id": "a-9b-tde", "sinif_id": "s-9b", "ders_id": "d-tde", "ogretmen_id": "o-mehmet", "haftalik_saat": 5},
+  {"id": "a-9b-fiz", "sinif_id": "s-9b", "ders_id": "d-fiz", "ogretmen_id": "o-zeynep", "haftalik_saat": 3},
+  {"id": "a-9b-kim", "sinif_id": "s-9b", "ders_id": "d-kim", "ogretmen_id": "o-zeynep", "haftalik_saat": 3},
+  {"id": "a-9b-ing", "sinif_id": "s-9b", "ders_id": "d-ing", "ogretmen_id": "o-ali", "haftalik_saat": 4},
+  {"id": "a-9b-tar", "sinif_id": "s-9b", "ders_id": "d-tar", "ogretmen_id": "o-fatma", "haftalik_saat": 3},
+
+  {"id": "a-10a-mat", "sinif_id": "s-10a", "ders_id": "d-mat", "ogretmen_id": "o-ayse", "haftalik_saat": 6},
+  {"id": "a-10a-tde", "sinif_id": "s-10a", "ders_id": "d-tde", "ogretmen_id": "o-mehmet", "haftalik_saat": 5},
+  {"id": "a-10a-fiz", "sinif_id": "s-10a", "ders_id": "d-fiz", "ogretmen_id": "o-zeynep", "haftalik_saat": 3},
+  {"id": "a-10a-kim", "sinif_id": "s-10a", "ders_id": "d-kim", "ogretmen_id": "o-zeynep", "haftalik_saat": 2},
+  {"id": "a-10a-ing", "sinif_id": "s-10a", "ders_id": "d-ing", "ogretmen_id": "o-ali", "haftalik_saat": 4},
+  {"id": "a-10a-cog", "sinif_id": "s-10a", "ders_id": "d-cog", "ogretmen_id": "o-fatma", "haftalik_saat": 3}
+ ],
+ "musaitlikler": [
+  {"ogretmen_id": "o-ayse", "gun": 0, "saat": 0, "durum": "gelemez"},
+  {"ogretmen_id": "o-ayse", "gun": 0, "saat": 1, "durum": "gelemez"},
+  {"ogretmen_id": "o-ayse", "gun": 0, "saat": 2, "durum": "gelemez"},
+  {"ogretmen_id": "o-ayse", "gun": 0, "saat": 3, "durum": "gelemez"},
+  {"ogretmen_id": "o-ayse", "gun": 0, "saat": 4, "durum": "gelemez"},
+  {"ogretmen_id": "o-ayse", "gun": 0, "saat": 5, "durum": "gelemez"},
+  {"ogretmen_id": "o-fatma", "gun": 4, "saat": 0, "durum": "gelemez"},
+  {"ogretmen_id": "o-fatma", "gun": 4, "saat": 1, "durum": "gelemez"},
+  {"ogretmen_id": "o-fatma", "gun": 4, "saat": 2, "durum": "gelemez"},
+  {"ogretmen_id": "o-fatma", "gun": 4, "saat": 3, "durum": "gelemez"},
+  {"ogretmen_id": "o-fatma", "gun": 4, "saat": 4, "durum": "gelemez"},
+  {"ogretmen_id": "o-fatma", "gun": 4, "saat": 5, "durum": "gelemez"},
+  {"ogretmen_id": "o-mehmet", "gun": 2, "saat": 0, "durum": "gelemez"},
+  {"ogretmen_id": "o-mehmet", "gun": 2, "saat": 1, "durum": "gelemez"},
+  {"ogretmen_id": "o-ali", "gun": 0, "saat": 5, "durum": "tercih_etmez"}
+ ],
+ "kisitlar": [
+  {"tur": "gunluk_ders_siniri", "parametreler": {"n": 2}, "zorunlu": true, "agirlik": 1}
+ ],
+ "kilitli_yerlesimler": [
+  {"ders_atama_id": "a-9a-mat", "gun": 1, "saat": 0, "kilitli": true}
+ ]
+}

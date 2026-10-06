@@ -11,6 +11,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+# Aynı ders bir sınıfa günde en fazla kaç saat konur (kisit tablosunda yoksa).
+VARSAYILAN_GUNLUK_DERS_SINIRI = 2
+GUNLUK_DERS_SINIRI_TURU = "gunluk_ders_siniri"
+
 
 class MusaitlikDurumu(str, Enum):
     GELEMEZ = "gelemez"  # zorunlu: bu saate ders konamaz
