@@ -10,8 +10,8 @@ testler geçer ve zamana göre kalite ölçülmüştür.
 | 1 | Paket iskeleti, veri modeli, arayüz, ADR'ler | Bitti (commit `1ff93f3`) |
 | 2 | Zorunlu kısıtlar, `CpSatCozucu`, doğrulayıcı, mini set | Bitti |
 | 3 | Esnek kısıtlar | Bitti |
-| 4 | Ön kontroller ve çözülemezlik açıklaması | **Sıradaki** |
-| 5 | Ek hedefler: öğretmene boş gün, en az değişiklikle güncelleme | Bekliyor |
+| 4 | Ön kontroller ve çözülemezlik açıklaması | Bitti |
+| 5 | Ek hedefler: öğretmene boş gün, en az değişiklikle güncelleme | **Sıradaki** |
 | 6 | Veri üretici, gerçekçi ve büyük setler, CLI, zamana göre kalite ölçümü | Bekliyor |
 
 Kapsam güncellemesi (3. alt adımdan sonra): öğretmene boş gün, çözülemezlik açıklaması ve en az
@@ -57,6 +57,7 @@ cozucu/
     kalite.py             bağımsız kalite ölçümü (boşluk, pencere, ...)       [3]
     on_kontrol.py         çözücüden önce anlaşılır hatalar                    [4]
     celiski.py            çözümsüzlükte çelişen kısıt gruplarını bulur        [4]
+    anlatim.py            kimlikleri adlara, gün/saati metne çevirir          [4]
     kisitlar/esnek.py  += BosGun, Degisiklik                                  [5]
     uretici.py            sabit tohumlu veri seti üretici                     [6]
     olcum.py              zamana göre kalite (çözüm geri çağırması)           [6]
@@ -133,7 +134,7 @@ Köşeli parantezdeki sayı, dosyanın hangi alt adımda yazıldığını göste
   bitişik olmayan çift ders 9 → 0, tercih etmez ihlali 1 → 0. Süre 0,1 sn'den yaklaşık 5-7 sn'ye
   çıktı (en iyi olduğunun kanıtı dahil).
 
-### 4. Ön kontroller ve çözülemezlik açıklaması
+### 4. Ön kontroller ve çözülemezlik açıklaması (bitti)
 Amaç: çözüm yoksa kullanıcı nedenini kendi diliyle öğrenir, kimlik değil ad görür.
 - **Yeni zorunlu kısıt: öğretmen günlük sınırı** (`OgretmenGunlukSiniri`, tur
   `ogretmen_gunluk_siniri`, parametre `m`, varsayılan 8). Bir öğretmen günde en fazla M saat derse
@@ -168,6 +169,22 @@ Amaç: çözüm yoksa kullanıcı nedenini kendi diliyle öğrenir, kimlik deği
 - Testler: her ön kontrol hatası için en az bir test, ön kontrolden geçen ama çözümsüz senaryolar
   için çelişki kümesinin doğru grupları içerdiğini gösteren testler.
 - ADR 0005: çözülemezlik açıklaması (ön kontrol + varsayım tabanlı çelişki çekirdeği).
+- Uygulama sırasında verilen kararlar:
+  - Küçültme denemelerinde grup literalleri varsayım olarak değil sabit (`lit == 0/1`) olarak
+    verilir ve model her denemede yeniden kurulur. Varsayımlar presolve'a görünmediği için mini
+    setteki bir sayma çelişkisinin kanıtı deneme başına 4,4 sn sürüyordu, sabitlerle 0,07 sn
+    sürüyor. Varsayım çekirdeği yalnızca aday kümeyi daraltmak için, sürenin en fazla üçte
+    biriyle kullanılır.
+  - Çelişki analizinin ayrı bir süre bütçesi vardır (`CELISKI_ANALIZ_SURESI_SN` = 30 sn, ana süre
+    sınırını aşmaz). Süre dolarsa o ana kadarki küme raporlanır.
+  - `on_kontrol` tutarsız veri bulursa kapasite kontrollerini yapmaz, çünkü bozuk referanslarla
+    hesap yanıltıcı mesaj üretir. `GirdiHatasi` yalnızca güvenlik ağı olarak kaldı.
+  - `CozumSonucu.mesajlar` genel bilgi içindir. Sorunlar `celiskiler` alanında yapılandırılmış
+    olarak döner.
+  - Testlerde senaryo girdileri `tests/yardimci.py:girdi_kur` ile kurulur: atamalarda geçen
+    öğretmen, sınıf ve dersleri kendisi ekler, böylece senaryolar ön kontrolün tutarlılık
+    denetiminden geçer.
+  - Türkçe iyelik eki (`Ayşe Yılmaz'ın`, `Mehmet Kaya'nın`) ünlü uyumuna göre üretilir.
 
 ### 5. Ek hedefler: öğretmene boş gün, en az değişiklikle güncelleme
 - **Öğretmene boş gün** (`BosGun`, esnek, varsayılan ağırlık 4, parametre `hedef_bos_gun`,

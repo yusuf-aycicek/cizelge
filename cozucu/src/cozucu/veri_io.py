@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from cozucu.model import (
+    Celiski,
     CozumDurumu,
     CozumGirdisi,
     CozumSonucu,
@@ -58,6 +59,10 @@ def sonuc_from_dict(veri: dict[str, Any]) -> CozumSonucu:
         toplam_ceza=veri.get("toplam_ceza"),
         mesajlar=list(veri.get("mesajlar", [])),
         sure_sn=veri.get("sure_sn", 0.0),
+        celiskiler=[
+            Celiski(tur=c["tur"], mesaj=c["mesaj"], ilgili=tuple(c.get("ilgili", ())))
+            for c in veri.get("celiskiler", [])
+        ],
     )
 
 

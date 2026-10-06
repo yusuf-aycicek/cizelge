@@ -11,7 +11,9 @@ from collections import Counter, defaultdict
 
 from cozucu.model import (
     GUNLUK_DERS_SINIRI_TURU,
+    OGRETMEN_GUNLUK_SINIRI_TURU,
     VARSAYILAN_GUNLUK_DERS_SINIRI,
+    VARSAYILAN_OGRETMEN_GUNLUK_SINIRI,
     CozumGirdisi,
     MusaitlikDurumu,
     Yerlesim,
@@ -72,7 +74,7 @@ def dogrula(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> list[str]:
             hatalar.append(f"Kilitli hücre yerinde değil: {k.ders_atama_id} gün {k.gun} saat {k.saat}")
 
     # Aynı ders bir sınıfa günde en fazla n saat, (sınıf, ders) çifti bazında.
-    n = _gunluk_ders_siniri(girdi)
+    n = girdi.zorunlu_parametre(GUNLUK_DERS_SINIRI_TURU, "n", VARSAYILAN_GUNLUK_DERS_SINIRI)
     if n is not None:
         gunluk = Counter(
             (atamalar[y.ders_atama_id].sinif_id, atamalar[y.ders_atama_id].ders_id, y.gun)
@@ -82,13 +84,12 @@ def dogrula(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> list[str]:
             if adet > n:
                 hatalar.append(f"Günlük sınır aşıldı: {sinif} {ders} gün {g}: {adet} > {n}")
 
+    # Bir öğretmen günde en fazla m saat derse girer.
+    m = girdi.zorunlu_parametre(OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI)
+    if m is not None:
+        ogretmen_gunluk = Counter((o, g) for (o, g, _s), liste in ogretmen_hucre.items() for _ in liste)
+        for (ogretmen, g), adet in ogretmen_gunluk.items():
+            if adet > m:
+                hatalar.append(f"Öğretmen günlük sınırı aşıldı: {ogretmen} gün {g}: {adet} > {m}")
+
     return hatalar
-
-
-def _gunluk_ders_siniri(girdi: CozumGirdisi) -> int | None:
-    """Zorunlu günlük sınır; kural esnek tanımlanmışsa None (zorunlu denetim yapılmaz)."""
-    n: int | None = VARSAYILAN_GUNLUK_DERS_SINIRI
-    for tanim in girdi.kisitlar:
-        if tanim.tur == GUNLUK_DERS_SINIRI_TURU:
-            n = tanim.parametreler.get("n", VARSAYILAN_GUNLUK_DERS_SINIRI) if tanim.zorunlu else None
-    return n

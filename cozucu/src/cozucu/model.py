@@ -14,6 +14,9 @@ from typing import Any
 # Aynı ders bir sınıfa günde en fazla kaç saat konur (kisit tablosunda yoksa).
 VARSAYILAN_GUNLUK_DERS_SINIRI = 2
 GUNLUK_DERS_SINIRI_TURU = "gunluk_ders_siniri"
+# Bir öğretmen günde en fazla kaç saat derse girer (kisit tablosunda yoksa).
+VARSAYILAN_OGRETMEN_GUNLUK_SINIRI = 8
+OGRETMEN_GUNLUK_SINIRI_TURU = "ogretmen_gunluk_siniri"
 
 
 class MusaitlikDurumu(str, Enum):
@@ -137,13 +140,39 @@ class CozumGirdisi:
     kilitli_yerlesimler: list[Yerlesim] = field(default_factory=list)
 
 
+    def zorunlu_parametre(self, tur: str, ad: str, varsayilan: int) -> int | None:
+        """Okul geneli bir kuralın zorunlu kipteki parametresi.
+
+        Kural tanımlı değilse varsayılan döner; esnek tanımlanmışsa None (zorunlu değil).
+        """
+        deger: int | None = varsayilan
+        for tanim in self.kisitlar:
+            if tanim.tur == tur:
+                deger = tanim.parametreler.get(ad, varsayilan) if tanim.zorunlu else None
+        return deger
+
+
+@dataclass(frozen=True)
+class Celiski:
+    """Programın üretilmesini engelleyen bir sorun, kullanıcının diliyle.
+
+    `ilgili`: sorunla ilgili öğretmen / sınıf / atama kimlikleri. Arayüz bunlarla ilgili
+    satırları ve hücreleri vurgulayabilir.
+    """
+
+    tur: str
+    mesaj: str
+    ilgili: tuple[str, ...] = ()
+
+
 @dataclass
 class CozumSonucu:
     durum: CozumDurumu
     yerlesimler: list[Yerlesim] = field(default_factory=list)
     toplam_ceza: int | None = None
-    mesajlar: list[str] = field(default_factory=list)
+    mesajlar: list[str] = field(default_factory=list)  # genel bilgi (ör. süre doldu)
     sure_sn: float = 0.0
+    celiskiler: list[Celiski] = field(default_factory=list)  # çözüm yoksa nedenleri
 
     @property
     def basarili(self) -> bool:

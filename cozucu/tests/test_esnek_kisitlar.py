@@ -9,7 +9,6 @@ import pytest
 
 from cozucu import (
     CozumDurumu,
-    CozumGirdisi,
     CpSatCozucu,
     DersAtama,
     KisitTanimi,
@@ -20,6 +19,8 @@ from cozucu import (
     dogrula,
     olc,
 )
+from yardimci import girdi_kur
+
 from cozucu.kisitlar import VARSAYILAN_KISITLAR
 
 ESNEK_TURLER = [t.tur for t in VARSAYILAN_KISITLAR if not t.zorunlu]
@@ -63,7 +64,7 @@ def saatler(sonuc, atama_id):
 
 
 def test_tercih_etmez_saatinden_kacinilir():
-    girdi = CozumGirdisi(
+    girdi = girdi_kur(
         ayar=OkulAyari(1, 2),
         atamalar=[atama("a")],
         musaitlikler=[Musaitlik("o1", 0, 0, MusaitlikDurumu.TERCIH_ETMEZ)],
@@ -74,7 +75,7 @@ def test_tercih_etmez_saatinden_kacinilir():
 
 
 def test_tercih_etmez_kacinilamazsa_agirlik_kadar_ceza():
-    girdi = CozumGirdisi(
+    girdi = girdi_kur(
         ayar=OkulAyari(1, 1),
         atamalar=[atama("a")],
         musaitlikler=[Musaitlik("o1", 0, 0, MusaitlikDurumu.TERCIH_ETMEZ)],
@@ -90,7 +91,7 @@ def test_tercih_etmez_kacinilamazsa_agirlik_kadar_ceza():
 
 def test_ogretmen_penceresi_kapanir():
     # o1'in 9-A dersi 1. saatte kilitli; 9-B dersi bitişik saate (2. saat) gelmeli.
-    girdi = CozumGirdisi(
+    girdi = girdi_kur(
         ayar=OkulAyari(1, 5),
         atamalar=[atama("a", sinif="s1"), atama("b", sinif="s2")],
         kilitli_yerlesimler=[kilit("a", 0, 0)],
@@ -102,7 +103,7 @@ def test_ogretmen_penceresi_kapanir():
 
 def test_ogretmen_penceresi_kacinilamazsa_saat_basina_ceza():
     # 2. ve 3. saatte gelemez: en iyi ihtimalle 4. saat, pencere = 2 saat.
-    girdi = CozumGirdisi(
+    girdi = girdi_kur(
         ayar=OkulAyari(1, 5),
         atamalar=[atama("a", sinif="s1"), atama("b", sinif="s2")],
         musaitlikler=[gelemez("o1", 0, 1), gelemez("o1", 0, 2)],
@@ -120,7 +121,7 @@ def test_ogretmen_penceresi_kacinilamazsa_saat_basina_ceza():
 
 def test_sinif_bosluklari_gun_sonuna_toplanir():
     # 3. saat kilitli; diğer iki ders 1. ve 2. saati doldurmalı, boşluk kalmamalı.
-    girdi = CozumGirdisi(
+    girdi = girdi_kur(
         ayar=OkulAyari(1, 6),
         atamalar=[atama("a", ogretmen="o1"), atama("b", ogretmen="o2"), atama("c", ogretmen="o3")],
         kilitli_yerlesimler=[kilit("c", 0, 2)],
@@ -133,7 +134,7 @@ def test_sinif_bosluklari_gun_sonuna_toplanir():
 
 def test_bas_taraftaki_bosluk_da_sayilir():
     # Tek ders, öğretmen 1. saatte gelemez: ders 2. saate konur, baştaki 1 boş saat cezalı.
-    girdi = CozumGirdisi(
+    girdi = girdi_kur(
         ayar=OkulAyari(1, 6),
         atamalar=[atama("a")],
         musaitlikler=[gelemez("o1", 0, 0)],
@@ -149,7 +150,7 @@ def test_bas_taraftaki_bosluk_da_sayilir():
 
 
 def test_cift_ders_bitisik_konur():
-    girdi = CozumGirdisi(
+    girdi = girdi_kur(
         ayar=OkulAyari(1, 6),
         atamalar=[atama("mat", saat=2)],
         kilitli_yerlesimler=[kilit("mat", 0, 3)],
@@ -160,7 +161,7 @@ def test_cift_ders_bitisik_konur():
 
 
 def test_cift_ders_bolunmek_zorundaysa_ceza():
-    girdi = CozumGirdisi(
+    girdi = girdi_kur(
         ayar=OkulAyari(1, 6),
         atamalar=[atama("mat", saat=2)],
         musaitlikler=[gelemez("o1", 0, 2), gelemez("o1", 0, 4)],
@@ -174,7 +175,7 @@ def test_cift_ders_bolunmek_zorundaysa_ceza():
 
 def test_iki_gune_bolunen_ders_cezasizdir():
     # 2 saatlik ders iki ayrı güne birer saat konursa "bölünmüş" sayılmaz.
-    girdi = CozumGirdisi(
+    girdi = girdi_kur(
         ayar=OkulAyari(2, 3),
         atamalar=[atama("mat", saat=2)],
         kilitli_yerlesimler=[kilit("mat", 0, 0), kilit("mat", 1, 0)],
@@ -190,7 +191,7 @@ def test_gunluk_sinir_esnek_olunca_asilabilir_ama_cezalidir():
     tanimlar = yalniz("yok") + [
         KisitTanimi("gunluk_ders_siniri", {"n": 1}, zorunlu=False, agirlik=4)
     ]
-    girdi = CozumGirdisi(ayar=OkulAyari(1, 3), atamalar=[atama("a", saat=2)], kisitlar=tanimlar)
+    girdi = girdi_kur(ayar=OkulAyari(1, 3), atamalar=[atama("a", saat=2)], kisitlar=tanimlar)
     sonuc = coz(girdi)
     assert sonuc.toplam_ceza == 4
 
@@ -200,12 +201,12 @@ def test_gunluk_sinir_esnek_olunca_asilabilir_ama_cezalidir():
 
 def test_varsayilan_kurallar_okul_tanimi_olmadan_calisir():
     # kisitlar boş: varsayılan ağırlıklar devrede, 1. saat gelemez -> sınıf boşluğu 10.
-    girdi = CozumGirdisi(ayar=OkulAyari(1, 3), atamalar=[atama("a")], musaitlikler=[gelemez("o1", 0, 0)])
+    girdi = girdi_kur(ayar=OkulAyari(1, 3), atamalar=[atama("a")], musaitlikler=[gelemez("o1", 0, 0)])
     assert coz(girdi).toplam_ceza == 10
 
 
 def test_agirlik_sifir_kurali_kapatir():
-    girdi = CozumGirdisi(
+    girdi = girdi_kur(
         ayar=OkulAyari(1, 3),
         atamalar=[atama("a")],
         musaitlikler=[gelemez("o1", 0, 0)],
@@ -222,10 +223,10 @@ def test_agirlik_sifir_kurali_kapatir():
     ],
 )
 def test_gecersiz_esnek_tanim_on_kontrol_hatasi(tanim, mesaj):
-    girdi = CozumGirdisi(ayar=OkulAyari(1, 3), atamalar=[atama("a")], kisitlar=[tanim])
+    girdi = girdi_kur(ayar=OkulAyari(1, 3), atamalar=[atama("a")], kisitlar=[tanim])
     sonuc = CpSatCozucu().coz(girdi, sure_siniri_sn=5)
     assert sonuc.durum is CozumDurumu.ON_KONTROL_HATASI
-    assert mesaj in sonuc.mesajlar[0]
+    assert any(mesaj in c.mesaj for c in sonuc.celiskiler), sonuc.celiskiler
 
 
 # --- bağımsız ölçüm ----------------------------------------------------------------
@@ -236,7 +237,7 @@ def test_kalite_olcumu_elle_kurulmus_program():
     # s1 gün 0:      a    -    b    b      -> sınıf boşluğu 1
     # o1 gün 0:      a    -    b    b      -> pencere 1
     # s1 gün 1:      -    c    -    c      -> baştaki boşluk 1 + ortadaki 1; c bölünmüş (1)
-    girdi = CozumGirdisi(
+    girdi = girdi_kur(
         ayar=OkulAyari(2, 4),
         atamalar=[atama("a"), atama("b", saat=2), atama("c", ogretmen="o2", saat=2)],
         musaitlikler=[Musaitlik("o2", 1, 3, MusaitlikDurumu.TERCIH_ETMEZ)],

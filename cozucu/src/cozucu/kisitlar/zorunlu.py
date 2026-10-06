@@ -1,8 +1,11 @@
 """Zorunlu kurallar: ihlal edilemezler, modele doğrudan kısıt olarak eklenirler.
 
 İlk beşi programın anlamını oluşturur ve her zaman uygulanır (TEMEL_KURALLAR).
-`GunlukDersSiniri` okul geneli bir kuraldır, kayıt defterine kayıtlıdır ve parametresi
-`kisit` tablosundan değiştirilebilir; okul isterse onu esnek de yapabilir.
+`GunlukDersSiniri` ve `OgretmenGunlukSiniri` okul geneli kurallardır, kayıt defterine kayıtlıdır ve parametresi
+`kisit` tablosundan değiştirilebilir; okul isterse günlük ders sınırını esnek de yapabilir.
+
+Her zorunlu kısıt `baglam.grupla` ile anlamlı bir gruba bağlanır; çelişki analizi
+(`cozucu.celiski`) bu gruplarla "hangi kurallar birlikte sağlanamıyor" sorusunu cevaplar.
 """
 
 from __future__ import annotations
@@ -12,7 +15,9 @@ from collections import defaultdict
 from cozucu.kisitlar.temel import Baglam, CezaTerimi, KisitKurali, kaydet
 from cozucu.model import (
     GUNLUK_DERS_SINIRI_TURU,
+    OGRETMEN_GUNLUK_SINIRI_TURU,
     VARSAYILAN_GUNLUK_DERS_SINIRI,
+    VARSAYILAN_OGRETMEN_GUNLUK_SINIRI,
     DersAtama,
     MusaitlikDurumu,
 )
@@ -31,10 +36,11 @@ class HaftalikSaat(KisitKurali):
 
     def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
         for a in baglam.girdi.atamalar:
-            baglam.model.add(
+            kisit = baglam.model.add(
                 sum(baglam.x[a.id, g, s] for g in baglam.gunler for s in baglam.saatler)
                 == a.haftalik_saat
             )
+            baglam.grupla(kisit, "haftalik_saat", a.id)
         return []
 
 
@@ -70,7 +76,8 @@ class Gelemez(KisitKurali):
             if m.durum is not MusaitlikDurumu.GELEMEZ:
                 continue
             for a in baglam.ogretmen_atamalari.get(m.ogretmen_id, []):
-                baglam.model.add(baglam.hucre(a.id, m.gun, m.saat) == 0)
+                kisit = baglam.model.add(baglam.hucre(a.id, m.gun, m.saat) == 0)
+                baglam.grupla(kisit, "gelemez", m.ogretmen_id)
         return []
 
 
@@ -81,7 +88,8 @@ class KilitliHucre(KisitKurali):
 
     def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
         for y in baglam.girdi.kilitli_yerlesimler:
-            baglam.model.add(baglam.hucre(y.ders_atama_id, y.gun, y.saat) == 1)
+            kisit = baglam.model.add(baglam.hucre(y.ders_atama_id, y.gun, y.saat) == 1)
+            baglam.grupla(kisit, "kilit", y.ders_atama_id, y.gun, y.saat)
         return []
 
 
@@ -104,16 +112,40 @@ class GunlukDersSiniri(KisitKurali):
 
     def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
         cezalar: list[CezaTerimi] = []
-        for atamalar in sinif_ders_gruplari(baglam).values():
+        for (sinif_id, ders_id), atamalar in sinif_ders_gruplari(baglam).items():
             for g in baglam.gunler:
                 toplam = sum(baglam.dolu(atamalar, g, s) for s in baglam.saatler)
                 if self.zorunlu:
-                    baglam.model.add(toplam <= self.n)
+                    kisit = baglam.model.add(toplam <= self.n)
+                    baglam.grupla(kisit, "gunluk_ders", sinif_id, ders_id)
                 else:
                     fazla = baglam.model.new_int_var(0, len(baglam.saatler), "")
                     baglam.model.add(fazla >= toplam - self.n)
                     cezalar.append((fazla, self.agirlik))
         return cezalar
+
+
+@kaydet
+class OgretmenGunlukSiniri(KisitKurali):
+    """Bir öğretmen günde en fazla m saat derse girer (okuldan gelen kural, varsayılan 8)."""
+
+    tur = OGRETMEN_GUNLUK_SINIRI_TURU
+
+    def __init__(self, m: int = VARSAYILAN_OGRETMEN_GUNLUK_SINIRI) -> None:
+        if m < 1:
+            raise ValueError(f"m en az 1 olmalı: {m}")
+        self.m = m
+
+    def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
+        if self.m >= len(baglam.saatler):
+            return []  # okulun günü zaten m saatten kısa: kısıt hiçbir şeyi değiştirmez
+        for ogretmen_id, atamalar in baglam.ogretmen_atamalari.items():
+            for g in baglam.gunler:
+                kisit = baglam.model.add(
+                    sum(baglam.dolu(atamalar, g, s) for s in baglam.saatler) <= self.m
+                )
+                baglam.grupla(kisit, "ogretmen_gunluk", ogretmen_id)
+        return []
 
 
 def sinif_ders_gruplari(baglam: Baglam) -> dict[tuple[str, str], list[DersAtama]]:

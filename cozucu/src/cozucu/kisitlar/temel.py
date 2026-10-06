@@ -15,6 +15,8 @@ from cozucu.model import CozumGirdisi, DersAtama, KisitTanimi
 Anahtar = tuple[str, int, int]
 # Esnek kuralların döndürdüğü (ceza ifadesi, ağırlık) çiftleri. Zorunlu kurallar boş liste döner.
 CezaTerimi = tuple[cp_model.LinearExprT, int]
+# Çelişki analizinde bir kısıt grubunu adlandırır: ("gelemez", "o-ayse"), ("kilit", atama, gun, saat)
+GrupAnahtari = tuple[str | int, ...]
 
 
 class GirdiHatasi(Exception):
@@ -36,9 +38,23 @@ class Baglam:
     atama: dict[str, DersAtama]
     sinif_atamalari: dict[str, list[DersAtama]] = field(default_factory=dict)
     ogretmen_atamalari: dict[str, list[DersAtama]] = field(default_factory=dict)
+    # Çelişki analizi kipinde: grup anahtarı -> varsayım literali. Normal çözümde None.
+    gruplar: dict[GrupAnahtari, cp_model.IntVar] | None = None
+
+    def grupla(self, kisit: cp_model.Constraint, *anahtar: str | int) -> None:
+        """Zorunlu bir kısıtı anlamlı bir gruba bağlar (ör. "gelemez", öğretmen_id).
+
+        Normal çözümde hiçbir şey yapmaz. Analiz kipinde kısıt, grubun varsayım literali
+        doğruysa geçerli olur; CP-SAT böylece hangi grupların birlikte çeliştiğini söyleyebilir.
+        """
+        if self.gruplar is None:
+            return
+        if anahtar not in self.gruplar:
+            self.gruplar[anahtar] = self.model.new_bool_var(f"grup{anahtar}")
+        kisit.only_enforce_if(self.gruplar[anahtar])
 
     @classmethod
-    def kur(cls, girdi: CozumGirdisi) -> Baglam:
+    def kur(cls, girdi: CozumGirdisi, analiz: bool = False) -> Baglam:
         model = cp_model.CpModel()
         gunler = range(girdi.ayar.gun_sayisi)
         saatler = range(girdi.ayar.gunluk_ders_saati)
@@ -63,6 +79,7 @@ class Baglam:
             atama={a.id: a for a in girdi.atamalar},
             sinif_atamalari=dict(sinif_atamalari),
             ogretmen_atamalari=dict(ogretmen_atamalari),
+            gruplar={} if analiz else None,
         )
 
     def hucre(self, atama_id: str, gun: int, saat: int) -> cp_model.IntVar:

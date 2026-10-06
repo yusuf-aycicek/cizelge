@@ -88,3 +88,20 @@ def test_gunluk_sinir_asimi_yakalanir():
 
     uc = [KisitTanimi(tur="gunluk_ders_siniri", parametreler={"n": 3})]
     assert dogrula(CozumGirdisi(ayar=girdi.ayar, atamalar=girdi.atamalar, kisitlar=uc), program) == []
+
+
+def test_ogretmen_gunluk_siniri_asimi_yakalanir():
+    # o1 gün 0'da 3 saat derste (s1-mat x2, s2-mat x1); m=2 ile ihlal, varsayılan m=8 ile değil.
+    program = [
+        Yerlesim("s1-mat", 0, 0),
+        Yerlesim("s1-mat", 0, 1),
+        Yerlesim("s1-mat", 1, 0),
+        Yerlesim("s1-ing", 1, 1),
+        Yerlesim("s2-mat", 0, 2),
+        Yerlesim("s2-mat", 1, 2),
+    ]
+    girdi = CozumGirdisi(ayar=GIRDI.ayar, atamalar=GIRDI.atamalar)
+    assert dogrula(girdi, program) == []
+    m2 = [KisitTanimi(tur="ogretmen_gunluk_siniri", parametreler={"m": 2})]
+    hatalar = dogrula(CozumGirdisi(ayar=girdi.ayar, atamalar=girdi.atamalar, kisitlar=m2), program)
+    assert any("Öğretmen günlük sınırı aşıldı: o1 gün 0: 3 > 2" in h for h in hatalar), hatalar

@@ -5,7 +5,9 @@ from cozucu.kisitlar.temel import KAYIT_DEFTERI, Baglam, GirdiHatasi, KisitKural
 from cozucu.kisitlar.zorunlu import TEMEL_KURALLAR
 from cozucu.model import (
     GUNLUK_DERS_SINIRI_TURU,
+    OGRETMEN_GUNLUK_SINIRI_TURU,
     VARSAYILAN_GUNLUK_DERS_SINIRI,
+    VARSAYILAN_OGRETMEN_GUNLUK_SINIRI,
     CozumGirdisi,
     KisitTanimi,
 )
@@ -13,6 +15,7 @@ from cozucu.model import (
 # Okul hiçbir şey tanımlamazsa uygulanan okul geneli kurallar. Ağırlıklar plan kararı 3.
 VARSAYILAN_KISITLAR: tuple[KisitTanimi, ...] = (
     KisitTanimi(GUNLUK_DERS_SINIRI_TURU, {"n": VARSAYILAN_GUNLUK_DERS_SINIRI}, zorunlu=True),
+    KisitTanimi(OGRETMEN_GUNLUK_SINIRI_TURU, {"m": VARSAYILAN_OGRETMEN_GUNLUK_SINIRI}, zorunlu=True),
     KisitTanimi("tercih_etmez", zorunlu=False, agirlik=5),
     KisitTanimi("ogretmen_penceresi", zorunlu=False, agirlik=3),
     KisitTanimi("sinif_boslugu", zorunlu=False, agirlik=10),

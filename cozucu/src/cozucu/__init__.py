@@ -9,6 +9,7 @@ from cozucu.cpsat import CpSatCozucu
 from cozucu.dogrulama import dogrula
 from cozucu.kalite import KaliteOlcumu, olc
 from cozucu.model import (
+    Celiski,
     CozumDurumu,
     CozumGirdisi,
     CozumSonucu,
@@ -24,6 +25,7 @@ from cozucu.model import (
 )
 
 __all__ = [
+    "Celiski",
     "CozumDurumu",
     "CpSatCozucu",
     "dogrula",

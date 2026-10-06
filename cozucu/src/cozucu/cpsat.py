@@ -7,8 +7,13 @@ import time
 from ortools.sat.python import cp_model
 
 from cozucu.arayuz import VARSAYILAN_SURE_SINIRI_SN, ProgramCozucu
+from cozucu.celiski import celiskileri_bul
 from cozucu.kisitlar import Baglam, GirdiHatasi, kurallari_hazirla
-from cozucu.model import CozumDurumu, CozumGirdisi, CozumSonucu, Yerlesim
+from cozucu.model import Celiski, CozumDurumu, CozumGirdisi, CozumSonucu, Yerlesim
+from cozucu.on_kontrol import on_kontrol
+
+# Çözümsüzlükte çelişki analizine ayrılan en fazla süre (ana süre sınırından ayrı).
+CELISKI_ANALIZ_SURESI_SN = 30.0
 
 _DURUM_KARSILIGI = {
     cp_model.OPTIMAL: CozumDurumu.OPTIMAL,
@@ -26,15 +31,19 @@ class CpSatCozucu(ProgramCozucu):
         self, girdi: CozumGirdisi, sure_siniri_sn: float = VARSAYILAN_SURE_SINIRI_SN
     ) -> CozumSonucu:
         baslangic = time.perf_counter()
-        try:
-            baglam = Baglam.kur(girdi)
-            cezalar = []
-            for kural in kurallari_hazirla(girdi):
-                cezalar.extend(kural.uygula(baglam))
-        except GirdiHatasi as hata:
+        sorunlar = on_kontrol(girdi)
+        if not sorunlar:
+            try:
+                baglam = Baglam.kur(girdi)
+                cezalar = []
+                for kural in kurallari_hazirla(girdi):
+                    cezalar.extend(kural.uygula(baglam))
+            except GirdiHatasi as hata:  # ön kontrolün kaçırdığı bir tutarsızlık için güvenlik ağı
+                sorunlar = [Celiski("tutarsiz_veri", str(hata))]
+        if sorunlar:
             return CozumSonucu(
                 durum=CozumDurumu.ON_KONTROL_HATASI,
-                mesajlar=[str(hata)],
+                celiskiler=sorunlar,
                 sure_sn=time.perf_counter() - baslangic,
             )
 
@@ -63,6 +72,7 @@ class CpSatCozucu(ProgramCozucu):
                 )
         elif durum is CozumDurumu.COZUMSUZ:
             sonuc.mesajlar.append("Zorunlu kısıtların hepsini sağlayan bir program yok.")
+            sonuc.celiskiler = celiskileri_bul(girdi, min(sure_siniri_sn, CELISKI_ANALIZ_SURESI_SN))
         else:
             sonuc.mesajlar.append(
                 f"Süre sınırı ({sure_siniri_sn:g} sn) içinde çözüm bulunamadı "
