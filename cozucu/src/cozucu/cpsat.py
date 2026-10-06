@@ -7,8 +7,7 @@ import time
 from ortools.sat.python import cp_model
 
 from cozucu.arayuz import VARSAYILAN_SURE_SINIRI_SN, ProgramCozucu
-from cozucu.kisitlar import TEMEL_KURALLAR, Baglam, GirdiHatasi, KisitKurali, kural_olustur
-from cozucu.kisitlar.zorunlu import GunlukDersSiniri
+from cozucu.kisitlar import Baglam, GirdiHatasi, kurallari_hazirla
 from cozucu.model import CozumDurumu, CozumGirdisi, CozumSonucu, Yerlesim
 
 _DURUM_KARSILIGI = {
@@ -16,23 +15,6 @@ _DURUM_KARSILIGI = {
     cp_model.FEASIBLE: CozumDurumu.UYGUN,
     cp_model.INFEASIBLE: CozumDurumu.COZUMSUZ,
 }
-
-
-def okul_geneli_kurallar(girdi: CozumGirdisi) -> tuple[list[KisitKurali], list[str]]:
-    """Varsayılan okul geneli kurallar + `kisit` tablosundan gelen geçersiz kılmalar.
-
-    Aynı `tur` için tanım varsa varsayılanın yerini alır. `zorunlu=False` tanımlar esnek
-    kurallar olarak 3. alt adımda işlenecek; şimdilik zorunlu sürümü devre dışı bırakırlar.
-    """
-    kurallar: dict[str, KisitKurali] = {GunlukDersSiniri.tur: GunlukDersSiniri()}
-    notlar: list[str] = []
-    for tanim in girdi.kisitlar:
-        if tanim.zorunlu:
-            kurallar[tanim.tur] = kural_olustur(tanim)
-        else:
-            kurallar.pop(tanim.tur, None)
-            notlar.append(f"Esnek kısıt henüz uygulanmıyor: {tanim.tur}")
-    return list(kurallar.values()), notlar
 
 
 class CpSatCozucu(ProgramCozucu):
@@ -46,9 +28,8 @@ class CpSatCozucu(ProgramCozucu):
         baslangic = time.perf_counter()
         try:
             baglam = Baglam.kur(girdi)
-            ek_kurallar, mesajlar = okul_geneli_kurallar(girdi)
             cezalar = []
-            for kural in [k() for k in TEMEL_KURALLAR] + ek_kurallar:
+            for kural in kurallari_hazirla(girdi):
                 cezalar.extend(kural.uygula(baglam))
         except GirdiHatasi as hata:
             return CozumSonucu(
@@ -67,7 +48,7 @@ class CpSatCozucu(ProgramCozucu):
         cp_durum = solver.solve(baglam.model)
         durum = _DURUM_KARSILIGI.get(cp_durum, CozumDurumu.BILINMIYOR)
 
-        sonuc = CozumSonucu(durum=durum, mesajlar=mesajlar)
+        sonuc = CozumSonucu(durum=durum)
         if sonuc.basarili:
             kilitli = {(y.ders_atama_id, y.gun, y.saat) for y in girdi.kilitli_yerlesimler}
             sonuc.yerlesimler = [
@@ -76,6 +57,10 @@ class CpSatCozucu(ProgramCozucu):
                 if solver.boolean_value(degisken)
             ]
             sonuc.toplam_ceza = round(solver.objective_value) if cezalar else 0
+            if durum is CozumDurumu.UYGUN:
+                sonuc.mesajlar.append(
+                    "Süre doldu: bulunan en iyi program döndü, daha iyisinin olmadığı kanıtlanamadı."
+                )
         elif durum is CozumDurumu.COZUMSUZ:
             sonuc.mesajlar.append("Zorunlu kısıtların hepsini sağlayan bir program yok.")
         else:

@@ -9,8 +9,8 @@ testler geçer.
 |---|---|---|
 | 1 | Paket iskeleti, veri modeli, arayüz, ADR'ler | Bitti (commit `1ff93f3`) |
 | 2 | Zorunlu kısıtlar, `CpSatCozucu`, doğrulayıcı, mini set | Bitti |
-| 3 | Esnek kısıtlar | **Sıradaki** |
-| 4 | Ön kontroller ve çözümsüzlük mesajı | Bekliyor |
+| 3 | Esnek kısıtlar | Bitti |
+| 4 | Ön kontroller ve çözümsüzlük mesajı | **Sıradaki** |
 | 5 | Veri üretici, gerçekçi ve büyük setler, CLI tablo çıktısı, süre ölçümü | Bekliyor |
 
 Çalışma şekli: Her alt adım testler geçince `main` dalına commit edilir. Ardından ne yapıldığı
@@ -42,9 +42,10 @@ cozucu/
     kisitlar/temel.py     KisitKurali taban sınıfı + kayıt defteri            [2]
     kisitlar/zorunlu.py   HaftalikSaat, SinifCakismasi, OgretmenCakismasi,
                           Gelemez, KilitliHucre, GunlukDersSiniri(N)           [2]
-    kisitlar/esnek.py     TercihEtmez, OgretmenPencere, ArdisikDers,
-                          SinifBosluk                                         [3]
+    kisitlar/esnek.py     TercihEtmez, OgretmenPenceresi, ArdisikDers,
+                          SinifBoslugu                                        [3]
     dogrulama.py          bağımsız doğrulayıcı (çözücü kodunu kullanmaz)      [2]
+    kalite.py             bağımsız kalite ölçümü (boşluk, pencere, ...)       [3]
     on_kontrol.py         çözücüden önce anlaşılır hatalar                    [4]
     cli.py                python -m cozucu <veri.json> --sure 60              [5]
   tests/
@@ -90,19 +91,34 @@ Köşeli parantezdeki sayı, dosyanın hangi alt adımda yazıldığını göste
     `GirdiHatasi` fırlatır. `CpSatCozucu` bunu `on_kontrol_hatasi` durumuna çevirir. Ayrıntılı ön
     kontrol 4. alt adımda yapılacak.
   - `zorunlu=False` olarak tanımlanmış bir kural şimdilik zorunlu sürümünü kapatır ve not
-    bırakır. Kuralın esnek sürümü 3. alt adımda eklenecek.
+    bırakır. Kuralın esnek sürümü 3. alt adımda eklenecek. (3. adımda yerini gerçek esnek kip
+    aldı.)
   - Mini set: 5 gün × 6 saat. Gelemez: Ayşe pazartesi, Fatma cuma, Mehmet çarşamba 1-2. saat.
     Kilitli hücre: 9-A matematik, salı 1. saat.
 
-### 3. Esnek kısıtlar
-- Esnek kurallar `(ceza_ifadesi, agirlik)` döndürür. Çözücü toplam cezayı en aza indirir.
+### 3. Esnek kısıtlar (bitti)
+- Esnek kurallar `(ceza_ifadesi, agirlik)` döndürür. Çözücü ağırlıklı toplamı en aza indirir
+  (ADR 0004). Her ceza kullanıcının anlayacağı bir birimi sayar.
 - **Tercih etmez:** Tercih edilmeyen saate yerleşen her ders için ceza.
-- **Öğretmen penceresi:** Her öğretmen ve gün için ilk ve son ders saati değişkenleri tutulur.
-  Pencere = (son − ilk + 1) − o günkü ders sayısı.
-- **Ardışık ders:** Aynı ders bir günde 2 saat yerleşmiş ama bitişik değilse ceza.
-- **Sınıf boşluğu:** Bir saat boşken sonraki saat doluysa ceza. Böylece dersler günün başından
-  itibaren dolar.
-- Testler: Her kural için cezanın beklenen yönde çalıştığını gösteren küçük senaryolar.
+- **Öğretmen penceresi:** Öğretmenin gün içindeki ilk ve son dersi arasındaki her boş saat için
+  ceza. Plandaki ilk/son tamsayı değişkenleri yerine "bu saatte ya da önce / sonra dersi var"
+  boolean'ları kullanıldı. Model doğrusal kalır ve yayılım daha iyidir.
+- **Ardışık ders:** Ceza = o gün o dersin blok sayısı − 1. Günde 2 saatlik derste bu, "bitişik
+  olmayan çift ders" sayısıdır. (sınıf, ders) bazında sayılır.
+- **Sınıf boşluğu:** Sınıfın, o gün sonrasında hâlâ dersi olan her boş saati için ceza (baştaki
+  boşluklar dahil). Plandaki "boş saatten sonra dolu saat" tanımı boşluk geçişlerini sayıyordu.
+  Kullanıcının istediği ölçüye (boş saat sayısı, boşluklar gün sonuna) uyması için değiştirildi.
+- **Günlük ders sınırı:** Esnek kipi eklendi. N'i aşan her saat için ceza.
+- Kurallar "zorunlu olabilir / esnek olabilir" bilgisini taşır. `kisit` tanımındaki `zorunlu` ve
+  `agirlik` değerleri kurala aktarılır. Desteklenmeyen kip ya da negatif ağırlık
+  `on_kontrol_hatasi` verir. Ağırlık 0 kuralı kapatır.
+- Varsayılanlar `kisitlar.VARSAYILAN_KISITLAR` içinde `KisitTanimi` listesi olarak durur. Okulun
+  tanımı aynı `tur`'daki varsayılanın yerini alır.
+- `kalite.py`: aynı ölçüleri çözücüden bağımsız hesaplar. En iyi çözümde model cezasının bu
+  ölçümlerin ağırlıklı toplamına eşit olduğu testle denetlenir.
+- Mini set sonucu (öncesi → sonrası): sınıf boşluğu 10 → 0, öğretmen penceresi 13 → 0,
+  bitişik olmayan çift ders 9 → 0, tercih etmez ihlali 1 → 0. Süre 0,1 sn'den yaklaşık 5-7 sn'ye
+  çıktı (en iyi olduğunun kanıtı dahil).
 
 ### 4. Ön kontroller ve çözümsüzlük mesajı
 - Öğretmeni seçilmemiş atama var mı?

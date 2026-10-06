@@ -2,7 +2,7 @@
 
 İlk beşi programın anlamını oluşturur ve her zaman uygulanır (TEMEL_KURALLAR).
 `GunlukDersSiniri` okul geneli bir kuraldır, kayıt defterine kayıtlıdır ve parametresi
-`kisit` tablosundan değiştirilebilir.
+`kisit` tablosundan değiştirilebilir; okul isterse onu esnek de yapabilir.
 """
 
 from __future__ import annotations
@@ -90,10 +90,12 @@ class GunlukDersSiniri(KisitKurali):
     """Aynı ders bir sınıfa günde en fazla n saat konur.
 
     Atama bazında değil (sınıf, ders) çifti bazında sayılır: ileride aynı derse birden
-    fazla atama girildiğinde de kural doğru çalışır.
+    fazla atama girildiğinde de kural doğru çalışır. Varsayılan olarak zorunludur; okul
+    esnek tanımlarsa n'i aşan her saat ceza puanı getirir.
     """
 
     tur = GUNLUK_DERS_SINIRI_TURU
+    esnek_olabilir = True
 
     def __init__(self, n: int = VARSAYILAN_GUNLUK_DERS_SINIRI) -> None:
         if n < 1:
@@ -101,15 +103,24 @@ class GunlukDersSiniri(KisitKurali):
         self.n = n
 
     def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
-        gruplar: dict[tuple[str, str], list[DersAtama]] = defaultdict(list)
-        for a in baglam.girdi.atamalar:
-            gruplar[a.sinif_id, a.ders_id].append(a)
-        for atamalar in gruplar.values():
+        cezalar: list[CezaTerimi] = []
+        for atamalar in sinif_ders_gruplari(baglam).values():
             for g in baglam.gunler:
-                baglam.model.add(
-                    sum(baglam.x[a.id, g, s] for a in atamalar for s in baglam.saatler) <= self.n
-                )
-        return []
+                toplam = sum(baglam.dolu(atamalar, g, s) for s in baglam.saatler)
+                if self.zorunlu:
+                    baglam.model.add(toplam <= self.n)
+                else:
+                    fazla = baglam.model.new_int_var(0, len(baglam.saatler), "")
+                    baglam.model.add(fazla >= toplam - self.n)
+                    cezalar.append((fazla, self.agirlik))
+        return cezalar
+
+
+def sinif_ders_gruplari(baglam: Baglam) -> dict[tuple[str, str], list[DersAtama]]:
+    gruplar: dict[tuple[str, str], list[DersAtama]] = defaultdict(list)
+    for a in baglam.girdi.atamalar:
+        gruplar[a.sinif_id, a.ders_id].append(a)
+    return dict(gruplar)
 
 
 TEMEL_KURALLAR: tuple[type[KisitKurali], ...] = (

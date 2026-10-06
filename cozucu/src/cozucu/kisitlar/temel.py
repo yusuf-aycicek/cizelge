@@ -74,14 +74,28 @@ class Baglam:
         return self.x[atama_id, gun, saat]
 
 
+    def dolu(self, atamalar: list[DersAtama], gun: int, saat: int) -> cp_model.LinearExprT:
+        """Bu atamalardan biri o saatte var mı (0/1). Çakışma kuralları toplamı en fazla 1 tutar."""
+        return sum(self.x[a.id, gun, saat] for a in atamalar)
+
+
 class KisitKurali(ABC):
-    """Bir kural = bir sınıf. Yeni kural eklemek mevcut kodu değiştirmez."""
+    """Bir kural = bir sınıf. Yeni kural eklemek mevcut kodu değiştirmez.
+
+    `zorunlu` ve `agirlik` örneğe `kural_olustur` tarafından `kisit` tanımından aktarılır.
+    Sınıf, hangi kipte çalışabildiğini `zorunlu_olabilir` / `esnek_olabilir` ile bildirir.
+    """
 
     tur: ClassVar[str]
+    zorunlu_olabilir: ClassVar[bool] = True
+    esnek_olabilir: ClassVar[bool] = False
+
+    zorunlu: bool = True
+    agirlik: int = 1
 
     @abstractmethod
     def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
-        """Zorunlu kural modele kısıt ekler ve [] döner; esnek kural ceza terimleri döner."""
+        """Zorunlu kipte modele kısıt ekler ve [] döner; esnek kipte ceza terimleri döner."""
 
 
 # tur adı -> kural sınıfı. `kisit` tablosundaki satırlar bu yolla nesneye dönüşür.
@@ -99,7 +113,16 @@ def kural_olustur(tanim: KisitTanimi) -> KisitKurali:
     sinif = KAYIT_DEFTERI.get(tanim.tur)
     if sinif is None:
         raise GirdiHatasi(f"Bilinmeyen kısıt türü: {tanim.tur}")
+    if tanim.zorunlu and not sinif.zorunlu_olabilir:
+        raise GirdiHatasi(f"'{tanim.tur}' yalnızca esnek olabilir (zorunlu=false verin)")
+    if not tanim.zorunlu and not sinif.esnek_olabilir:
+        raise GirdiHatasi(f"'{tanim.tur}' yalnızca zorunlu olabilir")
+    if tanim.agirlik < 0:
+        raise GirdiHatasi(f"'{tanim.tur}' için ağırlık negatif olamaz: {tanim.agirlik}")
     try:
-        return sinif(**tanim.parametreler)
+        kural = sinif(**tanim.parametreler)
     except (TypeError, ValueError) as hata:
         raise GirdiHatasi(f"'{tanim.tur}' için geçersiz parametreler: {tanim.parametreler}") from hata
+    kural.zorunlu = tanim.zorunlu
+    kural.agirlik = tanim.agirlik
+    return kural
