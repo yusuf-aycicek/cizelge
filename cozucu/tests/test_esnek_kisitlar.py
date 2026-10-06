@@ -320,8 +320,11 @@ def test_bos_gun_ogretmen_gunluk_sinirini_hesaba_katar():
     assert ders_gunleri(girdi, sonuc.yerlesimler)["o1"] == 5
     assert sonuc.toplam_ceza == 0
 
+    # Varsayılan M ile hedef 4 gün: en fazla 4 gün çalışır. 3 güne de sığar (3 x 6 = 18) ve
+    # kural daha fazla sıkıştırmayı ne ödüllendirir ne cezalandırır; ikisi de cezasız.
     girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=atamalar, kisitlar=yalniz("bos_gun"))
-    assert ders_gunleri(girdi, coz(girdi).yerlesimler)["o1"] == 4
+    sonuc = coz(girdi)
+    assert ders_gunleri(girdi, sonuc.yerlesimler)["o1"] <= 4 and sonuc.toplam_ceza == 0
 
 
 # --- en az değişiklik ---------------------------------------------------------------
