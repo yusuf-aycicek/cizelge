@@ -23,6 +23,7 @@ tanımıdır, "gevşetilecek" bir şey değildir.
 
 from __future__ import annotations
 
+import re
 import time
 
 from ortools.sat.python import cp_model
@@ -117,34 +118,43 @@ class _Analiz:
         return [anahtar_of[i] for i in solver.sufficient_assumptions_for_infeasibility()] or None
 
 
+def _dogal_sira(madde: tuple[int, tuple[int, ...], str]) -> tuple:
+    """Metindeki sayılar sayı olarak karşılaştırılır: "9-A" < "10-A"."""
+    sira, zaman, metin = madde
+    return sira, zaman, [int(p) if p.isdigit() else p for p in re.split(r"(\d+)", metin)]
+
+
 def _anlat(girdi: CozumGirdisi, cekirdek: list[GrupAnahtari]) -> Celiski:
     ad = Anlatim(girdi)
     atama = {a.id: a for a in girdi.atamalar}
     n = girdi.zorunlu_parametre(GUNLUK_DERS_SINIRI_TURU, "n", VARSAYILAN_GUNLUK_DERS_SINIRI)
     m = girdi.zorunlu_parametre(OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI)
 
-    maddeler: list[str] = []
+    # (tür sırası, zaman, metin): önce türe, kilitlerde zamana, sonra okunan metne göre sıralanır.
+    maddeler: list[tuple[int, tuple[int, ...], str]] = []
     ilgili: list[str] = []
-    for anahtar in sorted(cekirdek, key=lambda k: (_SIRA.index(str(k[0])), [str(p) for p in k[1:]])):
+    for anahtar in cekirdek:
         tur, *p = anahtar
+        sira = _SIRA.index(str(tur))
         if tur == "gelemez":
-            maddeler.append(f"{iyelik(ad.ogretmen(p[0]))} gelemez saatleri")
+            maddeler.append((sira, (), f"{iyelik(ad.ogretmen(p[0]))} gelemez saatleri"))
             ilgili.append(p[0])
         elif tur == "ogretmen_gunluk":
-            maddeler.append(f"{ad.ogretmen(p[0])} günde en fazla {m} saat derse girebilir")
+            maddeler.append((sira, (), f"{ad.ogretmen(p[0])} günde en fazla {m} saat derse girebilir"))
             ilgili.append(p[0])
         elif tur == "kilit":
-            maddeler.append(f"{ad.atama(p[0])} {ad.zaman(p[1], p[2])}te kilitli")
+            maddeler.append((sira, (p[1], p[2]), f"{ad.atama(p[0])} {ad.zaman(p[1], p[2])}te kilitli"))
             ilgili.append(p[0])
         elif tur == "gunluk_ders":
-            maddeler.append(f"{ad.sinif_ders(p[0], p[1])} bir günde en fazla {n} saat olabilir")
+            maddeler.append((sira, (), f"{ad.sinif_ders(p[0], p[1])} bir günde en fazla {n} saat olabilir"))
             ilgili.append(p[0])
         elif tur == "haftalik_saat":
             a = atama[p[0]]
-            maddeler.append(f"{ad.atama(a)} haftada {a.haftalik_saat} saat ({ad.ogretmen(a.ogretmen_id)})")
+            metin = f"{ad.atama(a)} haftada {a.haftalik_saat} saat ({ad.ogretmen(a.ogretmen_id)})"
+            maddeler.append((sira, (), metin))
             ilgili.append(a.id)
     mesaj = (
         "Şu kurallar birlikte sağlanamıyor, en az birinin gevşetilmesi gerekiyor:\n"
-        + "\n".join(f"- {madde}" for madde in maddeler)
+        + "\n".join(f"- {metin}" for *_, metin in sorted(maddeler, key=_dogal_sira))
     )
     return Celiski("celiski", mesaj, tuple(dict.fromkeys(ilgili)))
