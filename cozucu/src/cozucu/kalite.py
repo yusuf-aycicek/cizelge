@@ -22,6 +22,22 @@ from cozucu.model import (
 )
 
 
+# Her ölçünün karşılığı olan esnek kuralın türü. Ağırlıklarla çarpılınca model cezası elde edilir.
+OLCU_KURAL_TURU = {
+    "sinif_boslugu": "sinif_boslugu",
+    "ogretmen_penceresi": "ogretmen_penceresi",
+    "bolunmus_ders": "ardisik_ders",
+    "tercih_etmez": "tercih_etmez",
+    "eksik_bos_gun": BOS_GUN_TURU,
+    "degisen_yerlesim": "degisiklik",
+}
+
+
+def agirlikli_ceza(olcum: KaliteOlcumu, agirliklar: dict[str, int]) -> int:
+    """Ölçümlerin ağırlıklı toplamı; en iyi çözümde modelin toplam cezasına eşittir."""
+    return sum(agirliklar.get(tur, 0) * getattr(olcum, alan) for alan, tur in OLCU_KURAL_TURU.items())
+
+
 @dataclass(frozen=True)
 class KaliteOlcumu:
     sinif_boslugu: int  # sınıfın, o gün sonrasında hâlâ dersi olan boş saatleri

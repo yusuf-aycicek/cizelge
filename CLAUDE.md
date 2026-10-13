@@ -177,7 +177,17 @@ Her ders ataması, gün ve saat üçlüsü için bir boolean değişken: "bu ata
 - En az değişiklik (yalnızca temel program verildiğinde): temel programdaki bir yerleşim yeni
   programda yoksa ceza.
 
-Her esnek kısıtın ağırlığı okul tarafından ayarlanabilir, 0 kuralı kapatır.
+Her esnek kısıtın ağırlığı okul tarafından ayarlanabilir, 0 kuralı kapatır. Varsayılan ağırlıklar
+ve öncelik sırası:
+
+| Kural | Ağırlık | Gerekçe |
+|---|---|---|
+| Sınıf boşluğu | 30 | Gün ortasında boş kalan sınıf kabul edilemez, diğer bütün esnek kurallardan baskındır |
+| En az değişiklik | 8 | Öğretmen konforu kurallarından ağır, sınıf boşluğundan hafif |
+| Tercih etmez | 5 | |
+| Öğretmene boş gün | 4 | |
+| Öğretmen penceresi | 3 | |
+| Bölünmüş (ardışık olmayan) ders | 2 | |
 
 ### Davranış
 - Süre sınırı parametredir (varsayılan 60 saniye). Süre dolunca bulunan en iyi çözüm döner.

@@ -31,8 +31,14 @@ geçilmez.
    doğru çalışır.
 3. **Varsayılan ceza ağırlıkları:** tercih etmez = 5, öğretmen penceresi = 3, sınıf boşluğu = 10,
    ardışık olmayan ders = 2. Hepsi parametredir ve `kisit.agirlik` ile değiştirilebilir.
-   Sonradan eklenenler (onaylandı): boş gün = 4, değişiklik = 20.
+   Sonradan eklenenler (onaylandı): boş gün = 4, değişiklik = 20. (Karar 7 ile güncellendi.)
 5. **Kapsam güncellemesi:** 4 → 5 → 6 sırası ve `program.temel_program_id` alanı onaylandı.
+7. **Ağırlık güncellemesi (5. alt adımdan sonra):** sınıf boşluğu 10 → 30, değişiklik 20 → 8.
+   Gün ortasında boş kalan sınıf okulda kabul edilemez, diğer bütün esnek kurallardan baskın
+   olmalı. Değişiklik öğretmen konforu kurallarından (tercih etmez 5, boş gün 4, pencere 3)
+   ağır, sınıf boşluğundan hafif kalmalı. Mini sette Mehmet perşembe senaryosu: 8 hücre değişti,
+   sınıf boşluğu 0, bir öğretmen boş gününü kaybetti (eksik boş gün 1). Testler ağırlıkları artık
+   sabit sayı olarak değil `VARSAYILAN_KISITLAR`'dan okur.
 6. **Boş gün kuralı:** "en az gün" değil, "hedeflenen boş gün sayısı" (varsayılan 1). Öğretmenin
    günde en fazla M saat (varsayılan 8) derse girmesi ayrı bir zorunlu kısıttır.
 4. **Commit:** Her alt adımın sonunda `main` dalına commit atılır.
@@ -199,7 +205,7 @@ Amaç: çözüm yoksa kullanıcı nedenini kendi diliyle öğrenir, kimlik deği
   - Not: Belirli bir günün boş olması isteniyorsa bu zaten "gelemez"/"tercih etmez" ile ifade
     edilir. Bu kural yalnızca gün sayısını azaltır.
   - `kalite.py`: `eksik_bos_gun` ölçüsü (hedefe göre eksik kalan boş gün toplamı).
-- **En az değişiklikle güncelleme** (`Degisiklik`, esnek, varsayılan ağırlık 20):
+- **En az değişiklikle güncelleme** (`Degisiklik`, esnek, varsayılan ağırlık 20, sonra 8):
   - `CozumGirdisi.temel_yerlesimler: list[TemelYerlesim]` (isteğe bağlı, varsayılan boş).
     Plandaki `list[Yerlesim]` yerine (sınıf, ders, gün, saat) taşıyan ayrı bir yapı seçildi.
     Atama silinip yeniden oluşturulunca eski kimlik çözücü girdisinde artık bulunmaz; (sınıf, ders)
@@ -232,7 +238,8 @@ Amaç: çözüm yoksa kullanıcı nedenini kendi diliyle öğrenir, kimlik deği
   - Mini set ölçümü (Mehmet bir gün gelemez, temel programda o gün 5 dersi var): sıfırdan üretim
     71 hücreden 54'ünü değiştirdi. Temel programla ağırlık 20'de 5 hücre değişti, ama 3 sınıf
     boşluğu oluştu. Ağırlık 8'de 7 hücre değişti ve 1 boşluk kaldı, ağırlık 2'de 9 hücre değişti
-    ve boşluk kalmadı. Varsayılan ağırlık proje sahibine soruldu.
+    ve boşluk kalmadı. Varsayılan ağırlık proje sahibine soruldu; karar 7 ile 8 oldu ve sınıf
+    boşluğu 30'a çıktı.
   - Çok iş parçacıklı CP-SAT aynı girdide farklı (eşit cezalı) programlar üretebilir. Bu, 6. adımın
     ölçümlerinde tohum tekrarıyla ele alınacak.
 

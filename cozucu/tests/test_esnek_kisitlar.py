@@ -24,6 +24,7 @@ from yardimci import girdi_kur
 from cozucu.kisitlar import VARSAYILAN_KISITLAR
 
 ESNEK_TURLER = [t.tur for t in VARSAYILAN_KISITLAR if not t.zorunlu]
+AGIRLIK = {t.tur: t.agirlik for t in VARSAYILAN_KISITLAR if not t.zorunlu}
 
 
 def yalniz(tur, agirlik=None):
@@ -142,7 +143,7 @@ def test_bas_taraftaki_bosluk_da_sayilir():
     )
     sonuc = coz(girdi)
     assert saatler(sonuc, "a") == [1]
-    assert sonuc.toplam_ceza == 10
+    assert sonuc.toplam_ceza == AGIRLIK["sinif_boslugu"]
     assert olc(girdi, sonuc.yerlesimler).sinif_boslugu == 1
 
 
@@ -200,9 +201,9 @@ def test_gunluk_sinir_esnek_olunca_asilabilir_ama_cezalidir():
 
 
 def test_varsayilan_kurallar_okul_tanimi_olmadan_calisir():
-    # kisitlar boş: varsayılan ağırlıklar devrede, 1. saat gelemez -> sınıf boşluğu 10.
+    # kisitlar boş: varsayılan ağırlıklar devrede, 1. saat gelemez -> 1 sınıf boşluğu.
     girdi = girdi_kur(ayar=OkulAyari(1, 3), atamalar=[atama("a")], musaitlikler=[gelemez("o1", 0, 0)])
-    assert coz(girdi).toplam_ceza == 10
+    assert coz(girdi).toplam_ceza == AGIRLIK["sinif_boslugu"]
 
 
 def test_agirlik_sifir_kurali_kapatir():
@@ -359,7 +360,7 @@ def test_musaitlik_degisince_yalnizca_gereken_ders_kayar():
     )
     sonuc = coz(girdi)
     assert saatler(sonuc, "a") == [2] and saatler(sonuc, "b") == [1]
-    assert sonuc.toplam_ceza == 20
+    assert sonuc.toplam_ceza == AGIRLIK["degisiklik"]
     assert olc(girdi, sonuc.yerlesimler).degisen_yerlesim == 1
 
 
@@ -382,5 +383,5 @@ def test_kaldirilan_dersin_hucresi_degisiklik_sayilir():
                       kisitlar=yalniz("degisiklik"))
     sonuc = coz(girdi)
     assert saatler(sonuc, "a") == [0]
-    assert sonuc.toplam_ceza == 20
+    assert sonuc.toplam_ceza == AGIRLIK["degisiklik"]
     assert olc(girdi, sonuc.yerlesimler).degisen_yerlesim == 1

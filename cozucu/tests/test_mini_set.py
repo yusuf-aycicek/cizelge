@@ -5,6 +5,8 @@ from pathlib import Path
 import pytest
 
 from cozucu import CozumDurumu, CpSatCozucu, dogrula, olc
+from cozucu.kalite import agirlikli_ceza
+from cozucu.kisitlar import etkin_agirliklar
 from cozucu.veri_io import girdi_oku
 
 MINI = Path(__file__).resolve().parents[2] / "veri" / "mini.json"
@@ -34,11 +36,7 @@ def test_mini_set_en_iyi_cozum_ve_ceza_bagimsiz_olcumle_tutarli(girdi, sonuc):
     # En iyi çözümde modelin cezası, bağımsız ölçümlerin ağırlıklı toplamına eşit olmalı.
     assert sonuc.durum is CozumDurumu.OPTIMAL
     o = olc(girdi, sonuc.yerlesimler)
-    beklenen = (
-        5 * o.tercih_etmez + 3 * o.ogretmen_penceresi + 10 * o.sinif_boslugu + 2 * o.bolunmus_ders
-        + 4 * o.eksik_bos_gun + 20 * o.degisen_yerlesim
-    )
-    assert sonuc.toplam_ceza == beklenen
+    assert sonuc.toplam_ceza == agirlikli_ceza(o, etkin_agirliklar(girdi))
 
 
 def test_mini_set_siniflarda_ara_bosluk_yok(girdi, sonuc):

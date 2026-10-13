@@ -19,7 +19,7 @@ gereken değişikliği yapıp gerisini yerinde bırakmak.
   da silinip yeniden oluşturulan atama da "aynı ders" sayılır. "Bir sınıf, bir ders, bir öğretmen"
   modeli kalıcı olduğundan (CLAUDE.md bölüm 3) bu eşleştirme belirsiz değildir. Worker, eski
   programın yerleşimlerini `temel_program(...)` ile bu biçime çevirir.
-- **Değişiklik cezası** (`degisiklik`, esnek, varsayılan ağırlık 20): temel programdaki her hücre
+- **Değişiklik cezası** (`degisiklik`, esnek, varsayılan ağırlık 8; ilk sürümde 20): temel programdaki her hücre
   yeni programda yoksa 1 puan. Birimi "yer değiştiren ders saati"dir. Ölçüsü
   `kalite.degisen_yerlesim`'dir. Temel programda olup artık var olmayan dersler sabit ceza
   olarak eklenir. Bu, en iyi programı değiştirmez ama toplam cezayı ölçümle tutarlı tutar.
@@ -49,7 +49,11 @@ gereken değişikliği yapıp gerisini yerinde bırakmak.
   | 8 | 7 | 1 |
   | 2 | 9 | 0 |
 
-  Ağırlık bir sınıf boşluğunun cezasından (10) büyükse çözücü bir dersi daha kaydırmak yerine
-  sınıfta boş saat bırakmayı seçer. Varsayılanın seçimi proje sahibine sunulmuştur.
+  (Bu tablo sınıf boşluğu ağırlığı 10 iken ölçüldü.) Ağırlık bir sınıf boşluğunun cezasından
+  büyükse çözücü bir dersi daha kaydırmak yerine sınıfta boş saat bırakmayı seçer.
+- **Karar (2026-10-13):** değişiklik 8, sınıf boşluğu 30. Değişiklik öğretmen konforu
+  kurallarından ağır, sınıf boşluğundan hafif. Aynı senaryoda yeni ağırlıklarla 8 hücre değişti,
+  sınıf boşluğu 0 kaldı ve bir öğretmen boş gününü kaybetti (eksik boş gün 1, ceza 4 < 8). Sıfırdan
+  üretim aynı senaryoda 71 hücrenin 58'ini değiştirdi.
 - Ağırlık okul bazında ayarlanabilir. Arayüz bunu "mevcut programa bağlılık" gibi anlaşılır
   bir ayar olarak sunabilir.

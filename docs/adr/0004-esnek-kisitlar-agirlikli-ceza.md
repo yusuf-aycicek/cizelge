@@ -14,8 +14,10 @@ okul tarafından ayarlanabilmelidir.
 
 - Her esnek kural `(ceza ifadesi, ağırlık)` çiftleri döner. `CpSatCozucu` tek bir amaç
   fonksiyonunu en aza indirir: `Σ ağırlık × ceza`.
-- Varsayılan ağırlıklar: sınıf boşluğu 10, tercih etmez 5, öğretmen penceresi 3, bölünmüş
-  ders 2. Okul bunları `kisit.agirlik` ile değiştirebilir. Ağırlık 0 verilirse kural kapanır.
+- Varsayılan ağırlıklar (2026-10-13 güncellemesi): sınıf boşluğu 30, en az değişiklik 8,
+  tercih etmez 5, öğretmene boş gün 4, öğretmen penceresi 3, bölünmüş ders 2. Sınıf boşluğu
+  ilk sürümde 10'du. Gün ortasında boş kalan sınıf okulda kabul edilemez olduğu için diğer
+  bütün esnek kurallardan baskın olacak şekilde 30'a çıkarıldı. Okul bunları `kisit.agirlik` ile değiştirebilir. Ağırlık 0 verilirse kural kapanır.
 - Her ceza, kullanıcının anlayacağı bir birimi sayar: "boş saat", "pencere saati", "bölünmüş
   ders günü", "tercih edilmeyen saate konan ders". Ceza 0 ise o ölçüde program kusursuzdur.
 - Yardımcı değişkenler yalnızca alttan sınırlanır (ör. "bu saatte ya da sonrasında dersi var"
