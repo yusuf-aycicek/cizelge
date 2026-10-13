@@ -1,0 +1,6017 @@
+{
+ "ayar": {
+  "gun_sayisi": 5,
+  "gunluk_ders_saati": 8
+ },
+ "ogretmenler": [
+  {
+   "id": "o-001",
+   "ad": "Hasan Kılıç",
+   "brans": "Almanca"
+  },
+  {
+   "id": "o-002",
+   "ad": "Oğuz Yıldırım",
+   "brans": "Almanca"
+  },
+  {
+   "id": "o-003",
+   "ad": "İbrahim Öztürk",
+   "brans": "Beden Eğitimi"
+  },
+  {
+   "id": "o-004",
+   "ad": "Burak Çetin",
+   "brans": "Beden Eğitimi"
+  },
+  {
+   "id": "o-005",
+   "ad": "Selin Yılmaz",
+   "brans": "Beden Eğitimi"
+  },
+  {
+   "id": "o-006",
+   "ad": "Özlem Uçar",
+   "brans": "Beden Eğitimi"
+  },
+  {
+   "id": "o-007",
+   "ad": "Ali Uçar",
+   "brans": "Biyoloji"
+  },
+  {
+   "id": "o-008",
+   "ad": "Can Korkmaz",
+   "brans": "Biyoloji"
+  },
+  {
+   "id": "o-009",
+   "ad": "Merve Özdemir",
+   "brans": "Biyoloji"
+  },
+  {
+   "id": "o-010",
+   "ad": "Selin Özkan",
+   "brans": "Biyoloji"
+  },
+  {
+   "id": "o-011",
+   "ad": "Volkan Kara",
+   "brans": "Biyoloji"
+  },
+  {
+   "id": "o-012",
+   "ad": "Serkan Koç",
+   "brans": "Biyoloji"
+  },
+  {
+   "id": "o-013",
+   "ad": "İbrahim Yıldız",
+   "brans": "Coğrafya"
+  },
+  {
+   "id": "o-014",
+   "ad": "Gül Kurt",
+   "brans": "Coğrafya"
+  },
+  {
+   "id": "o-015",
+   "ad": "Volkan Erdoğan",
+   "brans": "Coğrafya"
+  },
+  {
+   "id": "o-016",
+   "ad": "Ayşe Aksoy",
+   "brans": "Din Kültürü"
+  },
+  {
+   "id": "o-017",
+   "ad": "Merve Kurt",
+   "brans": "Din Kültürü"
+  },
+  {
+   "id": "o-018",
+   "ad": "Can Kurt",
+   "brans": "Din Kültürü"
+  },
+  {
+   "id": "o-019",
+   "ad": "Esra Kılıç",
+   "brans": "Din Kültürü"
+  },
+  {
+   "id": "o-020",
+   "ad": "Fatma Kara",
+   "brans": "Edebiyat"
+  },
+  {
+   "id": "o-021",
+   "ad": "Serkan Doğan",
+   "brans": "Edebiyat"
+  },
+  {
+   "id": "o-022",
+   "ad": "Ahmet Kurt",
+   "brans": "Edebiyat"
+  },
+  {
+   "id": "o-023",
+   "ad": "Merve Koç",
+   "brans": "Edebiyat"
+  },
+  {
+   "id": "o-024",
+   "ad": "Özlem Kara",
+   "brans": "Edebiyat"
+  },
+  {
+   "id": "o-025",
+   "ad": "Kemal Doğan",
+   "brans": "Edebiyat"
+  },
+  {
+   "id": "o-026",
+   "ad": "Özlem Doğan",
+   "brans": "Edebiyat"
+  },
+  {
+   "id": "o-027",
+   "ad": "Ayşe Kurt",
+   "brans": "Edebiyat"
+  },
+  {
+   "id": "o-028",
+   "ad": "Mustafa Şimşek",
+   "brans": "Edebiyat"
+  },
+  {
+   "id": "o-029",
+   "ad": "Hüseyin Yılmaz",
+   "brans": "Felsefe"
+  },
+  {
+   "id": "o-030",
+   "ad": "Oğuz Öztürk",
+   "brans": "Felsefe"
+  },
+  {
+   "id": "o-031",
+   "ad": "Hatice Aydın",
+   "brans": "Fizik"
+  },
+  {
+   "id": "o-032",
+   "ad": "Ali Yıldız",
+   "brans": "Fizik"
+  },
+  {
+   "id": "o-033",
+   "ad": "İbrahim Aydın",
+   "brans": "Fizik"
+  },
+  {
+   "id": "o-034",
+   "ad": "Hasan Erdoğan",
+   "brans": "Fizik"
+  },
+  {
+   "id": "o-035",
+   "ad": "Selin Çetin",
+   "brans": "Fizik"
+  },
+  {
+   "id": "o-036",
+   "ad": "Murat Arslan",
+   "brans": "Fizik"
+  },
+  {
+   "id": "o-037",
+   "ad": "Zeynep Demir",
+   "brans": "Kimya"
+  },
+  {
+   "id": "o-038",
+   "ad": "Selin Özdemir",
+   "brans": "Kimya"
+  },
+  {
+   "id": "o-039",
+   "ad": "Emre Yıldız",
+   "brans": "Kimya"
+  },
+  {
+   "id": "o-040",
+   "ad": "Özlem Özkan",
+   "brans": "Kimya"
+  },
+  {
+   "id": "o-041",
+   "ad": "Büşra Çelik",
+   "brans": "Kimya"
+  },
+  {
+   "id": "o-042",
+   "ad": "Volkan Kaya",
+   "brans": "Kimya"
+  },
+  {
+   "id": "o-043",
+   "ad": "Mehmet Şahin",
+   "brans": "Matematik"
+  },
+  {
+   "id": "o-044",
+   "ad": "İbrahim Kılıç",
+   "brans": "Matematik"
+  },
+  {
+   "id": "o-045",
+   "ad": "Selin Koç",
+   "brans": "Matematik"
+  },
+  {
+   "id": "o-046",
+   "ad": "Mehmet Yılmaz",
+   "brans": "Matematik"
+  },
+  {
+   "id": "o-047",
+   "ad": "Derya Şimşek",
+   "brans": "Matematik"
+  },
+  {
+   "id": "o-048",
+   "ad": "Serkan Kılıç",
+   "brans": "Matematik"
+  },
+  {
+   "id": "o-049",
+   "ad": "Volkan Özdemir",
+   "brans": "Matematik"
+  },
+  {
+   "id": "o-050",
+   "ad": "Ayşe Yıldız",
+   "brans": "Matematik"
+  },
+  {
+   "id": "o-051",
+   "ad": "Merve Arslan",
+   "brans": "Matematik"
+  },
+  {
+   "id": "o-052",
+   "ad": "Oğuz Özkan",
+   "brans": "Matematik"
+  },
+  {
+   "id": "o-053",
+   "ad": "Oğuz Çelik",
+   "brans": "Matematik"
+  },
+  {
+   "id": "o-054",
+   "ad": "Merve Aydın",
+   "brans": "Rehberlik"
+  },
+  {
+   "id": "o-055",
+   "ad": "İbrahim Şahin",
+   "brans": "Rehberlik"
+  },
+  {
+   "id": "o-056",
+   "ad": "Can Uçar",
+   "brans": "Sanat"
+  },
+  {
+   "id": "o-057",
+   "ad": "İbrahim Kurt",
+   "brans": "Sanat"
+  },
+  {
+   "id": "o-058",
+   "ad": "Hatice Kurt",
+   "brans": "Seçmeli"
+  },
+  {
+   "id": "o-059",
+   "ad": "Burak Arslan",
+   "brans": "Seçmeli"
+  },
+  {
+   "id": "o-060",
+   "ad": "Hüseyin Koç",
+   "brans": "Seçmeli"
+  },
+  {
+   "id": "o-061",
+   "ad": "Kemal Aydın",
+   "brans": "Seçmeli"
+  },
+  {
+   "id": "o-062",
+   "ad": "Gül Arslan",
+   "brans": "Seçmeli"
+  },
+  {
+   "id": "o-063",
+   "ad": "Derya Şahin",
+   "brans": "Seçmeli"
+  },
+  {
+   "id": "o-064",
+   "ad": "Selin Öztürk",
+   "brans": "Seçmeli"
+  },
+  {
+   "id": "o-065",
+   "ad": "Hüseyin Özkan",
+   "brans": "Tarih"
+  },
+  {
+   "id": "o-066",
+   "ad": "Oğuz Kılıç",
+   "brans": "Tarih"
+  },
+  {
+   "id": "o-067",
+   "ad": "Zeynep Özkan",
+   "brans": "Tarih"
+  },
+  {
+   "id": "o-068",
+   "ad": "Mustafa Öztürk",
+   "brans": "Tarih"
+  },
+  {
+   "id": "o-069",
+   "ad": "Elif Tekin",
+   "brans": "İngilizce"
+  },
+  {
+   "id": "o-070",
+   "ad": "Fatma Uçar",
+   "brans": "İngilizce"
+  },
+  {
+   "id": "o-071",
+   "ad": "Hüseyin Korkmaz",
+   "brans": "İngilizce"
+  },
+  {
+   "id": "o-072",
+   "ad": "Ayşe Demir",
+   "brans": "İngilizce"
+  },
+  {
+   "id": "o-073",
+   "ad": "Özlem Şahin",
+   "brans": "İngilizce"
+  },
+  {
+   "id": "o-074",
+   "ad": "Kemal Tekin",
+   "brans": "İngilizce"
+  },
+  {
+   "id": "o-075",
+   "ad": "Fatma Yıldırım",
+   "brans": "İngilizce"
+  }
+ ],
+ "siniflar": [
+  {
+   "id": "s-9a",
+   "ad": "9-A",
+   "seviye": 9
+  },
+  {
+   "id": "s-9b",
+   "ad": "9-B",
+   "seviye": 9
+  },
+  {
+   "id": "s-9c",
+   "ad": "9-C",
+   "seviye": 9
+  },
+  {
+   "id": "s-9d",
+   "ad": "9-D",
+   "seviye": 9
+  },
+  {
+   "id": "s-9e",
+   "ad": "9-E",
+   "seviye": 9
+  },
+  {
+   "id": "s-9f",
+   "ad": "9-F",
+   "seviye": 9
+  },
+  {
+   "id": "s-9g",
+   "ad": "9-G",
+   "seviye": 9
+  },
+  {
+   "id": "s-9h",
+   "ad": "9-H",
+   "seviye": 9
+  },
+  {
+   "id": "s-9i",
+   "ad": "9-I",
+   "seviye": 9
+  },
+  {
+   "id": "s-9j",
+   "ad": "9-J",
+   "seviye": 9
+  },
+  {
+   "id": "s-10a",
+   "ad": "10-A",
+   "seviye": 10
+  },
+  {
+   "id": "s-10b",
+   "ad": "10-B",
+   "seviye": 10
+  },
+  {
+   "id": "s-10c",
+   "ad": "10-C",
+   "seviye": 10
+  },
+  {
+   "id": "s-10d",
+   "ad": "10-D",
+   "seviye": 10
+  },
+  {
+   "id": "s-10e",
+   "ad": "10-E",
+   "seviye": 10
+  },
+  {
+   "id": "s-10f",
+   "ad": "10-F",
+   "seviye": 10
+  },
+  {
+   "id": "s-10g",
+   "ad": "10-G",
+   "seviye": 10
+  },
+  {
+   "id": "s-10h",
+   "ad": "10-H",
+   "seviye": 10
+  },
+  {
+   "id": "s-10i",
+   "ad": "10-I",
+   "seviye": 10
+  },
+  {
+   "id": "s-10j",
+   "ad": "10-J",
+   "seviye": 10
+  },
+  {
+   "id": "s-11a",
+   "ad": "11-A",
+   "seviye": 11
+  },
+  {
+   "id": "s-11b",
+   "ad": "11-B",
+   "seviye": 11
+  },
+  {
+   "id": "s-11c",
+   "ad": "11-C",
+   "seviye": 11
+  },
+  {
+   "id": "s-11d",
+   "ad": "11-D",
+   "seviye": 11
+  },
+  {
+   "id": "s-11e",
+   "ad": "11-E",
+   "seviye": 11
+  },
+  {
+   "id": "s-11f",
+   "ad": "11-F",
+   "seviye": 11
+  },
+  {
+   "id": "s-11g",
+   "ad": "11-G",
+   "seviye": 11
+  },
+  {
+   "id": "s-11h",
+   "ad": "11-H",
+   "seviye": 11
+  },
+  {
+   "id": "s-11i",
+   "ad": "11-I",
+   "seviye": 11
+  },
+  {
+   "id": "s-11j",
+   "ad": "11-J",
+   "seviye": 11
+  },
+  {
+   "id": "s-12a",
+   "ad": "12-A",
+   "seviye": 12
+  },
+  {
+   "id": "s-12b",
+   "ad": "12-B",
+   "seviye": 12
+  },
+  {
+   "id": "s-12c",
+   "ad": "12-C",
+   "seviye": 12
+  },
+  {
+   "id": "s-12d",
+   "ad": "12-D",
+   "seviye": 12
+  },
+  {
+   "id": "s-12e",
+   "ad": "12-E",
+   "seviye": 12
+  },
+  {
+   "id": "s-12f",
+   "ad": "12-F",
+   "seviye": 12
+  },
+  {
+   "id": "s-12g",
+   "ad": "12-G",
+   "seviye": 12
+  },
+  {
+   "id": "s-12h",
+   "ad": "12-H",
+   "seviye": 12
+  },
+  {
+   "id": "s-12i",
+   "ad": "12-I",
+   "seviye": 12
+  },
+  {
+   "id": "s-12j",
+   "ad": "12-J",
+   "seviye": 12
+  }
+ ],
+ "dersler": [
+  {
+   "id": "d-tde",
+   "ad": "Türk Dili ve Edebiyatı",
+   "kisa_ad": "TDE"
+  },
+  {
+   "id": "d-mat",
+   "ad": "Matematik",
+   "kisa_ad": "MAT"
+  },
+  {
+   "id": "d-fiz",
+   "ad": "Fizik",
+   "kisa_ad": "FIZ"
+  },
+  {
+   "id": "d-kim",
+   "ad": "Kimya",
+   "kisa_ad": "KIM"
+  },
+  {
+   "id": "d-biy",
+   "ad": "Biyoloji",
+   "kisa_ad": "BIY"
+  },
+  {
+   "id": "d-tar",
+   "ad": "Tarih",
+   "kisa_ad": "TAR"
+  },
+  {
+   "id": "d-ink",
+   "ad": "T.C. İnkılap Tarihi ve Atatürkçülük",
+   "kisa_ad": "INK"
+  },
+  {
+   "id": "d-cog",
+   "ad": "Coğrafya",
+   "kisa_ad": "COG"
+  },
+  {
+   "id": "d-fel",
+   "ad": "Felsefe",
+   "kisa_ad": "FEL"
+  },
+  {
+   "id": "d-din",
+   "ad": "Din Kültürü ve Ahlak Bilgisi",
+   "kisa_ad": "DIN"
+  },
+  {
+   "id": "d-ing",
+   "ad": "İngilizce",
+   "kisa_ad": "ING"
+  },
+  {
+   "id": "d-alm",
+   "ad": "Almanca",
+   "kisa_ad": "ALM"
+  },
+  {
+   "id": "d-bed",
+   "ad": "Beden Eğitimi ve Spor",
+   "kisa_ad": "BED"
+  },
+  {
+   "id": "d-gor",
+   "ad": "Görsel Sanatlar",
+   "kisa_ad": "GOR"
+  },
+  {
+   "id": "d-muz",
+   "ad": "Müzik",
+   "kisa_ad": "MUZ"
+  },
+  {
+   "id": "d-reh",
+   "ad": "Rehberlik ve Yönlendirme",
+   "kisa_ad": "REH"
+  },
+  {
+   "id": "d-sec",
+   "ad": "Seçmeli Ders",
+   "kisa_ad": "SEC"
+  }
+ ],
+ "atamalar": [
+  {
+   "id": "a-s-10b-alm",
+   "sinif_id": "s-10b",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-001",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10d-alm",
+   "sinif_id": "s-10d",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-001",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10f-alm",
+   "sinif_id": "s-10f",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-001",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10h-alm",
+   "sinif_id": "s-10h",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-001",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10j-alm",
+   "sinif_id": "s-10j",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-001",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9b-alm",
+   "sinif_id": "s-9b",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-001",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9d-alm",
+   "sinif_id": "s-9d",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-001",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9f-alm",
+   "sinif_id": "s-9f",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-001",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9h-alm",
+   "sinif_id": "s-9h",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-001",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9j-alm",
+   "sinif_id": "s-9j",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-001",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10a-alm",
+   "sinif_id": "s-10a",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-002",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10c-alm",
+   "sinif_id": "s-10c",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-002",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10e-alm",
+   "sinif_id": "s-10e",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-002",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10g-alm",
+   "sinif_id": "s-10g",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-002",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10i-alm",
+   "sinif_id": "s-10i",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-002",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9a-alm",
+   "sinif_id": "s-9a",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-002",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9c-alm",
+   "sinif_id": "s-9c",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-002",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9e-alm",
+   "sinif_id": "s-9e",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-002",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9g-alm",
+   "sinif_id": "s-9g",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-002",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9i-alm",
+   "sinif_id": "s-9i",
+   "ders_id": "d-alm",
+   "ogretmen_id": "o-002",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10a-bed",
+   "sinif_id": "s-10a",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-003",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10b-bed",
+   "sinif_id": "s-10b",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-003",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10c-bed",
+   "sinif_id": "s-10c",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-003",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10e-bed",
+   "sinif_id": "s-10e",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-003",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10g-bed",
+   "sinif_id": "s-10g",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-003",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11a-bed",
+   "sinif_id": "s-11a",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-003",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11e-bed",
+   "sinif_id": "s-11e",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-003",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11i-bed",
+   "sinif_id": "s-11i",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-003",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12c-bed",
+   "sinif_id": "s-12c",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-003",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12g-bed",
+   "sinif_id": "s-12g",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-003",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9a-bed",
+   "sinif_id": "s-9a",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-003",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9e-bed",
+   "sinif_id": "s-9e",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-003",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9i-bed",
+   "sinif_id": "s-9i",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-003",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10h-bed",
+   "sinif_id": "s-10h",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-004",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11b-bed",
+   "sinif_id": "s-11b",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-004",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11f-bed",
+   "sinif_id": "s-11f",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-004",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11j-bed",
+   "sinif_id": "s-11j",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-004",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12d-bed",
+   "sinif_id": "s-12d",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-004",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12h-bed",
+   "sinif_id": "s-12h",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-004",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9b-bed",
+   "sinif_id": "s-9b",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-004",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9f-bed",
+   "sinif_id": "s-9f",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-004",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9j-bed",
+   "sinif_id": "s-9j",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-004",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10d-bed",
+   "sinif_id": "s-10d",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-005",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10f-bed",
+   "sinif_id": "s-10f",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-005",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10i-bed",
+   "sinif_id": "s-10i",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-005",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11c-bed",
+   "sinif_id": "s-11c",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-005",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11g-bed",
+   "sinif_id": "s-11g",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-005",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12a-bed",
+   "sinif_id": "s-12a",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-005",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12e-bed",
+   "sinif_id": "s-12e",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-005",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12i-bed",
+   "sinif_id": "s-12i",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-005",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9c-bed",
+   "sinif_id": "s-9c",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-005",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9g-bed",
+   "sinif_id": "s-9g",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-005",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10j-bed",
+   "sinif_id": "s-10j",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-006",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11d-bed",
+   "sinif_id": "s-11d",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-006",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11h-bed",
+   "sinif_id": "s-11h",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-006",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12b-bed",
+   "sinif_id": "s-12b",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-006",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12f-bed",
+   "sinif_id": "s-12f",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-006",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12j-bed",
+   "sinif_id": "s-12j",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-006",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9d-bed",
+   "sinif_id": "s-9d",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-006",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9h-bed",
+   "sinif_id": "s-9h",
+   "ders_id": "d-bed",
+   "ogretmen_id": "o-006",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11i-biy",
+   "sinif_id": "s-11i",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-007",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12e-biy",
+   "sinif_id": "s-12e",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-007",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10a-biy",
+   "sinif_id": "s-10a",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-007",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10d-biy",
+   "sinif_id": "s-10d",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-007",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10j-biy",
+   "sinif_id": "s-10j",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-007",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9f-biy",
+   "sinif_id": "s-9f",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-007",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11f-biy",
+   "sinif_id": "s-11f",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-008",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12b-biy",
+   "sinif_id": "s-12b",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-008",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12h-biy",
+   "sinif_id": "s-12h",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-008",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10e-biy",
+   "sinif_id": "s-10e",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-008",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9a-biy",
+   "sinif_id": "s-9a",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-008",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9g-biy",
+   "sinif_id": "s-9g",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-008",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11c-biy",
+   "sinif_id": "s-11c",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-009",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11g-biy",
+   "sinif_id": "s-11g",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-009",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12c-biy",
+   "sinif_id": "s-12c",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-009",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12i-biy",
+   "sinif_id": "s-12i",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-009",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10f-biy",
+   "sinif_id": "s-10f",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-009",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9b-biy",
+   "sinif_id": "s-9b",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-009",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9h-biy",
+   "sinif_id": "s-9h",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-009",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11j-biy",
+   "sinif_id": "s-11j",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-010",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12f-biy",
+   "sinif_id": "s-12f",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-010",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10b-biy",
+   "sinif_id": "s-10b",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-010",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10g-biy",
+   "sinif_id": "s-10g",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-010",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9c-biy",
+   "sinif_id": "s-9c",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-010",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9i-biy",
+   "sinif_id": "s-9i",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-010",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11b-biy",
+   "sinif_id": "s-11b",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-011",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11e-biy",
+   "sinif_id": "s-11e",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-011",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12a-biy",
+   "sinif_id": "s-12a",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-011",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12g-biy",
+   "sinif_id": "s-12g",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-011",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10c-biy",
+   "sinif_id": "s-10c",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-011",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10i-biy",
+   "sinif_id": "s-10i",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-011",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9e-biy",
+   "sinif_id": "s-9e",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-011",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11a-biy",
+   "sinif_id": "s-11a",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-012",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11d-biy",
+   "sinif_id": "s-11d",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-012",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11h-biy",
+   "sinif_id": "s-11h",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-012",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12d-biy",
+   "sinif_id": "s-12d",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-012",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12j-biy",
+   "sinif_id": "s-12j",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-012",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10h-biy",
+   "sinif_id": "s-10h",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-012",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9d-biy",
+   "sinif_id": "s-9d",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-012",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9j-biy",
+   "sinif_id": "s-9j",
+   "ders_id": "d-biy",
+   "ogretmen_id": "o-012",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10g-cog",
+   "sinif_id": "s-10g",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-013",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10j-cog",
+   "sinif_id": "s-10j",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-013",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12c-cog",
+   "sinif_id": "s-12c",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-013",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12f-cog",
+   "sinif_id": "s-12f",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-013",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12i-cog",
+   "sinif_id": "s-12i",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-013",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9b-cog",
+   "sinif_id": "s-9b",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-013",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9e-cog",
+   "sinif_id": "s-9e",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-013",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9h-cog",
+   "sinif_id": "s-9h",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-013",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10b-cog",
+   "sinif_id": "s-10b",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-014",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10d-cog",
+   "sinif_id": "s-10d",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-014",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10f-cog",
+   "sinif_id": "s-10f",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-014",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10i-cog",
+   "sinif_id": "s-10i",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-014",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12b-cog",
+   "sinif_id": "s-12b",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-014",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12e-cog",
+   "sinif_id": "s-12e",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-014",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12h-cog",
+   "sinif_id": "s-12h",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-014",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9a-cog",
+   "sinif_id": "s-9a",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-014",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9d-cog",
+   "sinif_id": "s-9d",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-014",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9g-cog",
+   "sinif_id": "s-9g",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-014",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9j-cog",
+   "sinif_id": "s-9j",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-014",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10a-cog",
+   "sinif_id": "s-10a",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-015",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10c-cog",
+   "sinif_id": "s-10c",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-015",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10e-cog",
+   "sinif_id": "s-10e",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-015",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10h-cog",
+   "sinif_id": "s-10h",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-015",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12a-cog",
+   "sinif_id": "s-12a",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-015",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12d-cog",
+   "sinif_id": "s-12d",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-015",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12g-cog",
+   "sinif_id": "s-12g",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-015",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12j-cog",
+   "sinif_id": "s-12j",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-015",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9c-cog",
+   "sinif_id": "s-9c",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-015",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9f-cog",
+   "sinif_id": "s-9f",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-015",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9i-cog",
+   "sinif_id": "s-9i",
+   "ders_id": "d-cog",
+   "ogretmen_id": "o-015",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10a-din",
+   "sinif_id": "s-10a",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-016",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10b-din",
+   "sinif_id": "s-10b",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-016",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10c-din",
+   "sinif_id": "s-10c",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-016",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10e-din",
+   "sinif_id": "s-10e",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-016",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10i-din",
+   "sinif_id": "s-10i",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-016",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11c-din",
+   "sinif_id": "s-11c",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-016",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11g-din",
+   "sinif_id": "s-11g",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-016",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12a-din",
+   "sinif_id": "s-12a",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-016",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12e-din",
+   "sinif_id": "s-12e",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-016",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12i-din",
+   "sinif_id": "s-12i",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-016",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9c-din",
+   "sinif_id": "s-9c",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-016",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9g-din",
+   "sinif_id": "s-9g",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-016",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10f-din",
+   "sinif_id": "s-10f",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-017",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10j-din",
+   "sinif_id": "s-10j",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-017",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11d-din",
+   "sinif_id": "s-11d",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-017",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11h-din",
+   "sinif_id": "s-11h",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-017",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12b-din",
+   "sinif_id": "s-12b",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-017",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12f-din",
+   "sinif_id": "s-12f",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-017",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12j-din",
+   "sinif_id": "s-12j",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-017",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9d-din",
+   "sinif_id": "s-9d",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-017",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9h-din",
+   "sinif_id": "s-9h",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-017",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10g-din",
+   "sinif_id": "s-10g",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-018",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11a-din",
+   "sinif_id": "s-11a",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-018",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11e-din",
+   "sinif_id": "s-11e",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-018",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11i-din",
+   "sinif_id": "s-11i",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-018",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12c-din",
+   "sinif_id": "s-12c",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-018",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12g-din",
+   "sinif_id": "s-12g",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-018",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9a-din",
+   "sinif_id": "s-9a",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-018",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9e-din",
+   "sinif_id": "s-9e",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-018",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9i-din",
+   "sinif_id": "s-9i",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-018",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10d-din",
+   "sinif_id": "s-10d",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-019",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10h-din",
+   "sinif_id": "s-10h",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-019",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11b-din",
+   "sinif_id": "s-11b",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-019",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11f-din",
+   "sinif_id": "s-11f",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-019",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11j-din",
+   "sinif_id": "s-11j",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-019",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12d-din",
+   "sinif_id": "s-12d",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-019",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12h-din",
+   "sinif_id": "s-12h",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-019",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9b-din",
+   "sinif_id": "s-9b",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-019",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9f-din",
+   "sinif_id": "s-9f",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-019",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9j-din",
+   "sinif_id": "s-9j",
+   "ders_id": "d-din",
+   "ogretmen_id": "o-019",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10d-tde",
+   "sinif_id": "s-10d",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-020",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-10j-tde",
+   "sinif_id": "s-10j",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-020",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-11h-tde",
+   "sinif_id": "s-11h",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-020",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-12g-tde",
+   "sinif_id": "s-12g",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-020",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-9f-tde",
+   "sinif_id": "s-9f",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-020",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-10e-tde",
+   "sinif_id": "s-10e",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-021",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-11a-tde",
+   "sinif_id": "s-11a",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-021",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-11i-tde",
+   "sinif_id": "s-11i",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-021",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-12h-tde",
+   "sinif_id": "s-12h",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-021",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-9g-tde",
+   "sinif_id": "s-9g",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-021",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-10a-tde",
+   "sinif_id": "s-10a",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-022",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-10f-tde",
+   "sinif_id": "s-10f",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-022",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-11c-tde",
+   "sinif_id": "s-11c",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-022",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-12b-tde",
+   "sinif_id": "s-12b",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-022",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-9a-tde",
+   "sinif_id": "s-9a",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-022",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-9j-tde",
+   "sinif_id": "s-9j",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-022",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-10g-tde",
+   "sinif_id": "s-10g",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-023",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-11e-tde",
+   "sinif_id": "s-11e",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-023",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-12d-tde",
+   "sinif_id": "s-12d",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-023",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-9c-tde",
+   "sinif_id": "s-9c",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-023",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-12a-tde",
+   "sinif_id": "s-12a",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-024",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-12j-tde",
+   "sinif_id": "s-12j",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-024",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-9i-tde",
+   "sinif_id": "s-9i",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-024",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-10c-tde",
+   "sinif_id": "s-10c",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-025",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-10i-tde",
+   "sinif_id": "s-10i",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-025",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-11g-tde",
+   "sinif_id": "s-11g",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-025",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-12f-tde",
+   "sinif_id": "s-12f",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-025",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-9e-tde",
+   "sinif_id": "s-9e",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-025",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-11d-tde",
+   "sinif_id": "s-11d",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-026",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-12c-tde",
+   "sinif_id": "s-12c",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-026",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-9b-tde",
+   "sinif_id": "s-9b",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-026",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-11b-tde",
+   "sinif_id": "s-11b",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-027",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-11j-tde",
+   "sinif_id": "s-11j",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-027",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-12i-tde",
+   "sinif_id": "s-12i",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-027",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-9h-tde",
+   "sinif_id": "s-9h",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-027",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-10b-tde",
+   "sinif_id": "s-10b",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-028",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-10h-tde",
+   "sinif_id": "s-10h",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-028",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-11f-tde",
+   "sinif_id": "s-11f",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-028",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-12e-tde",
+   "sinif_id": "s-12e",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-028",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-9d-tde",
+   "sinif_id": "s-9d",
+   "ders_id": "d-tde",
+   "ogretmen_id": "o-028",
+   "haftalik_saat": 5
+  },
+  {
+   "id": "a-s-10c-fel",
+   "sinif_id": "s-10c",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-029",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10e-fel",
+   "sinif_id": "s-10e",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-029",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10g-fel",
+   "sinif_id": "s-10g",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-029",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10i-fel",
+   "sinif_id": "s-10i",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-029",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11a-fel",
+   "sinif_id": "s-11a",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-029",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11c-fel",
+   "sinif_id": "s-11c",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-029",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11e-fel",
+   "sinif_id": "s-11e",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-029",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11g-fel",
+   "sinif_id": "s-11g",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-029",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11i-fel",
+   "sinif_id": "s-11i",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-029",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10a-fel",
+   "sinif_id": "s-10a",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-030",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10b-fel",
+   "sinif_id": "s-10b",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-030",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10d-fel",
+   "sinif_id": "s-10d",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-030",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10f-fel",
+   "sinif_id": "s-10f",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-030",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10h-fel",
+   "sinif_id": "s-10h",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-030",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10j-fel",
+   "sinif_id": "s-10j",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-030",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11b-fel",
+   "sinif_id": "s-11b",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-030",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11d-fel",
+   "sinif_id": "s-11d",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-030",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11f-fel",
+   "sinif_id": "s-11f",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-030",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11h-fel",
+   "sinif_id": "s-11h",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-030",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11j-fel",
+   "sinif_id": "s-11j",
+   "ders_id": "d-fel",
+   "ogretmen_id": "o-030",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11g-fiz",
+   "sinif_id": "s-11g",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-031",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12c-fiz",
+   "sinif_id": "s-12c",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-031",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12i-fiz",
+   "sinif_id": "s-12i",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-031",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10f-fiz",
+   "sinif_id": "s-10f",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-031",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9b-fiz",
+   "sinif_id": "s-9b",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-031",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9h-fiz",
+   "sinif_id": "s-9h",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-031",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11d-fiz",
+   "sinif_id": "s-11d",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-032",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11j-fiz",
+   "sinif_id": "s-11j",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-032",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12f-fiz",
+   "sinif_id": "s-12f",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-032",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10b-fiz",
+   "sinif_id": "s-10b",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-032",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10g-fiz",
+   "sinif_id": "s-10g",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-032",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9c-fiz",
+   "sinif_id": "s-9c",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-032",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9i-fiz",
+   "sinif_id": "s-9i",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-032",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11a-fiz",
+   "sinif_id": "s-11a",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-033",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11c-fiz",
+   "sinif_id": "s-11c",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-033",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11h-fiz",
+   "sinif_id": "s-11h",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-033",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12d-fiz",
+   "sinif_id": "s-12d",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-033",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12j-fiz",
+   "sinif_id": "s-12j",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-033",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10h-fiz",
+   "sinif_id": "s-10h",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-033",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9d-fiz",
+   "sinif_id": "s-9d",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-033",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9j-fiz",
+   "sinif_id": "s-9j",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-033",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11b-fiz",
+   "sinif_id": "s-11b",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-034",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11e-fiz",
+   "sinif_id": "s-11e",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-034",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12a-fiz",
+   "sinif_id": "s-12a",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-034",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12g-fiz",
+   "sinif_id": "s-12g",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-034",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10c-fiz",
+   "sinif_id": "s-10c",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-034",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10i-fiz",
+   "sinif_id": "s-10i",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-034",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9e-fiz",
+   "sinif_id": "s-9e",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-034",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11i-fiz",
+   "sinif_id": "s-11i",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-035",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12e-fiz",
+   "sinif_id": "s-12e",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-035",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10a-fiz",
+   "sinif_id": "s-10a",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-035",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10e-fiz",
+   "sinif_id": "s-10e",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-035",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9a-fiz",
+   "sinif_id": "s-9a",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-035",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9g-fiz",
+   "sinif_id": "s-9g",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-035",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11f-fiz",
+   "sinif_id": "s-11f",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-036",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12b-fiz",
+   "sinif_id": "s-12b",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-036",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12h-fiz",
+   "sinif_id": "s-12h",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-036",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10d-fiz",
+   "sinif_id": "s-10d",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-036",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10j-fiz",
+   "sinif_id": "s-10j",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-036",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9f-fiz",
+   "sinif_id": "s-9f",
+   "ders_id": "d-fiz",
+   "ogretmen_id": "o-036",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11h-kim",
+   "sinif_id": "s-11h",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-037",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12d-kim",
+   "sinif_id": "s-12d",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-037",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12j-kim",
+   "sinif_id": "s-12j",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-037",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10j-kim",
+   "sinif_id": "s-10j",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-037",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9f-kim",
+   "sinif_id": "s-9f",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-037",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11a-kim",
+   "sinif_id": "s-11a",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-038",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11d-kim",
+   "sinif_id": "s-11d",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-038",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11i-kim",
+   "sinif_id": "s-11i",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-038",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12e-kim",
+   "sinif_id": "s-12e",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-038",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10a-kim",
+   "sinif_id": "s-10a",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-038",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10e-kim",
+   "sinif_id": "s-10e",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-038",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9a-kim",
+   "sinif_id": "s-9a",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-038",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9g-kim",
+   "sinif_id": "s-9g",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-038",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11f-kim",
+   "sinif_id": "s-11f",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-039",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12b-kim",
+   "sinif_id": "s-12b",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-039",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12h-kim",
+   "sinif_id": "s-12h",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-039",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10d-kim",
+   "sinif_id": "s-10d",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-039",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10h-kim",
+   "sinif_id": "s-10h",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-039",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9d-kim",
+   "sinif_id": "s-9d",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-039",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9j-kim",
+   "sinif_id": "s-9j",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-039",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11c-kim",
+   "sinif_id": "s-11c",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-040",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11g-kim",
+   "sinif_id": "s-11g",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-040",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12c-kim",
+   "sinif_id": "s-12c",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-040",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12i-kim",
+   "sinif_id": "s-12i",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-040",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10i-kim",
+   "sinif_id": "s-10i",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-040",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9e-kim",
+   "sinif_id": "s-9e",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-040",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11j-kim",
+   "sinif_id": "s-11j",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-041",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12f-kim",
+   "sinif_id": "s-12f",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-041",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10b-kim",
+   "sinif_id": "s-10b",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-041",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10f-kim",
+   "sinif_id": "s-10f",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-041",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9b-kim",
+   "sinif_id": "s-9b",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-041",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9h-kim",
+   "sinif_id": "s-9h",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-041",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11b-kim",
+   "sinif_id": "s-11b",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-042",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11e-kim",
+   "sinif_id": "s-11e",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-042",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12a-kim",
+   "sinif_id": "s-12a",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-042",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12g-kim",
+   "sinif_id": "s-12g",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-042",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10c-kim",
+   "sinif_id": "s-10c",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-042",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10g-kim",
+   "sinif_id": "s-10g",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-042",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9c-kim",
+   "sinif_id": "s-9c",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-042",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9i-kim",
+   "sinif_id": "s-9i",
+   "ders_id": "d-kim",
+   "ogretmen_id": "o-042",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10g-mat",
+   "sinif_id": "s-10g",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-043",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-11h-mat",
+   "sinif_id": "s-11h",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-043",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-12i-mat",
+   "sinif_id": "s-12i",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-043",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-9j-mat",
+   "sinif_id": "s-9j",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-043",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10a-mat",
+   "sinif_id": "s-10a",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-044",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10e-mat",
+   "sinif_id": "s-10e",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-044",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-11e-mat",
+   "sinif_id": "s-11e",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-044",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-12f-mat",
+   "sinif_id": "s-12f",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-044",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-9g-mat",
+   "sinif_id": "s-9g",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-044",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-11b-mat",
+   "sinif_id": "s-11b",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-045",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-12c-mat",
+   "sinif_id": "s-12c",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-045",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-9d-mat",
+   "sinif_id": "s-9d",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-045",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-11f-mat",
+   "sinif_id": "s-11f",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-046",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-12g-mat",
+   "sinif_id": "s-12g",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-046",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-9h-mat",
+   "sinif_id": "s-9h",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-046",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10c-mat",
+   "sinif_id": "s-10c",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-047",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10h-mat",
+   "sinif_id": "s-10h",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-047",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-11i-mat",
+   "sinif_id": "s-11i",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-047",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-12j-mat",
+   "sinif_id": "s-12j",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-047",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10i-mat",
+   "sinif_id": "s-10i",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-048",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-11j-mat",
+   "sinif_id": "s-11j",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-048",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-9a-mat",
+   "sinif_id": "s-9a",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-048",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10d-mat",
+   "sinif_id": "s-10d",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-049",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-11c-mat",
+   "sinif_id": "s-11c",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-049",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-12d-mat",
+   "sinif_id": "s-12d",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-049",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-9e-mat",
+   "sinif_id": "s-9e",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-049",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-11d-mat",
+   "sinif_id": "s-11d",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-050",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-12e-mat",
+   "sinif_id": "s-12e",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-050",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-9f-mat",
+   "sinif_id": "s-9f",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-050",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10j-mat",
+   "sinif_id": "s-10j",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-051",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-12a-mat",
+   "sinif_id": "s-12a",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-051",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-9b-mat",
+   "sinif_id": "s-9b",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-051",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10b-mat",
+   "sinif_id": "s-10b",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-052",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10f-mat",
+   "sinif_id": "s-10f",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-052",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-11g-mat",
+   "sinif_id": "s-11g",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-052",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-12h-mat",
+   "sinif_id": "s-12h",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-052",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-9i-mat",
+   "sinif_id": "s-9i",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-052",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-11a-mat",
+   "sinif_id": "s-11a",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-053",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-12b-mat",
+   "sinif_id": "s-12b",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-053",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-9c-mat",
+   "sinif_id": "s-9c",
+   "ders_id": "d-mat",
+   "ogretmen_id": "o-053",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10d-reh",
+   "sinif_id": "s-10d",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10f-reh",
+   "sinif_id": "s-10f",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10h-reh",
+   "sinif_id": "s-10h",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10j-reh",
+   "sinif_id": "s-10j",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-11b-reh",
+   "sinif_id": "s-11b",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-11d-reh",
+   "sinif_id": "s-11d",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-11f-reh",
+   "sinif_id": "s-11f",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-11h-reh",
+   "sinif_id": "s-11h",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-11j-reh",
+   "sinif_id": "s-11j",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-12b-reh",
+   "sinif_id": "s-12b",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-12d-reh",
+   "sinif_id": "s-12d",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-12f-reh",
+   "sinif_id": "s-12f",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-12h-reh",
+   "sinif_id": "s-12h",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-12j-reh",
+   "sinif_id": "s-12j",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9b-reh",
+   "sinif_id": "s-9b",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9d-reh",
+   "sinif_id": "s-9d",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9f-reh",
+   "sinif_id": "s-9f",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9h-reh",
+   "sinif_id": "s-9h",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9j-reh",
+   "sinif_id": "s-9j",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-054",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10a-reh",
+   "sinif_id": "s-10a",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10b-reh",
+   "sinif_id": "s-10b",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10c-reh",
+   "sinif_id": "s-10c",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10e-reh",
+   "sinif_id": "s-10e",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10g-reh",
+   "sinif_id": "s-10g",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10i-reh",
+   "sinif_id": "s-10i",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-11a-reh",
+   "sinif_id": "s-11a",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-11c-reh",
+   "sinif_id": "s-11c",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-11e-reh",
+   "sinif_id": "s-11e",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-11g-reh",
+   "sinif_id": "s-11g",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-11i-reh",
+   "sinif_id": "s-11i",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-12a-reh",
+   "sinif_id": "s-12a",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-12c-reh",
+   "sinif_id": "s-12c",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-12e-reh",
+   "sinif_id": "s-12e",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-12g-reh",
+   "sinif_id": "s-12g",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-12i-reh",
+   "sinif_id": "s-12i",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9a-reh",
+   "sinif_id": "s-9a",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9c-reh",
+   "sinif_id": "s-9c",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9e-reh",
+   "sinif_id": "s-9e",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9g-reh",
+   "sinif_id": "s-9g",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9i-reh",
+   "sinif_id": "s-9i",
+   "ders_id": "d-reh",
+   "ogretmen_id": "o-055",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10a-gor",
+   "sinif_id": "s-10a",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10a-muz",
+   "sinif_id": "s-10a",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10b-muz",
+   "sinif_id": "s-10b",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10c-muz",
+   "sinif_id": "s-10c",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10d-muz",
+   "sinif_id": "s-10d",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10e-muz",
+   "sinif_id": "s-10e",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10f-muz",
+   "sinif_id": "s-10f",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10g-muz",
+   "sinif_id": "s-10g",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10h-muz",
+   "sinif_id": "s-10h",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10i-muz",
+   "sinif_id": "s-10i",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10j-muz",
+   "sinif_id": "s-10j",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9a-muz",
+   "sinif_id": "s-9a",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9b-muz",
+   "sinif_id": "s-9b",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9c-muz",
+   "sinif_id": "s-9c",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9d-muz",
+   "sinif_id": "s-9d",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9e-muz",
+   "sinif_id": "s-9e",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9f-muz",
+   "sinif_id": "s-9f",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9g-muz",
+   "sinif_id": "s-9g",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9h-muz",
+   "sinif_id": "s-9h",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9i-muz",
+   "sinif_id": "s-9i",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9j-muz",
+   "sinif_id": "s-9j",
+   "ders_id": "d-muz",
+   "ogretmen_id": "o-056",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10b-gor",
+   "sinif_id": "s-10b",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10c-gor",
+   "sinif_id": "s-10c",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10d-gor",
+   "sinif_id": "s-10d",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10e-gor",
+   "sinif_id": "s-10e",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10f-gor",
+   "sinif_id": "s-10f",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10g-gor",
+   "sinif_id": "s-10g",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10h-gor",
+   "sinif_id": "s-10h",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10i-gor",
+   "sinif_id": "s-10i",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-10j-gor",
+   "sinif_id": "s-10j",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9a-gor",
+   "sinif_id": "s-9a",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9b-gor",
+   "sinif_id": "s-9b",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9c-gor",
+   "sinif_id": "s-9c",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9d-gor",
+   "sinif_id": "s-9d",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9e-gor",
+   "sinif_id": "s-9e",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9f-gor",
+   "sinif_id": "s-9f",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9g-gor",
+   "sinif_id": "s-9g",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9h-gor",
+   "sinif_id": "s-9h",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9i-gor",
+   "sinif_id": "s-9i",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9j-gor",
+   "sinif_id": "s-9j",
+   "ders_id": "d-gor",
+   "ogretmen_id": "o-057",
+   "haftalik_saat": 1
+  },
+  {
+   "id": "a-s-9a-sec",
+   "sinif_id": "s-9a",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-058",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-9b-sec",
+   "sinif_id": "s-9b",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-058",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-9f-sec",
+   "sinif_id": "s-9f",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-058",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10c-sec",
+   "sinif_id": "s-10c",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-058",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10j-sec",
+   "sinif_id": "s-10j",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-058",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11i-sec",
+   "sinif_id": "s-11i",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-058",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12f-sec",
+   "sinif_id": "s-12f",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-058",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9c-sec",
+   "sinif_id": "s-9c",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-059",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-9i-sec",
+   "sinif_id": "s-9i",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-059",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10f-sec",
+   "sinif_id": "s-10f",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-059",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11c-sec",
+   "sinif_id": "s-11c",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-059",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11j-sec",
+   "sinif_id": "s-11j",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-059",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12g-sec",
+   "sinif_id": "s-12g",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-059",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9g-sec",
+   "sinif_id": "s-9g",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-060",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10d-sec",
+   "sinif_id": "s-10d",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-060",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11a-sec",
+   "sinif_id": "s-11a",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-060",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11f-sec",
+   "sinif_id": "s-11f",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-060",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12c-sec",
+   "sinif_id": "s-12c",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-060",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12j-sec",
+   "sinif_id": "s-12j",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-060",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9j-sec",
+   "sinif_id": "s-9j",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-061",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10g-sec",
+   "sinif_id": "s-10g",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-061",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11d-sec",
+   "sinif_id": "s-11d",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-061",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12a-sec",
+   "sinif_id": "s-12a",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-061",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12h-sec",
+   "sinif_id": "s-12h",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-061",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9h-sec",
+   "sinif_id": "s-9h",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-062",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10e-sec",
+   "sinif_id": "s-10e",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-062",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11b-sec",
+   "sinif_id": "s-11b",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-062",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11g-sec",
+   "sinif_id": "s-11g",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-062",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12d-sec",
+   "sinif_id": "s-12d",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-062",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9e-sec",
+   "sinif_id": "s-9e",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-063",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10b-sec",
+   "sinif_id": "s-10b",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-063",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10i-sec",
+   "sinif_id": "s-10i",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-063",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11h-sec",
+   "sinif_id": "s-11h",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-063",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12e-sec",
+   "sinif_id": "s-12e",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-063",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9d-sec",
+   "sinif_id": "s-9d",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-064",
+   "haftalik_saat": 6
+  },
+  {
+   "id": "a-s-10a-sec",
+   "sinif_id": "s-10a",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-064",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10h-sec",
+   "sinif_id": "s-10h",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-064",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11e-sec",
+   "sinif_id": "s-11e",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-064",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12b-sec",
+   "sinif_id": "s-12b",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-064",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12i-sec",
+   "sinif_id": "s-12i",
+   "ders_id": "d-sec",
+   "ogretmen_id": "o-064",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10d-tar",
+   "sinif_id": "s-10d",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-065",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10h-tar",
+   "sinif_id": "s-10h",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-065",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11b-tar",
+   "sinif_id": "s-11b",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-065",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11f-tar",
+   "sinif_id": "s-11f",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-065",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11j-tar",
+   "sinif_id": "s-11j",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-065",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12d-ink",
+   "sinif_id": "s-12d",
+   "ders_id": "d-ink",
+   "ogretmen_id": "o-065",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12h-ink",
+   "sinif_id": "s-12h",
+   "ders_id": "d-ink",
+   "ogretmen_id": "o-065",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9b-tar",
+   "sinif_id": "s-9b",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-065",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9f-tar",
+   "sinif_id": "s-9f",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-065",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9j-tar",
+   "sinif_id": "s-9j",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-065",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10e-tar",
+   "sinif_id": "s-10e",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-066",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10i-tar",
+   "sinif_id": "s-10i",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-066",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11c-tar",
+   "sinif_id": "s-11c",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-066",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11g-tar",
+   "sinif_id": "s-11g",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-066",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12a-ink",
+   "sinif_id": "s-12a",
+   "ders_id": "d-ink",
+   "ogretmen_id": "o-066",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12e-ink",
+   "sinif_id": "s-12e",
+   "ders_id": "d-ink",
+   "ogretmen_id": "o-066",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12i-ink",
+   "sinif_id": "s-12i",
+   "ders_id": "d-ink",
+   "ogretmen_id": "o-066",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9c-tar",
+   "sinif_id": "s-9c",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-066",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9g-tar",
+   "sinif_id": "s-9g",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-066",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10a-tar",
+   "sinif_id": "s-10a",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-067",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10b-tar",
+   "sinif_id": "s-10b",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-067",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10c-tar",
+   "sinif_id": "s-10c",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-067",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10f-tar",
+   "sinif_id": "s-10f",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-067",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10j-tar",
+   "sinif_id": "s-10j",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-067",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11d-tar",
+   "sinif_id": "s-11d",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-067",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11h-tar",
+   "sinif_id": "s-11h",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-067",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12b-ink",
+   "sinif_id": "s-12b",
+   "ders_id": "d-ink",
+   "ogretmen_id": "o-067",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12f-ink",
+   "sinif_id": "s-12f",
+   "ders_id": "d-ink",
+   "ogretmen_id": "o-067",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12j-ink",
+   "sinif_id": "s-12j",
+   "ders_id": "d-ink",
+   "ogretmen_id": "o-067",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9d-tar",
+   "sinif_id": "s-9d",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-067",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9h-tar",
+   "sinif_id": "s-9h",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-067",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-10g-tar",
+   "sinif_id": "s-10g",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-068",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11a-tar",
+   "sinif_id": "s-11a",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-068",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11e-tar",
+   "sinif_id": "s-11e",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-068",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11i-tar",
+   "sinif_id": "s-11i",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-068",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12c-ink",
+   "sinif_id": "s-12c",
+   "ders_id": "d-ink",
+   "ogretmen_id": "o-068",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-12g-ink",
+   "sinif_id": "s-12g",
+   "ders_id": "d-ink",
+   "ogretmen_id": "o-068",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9a-tar",
+   "sinif_id": "s-9a",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-068",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9e-tar",
+   "sinif_id": "s-9e",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-068",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-9i-tar",
+   "sinif_id": "s-9i",
+   "ders_id": "d-tar",
+   "ogretmen_id": "o-068",
+   "haftalik_saat": 2
+  },
+  {
+   "id": "a-s-11d-ing",
+   "sinif_id": "s-11d",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-069",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12a-ing",
+   "sinif_id": "s-12a",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-069",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12h-ing",
+   "sinif_id": "s-12h",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-069",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-9e-ing",
+   "sinif_id": "s-9e",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-069",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10e-ing",
+   "sinif_id": "s-10e",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-070",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10j-ing",
+   "sinif_id": "s-10j",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-070",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11g-ing",
+   "sinif_id": "s-11g",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-070",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12d-ing",
+   "sinif_id": "s-12d",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-070",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-9a-ing",
+   "sinif_id": "s-9a",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-070",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-9h-ing",
+   "sinif_id": "s-9h",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-070",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10b-ing",
+   "sinif_id": "s-10b",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-071",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10g-ing",
+   "sinif_id": "s-10g",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-071",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11b-ing",
+   "sinif_id": "s-11b",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-071",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11i-ing",
+   "sinif_id": "s-11i",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-071",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12f-ing",
+   "sinif_id": "s-12f",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-071",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-9c-ing",
+   "sinif_id": "s-9c",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-071",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-9j-ing",
+   "sinif_id": "s-9j",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-071",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10d-ing",
+   "sinif_id": "s-10d",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-072",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10i-ing",
+   "sinif_id": "s-10i",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-072",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11f-ing",
+   "sinif_id": "s-11f",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-072",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12c-ing",
+   "sinif_id": "s-12c",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-072",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12j-ing",
+   "sinif_id": "s-12j",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-072",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-9g-ing",
+   "sinif_id": "s-9g",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-072",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11c-ing",
+   "sinif_id": "s-11c",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-073",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11j-ing",
+   "sinif_id": "s-11j",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-073",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12g-ing",
+   "sinif_id": "s-12g",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-073",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-9d-ing",
+   "sinif_id": "s-9d",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-073",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10a-ing",
+   "sinif_id": "s-10a",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-074",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10c-ing",
+   "sinif_id": "s-10c",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-074",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10h-ing",
+   "sinif_id": "s-10h",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-074",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11e-ing",
+   "sinif_id": "s-11e",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-074",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12b-ing",
+   "sinif_id": "s-12b",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-074",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12i-ing",
+   "sinif_id": "s-12i",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-074",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-9f-ing",
+   "sinif_id": "s-9f",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-074",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-10f-ing",
+   "sinif_id": "s-10f",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-075",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11a-ing",
+   "sinif_id": "s-11a",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-075",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-11h-ing",
+   "sinif_id": "s-11h",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-075",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-12e-ing",
+   "sinif_id": "s-12e",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-075",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-9b-ing",
+   "sinif_id": "s-9b",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-075",
+   "haftalik_saat": 4
+  },
+  {
+   "id": "a-s-9i-ing",
+   "sinif_id": "s-9i",
+   "ders_id": "d-ing",
+   "ogretmen_id": "o-075",
+   "haftalik_saat": 4
+  }
+ ],
+ "musaitlikler": [
+  {
+   "ogretmen_id": "o-001",
+   "gun": 4,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-001",
+   "gun": 4,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-001",
+   "gun": 4,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-001",
+   "gun": 4,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-001",
+   "gun": 4,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-001",
+   "gun": 4,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-001",
+   "gun": 4,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-001",
+   "gun": 4,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-004",
+   "gun": 1,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-004",
+   "gun": 1,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-004",
+   "gun": 1,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-004",
+   "gun": 1,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-004",
+   "gun": 1,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-004",
+   "gun": 1,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-004",
+   "gun": 1,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-004",
+   "gun": 1,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-006",
+   "gun": 0,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-006",
+   "gun": 0,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-006",
+   "gun": 0,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-006",
+   "gun": 0,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-006",
+   "gun": 0,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-006",
+   "gun": 0,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-006",
+   "gun": 0,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-006",
+   "gun": 0,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-016",
+   "gun": 2,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-016",
+   "gun": 2,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-016",
+   "gun": 2,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-016",
+   "gun": 2,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-016",
+   "gun": 2,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-016",
+   "gun": 2,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-016",
+   "gun": 2,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-016",
+   "gun": 2,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-017",
+   "gun": 0,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-017",
+   "gun": 0,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-017",
+   "gun": 0,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-017",
+   "gun": 0,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-017",
+   "gun": 0,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-017",
+   "gun": 0,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-017",
+   "gun": 0,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-017",
+   "gun": 0,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-029",
+   "gun": 2,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-029",
+   "gun": 2,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-029",
+   "gun": 2,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-029",
+   "gun": 2,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-029",
+   "gun": 2,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-029",
+   "gun": 2,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-029",
+   "gun": 2,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-029",
+   "gun": 2,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 1,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 1,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 1,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 1,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 1,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 1,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 1,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 1,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-040",
+   "gun": 1,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-040",
+   "gun": 1,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-040",
+   "gun": 1,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-040",
+   "gun": 1,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-040",
+   "gun": 1,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-040",
+   "gun": 1,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-040",
+   "gun": 1,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-040",
+   "gun": 1,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-042",
+   "gun": 0,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-042",
+   "gun": 0,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-042",
+   "gun": 0,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-042",
+   "gun": 0,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-042",
+   "gun": 0,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-042",
+   "gun": 0,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-042",
+   "gun": 0,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-042",
+   "gun": 0,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-045",
+   "gun": 3,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-045",
+   "gun": 3,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-045",
+   "gun": 3,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-045",
+   "gun": 3,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-045",
+   "gun": 3,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-045",
+   "gun": 3,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-045",
+   "gun": 3,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-045",
+   "gun": 3,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-046",
+   "gun": 4,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-046",
+   "gun": 4,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-046",
+   "gun": 4,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-046",
+   "gun": 4,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-046",
+   "gun": 4,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-046",
+   "gun": 4,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-046",
+   "gun": 4,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-046",
+   "gun": 4,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-062",
+   "gun": 0,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-062",
+   "gun": 0,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-062",
+   "gun": 0,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-062",
+   "gun": 0,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-062",
+   "gun": 0,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-062",
+   "gun": 0,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-062",
+   "gun": 0,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-062",
+   "gun": 0,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-068",
+   "gun": 0,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-068",
+   "gun": 0,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-068",
+   "gun": 0,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-068",
+   "gun": 0,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-068",
+   "gun": 0,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-068",
+   "gun": 0,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-068",
+   "gun": 0,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-068",
+   "gun": 0,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-075",
+   "gun": 4,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-075",
+   "gun": 4,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-075",
+   "gun": 4,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-075",
+   "gun": 4,
+   "saat": 3,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-075",
+   "gun": 4,
+   "saat": 4,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-075",
+   "gun": 4,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-075",
+   "gun": 4,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-075",
+   "gun": 4,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-002",
+   "gun": 3,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-002",
+   "gun": 0,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-002",
+   "gun": 4,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-002",
+   "gun": 4,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-002",
+   "gun": 0,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-002",
+   "gun": 4,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-005",
+   "gun": 2,
+   "saat": 5,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-005",
+   "gun": 2,
+   "saat": 6,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-005",
+   "gun": 2,
+   "saat": 7,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-006",
+   "gun": 4,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-006",
+   "gun": 2,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-006",
+   "gun": 4,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-006",
+   "gun": 2,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-006",
+   "gun": 3,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-007",
+   "gun": 2,
+   "saat": 5,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-007",
+   "gun": 2,
+   "saat": 6,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-007",
+   "gun": 2,
+   "saat": 7,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-009",
+   "gun": 2,
+   "saat": 5,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-009",
+   "gun": 2,
+   "saat": 6,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-009",
+   "gun": 2,
+   "saat": 7,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-010",
+   "gun": 2,
+   "saat": 5,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-010",
+   "gun": 2,
+   "saat": 6,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-010",
+   "gun": 2,
+   "saat": 7,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-012",
+   "gun": 1,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-012",
+   "gun": 2,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-012",
+   "gun": 3,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-014",
+   "gun": 4,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-014",
+   "gun": 2,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-021",
+   "gun": 2,
+   "saat": 5,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-021",
+   "gun": 2,
+   "saat": 6,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-021",
+   "gun": 2,
+   "saat": 7,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-027",
+   "gun": 2,
+   "saat": 0,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-027",
+   "gun": 2,
+   "saat": 1,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-027",
+   "gun": 2,
+   "saat": 2,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-028",
+   "gun": 3,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-028",
+   "gun": 1,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-030",
+   "gun": 2,
+   "saat": 5,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-030",
+   "gun": 2,
+   "saat": 6,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-030",
+   "gun": 2,
+   "saat": 7,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 4,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 0,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 3,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 0,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 2,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 4,
+   "saat": 5,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 4,
+   "saat": 6,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-032",
+   "gun": 4,
+   "saat": 7,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-033",
+   "gun": 2,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-033",
+   "gun": 2,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-033",
+   "gun": 4,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-033",
+   "gun": 3,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-033",
+   "gun": 1,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-035",
+   "gun": 0,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-035",
+   "gun": 2,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-035",
+   "gun": 1,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-036",
+   "gun": 2,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-036",
+   "gun": 4,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-036",
+   "gun": 3,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-036",
+   "gun": 2,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-036",
+   "gun": 3,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-036",
+   "gun": 3,
+   "saat": 5,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-036",
+   "gun": 3,
+   "saat": 6,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-036",
+   "gun": 3,
+   "saat": 7,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-040",
+   "gun": 3,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-040",
+   "gun": 4,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-042",
+   "gun": 4,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-042",
+   "gun": 3,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-042",
+   "gun": 2,
+   "saat": 0,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-042",
+   "gun": 2,
+   "saat": 1,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-042",
+   "gun": 2,
+   "saat": 2,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-047",
+   "gun": 2,
+   "saat": 0,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-047",
+   "gun": 2,
+   "saat": 1,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-047",
+   "gun": 2,
+   "saat": 2,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-049",
+   "gun": 3,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-049",
+   "gun": 1,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-050",
+   "gun": 4,
+   "saat": 0,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-050",
+   "gun": 4,
+   "saat": 1,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-050",
+   "gun": 4,
+   "saat": 2,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-051",
+   "gun": 2,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-051",
+   "gun": 1,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-051",
+   "gun": 0,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-051",
+   "gun": 4,
+   "saat": 0,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-051",
+   "gun": 4,
+   "saat": 1,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-051",
+   "gun": 4,
+   "saat": 2,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-053",
+   "gun": 3,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-053",
+   "gun": 3,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-053",
+   "gun": 4,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-053",
+   "gun": 2,
+   "saat": 0,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-053",
+   "gun": 2,
+   "saat": 1,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-053",
+   "gun": 2,
+   "saat": 2,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-054",
+   "gun": 3,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-054",
+   "gun": 3,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-054",
+   "gun": 2,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-054",
+   "gun": 2,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-054",
+   "gun": 2,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-054",
+   "gun": 4,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-054",
+   "gun": 1,
+   "saat": 0,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-054",
+   "gun": 1,
+   "saat": 1,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-054",
+   "gun": 1,
+   "saat": 2,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-056",
+   "gun": 2,
+   "saat": 5,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-056",
+   "gun": 2,
+   "saat": 6,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-056",
+   "gun": 2,
+   "saat": 7,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-057",
+   "gun": 4,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-057",
+   "gun": 3,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-058",
+   "gun": 2,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-058",
+   "gun": 2,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-062",
+   "gun": 1,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-062",
+   "gun": 3,
+   "saat": 0,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-062",
+   "gun": 2,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-063",
+   "gun": 2,
+   "saat": 5,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-063",
+   "gun": 2,
+   "saat": 6,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-063",
+   "gun": 2,
+   "saat": 7,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-065",
+   "gun": 0,
+   "saat": 0,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-065",
+   "gun": 0,
+   "saat": 1,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-065",
+   "gun": 0,
+   "saat": 2,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-066",
+   "gun": 0,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-066",
+   "gun": 4,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-066",
+   "gun": 3,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-066",
+   "gun": 4,
+   "saat": 5,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-066",
+   "gun": 4,
+   "saat": 6,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-067",
+   "gun": 3,
+   "saat": 0,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-067",
+   "gun": 3,
+   "saat": 1,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-067",
+   "gun": 3,
+   "saat": 2,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-068",
+   "gun": 2,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-068",
+   "gun": 1,
+   "saat": 6,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-068",
+   "gun": 3,
+   "saat": 0,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-068",
+   "gun": 3,
+   "saat": 1,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-068",
+   "gun": 3,
+   "saat": 2,
+   "durum": "tercih_etmez"
+  },
+  {
+   "ogretmen_id": "o-073",
+   "gun": 4,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-073",
+   "gun": 0,
+   "saat": 1,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-073",
+   "gun": 1,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-073",
+   "gun": 2,
+   "saat": 7,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-073",
+   "gun": 2,
+   "saat": 5,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-073",
+   "gun": 0,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-075",
+   "gun": 0,
+   "saat": 2,
+   "durum": "gelemez"
+  },
+  {
+   "ogretmen_id": "o-075",
+   "gun": 0,
+   "saat": 0,
+   "durum": "gelemez"
+  }
+ ],
+ "kisitlar": [],
+ "kilitli_yerlesimler": [],
+ "temel_yerlesimler": []
+}
