@@ -1,9 +1,10 @@
 # Veritabanı ve API planı (Yapım sırası, 2. adım)
 
-Durum: **taslak, proje sahibinin onayını bekliyor.** Henüz kod yazılmadı.
+Durum: **onaylandı (2026-10-14).** Alt adımların durumu bölüm 9'da.
 
-Kaynak: CLAUDE.md bölüm 4, 6, 8. **Kabul kriteri:** iki okul oluşturulur, biri diğerinin
-verisine erişemez (testle kanıtlanır).
+Kaynak: CLAUDE.md bölüm 4, 6, 8. **Kabul kriterleri:** iki okul oluşturulur, biri diğerinin
+verisine erişemez (testle kanıtlanır); bağlantı havuzunda aynı bağlantı art arda farklı okullar
+için kullanıldığında okul bilgisi bir istekten diğerine taşmaz (testle kanıtlanır).
 
 ## 1. Hedefler
 
@@ -163,9 +164,9 @@ CLAUDE.md mimari karar 5: satır düzeyi, filtre tek yerde. Önerilen üç katma
      bir veritabanı rolüyle bağlanmalı (sahip RLS'yi atlar) ve migration'lar sahip rolüyle
      çalışmalı.
 
-   Önerim: 1 ve 2 kesin; 3'te bileşik FK kesin, RLS'yi de bu adımda eklemek. İzolasyon kabul
-   kriteri olduğu ve ders sunumunda "derinlemesine savunma" iyi bir örnek olduğu için. Karar
-   senin; RLS'siz de kabul kriteri karşılanır.
+   **Karar: RLS bu adımda eklenir.** Okul ayarı `SET LOCAL` ile işlem (transaction) kapsamında
+   verilir; işlem bitince PostgreSQL ayarı kendisi siler. Böylece havuzdaki bir bağlantı sonraki
+   isteğe başka okulun ayarıyla geçemez. Bu, ayrıca testle kanıtlanır (aşağıda).
 
 Başka bir okula ait bir kayda erişim denemesi **404** döner, 403 değil: kaydın var olduğu bile
 sızmasın.
@@ -177,8 +178,12 @@ ders, ders ataması, müsaitlik, kısıt oluşturulur. Sonra şunlar denetlenir:
 - A'nın ders atamasına B'nin öğretmenini bağlama denemesi reddedilir. Bu hem API (422/404) hem
   veritabanı (bileşik FK, ham SQL ile) düzeyinde sınanır;
 - bağlam olmadan okula ait tabloya sorgu hata verir;
-- (RLS seçilirse) ham SQL ile, uygulama rolüyle ve A'nın `app.okul_id` ayarıyla B'nin satırları
-  görünmez.
+- RLS: ham SQL ile, uygulama rolüyle ve A'nın `app.okul_id` ayarıyla B'nin satırları görünmez;
+  ayar yoksa hiçbir satır görünmez;
+- **bağlantı havuzu taşması:** havuz tek bağlantıyla sınırlanır, aynı fiziksel bağlantı art arda
+  A, B ve okulsuz istekler için kullanılır. Her istekte yalnızca o isteğin okulu görünür. Hata
+  ve geri alma (rollback) ile biten bir istekten sonra da ayar taşmaz. Bağlantının aynı olduğu
+  PostgreSQL'in `pg_backend_pid()` değeriyle doğrulanır.
 
 Test, çekirdek ve modülün **bütün** okula ait modellerini `Base.metadata` üzerinden otomatik
 dolaşır. Yeni bir modül eklendiğinde onun tabloları da izolasyon testine kendiliğinden girer.
@@ -234,10 +239,13 @@ Her alt adım testler geçince commit edilir ve onay alınmadan sonrakine geçil
    çekirdek CRUD, mimari testi. İlk izolasyon testleri (çekirdek tabloları). ADR 0009.
 3. **Ders programı modülü:** modül sözleşmesi, modeller ve migration (ayrı dal), CRUD, iş
    kuralları ("bir sınıf, bir ders, bir atama", atamanın öğretmeni ve sınıfı aynı okulda).
-4. **İzolasyon kabul testi ve (seçilirse) RLS:** bütün tabloları dolaşan kabul testi; RLS
-   politikaları, uygulama rolü, ham SQL testleri.
+4. **İzolasyon kabul testi ve RLS:** bütün tabloları dolaşan kabul testi; RLS politikaları,
+   uygulama rolü (tablo sahibi olmayan), ham SQL testleri, bağlantı havuzu taşma testi.
 5. **Diyagramlar ve belgeler:** class, object ve deployment diyagramları (PlantUML kaynakları
    `docs/diyagramlar/` altında), README'de "tek komutla çalıştırma".
+
+Not: modül sözleşmesi (`Modul`, kayıt defteri) 3. alt adımdan 1. alt adıma alındı, çünkü Alembic
+dallarının sürüm klasörleri modül listesinden toplanır.
 
 ## 10. Diyagramlar (ders için)
 
@@ -245,9 +253,16 @@ Her alt adım testler geçince commit edilir ve onay alınmadan sonrakine geçil
   bağımlılık. Varlıklar ve çoklukları (bölüm 4). Katman sınıfları (`*Servisi`, `*Deposu`,
   `OkulaAitDepo<T>`, `KiraciBaglami`, `Modul`, `ModulKayitDefteri`). Çözücü tarafında
   `ProgramCozucu` ← `CpSatCozucu` ve `KisitKurali` hiyerarşisi (strategy).
-- **Object diyagramı:** belirli bir anın görüntüsü. İki `Okul` nesnesi (A, B), her birinin
-  öğretmen, sınıf ve ders atama nesneleri, ve A'nın atamasının B'nin öğretmenine bağlanamadığını
-  gösteren not. Kabul testindeki durumun aynısı.
+- **Object diyagramları** (mini setteki somut verilerle, class diyagramıyla yan yana okunabilsin
+  diye; en az iki tane):
+  1. *Veri girişi sonrası anlık durum:* bir `Okul`, `Ayşe Yılmaz : Ogretmen`, `9-A : Sinif`,
+     `Matematik : Ders`, `9-A Matematik : DersAtama` (haftalık 6), Ayşe'nin bir `Musaitlik`'i
+     (Pazartesi gelemez), bir `Kisit` (günlük ders sınırı n=2).
+  2. *Program üretildikten sonra:* aynı nesneler + `Program` (durum `hazir`) ve o atamanın birkaç
+     `Yerlesim`'i (ör. Salı 1. saat kilitli, Çarşamba 2-3), ayrıca temel programı gösteren ikinci
+     bir `Program` (en az değişiklikle güncelleme).
+  3. (İsteğe bağlı) *İzolasyon:* iki `Okul` nesnesi ve A'nın atamasının B'nin öğretmenine
+     bağlanamadığını gösteren not.
 - **Deployment diyagramı:** Docker Compose düğümü içinde `web`, `api`, `worker`, `redis`,
   `postgres` konteynerleri, aralarındaki protokoller (HTTP, TCP/5432, Redis protokolü), kalıcı
   birim (volume). Bu adımda yalnızca `api` ve `postgres` gerçek; diğerleri "planlanan" olarak
@@ -285,12 +300,11 @@ Her biri ilgili alt adımda, kodla birlikte kısaca açıklanacak:
 Küçük kararlar (uuid anahtar, 404 dönme, gerçek PostgreSQL ile test) ilgili ADR'lerin içinde
 "sonuçlar" olarak yer alır, ayrı ADR yazılmaz.
 
-## 13. Onay bekleyen kararlar
+## 13. Onaylanan kararlar (2026-10-14)
 
-1. **RLS bu adımda olsun mu?** Önerim: evet (bölüm 5).
-2. Paket adı `okulapi` ve endpoint önekleri (`/api/...`, modül için `/api/ders-programi/...`)
-   uygun mu?
-3. Kimlik doğrulama gelene kadar okul seçimi için geçici `X-Okul-Id` başlığı uygun mu? (4. adımda
-   kaldırılır.)
-4. Diyagram aracı olarak PlantUML uygun mu?
-5. PostgreSQL sürümü 17 uygun mu?
+1. RLS bu adımda eklenir; bağlantı havuzunda okul bilgisinin taşmadığı ayrıca test edilir.
+2. Paket adı `okulapi`; endpoint önekleri `/api/...`, modül için `/api/ders-programi/...`.
+3. Geçici `X-Okul-Id` başlığı uygun. Yapım sırası 4'ün kabul kriteri: başlık tamamen kaldırılmış,
+   okul yalnızca oturumdan belirleniyor (CLAUDE.md bölüm 8'e yazıldı).
+4. Diyagramlar PlantUML; object diyagramları mini set verisiyle, en az iki tane (bölüm 10).
+5. PostgreSQL 17.

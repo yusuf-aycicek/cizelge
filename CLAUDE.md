@@ -93,9 +93,15 @@ Kuyruk (Redis)  ---->  Worker (Python)  -->  Çözücü modülü (OR-Tools CP-SA
    (strategy deseni, açık/kapalı prensibi).
 5. **Çok kiracılı yapı satır düzeyindedir.** Her tabloda `okul_id` bulunur ve her sorgu oturumdaki
    okula göre filtrelenir. Bu filtre tek bir yerde (veri erişim katmanında) uygulanır, endpoint
-   yazarken unutulabilecek bir şey olmamalıdır.
+   yazarken unutulabilecek bir şey olmamalıdır. Veritabanı da ayrıca korur: bileşik yabancı
+   anahtarlar okullar arası ilişkiyi, PostgreSQL satır düzeyi güvenliği (RLS) başka okulun
+   satırlarını görmeyi engeller (bkz. ADR 0009).
 6. **Durum takibi sorgulama (polling) ile yapılır.** Arayüz, program durumunu birkaç saniyede bir
    sorar. WebSocket bu ölçek için gereksiz karmaşıklık.
+7. **API modüler bir monolittir.** Çekirdek (okul, kullanıcı, öğretmen, sınıf, ders) ile modüller
+   (ders programı; ileride ders notları, kütüphane) ayrı paketlerdir. Modül çekirdeğe bağımlı
+   olabilir, çekirdek modülleri bilmez, modüller birbirini doğrudan kullanmaz. Yeni modül eklemek
+   çekirdeği değiştirmeyi gerektirmez (bkz. ADR 0008, 0010).
 
 Her önemli karar için `docs/adr/` altına kısa bir karar kaydı (ADR) yazılır: bağlam, karar,
 değerlendirilen alternatifler, sonuçları.
@@ -227,11 +233,17 @@ Her adımın sonunda çalışan ve test edilen bir şey olmalı. Bir adım bitme
 1. **Çözücü.** Saf Python paketi, üç veri seti, doğrulama testleri. Komut satırından çalışır ve
    programı tablo olarak yazdırır. Çözülemezlik açıklaması ve temel programla güncelleme dahil.
    Kabul: gerçekçi set süre sınırı içinde çözülür, testler geçer, zamana göre kalite ölçülmüştür.
-2. **Veritabanı ve API temeli.** Docker Compose, tablolar, migration, okul izolasyonu, temel CRUD
-   endpoint'leri. Kabul: iki okul oluşturulur, biri diğerinin verisine erişemez (testle kanıtlanır).
+2. **Veritabanı ve API temeli.** Docker Compose, tablolar, migration, okul izolasyonu (ORM filtresi,
+   bileşik yabancı anahtarlar ve PostgreSQL satır düzeyi güvenliği), temel CRUD endpoint'leri.
+   Çekirdek (okul, kullanıcı, öğretmen, sınıf, ders) ders programı modülünden ayrıdır. Plan:
+   `docs/api-plani.md`. Kabul: iki okul oluşturulur, biri diğerinin verisine erişemez (testle
+   kanıtlanır); bağlantı havuzunda aynı bağlantı art arda farklı okullar için kullanıldığında okul
+   bilgisi bir istekten diğerine taşmaz (testle kanıtlanır).
 3. **Kuyruk ve worker.** Program üretme isteği, durum takibi, sonucun kaydedilmesi.
    Kabul: API'den istek atılır, durum `bekliyor` → `uretiliyor` → `hazir` olarak değişir.
-4. **Kimlik doğrulama.** Okul kaydı, giriş, oturum.
+4. **Kimlik doğrulama.** Okul kaydı, giriş, oturum. Kabul: 2. adımdaki geçici `X-Okul-Id`
+   başlığı tamamen kaldırılmıştır; aktif okul yalnızca oturumdan belirlenir. Başlık gönderilse
+   bile yok sayıldığı ve oturumsuz isteklerin okula ait veriye erişemediği testle kanıtlanır.
 5. **Arayüz: veri girişi.** Okul ayarları, listeler, seviye şablonu, ders atama, müsaitlik çizelgesi.
 6. **Arayüz: program.** Üretme, durum göstergesi, sınıf ve öğretmen görünümü, çözülemezlik
    açıklamasının gösterilmesi, mevcut programı temel alarak yeniden üretme.
