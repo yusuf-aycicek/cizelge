@@ -65,10 +65,17 @@ def test_sinif_ayni_saatte_iki_derste_olamaz():
     assert sonuc.basarili
     assert hucreler(sonuc, "a") != hucreler(sonuc, "b")
 
-    # Ön kontrolden geçer (her öğretmenin 1 müsait saati var) ama ikisi de aynı saate muhtaç.
+    # Aynı saatte iki öğretmenin de gelemediği durumu artık ön kontrol (sınıf müsaitliği) yakalar.
     ikisi_de_ilk_saat = [gelemez("o1", 0, 1), gelemez("o2", 0, 1)]
     sonuc = coz(girdi_kur(ayar=OkulAyari(1, 2), atamalar=iki, musaitlikler=ikisi_de_ilk_saat))
-    assert sonuc.durum is CozumDurumu.COZUMSUZ
+    assert on_kontrol_turleri(sonuc) == {"sinif_musaitligi"}
+
+    # Ön kontrolden geçen çakışma: o1 2. saatte gelemez; o2'nin 2. saati s2'de kilitli bir derste.
+    # İkisinin s1 dersi de 1. saate muhtaç (tek sınıfa bakan ön kontrol bunu göremez).
+    dort = iki + [atama("c", sinif="s2", ogretmen="o2")]
+    girdi = girdi_kur(ayar=OkulAyari(1, 2), atamalar=dort, musaitlikler=[gelemez("o1", 0, 1)],
+                      kilitli_yerlesimler=[kilit("c", 0, 1)])
+    assert coz(girdi).durum is CozumDurumu.COZUMSUZ
 
 
 def test_sinif_kapasitesi_asilirsa_on_kontrol_yakalar():

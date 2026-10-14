@@ -1,4 +1,4 @@
-"""Komut satırı: python -m cozucu <veri.json> [--sure 60] [--sinif 9-A] [--ogretmen "Ayşe Yılmaz"]
+"""Komut satırı: python -m cozucu <veri.json> [--sure 120] [--sinif 9-A] [--ogretmen "Ayşe Yılmaz"]
 
 Programı üretir; durumu, kalite ölçülerini, sınıf ve öğretmen tablolarını ya da çözüm yoksa
 nedenlerini yazdırır. `--kaydet` sonucu JSON olarak saklar; `--temel` önceki bir sonucu temel
@@ -14,6 +14,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from cozucu.anlatim import GUN_ADLARI
+from cozucu.arayuz import VARSAYILAN_SURE_SINIRI_SN
 from cozucu.cpsat import CpSatCozucu
 from cozucu.dogrulama import dogrula
 from cozucu.kalite import ders_gunleri, olc
@@ -70,7 +71,8 @@ def main(argv: list[str] | None = None) -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     p = argparse.ArgumentParser(prog="python -m cozucu", description="Haftalık ders programı üretir.")
     p.add_argument("veri", help="girdi JSON dosyası (veri/*.json)")
-    p.add_argument("--sure", type=float, default=60.0, help="süre sınırı, saniye (varsayılan 60)")
+    p.add_argument("--sure", type=float, default=VARSAYILAN_SURE_SINIRI_SN,
+                   help=f"süre sınırı, saniye (varsayılan {VARSAYILAN_SURE_SINIRI_SN:g})")
     p.add_argument("--sinif", nargs="*", help="yalnızca bu sınıfları yazdır (ör. 9-A); boş: hiçbiri")
     p.add_argument("--ogretmen", nargs="*", help="bu öğretmenlerin tablosunu da yazdır (ad ya da kimlik)")
     p.add_argument("--kaydet", help="sonucu bu JSON dosyasına yaz")

@@ -220,3 +220,61 @@ def test_birden_fazla_sorun_birlikte_raporlanir():
 )
 def test_iyelik_eki(ad, beklenen):
     assert iyelik(ad) == beklenen
+
+
+# --- sınıf müsaitliği ----------------------------------------------------------------
+
+
+def uc_ders(musaitlikler):
+    """1 gün x 3 saat; 9-A: Matematik (Ayşe), Fizik (Zeynep), Tarih (Fatma), birer saat."""
+    return CozumGirdisi(
+        ayar=OkulAyari(1, 3),
+        ogretmenler=[Ogretmen("o-ayse", "Ayşe Yılmaz"), Ogretmen("o-zeynep", "Zeynep Demir"),
+                     Ogretmen("o-fatma", "Fatma Şahin")],
+        siniflar=[Sinif("s-9a", "9-A", 9)],
+        dersler=[Ders("d-mat", "Matematik"), Ders("d-fiz", "Fizik"), Ders("d-tar", "Tarih")],
+        atamalar=[
+            DersAtama("a-mat", "s-9a", "d-mat", "o-ayse", 1),
+            DersAtama("a-fiz", "s-9a", "d-fiz", "o-zeynep", 1),
+            DersAtama("a-tar", "s-9a", "d-tar", "o-fatma", 1),
+        ],
+        musaitlikler=musaitlikler,
+    )
+
+
+def gelemez_saat(ogretmen, *saatler):
+    return [Musaitlik(ogretmen, 0, s, MusaitlikDurumu.GELEMEZ) for s in saatler]
+
+
+def test_sinif_musaitligi_kimsenin_gelemedigi_saat():
+    # Pazartesi 1. saatte üç öğretmen de gelemez: 3 ders, 2 kullanılabilir saat.
+    girdi = uc_ders(gelemez_saat("o-ayse", 0) + gelemez_saat("o-zeynep", 0) + gelemez_saat("o-fatma", 0))
+    sorun = tek(girdi)
+    assert sorun.tur == "sinif_musaitligi"
+    assert sorun.mesaj == (
+        "9-A'nın haftada 3 saat dersi var, ama öğretmenlerinden en az birinin gelebildiği yalnızca 2 saat "
+        "var. Şu saatlerde öğretmenlerinin hiçbiri gelemiyor: Pazartesi 1. saat."
+    )
+    assert sorun.ilgili == ("s-9a", "o-ayse", "o-fatma", "o-zeynep")
+
+
+def test_sinif_musaitligi_akis():
+    # Her saatte en az bir öğretmen müsait (Fatma her zaman), ama Ayşe de Zeynep de yalnızca
+    # 1. saatte gelebiliyor: ikisinin dersi aynı saate sığmaz, en fazla 2 ders yerleşir.
+    girdi = uc_ders(gelemez_saat("o-ayse", 1, 2) + gelemez_saat("o-zeynep", 1, 2))
+    sorun = tek(girdi)
+    assert sorun.tur == "sinif_musaitligi"
+    assert "en fazla 2 saati yerleşebilir" in sorun.mesaj
+
+
+def test_sinif_musaitligi_cozulebilir_sinifa_ses_cikarmaz():
+    assert on_kontrol(uc_ders(gelemez_saat("o-ayse", 1, 2) + gelemez_saat("o-zeynep", 0, 2))) == []
+
+
+def test_sinif_musaitligi_ayni_sorunu_tekrarlamaz():
+    # Sınıf kapasitesi zaten aşılmışsa sınıf müsaitliği ayrıca raporlanmaz.
+    girdi = temel(atamalar=[
+        DersAtama("a-mat", "s-9a", "d-mat", "o-ayse", 20),
+        DersAtama("a-fiz", "s-9a", "d-fiz", "o-zeynep", 12),
+    ], kisitlar=[KisitTanimi("gunluk_ders_siniri", {"n": 6})])
+    assert [s.tur for s in on_kontrol(girdi)] == ["sinif_kapasitesi"]

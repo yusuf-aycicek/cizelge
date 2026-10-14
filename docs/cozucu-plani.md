@@ -1,5 +1,7 @@
 # Çözücü planı (Yapım sırası, 1. adım)
 
+**Durum: kapandı (2026-10-14).** Sonraki adım: `docs/api-plani.md` (yapım sırası 2).
+
 Kaynak: CLAUDE.md, bölüm 7 ve 8. Kabul kriteri: gerçekçi set süre sınırı içinde çözülür,
 testler geçer ve zamana göre kalite ölçülmüştür.
 
@@ -12,7 +14,7 @@ testler geçer ve zamana göre kalite ölçülmüştür.
 | 3 | Esnek kısıtlar | Bitti |
 | 4 | Ön kontroller ve çözülemezlik açıklaması | Bitti |
 | 5 | Ek hedefler: öğretmene boş gün, en az değişiklikle güncelleme | Bitti |
-| 6 | Veri üretici, gerçekçi ve büyük setler, CLI, zamana göre kalite ölçümü | Bitti, bilinen açıklarla (bkz. "Kapanış") |
+| 6 | Veri üretici, gerçekçi ve büyük setler, CLI, zamana göre kalite ölçümü | Bitti (bkz. "Kapanış") |
 
 Kapsam güncellemesi (3. alt adımdan sonra): öğretmene boş gün, çözülemezlik açıklaması ve en az
 değişiklikle güncelleme eklendi. Süre ölçümü, zamana göre kalite ölçümüne genişletildi.
@@ -243,7 +245,7 @@ Amaç: çözüm yoksa kullanıcı nedenini kendi diliyle öğrenir, kimlik deği
   - Çok iş parçacıklı CP-SAT aynı girdide farklı (eşit cezalı) programlar üretebilir. Bu, 6. adımın
     ölçümlerinde tohum tekrarıyla ele alınacak.
 
-### 6. Veri üretici, setler, CLI, zamana göre kalite ölçümü (bitti, bilinen açıklarla)
+### 6. Veri üretici, setler, CLI, zamana göre kalite ölçümü (bitti)
 - Sabit tohumlu üretici: Önce gizli bir geçerli program kurulur, veri ondan türetilir. Böylece
   çözümün var olduğu garanti edilir. Müsaitlik kısıtları da bu programla çelişmeyecek şekilde
   seçilir.
@@ -409,8 +411,25 @@ koşullarda yeniden ölçüldü.
   (`pencere ≥ okulda − dolu`, `bosluk ≥ sonra − dolu`, `degisti ≥ 1 − dolu`). Önce mini sette
   doğrulandı, sonra gerçekçi sette 3 tohum × 60 sn ölçüldü: ortalama ceza 703 → 469 (%33), sınıf
   boşluğu 10. saniyede 0, alt sınır 0'dan başlıyor.
-- Gerçekçi ve büyük set için 60/120/300 sn ölçümü yapıldı. Varsayılan süre önerisi **120 sn**
-  (onay bekliyor; CLAUDE.md'de hâlâ 60 sn).
+- Gerçekçi ve büyük set için 60/120/300 sn ölçümü yapıldı. **Karar: varsayılan süre 120 sn**
+  (CLAUDE.md, `arayuz.py`, CLI, kabul testi güncellendi; kabul testi artık sınıf boşluğunun 0
+  olduğunu da denetler).
+- **Çözümsüzlük açığı kapatıldı** (Sonraya 1 ve 2):
+  - `on_kontrol.sinif_musaitligi`: sayım (öğretmenlerinden en az birinin gelebildiği saat <
+    ders saati; kimsenin gelemediği saatler adıyla söylenir) ve tek sınıf için ağ akışı (dersler
+    yalnızca kendi öğretmeninin müsait saatlerine, günde en fazla n). Tek sınıfa bakan gerekli
+    koşuldur, yanlış alarm vermez. Daha önce raporlanmış sınıflar tekrarlanmaz.
+  - `CpSatCozucu`: ana çözüm `bilinmiyor` dönerse yalnızca zorunlu kısıtlarla ikinci kontrol
+    (`UYGUNLUK_KONTROLU_SURESI_SN` = 60). Çözümsüzse durum `cozumsuz` olur ve çelişki analizi
+    çalışır; çözüm varsa "daha uzun süreyle deneyin" denir.
+  - 9-A örneği: kullanıcı artık 0,10 sn'de "9-A'nın haftada 40 saat dersi var, ama
+    öğretmenlerinden en az birinin gelebildiği yalnızca 39 saat var. Şu saatlerde öğretmenlerinin
+    hiçbiri gelemiyor: Pazartesi 1. saat." görür. Ön kontrol kapatılarak sınanan ikinci kontrol
+    yolu 164 sn'de doğru durumu (`cozumsuz`) verdi, ama çelişki kümesi 690 maddeydi (Sonraya 3).
+  - Bu kontrol, eskiden "ön kontrolden geçer ama çözümsüzdür" diye yazılmış iki test senaryosunu
+    yakaladı. Senaryolar sınıflar arası çakışmalarla değiştirildi (ön kontrolün göremeyeceği tür).
+- **Eksik boş gün** yüksek kalması bir hata değil, ağırlık tercihi olarak kabul edildi. Müdüre
+  sorulacak (CLAUDE.md bölüm 10).
 - Gösterimler tamamlandı: sınıf ve öğretmen programı, en az değişiklik senaryosu (16 değişiklik,
   60 sn'de optimal; sıfırdan 829), bilerek çözümsüz örnek (aşağıdaki açıklara yol açtı).
 - `olcum.py` komut satırı artık her tohum bitince sonuç yazıyor.
@@ -420,14 +439,15 @@ koşullarda yeniden ölçüldü.
 | Kriter | Durum | Kanıt |
 |---|---|---|
 | Gerçekçi set süre sınırı içinde çözülür | Karşılandı | İlk geçerli program 4-8 sn; `slow` kabul testi: 60 sn'de `uygun`, doğrulayıcıdan geçer |
-| Testler geçer | Karşılandı | 132/132 (129 varsayılan + 3 `slow`) |
+| Testler geçer | Karşılandı | 140/140 (137 varsayılan + 3 `slow`) |
 | Zamana göre kalite ölçülmüştür | Karşılandı | `docs/olcumler.md`: 10/30/60 sn (düzeltme karşılaştırması), 60/120/300 sn (iki set, 3 tohum) |
 | Üç veri seti, doğrulama testleri, CLI tablo çıktısı | Karşılandı | `veri/`, `tests/`, `python -m cozucu` |
-| Çözülemezlik açıklaması dahil | Kısmen | Küçük setlerde doğru ve en küçük kümeyi buluyor. Gerçekçi büyüklükteki çözümsüz örnekte açıklama üretemedi (aşağıda) |
+| Çözülemezlik açıklaması dahil | Karşılandı | Ön kontrol (sınıf müsaitliği dahil) gerçekçi sette 0,1 sn'de açıklıyor; ön kontrolün göremediği durumlarda ikinci kontrol doğru durumu veriyor. Büyük çekirdeklerin küçültülmesi yavaş (bilinen açık 2, Sonraya 3) |
 | Temel programla güncelleme dahil | Karşılandı | Gerçekçi sette 60 sn'de optimal güncelleme, 16 değişiklik |
 
 ### Bilinen açıklar
-1. **Ana çözücü büyük modellerde çözümsüzlüğü süre içinde kanıtlayamayabilir.** Gerçekçi sette tam
+1. **(Kapatıldı, 2026-10-14: sınıf müsaitliği ön kontrolü ve ikinci kontrol.)** **Ana çözücü
+   büyük modellerde çözümsüzlüğü süre içinde kanıtlayamayabilir.** Gerçekçi sette tam
    dolu bir sınıfın bütün öğretmenleri aynı saatte gelemeyince ana çözücü (esnek hedefle) 60 sn'de
    `bilinmiyor` döndü. Yalnızca zorunlu kısıtlarla aynı model 18,6 sn'de `cozumsuz` çıkıyor.
    `bilinmiyor` durumunda çelişki analizi hiç çalışmıyor; kullanıcı yalnızca "süre içinde çözüm
@@ -436,8 +456,10 @@ koşullarda yeniden ölçüldü.
    analiz 30 sn'lik bütçeyi doldurdu ve 690 maddelik bir küme döndürdü (gerçek çelişki ~29 kural).
    Varsayım çekirdeği bütçenin üçte birinde gelmedi, küçültme bütün gruplardan başlayıp tek tek
    ilerlediği için bitmedi.
-3. **Eksik boş gün yüksek kalıyor:** gerçekçi sette 42 öğretmenin ~21'i 300 sn'de bile hedef boş
-   gününe ulaşamıyor. Ne kadarının yapısal olduğu bilinmiyor.
+3. **(Açık değil, ağırlık tercihi.)** Eksik boş gün yüksek kalıyor: gerçekçi sette 42 öğretmenin
+   ~21'i 300 sn'de bile hedef boş gününe ulaşamıyor. Bu bir hata değil: boş gün (4) diğer
+   kurallardan hafif tutuldu. Müdürün boş güne verdiği öneme göre ağırlık ayarlanacak
+   (CLAUDE.md bölüm 10).
 
 ## Sonraya
 
@@ -445,12 +467,12 @@ koşullarda yeniden ölçüldü.
 sırasına göre ele alınır. İlk ikisi bilinen açıkları kapatır ve worker adımından (yapım sırası 3)
 önce yapılması önerilir.
 
-1. **Sınıf tarafında müsaitlik ön kontrolü.** Her sınıf için, öğretmenlerinden en az birinin
+1. **(Yapıldı, 2026-10-14.) Sınıf tarafında müsaitlik ön kontrolü.** Her sınıf için, öğretmenlerinden en az birinin
    müsait olduğu saat sayısı ile sınıfın ders saatini karşılaştırmak. Daha güçlüsü: sınıfın
    derslerini o sınıfın öğretmenlerinin müsait saatlerine (günde en fazla N) eşleyen küçük bir akış
    (Hall) kontrolü. Bilinen açık 1'deki örneği anında ve tek cümleyle yakalar ("9-A'nın 40 saat
    dersi var; Pazartesi 1. saatte öğretmenlerinin hiçbiri gelemiyor").
-2. **`bilinmiyor` durumunda zorunlu kısıtlarla ikinci kontrol.** Ana çözüm süre içinde ne çözüm
+2. **(Yapıldı, 2026-10-14.) `bilinmiyor` durumunda zorunlu kısıtlarla ikinci kontrol.** Ana çözüm süre içinde ne çözüm
    ne kanıt bulursa, esnek hedef olmadan kısa bir uygunluk çözümü yapmak. Çözümsüzse çelişki
    analizine geçmek, değilse "süre yetmedi, daha uzun süreyle deneyin" demek.
 3. **Çelişki analizini büyük modellerde hızlandırmak.** Küçültmeyi kademeli yapmak: önce sınıf ya
@@ -458,9 +480,9 @@ sırasına göre ele alınır. İlk ikisi bilinen açıkları kapatır ve worker
    içinde ayrıntılı gruplar. Ya da QuickXplain gibi böl-ve-yönet küçültme. Hedef: gerçekçi sette
    30 sn içinde ~30 maddelik küme. Mesajların arayüzde gruplanması (4. alt adımda onaylandı) da
    buna bağlı.
-4. **Varsayılan süre sınırı.** Öneri 120 sn (`docs/olcumler.md`). İsteğe bağlı bir "kapsamlı
-   üretim" (300 sn) seçeneği arayüzde sunulabilir. Onaylanırsa CLAUDE.md bölüm 7 güncellenir.
-5. **Eksik boş gün için analiz.** Gerçekçi setteki yüksek değerin yapısal mı arama kaynaklı mı
+4. **Varsayılan süre sınırı.** 120 sn olarak karara bağlandı (2026-10-14). İsteğe bağlı bir
+   "kapsamlı üretim" (300 sn) seçeneği arayüzde sunulabilir.
+5. **Eksik boş gün için analiz** (müdürün cevabına göre; şu an ağırlık tercihi sayılıyor). Gerçekçi setteki yüksek değerin yapısal mı arama kaynaklı mı
    olduğunu anlamak için yalnızca boş gün kuralıyla (diğer esnek kurallar kapalı) en iyi değeri
    ölçmek. Gerekirse boş gün formülasyonunu güçlendirmek.
 6. **Daha güçlü alt sınırlar.** Alt sınır 0'da kalıyor; en iyi çözüme ne kadar uzak olunduğu

@@ -190,11 +190,15 @@ ve öncelik sırası:
 | Bölünmüş (ardışık olmayan) ders | 2 | |
 
 ### Davranış
-- Süre sınırı parametredir (varsayılan 60 saniye). Süre dolunca bulunan en iyi çözüm döner.
+- Süre sınırı parametredir (varsayılan 120 saniye). Süre dolunca bulunan en iyi çözüm döner.
+  120 sn, ölçülen süreler içinde iki test setinde de sınıf boşluğunu her tohumda sıfırlayan en
+  kısa süredir (`docs/olcumler.md`). Üretim kuyrukta çalıştığı için arayüzü bekletmez.
+- Ana çözüm süre içinde ne çözüm ne de çözümsüzlük kanıtı bulursa, yalnızca zorunlu kısıtlarla
+  ikinci bir kontrol yapılır. Çözüm yoksa çelişkiler açıklanır, varsa "süre yetmedi" denir.
 - Çözücü çağrılmadan önce ön kontroller yapılır ve anlaşılır hata verilir: öğretmeni seçilmemiş
   atama, bir sınıfın toplam saati haftalık kapasiteyi aşıyor, bir öğretmenin toplam saati müsait
-  olduğu saatlerden fazla (her gün için müsait saat ile M'nin küçüğü sayılır). Mesajlar kimlik
-  değil ad kullanır.
+  olduğu saatlerden fazla (her gün için müsait saat ile M'nin küçüğü sayılır), bir sınıfın
+  dersleri öğretmenlerinin müsait olduğu saatlere sığmıyor. Mesajlar kimlik değil ad kullanır.
 - Ön kontrolden geçip çözüm yine yoksa, çelişen zorunlu kısıt grupları bulunur ve kullanıcının
   diliyle açıklanır.
 - İsteğe bağlı olarak temel bir program girdi alınır. Bu durumda değişiklik cezası devreye girer ve
@@ -255,3 +259,7 @@ Okul müdüründen beklenen bilgiler. Cevaplar geldikçe ilgili bölümler günc
 - Programı şu an nasıl hazırladıkları ve en çok neyin uğraştırdığı
 - Hangi kuralların gerçekten gerekli olduğu (boş gün talepleri, başka okulda da görevli öğretmen,
   blok dersler)
+- Öğretmene boş gün ne kadar önemli? Gerçekçi test setinde öğretmenlerin yaklaşık yarısı hedef
+  boş gününe ulaşamıyor. Bu bir hata değil, ağırlık tercihi: boş gün (4) sınıf boşluğundan (30),
+  tercih etmezden (5) ve değişiklikten (8) hafif. Müdürün boş güne verdiği öneme göre ağırlık
+  ayarlanacak.

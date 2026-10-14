@@ -36,11 +36,11 @@ DERSLER = [
 ]
 
 
-def girdi(atamalar, musaitlikler=(), kilitler=(), ayar=OkulAyari(5, 6)):
+def girdi(atamalar, musaitlikler=(), kilitler=(), ayar=OkulAyari(5, 6), siniflar=None):
     g = CozumGirdisi(
         ayar=ayar,
         ogretmenler=OGRETMENLER,
-        siniflar=[Sinif("s-9a", "9-A", 9)],
+        siniflar=siniflar or [Sinif("s-9a", "9-A", 9)],
         dersler=DERSLER,
         atamalar=list(atamalar),
         musaitlikler=list(musaitlikler),
@@ -84,23 +84,42 @@ def test_kilit_ve_gelemez_zinciri():
     assert set(celiski.ilgili) == {"o-zeynep", "a-mat", "a-fiz"}
 
 
-def test_iki_ogretmen_ayni_dar_zamana_sikisiyor():
+def test_iki_ogretmen_ayni_dar_zamana_sikisiyor_ve_on_kontrol_yakalar():
     # Ayşe de Zeynep de yalnızca pzt-salı 1-3. saatlerde müsait (6'şar saat, ikisine de yeter);
-    # ama ikisi de 9-A'ya 4'er saat girecek: 8 ders 6 saate sığmaz.
+    # ama ikisi de 9-A'ya 4'er saat girecek: 8 ders 6 saate sığmaz. Bunu artık sınıf müsaitliği
+    # ön kontrolü yakalar; çelişki analizine gerek kalmaz.
     dar = {(g, s) for g in (0, 1) for s in (0, 1, 2)}
-    g = girdi(
+    g = CozumGirdisi(
+        ayar=OkulAyari(5, 6), ogretmenler=OGRETMENLER, siniflar=[Sinif("s-9a", "9-A", 9)], dersler=DERSLER,
         atamalar=[
             DersAtama("a-mat", "s-9a", "d-mat", "o-ayse", 4),
             DersAtama("a-fiz", "s-9a", "d-fiz", "o-zeynep", 4),
         ],
         musaitlikler=yalnizca_musait("o-ayse", dar) + yalnizca_musait("o-zeynep", dar),
     )
+    assert [c.tur for c in on_kontrol(g)] == ["sinif_musaitligi"]
+
+
+def test_iki_sinif_arasindaki_cakisma():
+    # Ayşe 9-A ve 9-B'ye birer saat girer. İki sınıfın 2. saati başka derslere kilitli; Ayşe'nin
+    # iki dersi de 1. saate muhtaç. Her sınıfa tek tek bakan ön kontrol bunu göremez.
+    g = girdi(
+        ayar=OkulAyari(1, 2),
+        siniflar=[Sinif("s-9a", "9-A", 9), Sinif("s-9b", "9-B", 9)],
+        atamalar=[
+            DersAtama("a-9a-mat", "s-9a", "d-mat", "o-ayse", 1),
+            DersAtama("a-9b-mat", "s-9b", "d-mat", "o-ayse", 1),
+            DersAtama("a-9a-fiz", "s-9a", "d-fiz", "o-zeynep", 1),
+            DersAtama("a-9b-ing", "s-9b", "d-ing", "o-ali", 1),
+        ],
+        kilitler=[Yerlesim("a-9a-fiz", 0, 1), Yerlesim("a-9b-ing", 0, 1)],
+    )
     [celiski] = celiskileri_bul(g, 10)
     assert maddeler(celiski) == {
-        "Ayşe Yılmaz'ın gelemez saatleri",
-        "Zeynep Demir'in gelemez saatleri",
-        "9-A Matematik haftada 4 saat (Ayşe Yılmaz)",
-        "9-A Fizik haftada 4 saat (Zeynep Demir)",
+        "9-A Fizik Pazartesi 2. saatte kilitli",
+        "9-B İngilizce Pazartesi 2. saatte kilitli",
+        "9-A Matematik haftada 1 saat (Ayşe Yılmaz)",
+        "9-B Matematik haftada 1 saat (Ayşe Yılmaz)",
     }
 
 
@@ -179,3 +198,56 @@ def test_mini_set_sayma_celiskisi_en_kucuk_kume_ve_hizli():
         "9-B Türk Dili ve Edebiyatı haftada 5 saat (Mehmet Kaya)",
         "10-A Türk Dili ve Edebiyatı haftada 5 saat (Mehmet Kaya)",
     }
+
+
+# --- ana çözüm "bilinmiyor" dönerse: yalnızca zorunlu kısıtlarla ikinci kontrol ------------
+
+from ortools.sat.python import cp_model  # noqa: E402
+
+
+class _SuresiYetmeyen(CpSatCozucu):
+    """Ana çözümün süre içinde hiçbir şey bulamadığı durumu taklit eder."""
+
+    def __init__(self, ikinci=None):
+        super().__init__()
+        self._ikinci = ikinci
+
+    def _ana_cozum(self, baglam, sure, baslangic):
+        return cp_model.UNKNOWN, None
+
+    def _uygunluk_kontrolu(self, girdi, sure):
+        return self._ikinci if self._ikinci is not None else super()._uygunluk_kontrolu(girdi, sure)
+
+
+def _iki_sinif_cakismasi():
+    return girdi(
+        ayar=OkulAyari(1, 2),
+        siniflar=[Sinif("s-9a", "9-A", 9), Sinif("s-9b", "9-B", 9)],
+        atamalar=[
+            DersAtama("a-9a-mat", "s-9a", "d-mat", "o-ayse", 1),
+            DersAtama("a-9b-mat", "s-9b", "d-mat", "o-ayse", 1),
+            DersAtama("a-9a-fiz", "s-9a", "d-fiz", "o-zeynep", 1),
+            DersAtama("a-9b-ing", "s-9b", "d-ing", "o-ali", 1),
+        ],
+        kilitler=[Yerlesim("a-9a-fiz", 0, 1), Yerlesim("a-9b-ing", 0, 1)],
+    )
+
+
+def test_bilinmiyor_ama_cozumsuz_ise_celiski_aciklanir():
+    sonuc = _SuresiYetmeyen().coz(_iki_sinif_cakismasi(), sure_siniri_sn=5)
+    assert sonuc.durum is CozumDurumu.COZUMSUZ
+    assert [c.tur for c in sonuc.celiskiler] == ["celiski"]
+
+
+def test_bilinmiyor_ama_cozum_varsa_daha_uzun_sure_onerilir():
+    g = girdi(atamalar=[DersAtama("a-mat", "s-9a", "d-mat", "o-ayse", 4)])
+    sonuc = _SuresiYetmeyen().coz(g, sure_siniri_sn=5)
+    assert sonuc.durum is CozumDurumu.BILINMIYOR and sonuc.celiskiler == []
+    assert "Kurallara uyan bir program var" in sonuc.mesajlar[0]
+
+
+def test_ikinci_kontrol_de_sonuc_vermezse_durum_acikca_soylenir():
+    g = girdi(atamalar=[DersAtama("a-mat", "s-9a", "d-mat", "o-ayse", 4)])
+    sonuc = _SuresiYetmeyen(ikinci=cp_model.UNKNOWN).coz(g, sure_siniri_sn=5)
+    assert sonuc.durum is CozumDurumu.BILINMIYOR
+    assert "ne program bulunabildi ne de programın olmadığı kanıtlanabildi" in sonuc.mesajlar[0]

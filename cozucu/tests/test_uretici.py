@@ -9,7 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from cozucu import CozumDurumu, CpSatCozucu, MusaitlikDurumu, dogrula
+from cozucu import CozumDurumu, CpSatCozucu, MusaitlikDurumu, dogrula, olc
+from cozucu.arayuz import VARSAYILAN_SURE_SINIRI_SN
 from cozucu.on_kontrol import on_kontrol
 from cozucu.uretici import MUFREDAT, UreticiAyari, uret
 from cozucu.veri_io import girdi_oku, girdi_to_dict
@@ -91,10 +92,14 @@ def test_kayitli_set_ozellikleri(dosya, sube, ogretmen_araligi):
 
 
 @pytest.mark.slow
-def test_kabul_gercekci_set_60_saniyede_cozulur():
-    """Yapım sırası 1'in kabul kriteri: gerçekçi set süre sınırı içinde çözülür."""
+def test_kabul_gercekci_set_varsayilan_surede_cozulur():
+    """Yapım sırası 1'in kabul kriteri: gerçekçi set süre sınırı içinde çözülür.
+
+    Varsayılan süre (120 sn) sınıf boşluğunu sıfırladığı için seçildi; bu da denetlenir.
+    """
     girdi = girdi_oku(VERI / "gercekci.json")
-    sonuc = CpSatCozucu().coz(girdi, sure_siniri_sn=60)
+    sonuc = CpSatCozucu().coz(girdi)
     assert sonuc.durum in (CozumDurumu.OPTIMAL, CozumDurumu.UYGUN), sonuc.mesajlar
-    assert sonuc.sure_sn <= 65
+    assert sonuc.sure_sn <= VARSAYILAN_SURE_SINIRI_SN + 5
     assert dogrula(girdi, sonuc.yerlesimler) == []
+    assert olc(girdi, sonuc.yerlesimler).sinif_boslugu == 0

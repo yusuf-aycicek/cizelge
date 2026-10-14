@@ -59,9 +59,14 @@ kanıtlamadı (durum `uygun`).
   15-30 saatlik yükler, gelemez saatleri) ne kadarının arama yetersizliği olduğu bilinmiyor; CP-SAT
   bir alt sınır kanıtlayamıyor (sınır 0'da kalıyor).
 
-### Varsayılan süre sınırı önerisi
+- Eksik boş gün yüksek kalmasının bir hata değil, ağırlık tercihi olduğuna karar verildi
+  (2026-10-14): boş gün (4) sınıf boşluğundan (30), en az değişiklikten (8) ve tercih etmezden (5)
+  hafif. Müdürün boş güne verdiği öneme göre ayarlanacak (CLAUDE.md bölüm 10, açık sorular).
 
-**Öneri: 120 sn** (şu an CLAUDE.md'de 60 sn; değişiklik proje sahibinin onayını bekliyor).
+### Varsayılan süre sınırı
+
+**Karar (2026-10-14): 120 sn.** CLAUDE.md bölüm 7 ve `arayuz.VARSAYILAN_SURE_SINIRI_SN` güncellendi.
+Gerekçe:
 
 - 120 sn, iki sette de sınıf boşluğunu her tohumda sıfırlayan en kısa ölçülen süre.
 - Gerçekçi sette ceza 60 sn'ye göre %36 daha düşük (pencere 91 → 50 saat, yani öğretmen başına
@@ -121,6 +126,25 @@ o gün 8 dersi var, yani en az 8 ders saati yer değiştirmek zorunda. Toplam 93
 | Yalnızca zorunlu kısıtlar (60 sn) | `cozumsuz`, **18,6 sn** |
 | Çelişki analizi doğrudan (bütçe 30 sn) | **30,4 sn**, bütçe doldu; 690 maddelik küme döndü (30 gelemez, 330 günlük sınır, 330 haftalık saat). Gerçek çelişki ~29 kural (9-A'nın 14 öğretmeninin gelemez saatleri + 9-A'nın 15 dersinin haftalık saati). |
 
-Sonuç: çözülemezlik açıklaması küçük setlerde ve mini sette doğru çalışıyor, ama gerçekçi
-büyüklükte bu örnekte kullanıcıya bir açıklama üretemiyor. Önerilen düzeltmeler planda
-("Sonraya" ve "Bilinen açıklar").
+Sonuç (ilk ölçüm): çözülemezlik açıklaması küçük setlerde ve mini sette doğru çalışıyordu, ama
+gerçekçi büyüklükte bu örnekte kullanıcıya bir açıklama üretemiyordu.
+
+#### Düzeltmelerden sonra (2026-10-14)
+
+İki düzeltme yapıldı: sınıf müsaitliği ön kontrolü ve `bilinmiyor` durumunda yalnızca zorunlu
+kısıtlarla ikinci kontrol. Aynı örnek (`scripts/cozumsuz_teshisi.py`,
+`scripts/sonuclar/cozumsuz_sonrasi.md`):
+
+| Ölçüm | Sonuç |
+|---|---|
+| Kullanıcının göreceği | `on_kontrol_hatasi`, **0,10 sn** |
+| Ön kontrol kapalıyken (ikinci kontrol yolunu sınamak için) | `cozumsuz`, toplam 164 sn = ana çözüm 120 sn (`bilinmiyor`) + ikinci kontrol 12,6 sn (çözümsüz) + çelişki analizi ~31 sn (690 maddelik küme) |
+
+Kullanıcının gördüğü mesaj:
+
+> 9-A'nın haftada 40 saat dersi var, ama öğretmenlerinden en az birinin gelebildiği yalnızca 39
+> saat var. Şu saatlerde öğretmenlerinin hiçbiri gelemiyor: Pazartesi 1. saat.
+
+İkinci kontrol, ön kontrolün yakalayamadığı (sınıflar arası etkileşimden doğan) çözümsüzlüklerde
+"süre yetmedi" yerine doğru durumu (`cozumsuz`) bildiriyor. Ama çelişki analizi büyük çekirdekleri
+30 sn içinde küçültemiyor; hızlandırılması sonraya bırakıldı (plan, "Sonraya").

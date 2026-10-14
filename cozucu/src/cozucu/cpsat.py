@@ -15,6 +15,8 @@ from cozucu.on_kontrol import on_kontrol
 
 # Çözümsüzlükte çelişki analizine ayrılan en fazla süre (ana süre sınırından ayrı).
 CELISKI_ANALIZ_SURESI_SN = 30.0
+# Ana çözüm `bilinmiyor` dönerse, yalnızca zorunlu kısıtlarla yapılan ikinci kontrolün süresi.
+UYGUNLUK_KONTROLU_SURESI_SN = 60.0
 
 _DURUM_KARSILIGI = {
     cp_model.OPTIMAL: CozumDurumu.OPTIMAL,
@@ -78,15 +80,26 @@ class CpSatCozucu(ProgramCozucu):
         if cezalar:
             baglam.model.minimize(sum(agirlik * ifade for ifade, agirlik in cezalar))
 
-        solver = cp_model.CpSolver()
-        solver.parameters.max_time_in_seconds = sure_siniri_sn
-        solver.parameters.num_workers = self.is_parcacigi
-        solver.parameters.random_seed = self.tohum
-        bildirici = _CozumBildirici(baglam, self.gozlemci, baslangic) if self.gozlemci else None
-        cp_durum = solver.solve(baglam.model, bildirici)
+        cp_durum, solver = self._ana_cozum(baglam, sure_siniri_sn, baslangic)
         durum = _DURUM_KARSILIGI.get(cp_durum, CozumDurumu.BILINMIYOR)
 
         sonuc = CozumSonucu(durum=durum)
+        if durum is CozumDurumu.BILINMIYOR:
+            # Esnek hedef aramayı yavaşlatıp çözümsüzlüğün kanıtını geciktirebilir (gerçekçi sette
+            # ana çözüm 60 sn'de kanıtlayamadı, yalnızca zorunlu kısıtlarla 18,6 sn'de kanıtlandı).
+            ikinci = self._uygunluk_kontrolu(girdi, UYGUNLUK_KONTROLU_SURESI_SN)
+            if ikinci == cp_model.INFEASIBLE:
+                durum = sonuc.durum = CozumDurumu.COZUMSUZ
+            elif ikinci in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+                sonuc.mesajlar.append(
+                    f"Kurallara uyan bir program var, ama {sure_siniri_sn:g} sn içinde bulunamadı. "
+                    "Daha uzun bir süre sınırıyla yeniden deneyin."
+                )
+            else:
+                sonuc.mesajlar.append(
+                    f"Süre sınırı ({sure_siniri_sn:g} sn) içinde ne program bulunabildi ne de programın "
+                    "olmadığı kanıtlanabildi. Daha uzun bir süre sınırıyla yeniden deneyin."
+                )
         if sonuc.basarili:
             sonuc.yerlesimler = _yerlesimler(baglam, solver.boolean_value)
             sonuc.toplam_ceza = round(solver.objective_value) if cezalar else 0
@@ -97,10 +110,25 @@ class CpSatCozucu(ProgramCozucu):
         elif durum is CozumDurumu.COZUMSUZ:
             sonuc.mesajlar.append("Zorunlu kısıtların hepsini sağlayan bir program yok.")
             sonuc.celiskiler = celiskileri_bul(girdi, min(sure_siniri_sn, CELISKI_ANALIZ_SURESI_SN))
-        else:
-            sonuc.mesajlar.append(
-                f"Süre sınırı ({sure_siniri_sn:g} sn) içinde çözüm bulunamadı "
-                f"(CP-SAT durumu: {solver.status_name(cp_durum)})."
-            )
         sonuc.sure_sn = time.perf_counter() - baslangic
         return sonuc
+
+    def _ana_cozum(self, baglam: Baglam, sure: float, baslangic: float) -> tuple[int, cp_model.CpSolver]:
+        solver = cp_model.CpSolver()
+        solver.parameters.max_time_in_seconds = sure
+        solver.parameters.num_workers = self.is_parcacigi
+        solver.parameters.random_seed = self.tohum
+        bildirici = _CozumBildirici(baglam, self.gozlemci, baslangic) if self.gozlemci else None
+        return solver.solve(baglam.model, bildirici), solver
+
+    def _uygunluk_kontrolu(self, girdi: CozumGirdisi, sure: float) -> int:
+        """Yalnızca zorunlu kısıtlarla, amaç olmadan: kurallara uyan herhangi bir program var mı?"""
+        baglam = Baglam.kur(girdi)
+        for kural in kurallari_hazirla(girdi):
+            if kural.zorunlu:
+                kural.uygula(baglam)
+        solver = cp_model.CpSolver()
+        solver.parameters.max_time_in_seconds = sure
+        solver.parameters.num_workers = self.is_parcacigi
+        solver.parameters.random_seed = self.tohum
+        return solver.solve(baglam.model)

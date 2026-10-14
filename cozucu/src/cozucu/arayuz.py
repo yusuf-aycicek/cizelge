@@ -10,7 +10,9 @@ from abc import ABC, abstractmethod
 
 from cozucu.model import CozumGirdisi, CozumSonucu
 
-VARSAYILAN_SURE_SINIRI_SN = 60.0
+# Ölçüm sonucu (docs/olcumler.md): iki test setinde de sınıf boşluğunu her tohumda sıfırlayan
+# en kısa süre. Program üretimi kuyrukta worker'da çalıştığı için arayüzü bekletmez.
+VARSAYILAN_SURE_SINIRI_SN = 120.0
 
 
 class ProgramCozucu(ABC):

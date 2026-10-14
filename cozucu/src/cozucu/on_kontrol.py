@@ -32,13 +32,14 @@ def on_kontrol(girdi: CozumGirdisi) -> list[Celiski]:
     sorunlar = kontrol.tutarlilik()
     if sorunlar:
         return sorunlar
-    return (
+    sorunlar = (
         kontrol.ogretmensiz_atama()
         + kontrol.sinif_kapasitesi()
         + kontrol.ogretmen_kapasitesi()
         + kontrol.ders_gun_kapasitesi()
         + kontrol.kilitler()
     )
+    return sorunlar + kontrol.sinif_musaitligi(sorunlar)
 
 
 class _Kontrol:
@@ -64,6 +65,7 @@ class _Kontrol:
             o: [self.saat_sayisi - gelemez_gunluk[o, g] for g in range(self.gun_sayisi)]
             for o in {o for o, _g, _s in gelemez_hucreler}
         }
+        self._gelemez = gelemez_hucreler
 
     # --- veri tutarlılığı -------------------------------------------------------------
 
@@ -197,6 +199,90 @@ class _Kontrol:
                 (sinif_id, *(a.id for a in atamalar)),
             ))
         return sorunlar
+
+    def sinif_musaitligi(self, onceki: list[Celiski]) -> list[Celiski]:
+        """Sınıfın dersleri, öğretmenlerinin müsait saatlerine sığıyor mu?
+
+        Tek sınıf için kesin bir gerekli koşul: öğretmenlerin başka sınıflardaki dersleri hesaba
+        katılmaz, yani bu kontrol hiçbir zaman yanlış alarm vermez. İki aşama:
+        1. Sayım: öğretmenlerinden en az birinin gelebildiği saat sayısı < ders saati mi?
+           Kimsenin gelemediği saatler adıyla söylenir.
+        2. Akış: her ders yalnızca kendi öğretmeninin müsait saatlerine ve günde en fazla n saat
+           yerleşebilir; her saate en fazla bir ders. Yerleşebilen en fazla saat (max-flow) < ders
+           saati mi? (Ör. iki öğretmen yalnızca aynı birkaç saatte müsaitse.)
+        Daha önce başka bir kontrolün raporladığı sınıflar atlanır (aynı sorun iki kez söylenmesin).
+        """
+        raporlanan = {i for c in onceki for i in c.ilgili}
+        sorunlar = []
+        for sinif_id, atamalar in self._gruplar(lambda a: a.sinif_id).items():
+            if sinif_id in raporlanan or any(a.ogretmen_id is None for a in atamalar):
+                continue
+            ders_saati = sum(a.haftalik_saat for a in atamalar)
+            ogretmenler = {a.ogretmen_id for a in atamalar}
+            hucreler = [(g, s) for g in range(self.gun_sayisi) for s in range(self.saat_sayisi)]
+            kimse_yok = [h for h in hucreler if all((o, *h) in self._gelemez for o in ogretmenler)]
+            ilgili = (sinif_id, *sorted(ogretmenler))
+            ad = self.ad.sinif(sinif_id)
+            if ders_saati > len(hucreler) - len(kimse_yok):
+                zamanlar = [self.ad.zaman(g, s) for g, s in kimse_yok]
+                liste = ", ".join(zamanlar[:5]) + (f" ve {len(zamanlar) - 5} saat daha" if len(zamanlar) > 5 else "")
+                sorunlar.append(Celiski(
+                    "sinif_musaitligi",
+                    f"{iyelik(ad)} haftada {ders_saati} saat dersi var, ama öğretmenlerinden en az birinin "
+                    f"gelebildiği yalnızca {len(hucreler) - len(kimse_yok)} saat var. Şu saatlerde "
+                    f"öğretmenlerinin hiçbiri gelemiyor: {liste}.",
+                    ilgili,
+                ))
+                continue
+            yerlesebilir = self._en_fazla_yerlesim(atamalar)
+            if yerlesebilir < ders_saati:
+                sorunlar.append(Celiski(
+                    "sinif_musaitligi",
+                    f"{iyelik(ad)} haftada {ders_saati} saat dersi var, ama öğretmenlerinin müsait "
+                    f"saatleri ve bir dersin günde en fazla {self.n} saat olabilmesi kuralıyla en fazla "
+                    f"{yerlesebilir} saati yerleşebilir. Bazı öğretmenleri yalnızca aynı saatlerde "
+                    f"müsait olabilir.",
+                    ilgili,
+                ))
+        return sorunlar
+
+    def _en_fazla_yerlesim(self, atamalar: list[DersAtama]) -> int:
+        """Ağ akışı: kaynak -> ders (haftalık saat) -> (ders, gün) (n) -> saat (1) -> hedef.
+
+        Kenar kapasiteleri küçük ve ağ küçük (bir sınıf), basit artırım yolu (BFS) yeterli.
+        """
+        kapasite: dict[tuple, dict[tuple, int]] = defaultdict(lambda: defaultdict(int))
+        kaynak, hedef = ("kaynak",), ("hedef",)
+        for a in atamalar:
+            kapasite[kaynak][("ders", a.id)] += a.haftalik_saat
+            for g in range(self.gun_sayisi):
+                kapasite[("ders", a.id)][("gun", a.id, g)] += self.n
+                for s in range(self.saat_sayisi):
+                    if (a.ogretmen_id, g, s) not in self._gelemez:
+                        kapasite[("gun", a.id, g)][("saat", g, s)] = 1
+                        kapasite[("saat", g, s)][hedef] = 1
+        akis = 0
+        while True:
+            onceki: dict[tuple, tuple] = {kaynak: kaynak}
+            kuyruk = [kaynak]
+            while kuyruk and hedef not in onceki:
+                dugum = kuyruk.pop(0)
+                for komsu, kalan in kapasite[dugum].items():
+                    if kalan > 0 and komsu not in onceki:
+                        onceki[komsu] = dugum
+                        kuyruk.append(komsu)
+            if hedef not in onceki:
+                return akis
+            # Yol üzerindeki en küçük kapasite kadar akış gönder (ters kenarları da güncelle).
+            yol, dugum = [], hedef
+            while dugum != kaynak:
+                yol.append((onceki[dugum], dugum))
+                dugum = onceki[dugum]
+            miktar = min(kapasite[u][v] for u, v in yol)
+            for u, v in yol:
+                kapasite[u][v] -= miktar
+                kapasite[v][u] += miktar
+            akis += miktar
 
     # --- kilitler ------------------------------------------------------------------------
 
