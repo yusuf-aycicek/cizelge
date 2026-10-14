@@ -11,7 +11,9 @@ services:
       POSTGRES_PASSWORD: okul_sahip  # yalnızca geliştirme; üretimde gizli değişkenden gelir
       POSTGRES_DB: okul
     ports:
-      - "5432:5432"  # bilgisayardan erişim (testler, inceleme)
+      # Bilgisayardan erişim (testler, inceleme) 5433 üzerinden: aynı makinedeki başka projelerin
+      # PostgreSQL konteynerleri 5432 kullanıyor. Konteynerler arası bağlantı yine db:5432.
+      - "5433:5432"
     volumes:
       - db_verisi:/var/lib/postgresql/data  # konteyner silinse de veri kalır
     healthcheck:

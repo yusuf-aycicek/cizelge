@@ -269,9 +269,10 @@ dallarının sürüm klasörleri modül listesinden toplanır.
 - Öğrenilen bir Alembic davranışı: `alembic_version` dal başına değil, birbirini kapsamayan uç
   revizyon başına satır tutar (`depends_on` da kapsama sayılır). Testler uygulanmış revizyonları
   uçlardan geriye yürüyerek hesaplıyor; sıra garantisi çevrimdışı SQL çıktısıyla ayrıca sınanıyor.
-- Makinede başka projelerin (vtys26-lab01, vtys26-lab02) durdurulmuş PostgreSQL konteynerleri de
-  bilgisayarın 5432 portunu kullanacak şekilde tanımlı. Şu an çakışma yok (durdurulmuşlar), ama
-  aynı anda çalıştırılırlarsa sonra açılan başlayamaz. Proje sahibine soruldu.
+- Makinede başka projelerin (vtys26-lab01, vtys26-lab02) PostgreSQL konteynerleri bilgisayarın
+  5432 portunu kullanıyor. Karar: bu projenin `db` servisi bilgisayara **5433** üzerinden açılır
+  (`5433:5432`); konteynerler arası bağlantı yine `db:5432`. Ayarların ve testlerin varsayılan
+  adresi `localhost:5433`.
 
 ## 10. Diyagramlar (ders için)
 

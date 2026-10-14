@@ -13,7 +13,7 @@ class Ayarlar(BaseSettings):
 
     # Geliştirme varsayılanı: docker-compose'daki `db` servisine bilgisayardan bağlanmak için.
     # 4. alt adımda (RLS) migration için tablo sahibi rolü, uygulama için ayrı bir rol kullanılacak.
-    veritabani_url: str = "postgresql+psycopg://okul_sahip:okul_sahip@localhost:5432/okul"
+    veritabani_url: str = "postgresql+psycopg://okul_sahip:okul_sahip@localhost:5433/okul"
 
     # Yüklenecek modüller. Yeni bir modül eklemek için adını buraya (ya da ortam değişkenine,
     # ör. OKULAPI_ETKIN_MODULLER='["ders_programi","kutuphane"]') eklemek yeterlidir.

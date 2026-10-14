@@ -22,7 +22,7 @@ from okulapi.main import uygulama_olustur
 from okulapi.migrasyon import alembic_ayari
 
 TEST_URL = os.environ.get(
-    "OKULAPI_TEST_VERITABANI_URL", "postgresql+psycopg://okul_sahip:okul_sahip@localhost:5432/okul_test"
+    "OKULAPI_TEST_VERITABANI_URL", "postgresql+psycopg://okul_sahip:okul_sahip@localhost:5433/okul_test"
 )
 
 
