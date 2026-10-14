@@ -380,7 +380,20 @@ yönlendirmesi bozuluyor.
   - "Testler geçer": karşılanıyor (132/132).
   - "Zamana göre kalite ölçülmüştür": ölçüldü, ama kalite yetersiz bulundu ve iyileştirme yarım.
 
-**Sıradaki adım:**
+**Pencere varyantları deneyi (2026-10-14, yapıldı; koda alınmadı, proje sahibinin kararı bekleniyor):**
+- Betik: `scripts/pencere_deneyi.py`. Sonuçlar: `scripts/sonuclar/pencere_varyantlari.md` (özet,
+  her çalıştırmadan sonra yazılır) ve `scripts/sonuclar/pencere_ham.csv` (her iyileşen çözüm).
+- Koşullar: gerçekçi set, 60 sn, 8 iş parçacığı, tohum 0/1/2, mevcut formül de aynı betikle
+  yeniden ölçüldü. Üç varyant da mini sette doğruluk denetiminden geçti.
+- 60. saniyede ortalama gerçek ceza: mevcut 703, A 687, B 1002. A ile mevcut arasındaki fark
+  tohum dalgalanmasının içinde. B açıkça daha kötü (pencere 245'e karşı 147-158).
+- **Hipotez doğrulanmadı:** A'da da alt sınır negatif kaldı (60 sn'de ortalama −3316; mevcut
+  −3768). Yani negatif alt sınırın tek nedeni pencere formülü değil. A ile bütün ceza terimleri
+  gevşetilmiş modelde de negatif olamıyor, buna rağmen sınır negatif. Bu durum, CP-SAT'ın 60 sn
+  içinde gevşetilmiş modelden anlamlı bir sınır üretemediğini gösteriyor. Neden henüz bilinmiyor.
+- Öneri proje sahibine sunuldu: B alınmaz, A'nın getirisi ölçülemeyecek kadar küçük.
+
+**Sıradaki adım (eski liste; 1. madde yukarıdaki deneyle güncellendi):**
 1. Pencere varyantları A ve B'yi ölçmek. Alt sınır ve 60 sn kalitesi düzelirse en iyisini
    `esnek.py`'ye almak, mini setteki çapraz kontrol testinin geçtiğini doğrulamak, ADR 0007 yazmak.
 2. Gerçekçi ve büyük seti yeni modelle yeniden ölçmek (10/30/60/120 sn, 3 tohum) ve
