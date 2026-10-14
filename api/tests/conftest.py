@@ -15,6 +15,7 @@ from alembic import command
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.engine import make_url
+from sqlalchemy.orm import sessionmaker
 
 from okulapi.ayarlar import Ayarlar
 from okulapi.cekirdek.veritabani import motor_olustur
@@ -57,9 +58,48 @@ def veritabani(ayarlar):
     yield TEST_URL
 
 
+@pytest.fixture(scope="session")
+def motor(veritabani):
+    m = motor_olustur(veritabani)
+    yield m
+    m.dispose()
+
+
 @pytest.fixture
-def istemci(ayarlar, veritabani):
+def oturum_fabrikasi(motor):
+    """Test başına bir dış işlem; oturumların commit'i yalnızca bir SAVEPOINT'i kapatır.
+
+    Test bitince dış işlem geri alınır: servisler gerçekten commit etse de veritabanında iz kalmaz
+    ve testler birbirini etkilemez. (join_transaction_mode="create_savepoint")
+    """
+    baglanti = motor.connect()
+    dis_islem = baglanti.begin()
+    fabrika = sessionmaker(bind=baglanti, join_transaction_mode="create_savepoint", expire_on_commit=False)
+    yield fabrika
+    dis_islem.rollback()
+    baglanti.close()
+
+
+@pytest.fixture
+def istemci(ayarlar, oturum_fabrikasi):
     uygulama = uygulama_olustur(ayarlar)
+    uygulama.state.oturum_fabrikasi = oturum_fabrikasi
     with TestClient(uygulama) as istemci:
         yield istemci
     uygulama.state.motor.dispose()
+
+
+@pytest.fixture
+def okul_olustur(istemci):
+    """API ile okul oluşturur, kimliğini döner."""
+
+    def olustur(ad: str = "Deneme Lisesi", **alanlar) -> str:
+        yanit = istemci.post("/api/okullar", json={"ad": ad, **alanlar})
+        assert yanit.status_code == 201, yanit.text
+        return yanit.json()["id"]
+
+    return olustur
+
+
+def okul_basligi(okul_id: str) -> dict[str, str]:
+    return {"X-Okul-Id": str(okul_id)}

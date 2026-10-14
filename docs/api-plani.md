@@ -252,8 +252,8 @@ dallarının sürüm klasörleri modül listesinden toplanır.
 | # | Alt adım | Durum |
 |---|---|---|
 | 1 | Altyapı | Bitti (2026-10-14) |
-| 2 | Çekirdek | **Sıradaki** |
-| 3 | Ders programı modülü | Bekliyor |
+| 2 | Çekirdek | Bitti (2026-10-14) |
+| 3 | Ders programı modülü | **Sıradaki** |
 | 4 | İzolasyon kabul testi ve RLS | Bekliyor |
 | 5 | Diyagramlar ve belgeler | Bekliyor |
 
@@ -273,6 +273,28 @@ dallarının sürüm klasörleri modül listesinden toplanır.
   5432 portunu kullanıyor. Karar: bu projenin `db` servisi bilgisayara **5433** üzerinden açılır
   (`5433:5432`); konteynerler arası bağlantı yine `db:5432`. Ayarların ve testlerin varsayılan
   adresi `localhost:5433`.
+
+2. alt adımdan notlar:
+- Modeller (`cekirdek/modeller.py`): `Okul` ve `OkulaAitMixin`'den türeyen `Kullanici`,
+  `Ogretmen`, `Sinif`, `Ders`. Adlandırma kuralı (`ADLANDIRMA_KURALI`) kısıt adlarını öngörülebilir
+  kılar. Migration `cekirdek_0002` autogenerate ile üretildi, elle gözden geçirildi.
+- **Plandan sapma:** okul bağlamı `ContextVar` yerine veritabanı oturumuna bağlandı
+  (`oturum.info["okul_id"]`). FastAPI senkron bağımlılıkları bağlam kopyasıyla ayrı iş parçacığında
+  çalıştırır; ContextVar endpoint'e ulaşmayabilir. Gerekçe ADR 0009'da.
+- Okul filtresi (`cekirdek/kiraci.py`): `do_orm_execute` + `with_loader_criteria`,
+  `before_flush`. Testte bulunan açık: `select(func.count()).select_from(Model)` sorgusunda
+  `all_mappers` boş olduğu için filtre atlanıyordu; okula aitlik artık FROM'daki tablolardan da
+  belirleniyor. Ham SQL ve Core tablo nesneleri ORM filtresini atlar: uygulama kodunda tarama
+  testiyle yasak, RLS (4. alt adım) kapatacak.
+- Katmanlar: `OkulaAitDepo` → `CrudServisi` (işlem sınırı; servis commit eder; PostgreSQL hata
+  kodları 23505/23503/23514 anlaşılır hatalara çevrilir) → `crud_router` fabrikası (modüller de
+  kullanabilir). Servis istisnaları main.py'de 404/409/422'ye çevrilir.
+- Test düzeneği: test başına dış işlem + oturumlar SAVEPOINT ile (`join_transaction_mode=
+  "create_savepoint"`); servisler gerçekten commit etse de veritabanında iz kalmaz.
+- Testler: 45/45 (altyapı 12, okul filtresi 16, çekirdek API 17). Gerçek API üzerinde elle de
+  denendi: B okulu A'nın öğretmenini ne getirebiliyor ne silebiliyor (404).
+- Windows notu: `curl -d` ile Türkçe karakterli gövde gönderilince komut satırı kod sayfası
+  yüzünden bozuk UTF-8 gidiyor (API 400 döner). Gövdeyi dosyadan (`--data-binary @dosya`) gönderin.
 
 ## 10. Diyagramlar (ders için)
 

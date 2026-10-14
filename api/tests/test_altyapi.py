@@ -140,33 +140,41 @@ def _alembic_version_satirlari(url: str) -> set[str]:
         motor.dispose()
 
 
-def _uygulanmis_revizyonlar(url: str) -> set[str]:
-    """alembic_version yalnızca birbirini kapsamayan uç revizyonları tutar. Bir revizyon,
-    atası (down_revision) ya da bağımlılığı (depends_on) olduğu bir uç kayıtlıysa uygulanmıştır."""
+def _kapanis(revizyonlar) -> set[str]:
+    """Revizyonlar ve onların bütün ataları (down_revision) ile bağımlılıkları (depends_on)."""
     betikler = _betikler()
-    uygulanmis: set[str] = set()
-    yigin = list(_alembic_version_satirlari(url))
+    sonuc: set[str] = set()
+    yigin = list(revizyonlar)
     while yigin:
         revizyon = yigin.pop()
-        if revizyon in uygulanmis:
+        if revizyon in sonuc:
             continue
-        uygulanmis.add(revizyon)
+        sonuc.add(revizyon)
         betik = betikler.get_revision(revizyon)
         for onceki in (betik.down_revision, betik.dependencies):
             if onceki:
                 yigin.extend([onceki] if isinstance(onceki, str) else onceki)
-    return uygulanmis
+    return sonuc
 
 
-TUM_REVIZYONLAR = {"cekirdek_0001", "ders_programi_0001"}
+def _uygulanmis_revizyonlar(url: str) -> set[str]:
+    """alembic_version yalnızca birbirini kapsamayan uç revizyonları tutar. Bir revizyon,
+    atası ya da bağımlılığı olduğu bir uç kayıtlıysa uygulanmıştır."""
+    return _kapanis(_alembic_version_satirlari(url))
 
 
-def test_modul_dali_tek_basina_yukseltilince_cekirdek_de_uygulanir(ayri_veritabani):
-    # Yalnızca ders programı dalı istendi; depends_on yüzünden çekirdek de uygulanmış olmalı.
+def _tum_revizyonlar() -> set[str]:
+    return {betik.revision for betik in _betikler().walk_revisions()}
+
+
+def test_modul_dali_tek_basina_yukseltilince_bagimliliklari_da_uygulanir(ayri_veritabani):
+    # Yalnızca ders programı dalı istendi: o dalın bütün revizyonları ve bağımlı olduğu çekirdek
+    # revizyonları uygulanır; çekirdeğin ders programının bağımlı olmadığı revizyonları uygulanmaz.
     command.upgrade(alembic_ayari(veritabani_url=ayri_veritabani), "ders_programi@head")
-    assert _uygulanmis_revizyonlar(ayri_veritabani) == TUM_REVIZYONLAR
-    # Ders programı çekirdeği kapsadığı için tabloda tek satır kalır (Alembic tasarımı).
-    assert _alembic_version_satirlari(ayri_veritabani) == {"ders_programi_0001"}
+    dal_ucu = _betikler().get_revision("ders_programi@head").revision
+    beklenen = _kapanis([dal_ucu])
+    assert CEKIRDEK_KOK_REVIZYONU in beklenen
+    assert _uygulanmis_revizyonlar(ayri_veritabani) == beklenen
 
 
 def test_cekirdek_modulden_once_uygulanir():
@@ -183,8 +191,26 @@ def test_cekirdek_modulden_once_uygulanir():
 def test_upgrade_downgrade_upgrade(ayri_veritabani):
     ayar = alembic_ayari(veritabani_url=ayri_veritabani)
     command.upgrade(ayar, "heads")
-    assert _uygulanmis_revizyonlar(ayri_veritabani) == TUM_REVIZYONLAR
+    assert _uygulanmis_revizyonlar(ayri_veritabani) == _tum_revizyonlar()
     command.downgrade(ayar, "base")
     assert _alembic_version_satirlari(ayri_veritabani) == set()
     command.upgrade(ayar, "heads")
-    assert _uygulanmis_revizyonlar(ayri_veritabani) == TUM_REVIZYONLAR
+    assert _uygulanmis_revizyonlar(ayri_veritabani) == _tum_revizyonlar()
+
+
+def test_okula_ait_tablolara_orm_disi_erisim_yok():
+    """Ham SQL (`text(...)`) ve Core tablo nesneleri (`Model.__table__`) ORM okul filtresinden
+    geçmez (test_kiraci.py, bilinen sınır). Uygulama kodunda yalnızca izin verilen yerlerde
+    kullanılabilirler; RLS (4. alt adım) veritabanı düzeyinde ikinci güvencedir."""
+    izinli = {"saglik.py"}  # SELECT 1: hiçbir tabloya dokunmaz
+    ihlaller = []
+    for dosya in KAYNAK.rglob("*.py"):
+        if "migrations" in dosya.parts or "migrasyon" in dosya.parts or dosya.name in izinli:
+            continue
+        kaynak = dosya.read_text(encoding="utf-8")
+        for dugum in ast.walk(ast.parse(kaynak)):
+            if isinstance(dugum, ast.Attribute) and dugum.attr == "__table__":
+                ihlaller.append(f"{dosya.name}:{dugum.lineno} __table__")
+            if isinstance(dugum, ast.Call) and getattr(dugum.func, "id", getattr(dugum.func, "attr", "")) == "text":
+                ihlaller.append(f"{dosya.name}:{dugum.lineno} text(...)")
+    assert ihlaller == []

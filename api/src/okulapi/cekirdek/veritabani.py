@@ -11,12 +11,25 @@ Kavramlar (SQLAlchemy 2.0):
 
 from __future__ import annotations
 
-from sqlalchemy import Engine, create_engine
+from sqlalchemy import Engine, MetaData, create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+
+# Kısıt ve indeks adlandırma kuralı. PostgreSQL adsız kısıtlara kendisi ad verir; adı bilmeden
+# bir migration o kısıtı silemez ya da değiştiremez. Kuralla adlar öngörülebilir olur:
+# ör. uq_sinif_okul_id_ad, fk_ders_atama_okul_id_ogretmen_id_ogretmen, ck_okul_gun_sayisi.
+ADLANDIRMA_KURALI = {
+    "pk": "pk_%(table_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_N_name)s_%(referred_table_name)s",
+    "uq": "uq_%(table_name)s_%(column_0_N_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "ix": "ix_%(table_name)s_%(column_0_N_name)s",
+}
 
 
 class Base(DeclarativeBase):
     """Çekirdek ve bütün modüllerin modelleri bu tabandan türer (tek metadata)."""
+
+    metadata = MetaData(naming_convention=ADLANDIRMA_KURALI)
 
 
 BAGLANTI_ZAMAN_ASIMI_SN = 3

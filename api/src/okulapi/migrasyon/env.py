@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from alembic import context
 
+import okulapi.cekirdek.modeller  # noqa: F401  (çekirdek tabloları metadata'ya kaydolur)
 from okulapi.ayarlar import Ayarlar
 from okulapi.cekirdek.modul import modulleri_yukle
 from okulapi.cekirdek.veritabani import Base, motor_olustur
