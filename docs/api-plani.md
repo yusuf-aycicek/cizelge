@@ -255,7 +255,9 @@ dallarının sürüm klasörleri modül listesinden toplanır.
 | 2 | Çekirdek | Bitti (2026-10-14) |
 | 3 | Ders programı modülü | Bitti (2026-10-14) |
 | 4 | İzolasyon kabul testi ve RLS | Bitti (2026-10-14) |
-| 5 | Diyagramlar ve belgeler | **Sıradaki** |
+| 5 | Diyagramlar ve belgeler | Bitti (2026-10-14) |
+
+Yapım sırası 2 tamamlandı (2026-10-14).
 
 1. alt adımdan notlar:
 - `docker compose up --build` ile db (PostgreSQL 17.11) ve api ayağa kalkıyor. API açılırken
@@ -336,6 +338,23 @@ dallarının sürüm klasörleri modül listesinden toplanır.
   API, bağlantı havuzu). Mutasyon denemesi havuz testinde bir boşluk buldu (istekler commit
   etmiyordu), düzeltildi; ayrıntılar ADR 0009'da.
 - Testler: 89/89. Docker'da sıfırdan kurulum ve psql ile elle doğrulama yapıldı.
+
+5. alt adımdan notlar:
+- Diyagramlar `docs/diyagramlar/` altında, dokuz tane: genel bakış (01), çekirdek (02 modeller ve
+  izolasyon, 03 katmanlar), ders programı modülü (04 tablolar, 05 katmanlar), çözücü (06, strategy
+  deseni), nesne diyagramları (07 veri girişi, 08 program sonrası; mini setin gerçek çözümünden),
+  dağıtım (09; redis, worker, web `<<planlanan>>`, gri ve kesik çizgili). Tek parça class
+  diyagramı yerine bölündü; tek parça okunamıyordu. Bölüm 10'daki `KiraciBaglami` ve
+  `ModulKayitDefteri` adları koddaki karşılıklarıyla çizildi (`kiraci` modülü, `modulleri_yukle`).
+- Çıktılar tek komutla: `python scripts/diyagramlari_uret.py` (PlantUML `1.2026.8` imajı, Docker).
+- `api/tests/test_diyagramlar.py`: diyagramdaki her sınıf, üye, metot parametresi ve nesne alanı
+  kodda aranır (`' @kod <modül>` işaretleriyle). Mutasyonla denendi: yanlış üye, parametre ve
+  nesne alanı yakalanıyor.
+- PlantUML'de paket ile sınıf aynı adı taşıyamaz; `<<modül>>` sınıflarının paket etiketleri bu
+  yüzden açıklamalı (ör. "kisitlar (paket: kayıt ve varsayılanlar)").
+- README: tek komutla çalıştırma, testler, diyagramlar. `docker compose up --build` ile
+  `/api/saglik` ve `/docs` yeniden doğrulandı.
+- Testler: api 195/195 (diyagram testleri 106), çözücü 137/137.
 
 ## 10. Diyagramlar (ders için)
 

@@ -1,0 +1,91 @@
+@startuml 04-ders-programi-tablolar
+!include _stil.iuml
+title Ders programı modülü (1/2): tablolar ve ilişkiler
+hide empty members
+
+skinparam class<<çekirdek>> {
+  BackgroundColor #EEF4FB
+  BorderColor #6C8EBF
+}
+
+' Çekirdekten gelen sınıflar (ayrıntıları 02'de).
+' @kod okulapi.cekirdek.modeller
+package "okulapi.cekirdek (ayrıntı: 02)" {
+  class Okul <<çekirdek>>
+  class Ogretmen <<çekirdek>>
+  class Sinif <<çekirdek>>
+  class Ders <<çekirdek>>
+}
+
+' @kod okulapi.moduller.ders_programi.modeller
+package "modeller (tablolar)" {
+  class SeviyeSablonu {
+    +seviye : int
+    +ders_id : UUID
+    +haftalik_saat : int
+  }
+  class DersAtama {
+    +sinif_id : UUID
+    +ders_id : UUID
+    +ogretmen_id : UUID [0..1]
+    +haftalik_saat : int
+  }
+  class Musaitlik {
+    +ogretmen_id : UUID
+    +gun : int
+    +saat : int
+    +durum : str
+  }
+  class Kisit {
+    +tur : str
+    +parametreler : dict [JSONB]
+    +zorunlu : bool
+    +agirlik : int
+  }
+  class Program {
+    +ad : str
+    +durum : str
+    +hata_mesaji : str [0..1]
+    +temel_program_id : UUID [0..1]
+    +sure_siniri_sn : int
+    +bitis : datetime [0..1]
+  }
+  class Yerlesim {
+    +program_id : UUID
+    +ders_atama_id : UUID
+    +gun : int
+    +saat : int
+    +kilitli : bool
+  }
+}
+
+' Hepsi bileşik yabancı anahtar (okul_id, x_id) -> x(okul_id, id): yalnızca aynı okul.
+DersAtama "0..*" --> "1" Sinif : sinif_id
+DersAtama "0..*" --> "1" Ders : ders_id
+DersAtama "0..*" --> "0..1" Ogretmen : ogretmen_id
+SeviyeSablonu "0..*" --> "1" Ders : ders_id
+Ogretmen "1" *-- "0..*" Musaitlik : ON DELETE\nCASCADE
+Program "1" *-- "0..*" Yerlesim : ON DELETE\nCASCADE
+Yerlesim "0..*" --> "1" DersAtama : ders_atama_id\n(CASCADE)
+Program "0..*" --> "0..1" Program : temel_program_id\n(SET NULL)
+Okul "1" -- "0..*" Kisit
+
+note right of DersAtama
+  UNIQUE (okul_id, sinif_id, ders_id):
+  bir sınıf, bir ders, bir atama.
+  Bileşik FK MATCH SIMPLE:
+  ogretmen_id boşken denetlenmez.
+end note
+
+note bottom of Kisit
+  Bu paketteki bütün tablolar çekirdeğin
+  OkulaAitMixin'inden türer (id, okul_id,
+  UNIQUE (okul_id, id)); oklar sadelik
+  için çizilmedi. Hepsinde RLS açıktır.
+end note
+
+legend right
+  Bileşim (dolu elmas): parça bütünle birlikte silinir (ON DELETE CASCADE).
+  Yönlü ilişki: yabancı anahtar; kullanılan çekirdek kaydı silinemez (RESTRICT).
+endlegend
+@enduml

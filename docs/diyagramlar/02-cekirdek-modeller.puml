@@ -1,0 +1,103 @@
+@startuml 02-cekirdek-modeller
+!include _stil.iuml
+title Çekirdek (1/2): modeller ve okul izolasyonu
+hide empty members
+
+' Görünürlük: + genel; # alt sınıfın doldurduğu genişletme noktası (Python'da _ ile başlar);
+' - iç yardımcı. <<modül>>: yalnızca fonksiyonlardan oluşan Python modülü (üyeler statik).
+
+class DeclarativeBase <<harici>>
+
+' @kod okulapi.cekirdek.veritabani
+package "veritabani" {
+  class Base {
+    {static} +metadata : MetaData
+  }
+}
+
+' @kod okulapi.cekirdek.modeller
+package "modeller (tablolar)" {
+  abstract class ZamanDamgasi <<mixin>> {
+    +olusturma : datetime
+    +guncelleme : datetime
+  }
+  class Okul {
+    +id : UUID
+    +ad : str
+    +gun_sayisi : int
+    +gunluk_ders_saati : int
+  }
+  abstract class OkulaAitMixin <<mixin>> {
+    +id : UUID
+    +okul_id : UUID
+    #_tablo_kisitlari : tuple
+  }
+  class Kullanici {
+    +email : str
+    +sifre_hash : str
+    +ad : str
+    +rol : str
+  }
+  class Ogretmen {
+    +ad : str
+    +brans : str
+  }
+  class Sinif {
+    +ad : str
+    +seviye : int
+  }
+  class Ders {
+    +ad : str
+    +kisa_ad : str
+  }
+}
+
+' @kod okulapi.cekirdek.kiraci
+package "kiraci (okul izolasyonu)" {
+  class kiraci <<modül>> {
+    {static} +okul_oturumu(fabrika, okul_id : UUID) : Session
+    {static} +okulsuz_oturum(fabrika) : Session
+    {static} +oturumun_okulu(oturum : Session) : UUID
+    {static} +veritabaninda_okulu_ayarla(oturum, okul_id : UUID)
+    {static} -_okul_filtresi(durum)
+    {static} -_okul_yaz_ve_denetle(oturum, ...)
+    {static} -_veritabanina_okulu_bildir(oturum, ...)
+  }
+  class OkulBaglamiYokHatasi <<istisna>>
+  class OkulIhlaliHatasi <<istisna>>
+}
+
+DeclarativeBase <|-- Base
+Base <|-- Okul
+ZamanDamgasi <|-- Okul
+ZamanDamgasi <|-- OkulaAitMixin
+OkulaAitMixin <|-- Kullanici
+OkulaAitMixin <|-- Ogretmen
+OkulaAitMixin <|-- Sinif
+OkulaAitMixin <|-- Ders
+
+Okul "1" -- "0..*" Kullanici
+Okul "1" -- "0..*" Ogretmen
+Okul "1" -- "0..*" Sinif
+Okul "1" -- "0..*" Ders
+
+kiraci ..> OkulaAitMixin : koşul ekler,\nokul_id yazar
+kiraci ..> OkulBaglamiYokHatasi : fırlatır
+kiraci ..> OkulIhlaliHatasi : fırlatır
+
+note right of OkulaAitMixin
+  Okula ait her tablonun sütunları:
+  id, okul_id ve UNIQUE (okul_id, id).
+  Diğer tablolar bunlara bileşik yabancı
+  anahtarla bağlanır (ADR 0009).
+  Okula ait modeller Base'den de türer
+  (oklar sadelik için çizilmedi).
+end note
+
+note bottom of kiraci
+  Okulun ORM ve veritabanı düzeyinde belirlendiği tek yer (SQLAlchemy olayları):
+  do_orm_execute → her sorguya okul koşulu (with_loader_criteria)
+  before_flush → yeni kayda okul_id yaz; başka okula yazmayı/taşımayı reddet
+  after_begin → SET LOCAL app.okul_id (PostgreSQL RLS politikaları buna bakar)
+end note
+@enduml

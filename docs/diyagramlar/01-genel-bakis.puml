@@ -1,0 +1,71 @@
+@startuml 01-genel-bakis
+!include _stil.iuml
+title Genel bakış: paketler ve bağımlılıklar
+
+' "' @paket" satırları: test_diyagramlar.py bu Python paketlerinin gerçekten var olduğunu denetler.
+
+package "web (React arayüzü)" <<planlanan>> as web #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A {
+}
+package "worker (kuyruk işçisi)" <<planlanan>> as worker #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A {
+}
+
+package "okulapi (API, modüler monolit)" as okulapi {
+  ' @paket okulapi.main
+  package "main\n(uygulama fabrikası)" as main {
+  }
+  ' @paket okulapi.migrasyon
+  package "migrasyon\n(Alembic, dallar)" as migrasyon {
+  }
+  ' @paket okulapi.cekirdek
+  package "cekirdek\n(okul, kullanıcı, öğretmen, sınıf, ders;\nokul izolasyonu, depo, servis, modül sözleşmesi)" as cekirdek {
+  }
+  package "moduller" as moduller {
+    ' @paket okulapi.moduller.ders_programi
+    package "ders_programi\n(şablon, atama, müsaitlik,\nkısıt, program, yerleşim)" as ders_programi {
+    }
+    package "ders_notlari" <<planlanan>> as ders_notlari #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A {
+    }
+    package "kutuphane" <<planlanan>> as kutuphane #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A {
+    }
+  }
+}
+
+' @paket cozucu
+package "cozucu\n(saf Python, OR-Tools CP-SAT)" as cozucu {
+}
+
+database "PostgreSQL 17" as pg
+
+web ..> main : HTTP / JSON
+main ..> cekirdek : <<import>>
+main ..> moduller : etkin modülleri\nayardan adıyla yükler\n(importlib)
+migrasyon ..> cekirdek : <<import>>
+migrasyon ..> moduller : sürüm klasörleri\n(adıyla)
+ders_programi ..> cekirdek : <<import>>
+ders_programi ..> cozucu : <<import>>
+ders_notlari ..> cekirdek : <<import>>
+kutuphane ..> cekirdek : <<import>>
+worker ..> ders_programi : dönüştürücü
+worker ..> cozucu : <<import>>
+cekirdek ..> pg : SQL (SQLAlchemy)
+
+note right of cekirdek
+  Çekirdekten modüllere ok yoktur:
+  çekirdek hiçbir modülü içe aktarmaz,
+  modüller birbirini içe aktarmaz
+  (test_cekirdek_modulleri_ice_aktarmaz,
+  test_moduller_birbirini_ice_aktarmaz).
+  Modüller çekirdeğe Modul sözleşmesiyle
+  (paketteki MODUL nesnesi) kaydolur.
+end note
+
+note bottom of cozucu
+  Veritabanından ve web'den habersizdir.
+  Girdi: CozumGirdisi, çıktı: CozumSonucu.
+end note
+
+legend right
+  Kesik çizgili ok: bağımlılık (<<import>> = kaynak kodunda içe aktarma)
+  Gri paket: <<planlanan>> (henüz yapılmadı)
+endlegend
+@enduml

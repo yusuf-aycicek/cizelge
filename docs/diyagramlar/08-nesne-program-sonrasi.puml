@@ -1,0 +1,103 @@
+@startuml 08-nesne-program-sonrasi
+!include _stil.iuml
+title Nesne diyagramı (2/2): mini set, program üretildikten sonra (9-A Matematik yerleşimleri)
+
+' 07'deki veri aynen durur; burada yalnızca program ve yerleşimler eklenir. Yerleşimler mini setin
+' gerçek çözümünden alındı (gun 0 = pazartesi, saat 0 = 1. ders).
+
+object "a9amat : DersAtama" as atama {
+  id = a-9a-mat
+  sinif_id = s-9a
+  ders_id = d-mat
+  ogretmen_id = o-ayse
+  haftalik_saat = 6
+}
+
+object "guz : Program" as p1 {
+  id = p-guz
+  ad = "Güz dönemi"
+  durum = "hazir"
+  hata_mesaji = null
+  temel_program_id = null
+  sure_siniri_sn = 120
+  bitis = 2026-10-14 10:02
+}
+
+object "y1 : Yerlesim" as y1 {
+  program_id = p-guz
+  ders_atama_id = a-9a-mat
+  gun = 1
+  saat = 0
+  kilitli = true
+}
+object "y2 : Yerlesim" as y2 {
+  gun = 2
+  saat = 0
+  kilitli = false
+}
+object "y3 : Yerlesim" as y3 {
+  gun = 3
+  saat = 0
+  kilitli = false
+}
+object "y4 : Yerlesim" as y4 {
+  gun = 3
+  saat = 1
+  kilitli = false
+}
+object "y5 : Yerlesim" as y5 {
+  gun = 4
+  saat = 4
+  kilitli = false
+}
+object "y6 : Yerlesim" as y6 {
+  gun = 4
+  saat = 5
+  kilitli = false
+}
+
+object "guz2 : Program" as p2 {
+  id = p-guz-2
+  ad = "Güz dönemi (güncelleme)"
+  durum = "bekliyor"
+  temel_program_id = p-guz
+  sure_siniri_sn = 120
+  bitis = null
+}
+
+p1 *-- y1
+p1 *-- y2
+p1 *-- y3
+p1 *-- y4
+p1 *-- y5
+p1 *-- y6
+y1 --> atama : ders_atama_id
+y2 --> atama
+y3 --> atama
+y4 --> atama
+y5 --> atama
+y6 --> atama
+p2 --> p1 : temel_program_id
+
+note bottom of atama
+  haftalik_saat = 6 → tam 6 yerleşim.
+  Salı 1, Çarşamba 1, Perşembe 1-2, Cuma 5-6:
+  pazartesi yok (Ayşe gelemez),
+  hiçbir günde 2'den fazla saat yok (gunluk_ders_siniri n=2),
+  Perşembe ve Cuma'daki ikişer saat arka arkaya.
+end note
+
+note right of y1
+  Kilitli hücre: veri girişinde
+  sabitlendi, çözücü yerinden
+  oynatmadı.
+end note
+
+note right of p2
+  En az değişiklikle güncelleme isteği:
+  temel program p-guz. Worker bu kaydı
+  kuyruktan alınca durum
+  bekliyor → uretiliyor → hazir olur
+  (yapım sırası 3).
+end note
+@enduml

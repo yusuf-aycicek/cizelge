@@ -1,0 +1,114 @@
+@startuml 05-ders-programi-katmanlar
+!include _stil.iuml
+title Ders programı modülü (2/2): servisler, depolar, dönüştürücü ve modül kaydı
+hide empty members
+
+skinparam class<<çekirdek>> {
+  BackgroundColor #EEF4FB
+  BorderColor #6C8EBF
+}
+
+' @kod okulapi.cekirdek.servisler
+package "okulapi.cekirdek.servisler" {
+  abstract class CrudServisi <<çekirdek>>
+}
+' @kod okulapi.cekirdek.depo
+package "okulapi.cekirdek.depo" {
+  class OkulaAitDepo <<çekirdek>>
+}
+' @kod okulapi.cekirdek.modul
+package "okulapi.cekirdek.modul" {
+  class Modul <<çekirdek>>
+}
+
+' @kod okulapi.moduller.ders_programi
+package "ders_programi (paket)" {
+  class ders_programi <<modül>> {
+    {static} +MODUL : Modul
+  }
+}
+
+' @kod okulapi.moduller.ders_programi.servisler
+package "servisler" {
+  class SeviyeSablonuServisi {
+    +uygula(seviye : int) : dict
+    #_dogrula(alanlar, nesne)
+  }
+  class DersAtamaServisi {
+    #_dogrula(alanlar, nesne)
+  }
+  class MusaitlikServisi {
+    #_dogrula(alanlar, nesne)
+  }
+  class KisitServisi {
+    #_dogrula(alanlar, nesne)
+  }
+  class ProgramServisi {
+    +listele() : list[Program]
+    +getir(program_id : UUID) : Program
+    +yerlesimler(program_id : UUID) : list[Yerlesim]
+  }
+}
+
+' @kod okulapi.moduller.ders_programi.depo
+package "depo" {
+  class SeviyeSablonuDeposu {
+    +seviyenin(seviye : int) : list[SeviyeSablonu]
+  }
+  class DersAtamaDeposu {
+    +siniflarin(sinif_idler : list[UUID]) : list[DersAtama]
+  }
+  class YerlesimDeposu {
+    +programin(program_id : UUID, yalnizca_kilitli : bool) : list[Yerlesim]
+  }
+}
+
+' @kod okulapi.moduller.ders_programi.cozucu_donusturucu
+package "cozucu_donusturucu (veritabanı → çözücü)" {
+  class cozucu_donusturucu <<modül>> {
+    {static} +cozum_girdisi_olustur(oturum, kilit_programi_id, temel_program_id) : CozumGirdisi
+  }
+}
+
+' @kod cozucu.kisitlar
+package "cozucu.kisitlar (ayrıntı: 06)" {
+  class kisitlar <<modül>> {
+    {static} +kural_olustur(tanim : KisitTanimi) : KisitKurali
+  }
+}
+' @kod cozucu.model
+package "cozucu.model (ayrıntı: 06)" {
+  class CozumGirdisi <<harici>>
+}
+
+ders_programi ..> Modul : <<gerçekler>>
+CrudServisi <|-- SeviyeSablonuServisi
+CrudServisi <|-- DersAtamaServisi
+CrudServisi <|-- MusaitlikServisi
+CrudServisi <|-- KisitServisi
+OkulaAitDepo <|-- SeviyeSablonuDeposu
+OkulaAitDepo <|-- DersAtamaDeposu
+OkulaAitDepo <|-- YerlesimDeposu
+
+SeviyeSablonuServisi --> "1" SeviyeSablonuDeposu : depo
+DersAtamaServisi --> "1" DersAtamaDeposu : depo
+SeviyeSablonuServisi ..> DersAtamaDeposu : uygula(): öğretmeni\nboş atama ekler
+ProgramServisi ..> YerlesimDeposu
+KisitServisi ..> kisitlar : kural_olustur():\ntür ve parametre doğrulaması
+cozucu_donusturucu ..> DersAtamaDeposu
+cozucu_donusturucu ..> YerlesimDeposu
+cozucu_donusturucu ..> CozumGirdisi : üretir
+
+note bottom of cozucu_donusturucu
+  Veritabanı → çözücü girdisi (worker kullanacak).
+  Bağımlılık yalnızca modülden çözücüye doğru.
+  Ters yönün (sonuç → program, yerleşim)
+  tasarımı: docs/api-plani.md bölüm 14.
+end note
+
+note right of KisitServisi
+  API ile çözücü aynı kural listesini bilir:
+  çözücüye yeni bir kural eklenince
+  API'de değişiklik gerekmez.
+end note
+@enduml

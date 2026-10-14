@@ -1,0 +1,94 @@
+@startuml 07-nesne-veri-girisi
+!include _stil.iuml
+title Nesne diyagramı (1/2): mini set, veri girişinden sonra (9-A Matematik dilimi)
+
+' Nesneler 02 ve 04'teki sınıfların örnekleridir; alan adları onlarla aynıdır (test_diyagramlar.py
+' denetler). Kimlikler (uuid) okunabilirlik için veri/mini.json'daki kısa adlarla gösterilir.
+
+object "mini : Okul" as okul {
+  id = <okul-uuid>
+  ad = "Mini Lisesi"
+  gun_sayisi = 5
+  gunluk_ders_saati = 6
+}
+
+object "ayse : Ogretmen" as ayse {
+  id = o-ayse
+  okul_id = <okul-uuid>
+  ad = "Ayşe Yılmaz"
+  brans = "Matematik"
+}
+
+object "s9a : Sinif" as s9a {
+  id = s-9a
+  okul_id = <okul-uuid>
+  ad = "9-A"
+  seviye = 9
+}
+
+object "mat : Ders" as mat {
+  id = d-mat
+  okul_id = <okul-uuid>
+  ad = "Matematik"
+  kisa_ad = "MAT"
+}
+
+object "a9amat : DersAtama" as atama {
+  id = a-9a-mat
+  okul_id = <okul-uuid>
+  sinif_id = s-9a
+  ders_id = d-mat
+  ogretmen_id = o-ayse
+  haftalik_saat = 6
+}
+
+object "m1 : Musaitlik" as m1 {
+  ogretmen_id = o-ayse
+  gun = 0
+  saat = 0
+  durum = "gelemez"
+}
+
+object "m6 : Musaitlik" as m6 {
+  ogretmen_id = o-ayse
+  gun = 0
+  saat = 5
+  durum = "gelemez"
+}
+
+object "gunluk : Kisit" as kisit {
+  okul_id = <okul-uuid>
+  tur = "gunluk_ders_siniri"
+  parametreler = {"n": 2}
+  zorunlu = true
+  agirlik = 1
+}
+
+okul -- ayse
+okul -- s9a
+okul -- mat
+okul -- kisit
+atama --> s9a : sinif_id
+atama --> mat : ders_id
+atama --> ayse : ogretmen_id
+ayse *-- m1
+ayse *-- m6
+
+note right of m6
+  Ayşe pazartesi bütün gün gelemez:
+  saat 0..5 için 6 Musaitlik nesnesi
+  (ilk ve son gösterildi).
+end note
+
+note bottom of atama
+  Mini setin tamamı: 3 sınıf, 5 öğretmen, 7 ders, 18 atama
+  (71 ders saati). Bu dilim çözücünün asıl girdisini gösterir:
+  9-A'ya haftada 6 saat Matematik'i Ayşe Yılmaz verir.
+  Mini sette seviye şablonu kullanılmadı; atamalar doğrudan girildi.
+end note
+
+note right of kisit
+  Aynı ders bir sınıfa günde
+  en fazla 2 saat (zorunlu).
+end note
+@enduml

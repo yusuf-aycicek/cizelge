@@ -1,0 +1,145 @@
+@startuml 03-cekirdek-katmanlar
+!include _stil.iuml
+title Çekirdek (2/2): katmanlar (router → servis → depo → model) ve modül sözleşmesi
+hide empty members
+
+class Session <<harici>>
+class APIRouter <<harici>>
+
+' @kod okulapi.cekirdek.api
+package "api (router: HTTP)" {
+  class api <<modül>> {
+    {static} +crud_router(yol, servis_sinifi, olustur_semasi, guncelle_semasi, yanit_semasi, etiket) : APIRouter
+    {static} +okul_olustur(veri, oturum)
+    {static} +okul_getir(okul_id, oturum)
+    {static} +okul_guncelle(veri, okul_id, oturum)
+  }
+}
+
+' @kod okulapi.cekirdek.bagimliliklar
+package "bagimliliklar (FastAPI Depends)" {
+  class bagimliliklar <<modül>> {
+    {static} +aktif_okul_id(x_okul_id : UUID) : UUID
+    {static} +okul_oturumu_al(istek, okul_id) : Session
+    {static} +okulsuz_oturum_al(istek) : Session
+  }
+}
+
+' @kod okulapi.cekirdek.semalar
+package "semalar (API sözleşmesi)" {
+  class OgretmenOlustur {
+    +ad : str
+    +brans : str
+  }
+  class OgretmenYanit {
+    +id : UUID
+    +ad : str
+    +brans : str
+  }
+}
+
+' @kod okulapi.cekirdek.servisler
+package "servisler (iş kuralları, işlem sınırı)" {
+  abstract class "CrudServisi<T>" as CrudServisi {
+    {static} +depo_sinifi : type[OkulaAitDepo]
+    {static} +varlik : str
+    {static} +cakisma_mesaji : str
+    {static} +kullanimda_mesaji : str
+    +oturum : Session
+    +depo : OkulaAitDepo
+    +listele() : list[T]
+    +getir(kayit_id : UUID) : T
+    +olustur(alanlar : dict) : T
+    +guncelle(kayit_id : UUID, degisiklikler : dict) : T
+    +sil(kayit_id : UUID)
+    #_dogrula(alanlar : dict, nesne : T | None)
+    -_kaydet(islem)
+  }
+  class OgretmenServisi
+  class SinifServisi
+  class DersServisi
+  class OkulServisi {
+    +oturum : Session
+    +depo : OkulDeposu
+    +olustur(alanlar : dict) : Okul
+    +getir(okul_id : UUID) : Okul
+    +guncelle(okul_id : UUID, degisiklikler : dict) : Okul
+  }
+  class KayitBulunamadi <<istisna>>
+  class KayitCakismasi <<istisna>>
+  class GecersizVeri <<istisna>>
+}
+
+' @kod okulapi.cekirdek.depo
+package "depo (veri erişimi)" {
+  class "OkulaAitDepo<T: OkulaAitMixin>" as OkulaAitDepo {
+    {static} +model : type[T]
+    +oturum : Session
+    +listele() : list[T]
+    +getir(kayit_id : UUID) : T | None
+    +ekle(nesne : T) : T
+    +sil(nesne : T)
+  }
+  class OgretmenDeposu
+  class SinifDeposu
+  class DersDeposu
+  class OkulDeposu {
+    +oturum : Session
+    +getir(okul_id : UUID) : Okul | None
+    +ekle(okul : Okul) : Okul
+  }
+}
+
+' @kod okulapi.cekirdek.modul
+package "modul (modül sözleşmesi)" {
+  class Modul <<dataclass>> {
+    +ad : str
+    +onek : str
+    +router : APIRouter
+    +migration_dizini : Path
+    +modeller
+  }
+  class modul <<modül>> {
+    {static} +modulleri_yukle(adlar : list[str]) : list[Modul]
+  }
+}
+
+' --- katmanlar arası --------------------------------------------------------------------
+api ..> bagimliliklar : Depends
+api ..> CrudServisi : çağırır
+api ..> OgretmenOlustur : istek
+api ..> OgretmenYanit : yanıt
+bagimliliklar ..> Session : okul_oturumu()
+
+' --- kalıtım ve bileşim ---------------------------------------------------------------
+CrudServisi <|-- OgretmenServisi
+CrudServisi <|-- SinifServisi
+CrudServisi <|-- DersServisi
+OkulaAitDepo <|-- OgretmenDeposu : T = Ogretmen
+OkulaAitDepo <|-- SinifDeposu : T = Sinif
+OkulaAitDepo <|-- DersDeposu : T = Ders
+CrudServisi *-- "1" OkulaAitDepo : depo
+OkulServisi *-- "1" OkulDeposu : depo
+OgretmenServisi ..> OgretmenDeposu : depo_sinifi
+CrudServisi ..> KayitBulunamadi : fırlatır
+CrudServisi ..> KayitCakismasi : fırlatır
+CrudServisi ..> GecersizVeri : fırlatır
+OkulaAitDepo --> "1" Session : oturum
+
+modul ..> Modul : yükler
+Modul --> "1" APIRouter : router
+
+note right of CrudServisi
+  Genişletme noktası: _dogrula. Modül
+  servisleri iş kurallarını burada denetler.
+  Veritabanı kısıt ihlalleri (SQLSTATE
+  23505, 23503, 23514) istisnalara çevrilir;
+  main.py bunları 404/409/422 yapar.
+end note
+
+note right of Modul
+  Her modül paketinde MODUL adlı bir
+  Modul nesnesi tanımlar; çekirdek modülleri
+  adıyla yükler, kaynak kodunda içe aktarmaz.
+end note
+@enduml

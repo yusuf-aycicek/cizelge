@@ -1,0 +1,49 @@
+' Bütün diyagramların ortak görünümü. Her .puml dosyası bunu !include ile alır.
+' Kodla tutarlılık: api/tests/test_diyagramlar.py, diyagramdaki sınıf, metot ve alan adlarını kodda
+' arar. Sınıf diyagramlarında her paket bloğunun önündeki "' @kod <python.modulu>" satırı, o bloktaki
+' sınıfların hangi Python modülünde aranacağını söyler.
+
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundCorner 4
+skinparam packageStyle rectangle
+skinparam nodesep 30
+skinparam ranksep 45
+' Görünürlük UML karakterleriyle (+ genel, - özel, # korunan/alt sınıf için), simgeyle değil.
+skinparam classAttributeIconSize 0
+' Paket adlarındaki noktalar iç içe paket sanılmasın.
+set separator none
+
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #444444
+  ArrowColor #333333
+}
+skinparam class<<harici>> {
+  BackgroundColor #F2F2F2
+  BorderColor #9A9A9A
+  FontColor #555555
+}
+skinparam class<<modül>> {
+  BackgroundColor #FBF7EC
+}
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #444444
+}
+' Planlanan (henüz yapılmamış) öğeler: gri, kesik çizgili. Kesik çizgi öğe satırında verilir:
+' package "..." <<planlanan>> #F6F6F6;line.dashed;text:8A8A8A
+skinparam package<<planlanan>> {
+  BorderColor #A0A0A0
+  FontColor #8A8A8A
+  BackgroundColor #F6F6F6
+}
+skinparam note {
+  BackgroundColor #FFFBE6
+  BorderColor #C9B458
+}
+skinparam object {
+  BackgroundColor #FFFFFF
+  BorderColor #444444
+}

@@ -1,0 +1,210 @@
+@startuml 06-cozucu
+!include _stil.iuml
+title Çözücü: ProgramCozucu arayüzü, CpSatCozucu ve kısıt kuralları (strategy deseni)
+hide empty members
+
+class CpModel <<harici>>
+
+' @kod cozucu.arayuz
+package "arayuz" {
+  interface ProgramCozucu {
+    +coz(girdi : CozumGirdisi, sure_siniri_sn : float = 120) : CozumSonucu
+  }
+}
+
+' @kod cozucu.cpsat
+package "cpsat" {
+  class CpSatCozucu {
+    +is_parcacigi : int
+    +tohum : int
+    +gozlemci : Gozlemci [0..1]
+    +coz(girdi : CozumGirdisi, sure_siniri_sn : float) : CozumSonucu
+    -_ana_cozum(baglam, sure, baslangic)
+    -_uygunluk_kontrolu(girdi, sure) : int
+  }
+}
+
+' @kod cozucu.kisitlar.temel
+package "kisitlar.temel" {
+  abstract class KisitKurali <<strateji>> {
+    {static} +tur : str
+    {static} +zorunlu_olabilir : bool
+    {static} +esnek_olabilir : bool
+    +zorunlu : bool
+    +agirlik : int
+    {abstract} +uygula(baglam : Baglam) : list[CezaTerimi]
+  }
+  class Baglam {
+    +girdi : CozumGirdisi
+    +model : CpModel
+    +x : dict[tuple[atama, gün, saat], BoolVar]
+    +gunler : range
+    +saatler : range
+    +gruplar : dict [0..1]
+    {static} +kur(girdi : CozumGirdisi, analiz : bool) : Baglam
+    +hucre(atama_id, gun, saat) : BoolVar
+    +dolu(atamalar, gun, saat) : LinearExpr
+    +grupla(kisit, *anahtar)
+  }
+  class temel <<modül>> {
+    {static} +KAYIT_DEFTERI : dict[str, type[KisitKurali]]
+    {static} +kaydet(sinif)
+    {static} +kural_olustur(tanim : KisitTanimi) : KisitKurali
+  }
+}
+
+' @kod cozucu.kisitlar.zorunlu
+package "kisitlar.zorunlu (modele kısıt ekler)" {
+  class HaftalikSaat
+  class SinifCakismasi
+  class OgretmenCakismasi
+  class Gelemez
+  class KilitliHucre
+  class GunlukDersSiniri {
+    +n : int
+  }
+  class OgretmenGunlukSiniri {
+    +m : int
+  }
+}
+
+' @kod cozucu.kisitlar.esnek
+package "kisitlar.esnek (ceza terimi döner)" {
+  abstract class EsnekKural
+  class TercihEtmez
+  class OgretmenPenceresi
+  class SinifBoslugu
+  class ArdisikDers
+  class BosGun {
+    +hedef_bos_gun : int
+  }
+  class Degisiklik
+}
+
+' @kod cozucu.kisitlar
+package "kisitlar (paket: kayıt ve varsayılanlar)" {
+  class kisitlar <<modül>> {
+    {static} +VARSAYILAN_KISITLAR : tuple[KisitTanimi]
+    {static} +kurallari_hazirla(girdi : CozumGirdisi) : list[KisitKurali]
+    {static} +etkin_agirliklar(girdi : CozumGirdisi) : dict[str, int]
+  }
+}
+
+' @kod cozucu.model
+package "model (düz veri)" {
+  class CozumGirdisi <<dataclass>> {
+    +ayar : OkulAyari
+    +ogretmenler : list[Ogretmen]
+    +siniflar : list[Sinif]
+    +dersler : list[Ders]
+    +atamalar : list[DersAtama]
+    +musaitlikler : list[Musaitlik]
+    +kisitlar : list[KisitTanimi]
+    +kilitli_yerlesimler : list[Yerlesim]
+    +temel_yerlesimler : list[TemelYerlesim]
+  }
+  class CozumSonucu <<dataclass>> {
+    +durum : CozumDurumu
+    +yerlesimler : list[Yerlesim]
+    +toplam_ceza : int [0..1]
+    +mesajlar : list[str]
+    +celiskiler : list[Celiski]
+    +sure_sn : float
+    +basarili : bool
+  }
+  enum CozumDurumu {
+    OPTIMAL
+    UYGUN
+    COZUMSUZ
+    ON_KONTROL_HATASI
+    BILINMIYOR
+  }
+  class KisitTanimi <<dataclass>> {
+    +tur : str
+    +parametreler : dict
+    +zorunlu : bool
+    +agirlik : int
+  }
+}
+
+' @kod cozucu.on_kontrol
+package "on_kontrol (ön kontroller)" {
+  class on_kontrol <<modül>> {
+    {static} +on_kontrol(girdi : CozumGirdisi) : list[Celiski]
+  }
+}
+' @kod cozucu.celiski
+package "celiski (çelişki analizi)" {
+  class celiski <<modül>> {
+    {static} +celiskileri_bul(girdi : CozumGirdisi, sure_siniri_sn : float) : list[Celiski]
+  }
+}
+' @kod cozucu.dogrulama
+package "dogrulama (bağımsız)" {
+  class dogrulama <<modül>> {
+    {static} +dogrula(girdi : CozumGirdisi, yerlesimler : list[Yerlesim]) : list[str]
+  }
+}
+' @kod cozucu.kalite
+package "kalite (bağımsız)" {
+  class kalite <<modül>> {
+    {static} +olc(girdi : CozumGirdisi, yerlesimler : list[Yerlesim]) : KaliteOlcumu
+  }
+}
+
+' --- gerçekleme ve kalıtım ----------------------------------------------------------------
+ProgramCozucu <|.. CpSatCozucu
+KisitKurali <|-- HaftalikSaat
+KisitKurali <|-- SinifCakismasi
+KisitKurali <|-- OgretmenCakismasi
+KisitKurali <|-- Gelemez
+KisitKurali <|-- KilitliHucre
+KisitKurali <|-- GunlukDersSiniri
+KisitKurali <|-- OgretmenGunlukSiniri
+KisitKurali <|-- EsnekKural
+EsnekKural <|-- TercihEtmez
+EsnekKural <|-- OgretmenPenceresi
+EsnekKural <|-- SinifBoslugu
+EsnekKural <|-- ArdisikDers
+EsnekKural <|-- BosGun
+EsnekKural <|-- Degisiklik
+
+' --- strategy: bağlam (context) kuralları kayıt defterinden alır, hepsine aynı arayüzle uygular ---
+CpSatCozucu ..> kisitlar : kurallari_hazirla()
+kisitlar ..> temel : kural_olustur()
+temel "1" o-- "0..*" KisitKurali : KAYIT_DEFTERI\n(tür adı → sınıf)
+CpSatCozucu ..> KisitKurali : uygula(baglam)\nher kural için
+CpSatCozucu ..> Baglam : Baglam.kur()\nçözüm başına bir tane
+Baglam *-- "1" CpModel : model
+KisitKurali ..> Baglam : kısıt / ceza ekler
+CpSatCozucu ..> on_kontrol : önce
+CpSatCozucu ..> celiski : çözüm yoksa
+CpSatCozucu ..> CozumGirdisi : girdi
+CpSatCozucu ..> CozumSonucu : üretir
+CozumSonucu --> "1" CozumDurumu : durum
+CozumGirdisi *-- "0..*" KisitTanimi : kisitlar
+temel ..> KisitTanimi : okur
+
+note top of KisitKurali
+  <b>Strategy deseni</b>
+  Strateji arayüzü: KisitKurali.uygula(baglam)
+  Somut stratejiler: her kural sınıfı (12 tane)
+  Bağlam (context): CpSatCozucu; kuralları
+  KAYIT_DEFTERI'nden alır, hepsine aynı çağrıyı yapar.
+  Yeni kural = yeni alt sınıf + @kaydet;
+  CpSatCozucu değişmez (açık/kapalı, ADR 0002).
+end note
+
+note right of ProgramCozucu
+  Sistem düzeyinde de aynı fikir: worker yalnızca
+  ProgramCozucu arayüzünü bilir; CP-SAT yerine
+  başka bir algoritma yeni bir gerçekleme
+  demektir (ADR 0001).
+end note
+
+note bottom of dogrulama
+  dogrulama ve kalite çözücü kodunu
+  (cpsat, kisitlar) kullanmaz:
+  bağımsız ikinci görüş.
+end note
+@enduml

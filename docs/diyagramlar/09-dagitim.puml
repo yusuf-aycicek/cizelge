@@ -1,0 +1,70 @@
+@startuml 09-dagitim
+!include _stil.iuml
+title Dağıtım diyagramı: docker compose up --build (geliştirme ortamı)
+
+skinparam node {
+  BackgroundColor #FFFFFF
+  BorderColor #444444
+}
+skinparam node<<planlanan>> {
+  BackgroundColor #F6F6F6
+  BorderColor #A0A0A0
+  FontColor #8A8A8A
+}
+skinparam artifact<<planlanan>> {
+  BackgroundColor #F6F6F6
+  BorderColor #A0A0A0
+  FontColor #8A8A8A
+}
+
+node "Geliştirici bilgisayarı\n<<cihaz>>\nWindows 11" as pc {
+  node "Tarayıcı" as tarayici
+  node "pytest\n(api/.venv, cozucu/.venv)" as testler
+
+  node "Docker Desktop (WSL2)\n<<yürütme ortamı>>" as docker {
+    node "db\n<<konteyner>>\npostgres:17" as db {
+      database "okul\n(ve testler için okul_test)" as okuldb
+      artifact "rol: okul_sahip\n(tablo sahibi, süper kullanıcı;\nmigration'lar)" as rol_sahip
+      artifact "rol: okul_uygulama\n(uygulama; RLS'ye tabi,\nyalnızca DML yetkisi)" as rol_uyg
+      artifact "01-uygulama-rolu.sh\n(docker-entrypoint-initdb.d)" as init
+    }
+    storage "db_verisi\n<<birim>>" as birim
+
+    node "api\n<<konteyner>>\npython:3.14-slim" as api {
+      artifact "okulapi\n(FastAPI, uvicorn)" as okulapi
+      artifact "cozucu\n(OR-Tools CP-SAT)" as cozucu
+      artifact "migrasyon\n(Alembic: upgrade heads)" as migrasyon
+    }
+
+    node "redis\n<<konteyner>>" <<planlanan>> as redis #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A
+    node "worker\n<<konteyner>>\n(api ile aynı imaj, RQ işçisi)" <<planlanan>> as worker #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A
+    node "web\n<<konteyner>>\n(React, Vite derlemesi)" <<planlanan>> as web #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A
+  }
+}
+
+tarayici --> api : HTTP\nlocalhost:8000 → api:8000\n(/docs, /api/...)
+testler --> db : TCP/PostgreSQL\nlocalhost:5433 → db:5432
+okulapi --> rol_uyg : bağlanır (db:5432)\nOKULAPI_VERITABANI_URL
+migrasyon --> rol_sahip : bağlanır (db:5432)\nOKULAPI_MIGRASYON_URL
+db --> birim : /var/lib/postgresql/data
+init ..> rol_uyg : ilk açılışta oluşturur
+okulapi ..> cozucu : import
+
+tarayici ..> web #9A9A9A;line.dashed : HTTP (planlanan)
+web ..> api #9A9A9A;line.dashed : /api/... (planlanan)
+api ..> redis #9A9A9A;line.dashed : iş kuyruğa (planlanan)
+worker ..> redis #9A9A9A;line.dashed : iş alır (planlanan)
+worker ..> db #9A9A9A;line.dashed : okul_uygulama ile\nokur/yazar (planlanan)
+
+note right of db
+  Konteyner içinde 5432; bilgisayara 5433 ile açılır
+  (aynı makinedeki başka projeler 5432 kullanıyor).
+  api, db sağlıklı olmadan başlamaz (healthcheck: pg_isready).
+end note
+
+legend right
+  Düz çizgi, beyaz: şu an çalışan.
+  Kesik çizgi, gri, <<planlanan>>: henüz yapılmadı
+  (redis ve worker: yapım sırası 3; web: 5).
+endlegend
+@enduml
