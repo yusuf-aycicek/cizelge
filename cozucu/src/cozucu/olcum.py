@@ -130,9 +130,12 @@ def main(argv: list[str] | None = None) -> None:
     a = p.parse_args(argv)
     girdi = girdi_oku(a.veri)
     baslangic = time.perf_counter()
-    calistirmalar = [olc_zamana_gore(girdi, t, a.noktalar) for t in a.tohum]
-    print(f"## {a.veri}\n")
-    print(tablo(calistirmalar))
+    print(f"## {a.veri}\n", flush=True)
+    calistirmalar = []
+    for t in a.tohum:  # her çalıştırma bitince yazılır: ölçüm yarıda kalırsa sonuçlar kaybolmaz
+        calistirmalar.append(olc_zamana_gore(girdi, t, a.noktalar))
+        print(f"### Tohum {t}\n\n{tablo(calistirmalar[-1:])}\n", flush=True)
+    print(f"### Hepsi\n\n{tablo(calistirmalar)}")
     print(f"\nToplam ölçüm süresi: {time.perf_counter() - baslangic:.0f} sn")
 
 

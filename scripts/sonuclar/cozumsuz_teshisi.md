@@ -1,0 +1,699 @@
+9-A: 40 saat, 14 öğretmen, hepsi Pazartesi 1. saatte gelemez
+
+1. Yalnızca zorunlu kısıtlar: INFEASIBLE, 18.6 sn
+2. Çelişki analizi (bütçe 30 sn): 30.4 sn, 1 çelişki
+
+```
+Şu kurallar birlikte sağlanamıyor, en az birinin gevşetilmesi gerekiyor:
+- Ahmet Kaya'nın gelemez saatleri
+- Ahmet Kurt'un gelemez saatleri
+- Ahmet Şahin'in gelemez saatleri
+- Ali Tekin'in gelemez saatleri
+- Aslı Yılmaz'ın gelemez saatleri
+- Ayşe Kurt'un gelemez saatleri
+- Ayşe Yılmaz'ın gelemez saatleri
+- Burak Aksoy'un gelemez saatleri
+- Burak Çetin'in gelemez saatleri
+- Can Korkmaz'ın gelemez saatleri
+- Elif Kara'nın gelemez saatleri
+- Fatma Kara'nın gelemez saatleri
+- Gül Öztürk'ün gelemez saatleri
+- Hatice Doğan'ın gelemez saatleri
+- Hatice Koç'un gelemez saatleri
+- Hüseyin Yılmaz'ın gelemez saatleri
+- Merve Özdemir'in gelemez saatleri
+- Mustafa Erdoğan'ın gelemez saatleri
+- Mustafa Öztürk'ün gelemez saatleri
+- Mustafa Şimşek'in gelemez saatleri
+- Selin Yılmaz'ın gelemez saatleri
+- Selin Özkan'ın gelemez saatleri
+- Serkan Yılmaz'ın gelemez saatleri
+- Volkan Arslan'ın gelemez saatleri
+- Volkan Güneş'in gelemez saatleri
+- Volkan Kara'nın gelemez saatleri
+- Özlem Doğan'ın gelemez saatleri
+- Özlem Korkmaz'ın gelemez saatleri
+- İbrahim Koç'un gelemez saatleri
+- İbrahim Kurt'un gelemez saatleri
+- 9-A Almanca bir günde en fazla 2 saat olabilir
+- 9-A Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 9-A Biyoloji bir günde en fazla 2 saat olabilir
+- 9-A Coğrafya bir günde en fazla 2 saat olabilir
+- 9-A Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 9-A Fizik bir günde en fazla 2 saat olabilir
+- 9-A Görsel Sanatlar bir günde en fazla 2 saat olabilir
+- 9-A Kimya bir günde en fazla 2 saat olabilir
+- 9-A Matematik bir günde en fazla 2 saat olabilir
+- 9-A Müzik bir günde en fazla 2 saat olabilir
+- 9-A Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 9-A Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 9-A Tarih bir günde en fazla 2 saat olabilir
+- 9-A Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 9-A İngilizce bir günde en fazla 2 saat olabilir
+- 9-B Almanca bir günde en fazla 2 saat olabilir
+- 9-B Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 9-B Biyoloji bir günde en fazla 2 saat olabilir
+- 9-B Coğrafya bir günde en fazla 2 saat olabilir
+- 9-B Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 9-B Fizik bir günde en fazla 2 saat olabilir
+- 9-B Görsel Sanatlar bir günde en fazla 2 saat olabilir
+- 9-B Kimya bir günde en fazla 2 saat olabilir
+- 9-B Matematik bir günde en fazla 2 saat olabilir
+- 9-B Müzik bir günde en fazla 2 saat olabilir
+- 9-B Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 9-B Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 9-B Tarih bir günde en fazla 2 saat olabilir
+- 9-B Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 9-B İngilizce bir günde en fazla 2 saat olabilir
+- 9-C Almanca bir günde en fazla 2 saat olabilir
+- 9-C Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 9-C Biyoloji bir günde en fazla 2 saat olabilir
+- 9-C Coğrafya bir günde en fazla 2 saat olabilir
+- 9-C Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 9-C Fizik bir günde en fazla 2 saat olabilir
+- 9-C Görsel Sanatlar bir günde en fazla 2 saat olabilir
+- 9-C Kimya bir günde en fazla 2 saat olabilir
+- 9-C Matematik bir günde en fazla 2 saat olabilir
+- 9-C Müzik bir günde en fazla 2 saat olabilir
+- 9-C Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 9-C Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 9-C Tarih bir günde en fazla 2 saat olabilir
+- 9-C Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 9-C İngilizce bir günde en fazla 2 saat olabilir
+- 9-D Almanca bir günde en fazla 2 saat olabilir
+- 9-D Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 9-D Biyoloji bir günde en fazla 2 saat olabilir
+- 9-D Coğrafya bir günde en fazla 2 saat olabilir
+- 9-D Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 9-D Fizik bir günde en fazla 2 saat olabilir
+- 9-D Görsel Sanatlar bir günde en fazla 2 saat olabilir
+- 9-D Kimya bir günde en fazla 2 saat olabilir
+- 9-D Matematik bir günde en fazla 2 saat olabilir
+- 9-D Müzik bir günde en fazla 2 saat olabilir
+- 9-D Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 9-D Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 9-D Tarih bir günde en fazla 2 saat olabilir
+- 9-D Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 9-D İngilizce bir günde en fazla 2 saat olabilir
+- 9-E Almanca bir günde en fazla 2 saat olabilir
+- 9-E Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 9-E Biyoloji bir günde en fazla 2 saat olabilir
+- 9-E Coğrafya bir günde en fazla 2 saat olabilir
+- 9-E Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 9-E Fizik bir günde en fazla 2 saat olabilir
+- 9-E Görsel Sanatlar bir günde en fazla 2 saat olabilir
+- 9-E Kimya bir günde en fazla 2 saat olabilir
+- 9-E Matematik bir günde en fazla 2 saat olabilir
+- 9-E Müzik bir günde en fazla 2 saat olabilir
+- 9-E Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 9-E Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 9-E Tarih bir günde en fazla 2 saat olabilir
+- 9-E Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 9-E İngilizce bir günde en fazla 2 saat olabilir
+- 9-F Almanca bir günde en fazla 2 saat olabilir
+- 9-F Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 9-F Biyoloji bir günde en fazla 2 saat olabilir
+- 9-F Coğrafya bir günde en fazla 2 saat olabilir
+- 9-F Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 9-F Fizik bir günde en fazla 2 saat olabilir
+- 9-F Görsel Sanatlar bir günde en fazla 2 saat olabilir
+- 9-F Kimya bir günde en fazla 2 saat olabilir
+- 9-F Matematik bir günde en fazla 2 saat olabilir
+- 9-F Müzik bir günde en fazla 2 saat olabilir
+- 9-F Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 9-F Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 9-F Tarih bir günde en fazla 2 saat olabilir
+- 9-F Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 9-F İngilizce bir günde en fazla 2 saat olabilir
+- 10-A Almanca bir günde en fazla 2 saat olabilir
+- 10-A Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 10-A Biyoloji bir günde en fazla 2 saat olabilir
+- 10-A Coğrafya bir günde en fazla 2 saat olabilir
+- 10-A Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 10-A Felsefe bir günde en fazla 2 saat olabilir
+- 10-A Fizik bir günde en fazla 2 saat olabilir
+- 10-A Görsel Sanatlar bir günde en fazla 2 saat olabilir
+- 10-A Kimya bir günde en fazla 2 saat olabilir
+- 10-A Matematik bir günde en fazla 2 saat olabilir
+- 10-A Müzik bir günde en fazla 2 saat olabilir
+- 10-A Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 10-A Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 10-A Tarih bir günde en fazla 2 saat olabilir
+- 10-A Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 10-A İngilizce bir günde en fazla 2 saat olabilir
+- 10-B Almanca bir günde en fazla 2 saat olabilir
+- 10-B Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 10-B Biyoloji bir günde en fazla 2 saat olabilir
+- 10-B Coğrafya bir günde en fazla 2 saat olabilir
+- 10-B Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 10-B Felsefe bir günde en fazla 2 saat olabilir
+- 10-B Fizik bir günde en fazla 2 saat olabilir
+- 10-B Görsel Sanatlar bir günde en fazla 2 saat olabilir
+- 10-B Kimya bir günde en fazla 2 saat olabilir
+- 10-B Matematik bir günde en fazla 2 saat olabilir
+- 10-B Müzik bir günde en fazla 2 saat olabilir
+- 10-B Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 10-B Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 10-B Tarih bir günde en fazla 2 saat olabilir
+- 10-B Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 10-B İngilizce bir günde en fazla 2 saat olabilir
+- 10-C Almanca bir günde en fazla 2 saat olabilir
+- 10-C Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 10-C Biyoloji bir günde en fazla 2 saat olabilir
+- 10-C Coğrafya bir günde en fazla 2 saat olabilir
+- 10-C Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 10-C Felsefe bir günde en fazla 2 saat olabilir
+- 10-C Fizik bir günde en fazla 2 saat olabilir
+- 10-C Görsel Sanatlar bir günde en fazla 2 saat olabilir
+- 10-C Kimya bir günde en fazla 2 saat olabilir
+- 10-C Matematik bir günde en fazla 2 saat olabilir
+- 10-C Müzik bir günde en fazla 2 saat olabilir
+- 10-C Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 10-C Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 10-C Tarih bir günde en fazla 2 saat olabilir
+- 10-C Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 10-C İngilizce bir günde en fazla 2 saat olabilir
+- 10-D Almanca bir günde en fazla 2 saat olabilir
+- 10-D Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 10-D Biyoloji bir günde en fazla 2 saat olabilir
+- 10-D Coğrafya bir günde en fazla 2 saat olabilir
+- 10-D Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 10-D Felsefe bir günde en fazla 2 saat olabilir
+- 10-D Fizik bir günde en fazla 2 saat olabilir
+- 10-D Görsel Sanatlar bir günde en fazla 2 saat olabilir
+- 10-D Kimya bir günde en fazla 2 saat olabilir
+- 10-D Matematik bir günde en fazla 2 saat olabilir
+- 10-D Müzik bir günde en fazla 2 saat olabilir
+- 10-D Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 10-D Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 10-D Tarih bir günde en fazla 2 saat olabilir
+- 10-D Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 10-D İngilizce bir günde en fazla 2 saat olabilir
+- 10-E Almanca bir günde en fazla 2 saat olabilir
+- 10-E Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 10-E Biyoloji bir günde en fazla 2 saat olabilir
+- 10-E Coğrafya bir günde en fazla 2 saat olabilir
+- 10-E Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 10-E Felsefe bir günde en fazla 2 saat olabilir
+- 10-E Fizik bir günde en fazla 2 saat olabilir
+- 10-E Görsel Sanatlar bir günde en fazla 2 saat olabilir
+- 10-E Kimya bir günde en fazla 2 saat olabilir
+- 10-E Matematik bir günde en fazla 2 saat olabilir
+- 10-E Müzik bir günde en fazla 2 saat olabilir
+- 10-E Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 10-E Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 10-E Tarih bir günde en fazla 2 saat olabilir
+- 10-E Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 10-E İngilizce bir günde en fazla 2 saat olabilir
+- 10-F Almanca bir günde en fazla 2 saat olabilir
+- 10-F Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 10-F Biyoloji bir günde en fazla 2 saat olabilir
+- 10-F Coğrafya bir günde en fazla 2 saat olabilir
+- 10-F Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 10-F Felsefe bir günde en fazla 2 saat olabilir
+- 10-F Fizik bir günde en fazla 2 saat olabilir
+- 10-F Görsel Sanatlar bir günde en fazla 2 saat olabilir
+- 10-F Kimya bir günde en fazla 2 saat olabilir
+- 10-F Matematik bir günde en fazla 2 saat olabilir
+- 10-F Müzik bir günde en fazla 2 saat olabilir
+- 10-F Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 10-F Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 10-F Tarih bir günde en fazla 2 saat olabilir
+- 10-F Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 10-F İngilizce bir günde en fazla 2 saat olabilir
+- 11-A Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 11-A Biyoloji bir günde en fazla 2 saat olabilir
+- 11-A Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 11-A Felsefe bir günde en fazla 2 saat olabilir
+- 11-A Fizik bir günde en fazla 2 saat olabilir
+- 11-A Kimya bir günde en fazla 2 saat olabilir
+- 11-A Matematik bir günde en fazla 2 saat olabilir
+- 11-A Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 11-A Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 11-A Tarih bir günde en fazla 2 saat olabilir
+- 11-A Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 11-A İngilizce bir günde en fazla 2 saat olabilir
+- 11-B Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 11-B Biyoloji bir günde en fazla 2 saat olabilir
+- 11-B Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 11-B Felsefe bir günde en fazla 2 saat olabilir
+- 11-B Fizik bir günde en fazla 2 saat olabilir
+- 11-B Kimya bir günde en fazla 2 saat olabilir
+- 11-B Matematik bir günde en fazla 2 saat olabilir
+- 11-B Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 11-B Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 11-B Tarih bir günde en fazla 2 saat olabilir
+- 11-B Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 11-B İngilizce bir günde en fazla 2 saat olabilir
+- 11-C Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 11-C Biyoloji bir günde en fazla 2 saat olabilir
+- 11-C Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 11-C Felsefe bir günde en fazla 2 saat olabilir
+- 11-C Fizik bir günde en fazla 2 saat olabilir
+- 11-C Kimya bir günde en fazla 2 saat olabilir
+- 11-C Matematik bir günde en fazla 2 saat olabilir
+- 11-C Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 11-C Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 11-C Tarih bir günde en fazla 2 saat olabilir
+- 11-C Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 11-C İngilizce bir günde en fazla 2 saat olabilir
+- 11-D Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 11-D Biyoloji bir günde en fazla 2 saat olabilir
+- 11-D Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 11-D Felsefe bir günde en fazla 2 saat olabilir
+- 11-D Fizik bir günde en fazla 2 saat olabilir
+- 11-D Kimya bir günde en fazla 2 saat olabilir
+- 11-D Matematik bir günde en fazla 2 saat olabilir
+- 11-D Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 11-D Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 11-D Tarih bir günde en fazla 2 saat olabilir
+- 11-D Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 11-D İngilizce bir günde en fazla 2 saat olabilir
+- 11-E Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 11-E Biyoloji bir günde en fazla 2 saat olabilir
+- 11-E Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 11-E Felsefe bir günde en fazla 2 saat olabilir
+- 11-E Fizik bir günde en fazla 2 saat olabilir
+- 11-E Kimya bir günde en fazla 2 saat olabilir
+- 11-E Matematik bir günde en fazla 2 saat olabilir
+- 11-E Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 11-E Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 11-E Tarih bir günde en fazla 2 saat olabilir
+- 11-E Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 11-E İngilizce bir günde en fazla 2 saat olabilir
+- 11-F Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 11-F Biyoloji bir günde en fazla 2 saat olabilir
+- 11-F Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 11-F Felsefe bir günde en fazla 2 saat olabilir
+- 11-F Fizik bir günde en fazla 2 saat olabilir
+- 11-F Kimya bir günde en fazla 2 saat olabilir
+- 11-F Matematik bir günde en fazla 2 saat olabilir
+- 11-F Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 11-F Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 11-F Tarih bir günde en fazla 2 saat olabilir
+- 11-F Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 11-F İngilizce bir günde en fazla 2 saat olabilir
+- 12-A Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 12-A Biyoloji bir günde en fazla 2 saat olabilir
+- 12-A Coğrafya bir günde en fazla 2 saat olabilir
+- 12-A Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 12-A Fizik bir günde en fazla 2 saat olabilir
+- 12-A Kimya bir günde en fazla 2 saat olabilir
+- 12-A Matematik bir günde en fazla 2 saat olabilir
+- 12-A Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 12-A Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 12-A T.C. İnkılap Tarihi ve Atatürkçülük bir günde en fazla 2 saat olabilir
+- 12-A Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 12-A İngilizce bir günde en fazla 2 saat olabilir
+- 12-B Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 12-B Biyoloji bir günde en fazla 2 saat olabilir
+- 12-B Coğrafya bir günde en fazla 2 saat olabilir
+- 12-B Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 12-B Fizik bir günde en fazla 2 saat olabilir
+- 12-B Kimya bir günde en fazla 2 saat olabilir
+- 12-B Matematik bir günde en fazla 2 saat olabilir
+- 12-B Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 12-B Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 12-B T.C. İnkılap Tarihi ve Atatürkçülük bir günde en fazla 2 saat olabilir
+- 12-B Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 12-B İngilizce bir günde en fazla 2 saat olabilir
+- 12-C Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 12-C Biyoloji bir günde en fazla 2 saat olabilir
+- 12-C Coğrafya bir günde en fazla 2 saat olabilir
+- 12-C Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 12-C Fizik bir günde en fazla 2 saat olabilir
+- 12-C Kimya bir günde en fazla 2 saat olabilir
+- 12-C Matematik bir günde en fazla 2 saat olabilir
+- 12-C Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 12-C Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 12-C T.C. İnkılap Tarihi ve Atatürkçülük bir günde en fazla 2 saat olabilir
+- 12-C Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 12-C İngilizce bir günde en fazla 2 saat olabilir
+- 12-D Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 12-D Biyoloji bir günde en fazla 2 saat olabilir
+- 12-D Coğrafya bir günde en fazla 2 saat olabilir
+- 12-D Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 12-D Fizik bir günde en fazla 2 saat olabilir
+- 12-D Kimya bir günde en fazla 2 saat olabilir
+- 12-D Matematik bir günde en fazla 2 saat olabilir
+- 12-D Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 12-D Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 12-D T.C. İnkılap Tarihi ve Atatürkçülük bir günde en fazla 2 saat olabilir
+- 12-D Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 12-D İngilizce bir günde en fazla 2 saat olabilir
+- 12-E Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 12-E Biyoloji bir günde en fazla 2 saat olabilir
+- 12-E Coğrafya bir günde en fazla 2 saat olabilir
+- 12-E Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 12-E Fizik bir günde en fazla 2 saat olabilir
+- 12-E Kimya bir günde en fazla 2 saat olabilir
+- 12-E Matematik bir günde en fazla 2 saat olabilir
+- 12-E Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 12-E Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 12-E T.C. İnkılap Tarihi ve Atatürkçülük bir günde en fazla 2 saat olabilir
+- 12-E Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 12-E İngilizce bir günde en fazla 2 saat olabilir
+- 12-F Beden Eğitimi ve Spor bir günde en fazla 2 saat olabilir
+- 12-F Biyoloji bir günde en fazla 2 saat olabilir
+- 12-F Coğrafya bir günde en fazla 2 saat olabilir
+- 12-F Din Kültürü ve Ahlak Bilgisi bir günde en fazla 2 saat olabilir
+- 12-F Fizik bir günde en fazla 2 saat olabilir
+- 12-F Kimya bir günde en fazla 2 saat olabilir
+- 12-F Matematik bir günde en fazla 2 saat olabilir
+- 12-F Rehberlik ve Yönlendirme bir günde en fazla 2 saat olabilir
+- 12-F Seçmeli Ders bir günde en fazla 2 saat olabilir
+- 12-F T.C. İnkılap Tarihi ve Atatürkçülük bir günde en fazla 2 saat olabilir
+- 12-F Türk Dili ve Edebiyatı bir günde en fazla 2 saat olabilir
+- 12-F İngilizce bir günde en fazla 2 saat olabilir
+- 9-A Almanca haftada 2 saat (Burak Çetin)
+- 9-A Beden Eğitimi ve Spor haftada 2 saat (Elif Kara)
+- 9-A Biyoloji haftada 2 saat (Ahmet Şahin)
+- 9-A Coğrafya haftada 2 saat (Gül Öztürk)
+- 9-A Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Selin Yılmaz)
+- 9-A Fizik haftada 2 saat (Mustafa Erdoğan)
+- 9-A Görsel Sanatlar haftada 1 saat (Ahmet Kurt)
+- 9-A Kimya haftada 2 saat (Hatice Koç)
+- 9-A Matematik haftada 6 saat (İbrahim Kurt)
+- 9-A Müzik haftada 1 saat (Ahmet Kurt)
+- 9-A Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 9-A Seçmeli Ders haftada 6 saat (Mustafa Şimşek)
+- 9-A Tarih haftada 2 saat (Hüseyin Yılmaz)
+- 9-A Türk Dili ve Edebiyatı haftada 5 saat (Merve Özdemir)
+- 9-A İngilizce haftada 4 saat (Aslı Yılmaz)
+- 9-B Almanca haftada 2 saat (Burak Çetin)
+- 9-B Beden Eğitimi ve Spor haftada 2 saat (Oğuz Yıldırım)
+- 9-B Biyoloji haftada 2 saat (Volkan Arslan)
+- 9-B Coğrafya haftada 2 saat (Mustafa Öztürk)
+- 9-B Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 9-B Fizik haftada 2 saat (Özlem Korkmaz)
+- 9-B Görsel Sanatlar haftada 1 saat (Ahmet Kurt)
+- 9-B Kimya haftada 2 saat (İbrahim Koç)
+- 9-B Matematik haftada 6 saat (Hüseyin Güneş)
+- 9-B Müzik haftada 1 saat (Ahmet Kurt)
+- 9-B Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 9-B Seçmeli Ders haftada 6 saat (Ayşe Kurt)
+- 9-B Tarih haftada 2 saat (Oğuz Öztürk)
+- 9-B Türk Dili ve Edebiyatı haftada 5 saat (Ali Uçar)
+- 9-B İngilizce haftada 4 saat (Serkan Yılmaz)
+- 9-C Almanca haftada 2 saat (Burak Çetin)
+- 9-C Beden Eğitimi ve Spor haftada 2 saat (Elif Kara)
+- 9-C Biyoloji haftada 2 saat (Ayşe Yılmaz)
+- 9-C Coğrafya haftada 2 saat (Gül Öztürk)
+- 9-C Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Selin Yılmaz)
+- 9-C Fizik haftada 2 saat (Hatice Doğan)
+- 9-C Görsel Sanatlar haftada 1 saat (Ahmet Kurt)
+- 9-C Kimya haftada 2 saat (Elif Aksoy)
+- 9-C Matematik haftada 6 saat (Ayşe Kılıç)
+- 9-C Müzik haftada 1 saat (Ahmet Kurt)
+- 9-C Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 9-C Seçmeli Ders haftada 6 saat (Oğuz Şimşek)
+- 9-C Tarih haftada 2 saat (Hüseyin Yılmaz)
+- 9-C Türk Dili ve Edebiyatı haftada 5 saat (Selin Özkan)
+- 9-C İngilizce haftada 4 saat (Kemal Korkmaz)
+- 9-D Almanca haftada 2 saat (Burak Çetin)
+- 9-D Beden Eğitimi ve Spor haftada 2 saat (Oğuz Yıldırım)
+- 9-D Biyoloji haftada 2 saat (Ahmet Şahin)
+- 9-D Coğrafya haftada 2 saat (Mustafa Öztürk)
+- 9-D Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 9-D Fizik haftada 2 saat (Mustafa Erdoğan)
+- 9-D Görsel Sanatlar haftada 1 saat (Ahmet Kurt)
+- 9-D Kimya haftada 2 saat (Hatice Koç)
+- 9-D Matematik haftada 6 saat (Oğuz Uçar)
+- 9-D Müzik haftada 1 saat (Ahmet Kurt)
+- 9-D Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 9-D Seçmeli Ders haftada 6 saat (Mustafa Şimşek)
+- 9-D Tarih haftada 2 saat (Oğuz Öztürk)
+- 9-D Türk Dili ve Edebiyatı haftada 5 saat (Serkan Koç)
+- 9-D İngilizce haftada 4 saat (Zeynep Demir)
+- 9-E Almanca haftada 2 saat (Burak Çetin)
+- 9-E Beden Eğitimi ve Spor haftada 2 saat (Elif Kara)
+- 9-E Biyoloji haftada 2 saat (Volkan Arslan)
+- 9-E Coğrafya haftada 2 saat (Gül Öztürk)
+- 9-E Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Selin Yılmaz)
+- 9-E Fizik haftada 2 saat (Özlem Korkmaz)
+- 9-E Görsel Sanatlar haftada 1 saat (Ahmet Kurt)
+- 9-E Kimya haftada 2 saat (İbrahim Koç)
+- 9-E Matematik haftada 6 saat (Volkan Güneş)
+- 9-E Müzik haftada 1 saat (Ahmet Kurt)
+- 9-E Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 9-E Seçmeli Ders haftada 6 saat (Ayşe Kurt)
+- 9-E Tarih haftada 2 saat (Hüseyin Yılmaz)
+- 9-E Türk Dili ve Edebiyatı haftada 5 saat (Can Korkmaz)
+- 9-E İngilizce haftada 4 saat (Burak Aksoy)
+- 9-F Almanca haftada 2 saat (Burak Çetin)
+- 9-F Beden Eğitimi ve Spor haftada 2 saat (Oğuz Yıldırım)
+- 9-F Biyoloji haftada 2 saat (Ayşe Yılmaz)
+- 9-F Coğrafya haftada 2 saat (Mustafa Öztürk)
+- 9-F Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 9-F Fizik haftada 2 saat (Hatice Doğan)
+- 9-F Görsel Sanatlar haftada 1 saat (Ahmet Kurt)
+- 9-F Kimya haftada 2 saat (Elif Aksoy)
+- 9-F Matematik haftada 6 saat (Ali Tekin)
+- 9-F Müzik haftada 1 saat (Ahmet Kurt)
+- 9-F Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 9-F Seçmeli Ders haftada 6 saat (Özlem Doğan)
+- 9-F Tarih haftada 2 saat (Oğuz Öztürk)
+- 9-F Türk Dili ve Edebiyatı haftada 5 saat (Volkan Kara)
+- 9-F İngilizce haftada 4 saat (Aslı Yılmaz)
+- 10-A Almanca haftada 2 saat (Burak Çetin)
+- 10-A Beden Eğitimi ve Spor haftada 2 saat (Oğuz Yıldırım)
+- 10-A Biyoloji haftada 2 saat (Ayşe Yılmaz)
+- 10-A Coğrafya haftada 2 saat (Gül Öztürk)
+- 10-A Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 10-A Felsefe haftada 2 saat (Ahmet Kaya)
+- 10-A Fizik haftada 2 saat (Mustafa Erdoğan)
+- 10-A Görsel Sanatlar haftada 1 saat (Ahmet Kurt)
+- 10-A Kimya haftada 2 saat (Elif Aksoy)
+- 10-A Matematik haftada 6 saat (Volkan Güneş)
+- 10-A Müzik haftada 1 saat (Ahmet Kurt)
+- 10-A Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 10-A Seçmeli Ders haftada 4 saat (Oğuz Şimşek)
+- 10-A Tarih haftada 2 saat (Oğuz Öztürk)
+- 10-A Türk Dili ve Edebiyatı haftada 5 saat (Serkan Koç)
+- 10-A İngilizce haftada 4 saat (Aslı Yılmaz)
+- 10-B Almanca haftada 2 saat (Burak Çetin)
+- 10-B Beden Eğitimi ve Spor haftada 2 saat (Oğuz Yıldırım)
+- 10-B Biyoloji haftada 2 saat (Ahmet Şahin)
+- 10-B Coğrafya haftada 2 saat (Mustafa Öztürk)
+- 10-B Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 10-B Felsefe haftada 2 saat (Ahmet Kaya)
+- 10-B Fizik haftada 2 saat (Özlem Korkmaz)
+- 10-B Görsel Sanatlar haftada 1 saat (Ahmet Kurt)
+- 10-B Kimya haftada 2 saat (Hatice Koç)
+- 10-B Matematik haftada 6 saat (Hüseyin Güneş)
+- 10-B Müzik haftada 1 saat (Ahmet Kurt)
+- 10-B Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 10-B Seçmeli Ders haftada 4 saat (Mustafa Şimşek)
+- 10-B Tarih haftada 2 saat (Oğuz Öztürk)
+- 10-B Türk Dili ve Edebiyatı haftada 5 saat (Volkan Kara)
+- 10-B İngilizce haftada 4 saat (Kemal Korkmaz)
+- 10-C Almanca haftada 2 saat (Burak Çetin)
+- 10-C Beden Eğitimi ve Spor haftada 2 saat (Elif Kara)
+- 10-C Biyoloji haftada 2 saat (Ayşe Yılmaz)
+- 10-C Coğrafya haftada 2 saat (Gül Öztürk)
+- 10-C Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 10-C Felsefe haftada 2 saat (Ahmet Kaya)
+- 10-C Fizik haftada 2 saat (Hatice Doğan)
+- 10-C Görsel Sanatlar haftada 1 saat (Ahmet Kurt)
+- 10-C Kimya haftada 2 saat (Elif Aksoy)
+- 10-C Matematik haftada 6 saat (Ayşe Kılıç)
+- 10-C Müzik haftada 1 saat (Ahmet Kurt)
+- 10-C Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 10-C Seçmeli Ders haftada 4 saat (Ayşe Kurt)
+- 10-C Tarih haftada 2 saat (Hüseyin Yılmaz)
+- 10-C Türk Dili ve Edebiyatı haftada 5 saat (Merve Özdemir)
+- 10-C İngilizce haftada 4 saat (Zeynep Demir)
+- 10-D Almanca haftada 2 saat (Burak Çetin)
+- 10-D Beden Eğitimi ve Spor haftada 2 saat (Oğuz Yıldırım)
+- 10-D Biyoloji haftada 2 saat (Ahmet Şahin)
+- 10-D Coğrafya haftada 2 saat (Mustafa Öztürk)
+- 10-D Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 10-D Felsefe haftada 2 saat (Ahmet Kaya)
+- 10-D Fizik haftada 2 saat (Mustafa Erdoğan)
+- 10-D Görsel Sanatlar haftada 1 saat (Ahmet Kurt)
+- 10-D Kimya haftada 2 saat (Hatice Koç)
+- 10-D Matematik haftada 6 saat (Oğuz Uçar)
+- 10-D Müzik haftada 1 saat (Ahmet Kurt)
+- 10-D Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 10-D Seçmeli Ders haftada 4 saat (Oğuz Şimşek)
+- 10-D Tarih haftada 2 saat (Oğuz Öztürk)
+- 10-D Türk Dili ve Edebiyatı haftada 5 saat (Serkan Koç)
+- 10-D İngilizce haftada 4 saat (Aslı Yılmaz)
+- 10-E Almanca haftada 2 saat (Burak Çetin)
+- 10-E Beden Eğitimi ve Spor haftada 2 saat (Elif Kara)
+- 10-E Biyoloji haftada 2 saat (Volkan Arslan)
+- 10-E Coğrafya haftada 2 saat (Gül Öztürk)
+- 10-E Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Selin Yılmaz)
+- 10-E Felsefe haftada 2 saat (Ahmet Kaya)
+- 10-E Fizik haftada 2 saat (Özlem Korkmaz)
+- 10-E Görsel Sanatlar haftada 1 saat (Ahmet Kurt)
+- 10-E Kimya haftada 2 saat (İbrahim Koç)
+- 10-E Matematik haftada 6 saat (Volkan Güneş)
+- 10-E Müzik haftada 1 saat (Ahmet Kurt)
+- 10-E Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 10-E Seçmeli Ders haftada 4 saat (Özlem Doğan)
+- 10-E Tarih haftada 2 saat (Hüseyin Yılmaz)
+- 10-E Türk Dili ve Edebiyatı haftada 5 saat (Can Korkmaz)
+- 10-E İngilizce haftada 4 saat (Serkan Yılmaz)
+- 10-F Almanca haftada 2 saat (Burak Çetin)
+- 10-F Beden Eğitimi ve Spor haftada 2 saat (Oğuz Yıldırım)
+- 10-F Biyoloji haftada 2 saat (Ayşe Yılmaz)
+- 10-F Coğrafya haftada 2 saat (Mustafa Öztürk)
+- 10-F Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 10-F Felsefe haftada 2 saat (Ahmet Kaya)
+- 10-F Fizik haftada 2 saat (Hatice Doğan)
+- 10-F Görsel Sanatlar haftada 1 saat (Ahmet Kurt)
+- 10-F Kimya haftada 2 saat (Elif Aksoy)
+- 10-F Matematik haftada 6 saat (Ali Tekin)
+- 10-F Müzik haftada 1 saat (Ahmet Kurt)
+- 10-F Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 10-F Seçmeli Ders haftada 4 saat (Mustafa Şimşek)
+- 10-F Tarih haftada 2 saat (Oğuz Öztürk)
+- 10-F Türk Dili ve Edebiyatı haftada 5 saat (Volkan Kara)
+- 10-F İngilizce haftada 4 saat (Kemal Korkmaz)
+- 11-A Beden Eğitimi ve Spor haftada 2 saat (Elif Kara)
+- 11-A Biyoloji haftada 4 saat (Ahmet Şahin)
+- 11-A Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Selin Yılmaz)
+- 11-A Felsefe haftada 2 saat (Ahmet Kaya)
+- 11-A Fizik haftada 4 saat (Özlem Korkmaz)
+- 11-A Kimya haftada 4 saat (Hatice Koç)
+- 11-A Matematik haftada 6 saat (İbrahim Kurt)
+- 11-A Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 11-A Seçmeli Ders haftada 2 saat (Ayşe Kurt)
+- 11-A Tarih haftada 2 saat (Hüseyin Yılmaz)
+- 11-A Türk Dili ve Edebiyatı haftada 5 saat (Merve Özdemir)
+- 11-A İngilizce haftada 4 saat (Zeynep Demir)
+- 11-B Beden Eğitimi ve Spor haftada 2 saat (Oğuz Yıldırım)
+- 11-B Biyoloji haftada 4 saat (Ahmet Şahin)
+- 11-B Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 11-B Felsefe haftada 2 saat (Ahmet Kaya)
+- 11-B Fizik haftada 4 saat (Mustafa Erdoğan)
+- 11-B Kimya haftada 4 saat (İbrahim Koç)
+- 11-B Matematik haftada 6 saat (Hüseyin Güneş)
+- 11-B Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 11-B Seçmeli Ders haftada 2 saat (Oğuz Şimşek)
+- 11-B Tarih haftada 2 saat (Oğuz Öztürk)
+- 11-B Türk Dili ve Edebiyatı haftada 5 saat (Ali Uçar)
+- 11-B İngilizce haftada 4 saat (Burak Aksoy)
+- 11-C Beden Eğitimi ve Spor haftada 2 saat (Elif Kara)
+- 11-C Biyoloji haftada 4 saat (Volkan Arslan)
+- 11-C Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Selin Yılmaz)
+- 11-C Felsefe haftada 2 saat (Ahmet Kaya)
+- 11-C Fizik haftada 4 saat (Özlem Korkmaz)
+- 11-C Kimya haftada 4 saat (Hatice Koç)
+- 11-C Matematik haftada 6 saat (Ayşe Kılıç)
+- 11-C Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 11-C Seçmeli Ders haftada 2 saat (Özlem Doğan)
+- 11-C Tarih haftada 2 saat (Hüseyin Yılmaz)
+- 11-C Türk Dili ve Edebiyatı haftada 5 saat (Selin Özkan)
+- 11-C İngilizce haftada 4 saat (Aslı Yılmaz)
+- 11-D Beden Eğitimi ve Spor haftada 2 saat (Oğuz Yıldırım)
+- 11-D Biyoloji haftada 4 saat (Ayşe Yılmaz)
+- 11-D Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 11-D Felsefe haftada 2 saat (Ahmet Kaya)
+- 11-D Fizik haftada 4 saat (Mustafa Erdoğan)
+- 11-D Kimya haftada 4 saat (İbrahim Koç)
+- 11-D Matematik haftada 6 saat (Oğuz Uçar)
+- 11-D Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 11-D Seçmeli Ders haftada 2 saat (Ayşe Kurt)
+- 11-D Tarih haftada 2 saat (Oğuz Öztürk)
+- 11-D Türk Dili ve Edebiyatı haftada 5 saat (Serkan Koç)
+- 11-D İngilizce haftada 4 saat (Serkan Yılmaz)
+- 11-E Beden Eğitimi ve Spor haftada 2 saat (Elif Kara)
+- 11-E Biyoloji haftada 4 saat (Ahmet Şahin)
+- 11-E Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Selin Yılmaz)
+- 11-E Felsefe haftada 2 saat (Ahmet Kaya)
+- 11-E Fizik haftada 4 saat (Özlem Korkmaz)
+- 11-E Kimya haftada 4 saat (Hatice Koç)
+- 11-E Matematik haftada 6 saat (Volkan Güneş)
+- 11-E Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 11-E Seçmeli Ders haftada 2 saat (Mustafa Şimşek)
+- 11-E Tarih haftada 2 saat (Hüseyin Yılmaz)
+- 11-E Türk Dili ve Edebiyatı haftada 5 saat (Can Korkmaz)
+- 11-E İngilizce haftada 4 saat (Kemal Korkmaz)
+- 11-F Beden Eğitimi ve Spor haftada 2 saat (Oğuz Yıldırım)
+- 11-F Biyoloji haftada 4 saat (Volkan Arslan)
+- 11-F Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 11-F Felsefe haftada 2 saat (Ahmet Kaya)
+- 11-F Fizik haftada 4 saat (Hatice Doğan)
+- 11-F Kimya haftada 4 saat (İbrahim Koç)
+- 11-F Matematik haftada 6 saat (Ali Tekin)
+- 11-F Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 11-F Seçmeli Ders haftada 2 saat (Oğuz Şimşek)
+- 11-F Tarih haftada 2 saat (Oğuz Öztürk)
+- 11-F Türk Dili ve Edebiyatı haftada 5 saat (Volkan Kara)
+- 11-F İngilizce haftada 4 saat (Zeynep Demir)
+- 12-A Beden Eğitimi ve Spor haftada 2 saat (Elif Kara)
+- 12-A Biyoloji haftada 4 saat (Ayşe Yılmaz)
+- 12-A Coğrafya haftada 2 saat (Gül Öztürk)
+- 12-A Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Selin Yılmaz)
+- 12-A Fizik haftada 4 saat (Mustafa Erdoğan)
+- 12-A Kimya haftada 4 saat (Elif Aksoy)
+- 12-A Matematik haftada 6 saat (İbrahim Kurt)
+- 12-A Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 12-A Seçmeli Ders haftada 2 saat (Özlem Doğan)
+- 12-A T.C. İnkılap Tarihi ve Atatürkçülük haftada 2 saat (Hüseyin Yılmaz)
+- 12-A Türk Dili ve Edebiyatı haftada 5 saat (Merve Özdemir)
+- 12-A İngilizce haftada 4 saat (Burak Aksoy)
+- 12-B Beden Eğitimi ve Spor haftada 2 saat (Oğuz Yıldırım)
+- 12-B Biyoloji haftada 4 saat (Ahmet Şahin)
+- 12-B Coğrafya haftada 2 saat (Mustafa Öztürk)
+- 12-B Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 12-B Fizik haftada 4 saat (Özlem Korkmaz)
+- 12-B Kimya haftada 4 saat (Hatice Koç)
+- 12-B Matematik haftada 6 saat (Hüseyin Güneş)
+- 12-B Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 12-B Seçmeli Ders haftada 2 saat (Ayşe Kurt)
+- 12-B T.C. İnkılap Tarihi ve Atatürkçülük haftada 2 saat (Oğuz Öztürk)
+- 12-B Türk Dili ve Edebiyatı haftada 5 saat (Ali Uçar)
+- 12-B İngilizce haftada 4 saat (Aslı Yılmaz)
+- 12-C Beden Eğitimi ve Spor haftada 2 saat (Elif Kara)
+- 12-C Biyoloji haftada 4 saat (Volkan Arslan)
+- 12-C Coğrafya haftada 2 saat (Gül Öztürk)
+- 12-C Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Selin Yılmaz)
+- 12-C Fizik haftada 4 saat (Hatice Doğan)
+- 12-C Kimya haftada 4 saat (İbrahim Koç)
+- 12-C Matematik haftada 6 saat (Ayşe Kılıç)
+- 12-C Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 12-C Seçmeli Ders haftada 2 saat (Mustafa Şimşek)
+- 12-C T.C. İnkılap Tarihi ve Atatürkçülük haftada 2 saat (Hüseyin Yılmaz)
+- 12-C Türk Dili ve Edebiyatı haftada 5 saat (Selin Özkan)
+- 12-C İngilizce haftada 4 saat (Serkan Yılmaz)
+- 12-D Beden Eğitimi ve Spor haftada 2 saat (Oğuz Yıldırım)
+- 12-D Biyoloji haftada 4 saat (Ayşe Yılmaz)
+- 12-D Coğrafya haftada 2 saat (Mustafa Öztürk)
+- 12-D Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 12-D Fizik haftada 4 saat (Mustafa Erdoğan)
+- 12-D Kimya haftada 4 saat (Elif Aksoy)
+- 12-D Matematik haftada 6 saat (Oğuz Uçar)
+- 12-D Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 12-D Seçmeli Ders haftada 2 saat (Oğuz Şimşek)
+- 12-D T.C. İnkılap Tarihi ve Atatürkçülük haftada 2 saat (Oğuz Öztürk)
+- 12-D Türk Dili ve Edebiyatı haftada 5 saat (Serkan Koç)
+- 12-D İngilizce haftada 4 saat (Kemal Korkmaz)
+- 12-E Beden Eğitimi ve Spor haftada 2 saat (Elif Kara)
+- 12-E Biyoloji haftada 4 saat (Ahmet Şahin)
+- 12-E Coğrafya haftada 2 saat (Gül Öztürk)
+- 12-E Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Selin Yılmaz)
+- 12-E Fizik haftada 4 saat (Özlem Korkmaz)
+- 12-E Kimya haftada 4 saat (Hatice Koç)
+- 12-E Matematik haftada 6 saat (Volkan Güneş)
+- 12-E Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 12-E Seçmeli Ders haftada 2 saat (Özlem Doğan)
+- 12-E T.C. İnkılap Tarihi ve Atatürkçülük haftada 2 saat (Hüseyin Yılmaz)
+- 12-E Türk Dili ve Edebiyatı haftada 5 saat (Can Korkmaz)
+- 12-E İngilizce haftada 4 saat (Zeynep Demir)
+- 12-F Beden Eğitimi ve Spor haftada 2 saat (Oğuz Yıldırım)
+- 12-F Biyoloji haftada 4 saat (Volkan Arslan)
+- 12-F Coğrafya haftada 2 saat (Mustafa Öztürk)
+- 12-F Din Kültürü ve Ahlak Bilgisi haftada 2 saat (Özlem Uçar)
+- 12-F Fizik haftada 4 saat (Hatice Doğan)
+- 12-F Kimya haftada 4 saat (İbrahim Koç)
+- 12-F Matematik haftada 6 saat (Ali Tekin)
+- 12-F Rehberlik ve Yönlendirme haftada 1 saat (Fatma Kara)
+- 12-F Seçmeli Ders haftada 2 saat (Ayşe Kurt)
+- 12-F T.C. İnkılap Tarihi ve Atatürkçülük haftada 2 saat (Oğuz Öztürk)
+- 12-F Türk Dili ve Edebiyatı haftada 5 saat (Volkan Kara)
+- 12-F İngilizce haftada 4 saat (Burak Aksoy)
+```
+Madde sayısı: 690

@@ -12,7 +12,7 @@ testler geçer ve zamana göre kalite ölçülmüştür.
 | 3 | Esnek kısıtlar | Bitti |
 | 4 | Ön kontroller ve çözülemezlik açıklaması | Bitti |
 | 5 | Ek hedefler: öğretmene boş gün, en az değişiklikle güncelleme | Bitti |
-| 6 | Veri üretici, gerçekçi ve büyük setler, CLI, zamana göre kalite ölçümü | **Yarım kaldı** (bkz. 6. bölüm, "Durum") |
+| 6 | Veri üretici, gerçekçi ve büyük setler, CLI, zamana göre kalite ölçümü | Bitti, bilinen açıklarla (bkz. "Kapanış") |
 
 Kapsam güncellemesi (3. alt adımdan sonra): öğretmene boş gün, çözülemezlik açıklaması ve en az
 değişiklikle güncelleme eklendi. Süre ölçümü, zamana göre kalite ölçümüne genişletildi.
@@ -243,7 +243,7 @@ Amaç: çözüm yoksa kullanıcı nedenini kendi diliyle öğrenir, kimlik deği
   - Çok iş parçacıklı CP-SAT aynı girdide farklı (eşit cezalı) programlar üretebilir. Bu, 6. adımın
     ölçümlerinde tohum tekrarıyla ele alınacak.
 
-### 6. Veri üretici, setler, CLI, zamana göre kalite ölçümü (yarım kaldı)
+### 6. Veri üretici, setler, CLI, zamana göre kalite ölçümü (bitti, bilinen açıklarla)
 - Sabit tohumlu üretici: Önce gizli bir geçerli program kurulur, veri ondan türetilir. Böylece
   çözümün var olduğu garanti edilir. Müsaitlik kısıtları da bu programla çelişmeyecek şekilde
   seçilir.
@@ -271,7 +271,7 @@ Amaç: çözüm yoksa kullanıcı nedenini kendi diliyle öğrenir, kimlik deği
   - gerçekçi set 60 saniye içinde çözülür ve doğrulayıcıdan geçer (kabul kriteri)
   - büyük set ve zamana göre kalite ölçümü `slow` olarak işaretli, ayrı çalışır
 
-#### 6. alt adımın durumu (2026-10-13, çalışma burada durduruldu)
+#### 6. alt adımın ara durumu (2026-10-13; geçmiş kaydı, güncel sonuçlar "Kapanış" bölümünde)
 
 **Bitenler** (testler geçiyor: 129 varsayılan + 3 `slow`, hepsi geçti):
 - `uretici.py`: sabit tohumlu üretici, "gizli program" yöntemi.
@@ -342,14 +342,14 @@ Farklar tohumlar arasındaki dalgalanmanın (±60) içinde kalıyor; hiçbiri an
 aşamalı yöntemde ilk aşama 1-2 sn'de uygun çözüm buluyor, ama ipucu tam modelin aramasını
 hızlandırmıyor. Deney betikleri bu oturumun geçici klasöründeydi, depoya alınmadı.
 
-**Bulunan asıl sorun: pencere formülasyonunun gevşetilmiş hali çok zayıf.**
+**Bulunan asıl sorun (bu teşhis yanlış çıktı; gerçek neden ADR 0007'de): pencere formülasyonunun gevşetilmiş hali çok zayıf.**
 300 sn'lik çalıştırmada CP-SAT'ın alt sınırı **−2229** çıktı. Cezaların hepsi negatif olmadığı
 için gerçek alt sınır en az 0'dır. Nedeni `OgretmenPenceresi`'ndeki `okulda ≥ once + sonra − 1`
 kısıtı: kesirli çözümde (dolu = 0,5) `okulda = 0` olabiliyor ve `okulda − dolu` ceza terimi
 negatife düşüyor. Tamsayı çözümlerde formül doğru, testler bu yüzden yakalamadı. Ama arama
 yönlendirmesi bozuluyor.
 
-**Yarım kalan iş:**
+**Yarım kalan iş (2026-10-14'te tamamlandı, bkz. "Kapanış"):**
 - Pencere formülasyonu deneyi başlatıldı ama sonucu alınmadan durduruldu. Denenecek iki varyant:
   - A: mevcut formüle geçerli eşitsizlik `okulda ≥ dolu` eklemek. Her tamsayı çözümde zaten doğru,
     ama ceza terimini negatif olmaktan çıkarır.
@@ -393,18 +393,85 @@ yönlendirmesi bozuluyor.
   içinde gevşetilmiş modelden anlamlı bir sınır üretemediğini gösteriyor. Neden henüz bilinmiyor.
 - Öneri proje sahibine sunuldu: B alınmaz, A'nın getirisi ölçülemeyecek kadar küçük.
 
-**Sıradaki adım (eski liste; 1. madde yukarıdaki deneyle güncellendi):**
-1. Pencere varyantları A ve B'yi ölçmek. Alt sınır ve 60 sn kalitesi düzelirse en iyisini
-   `esnek.py`'ye almak, mini setteki çapraz kontrol testinin geçtiğini doğrulamak, ADR 0007 yazmak.
-2. Gerçekçi ve büyük seti yeni modelle yeniden ölçmek (10/30/60/120 sn, 3 tohum) ve
-   `docs/olcumler.md`'ye yazmak.
-3. Gösterimler 2-4'ü çalıştırmak.
-4. Kalite yine yetersizse değerlendirilecek seçenekler: varsayılan süre sınırını artırmak (ör.
-   120-300 sn; worker kuyruğu bunu kaldırır), diğer esnek kuralların formülasyonlarını
-   güçlendirmek, simetri kırma.
-5. Proje sahibine sonuçları sunup 1. yapım adımının kapanışı için onay almak.
-
 **Ölçüm yaparken dikkat:** Ölçüm sırasında aynı makinede işlemci kullanan başka bir iş (test,
 CLI) çalıştırılmamalı. Bu oturumda ilk taban ölçümünün tohum 0'ı bu yüzden bozuldu ve temiz
 koşullarda yeniden ölçüldü.
+
+## Kapanış (2026-10-14)
+
+Ölçüm sonuçlarının tamamı: `docs/olcumler.md`. Betikler ve ham sonuçlar: `scripts/`.
+
+### 2026-10-14'te yapılanlar
+- **Negatif alt sınırın teşhisi** (`scripts/amac_teshisi.py`): pencere (`okulda − dolu`) ve sınıf
+  boşluğu (`sonra − dolu`) farkları doğrudan amaca yazıldığı için 13 200 ders değişkeni amaçta
+  negatif katsayı alıyordu. Değişken alanlarında ya da sabitte sorun yoktu.
+- **Düzeltme (ADR 0007):** her ceza terimi amaca negatif olamayan tek bir değişken olarak girer
+  (`pencere ≥ okulda − dolu`, `bosluk ≥ sonra − dolu`, `degisti ≥ 1 − dolu`). Önce mini sette
+  doğrulandı, sonra gerçekçi sette 3 tohum × 60 sn ölçüldü: ortalama ceza 703 → 469 (%33), sınıf
+  boşluğu 10. saniyede 0, alt sınır 0'dan başlıyor.
+- Gerçekçi ve büyük set için 60/120/300 sn ölçümü yapıldı. Varsayılan süre önerisi **120 sn**
+  (onay bekliyor; CLAUDE.md'de hâlâ 60 sn).
+- Gösterimler tamamlandı: sınıf ve öğretmen programı, en az değişiklik senaryosu (16 değişiklik,
+  60 sn'de optimal; sıfırdan 829), bilerek çözümsüz örnek (aşağıdaki açıklara yol açtı).
+- `olcum.py` komut satırı artık her tohum bitince sonuç yazıyor.
+
+### Kabul kriterleri (yapım sırası 1)
+
+| Kriter | Durum | Kanıt |
+|---|---|---|
+| Gerçekçi set süre sınırı içinde çözülür | Karşılandı | İlk geçerli program 4-8 sn; `slow` kabul testi: 60 sn'de `uygun`, doğrulayıcıdan geçer |
+| Testler geçer | Karşılandı | 132/132 (129 varsayılan + 3 `slow`) |
+| Zamana göre kalite ölçülmüştür | Karşılandı | `docs/olcumler.md`: 10/30/60 sn (düzeltme karşılaştırması), 60/120/300 sn (iki set, 3 tohum) |
+| Üç veri seti, doğrulama testleri, CLI tablo çıktısı | Karşılandı | `veri/`, `tests/`, `python -m cozucu` |
+| Çözülemezlik açıklaması dahil | Kısmen | Küçük setlerde doğru ve en küçük kümeyi buluyor. Gerçekçi büyüklükteki çözümsüz örnekte açıklama üretemedi (aşağıda) |
+| Temel programla güncelleme dahil | Karşılandı | Gerçekçi sette 60 sn'de optimal güncelleme, 16 değişiklik |
+
+### Bilinen açıklar
+1. **Ana çözücü büyük modellerde çözümsüzlüğü süre içinde kanıtlayamayabilir.** Gerçekçi sette tam
+   dolu bir sınıfın bütün öğretmenleri aynı saatte gelemeyince ana çözücü (esnek hedefle) 60 sn'de
+   `bilinmiyor` döndü. Yalnızca zorunlu kısıtlarla aynı model 18,6 sn'de `cozumsuz` çıkıyor.
+   `bilinmiyor` durumunda çelişki analizi hiç çalışmıyor; kullanıcı yalnızca "süre içinde çözüm
+   bulunamadı" görüyor.
+2. **Çelişki analizi büyük çekirdekleri süre içinde küçültemiyor.** Aynı örnekte doğrudan çağrılan
+   analiz 30 sn'lik bütçeyi doldurdu ve 690 maddelik bir küme döndürdü (gerçek çelişki ~29 kural).
+   Varsayım çekirdeği bütçenin üçte birinde gelmedi, küçültme bütün gruplardan başlayıp tek tek
+   ilerlediği için bitmedi.
+3. **Eksik boş gün yüksek kalıyor:** gerçekçi sette 42 öğretmenin ~21'i 300 sn'de bile hedef boş
+   gününe ulaşamıyor. Ne kadarının yapısal olduğu bilinmiyor.
+
+## Sonraya
+
+Çözücüde kalan iyileştirme fikirleri. 1. yapım adımı kapandıktan sonra, ihtiyaç ve öncelik
+sırasına göre ele alınır. İlk ikisi bilinen açıkları kapatır ve worker adımından (yapım sırası 3)
+önce yapılması önerilir.
+
+1. **Sınıf tarafında müsaitlik ön kontrolü.** Her sınıf için, öğretmenlerinden en az birinin
+   müsait olduğu saat sayısı ile sınıfın ders saatini karşılaştırmak. Daha güçlüsü: sınıfın
+   derslerini o sınıfın öğretmenlerinin müsait saatlerine (günde en fazla N) eşleyen küçük bir akış
+   (Hall) kontrolü. Bilinen açık 1'deki örneği anında ve tek cümleyle yakalar ("9-A'nın 40 saat
+   dersi var; Pazartesi 1. saatte öğretmenlerinin hiçbiri gelemiyor").
+2. **`bilinmiyor` durumunda zorunlu kısıtlarla ikinci kontrol.** Ana çözüm süre içinde ne çözüm
+   ne kanıt bulursa, esnek hedef olmadan kısa bir uygunluk çözümü yapmak. Çözümsüzse çelişki
+   analizine geçmek, değilse "süre yetmedi, daha uzun süreyle deneyin" demek.
+3. **Çelişki analizini büyük modellerde hızlandırmak.** Küçültmeyi kademeli yapmak: önce sınıf ya
+   da öğretmen düzeyinde kaba gruplar (bir sınıfın bütün kuralları), sonra yalnızca kalan grup
+   içinde ayrıntılı gruplar. Ya da QuickXplain gibi böl-ve-yönet küçültme. Hedef: gerçekçi sette
+   30 sn içinde ~30 maddelik küme. Mesajların arayüzde gruplanması (4. alt adımda onaylandı) da
+   buna bağlı.
+4. **Varsayılan süre sınırı.** Öneri 120 sn (`docs/olcumler.md`). İsteğe bağlı bir "kapsamlı
+   üretim" (300 sn) seçeneği arayüzde sunulabilir. Onaylanırsa CLAUDE.md bölüm 7 güncellenir.
+5. **Eksik boş gün için analiz.** Gerçekçi setteki yüksek değerin yapısal mı arama kaynaklı mı
+   olduğunu anlamak için yalnızca boş gün kuralıyla (diğer esnek kurallar kapalı) en iyi değeri
+   ölçmek. Gerekirse boş gün formülasyonunu güçlendirmek.
+6. **Daha güçlü alt sınırlar.** Alt sınır 0'da kalıyor; en iyi çözüme ne kadar uzak olunduğu
+   kanıtlanamıyor. Geçerli eşitsizlikler (ör. öğretmenin günlük ilk-son saat aralığı ile ders sayısı
+   arasındaki ilişkiler) ya da ayrıştırma ile daha iyi sınırlar araştırılabilir.
+7. **Yeniden çalıştırmalarda tekrarlanabilirlik.** Çok iş parçacıklı CP-SAT aynı girdiden farklı
+   (eşit kalitede) programlar üretebilir. Kullanıcı aynı veriyle iki kez üretince farklı program
+   görürse bu kafa karıştırabilir. Gerekirse deterministik kip (ör. `interleave_search`, sabit
+   iş parçacığı) değerlendirilir.
+8. **Denenmiş ama getirisi olmayanlar** (tekrar denemeye gerek yok, ölçüldü): iki aşamalı çözüm,
+   `linearization_level=2`, 12 iş parçacığı, pencere kısıtı varyantları A ve B.
+9. **Küçük temizlikler:** ADR 0004'te çok uzun bir satır; `pencere_deneyi.py` ve `iyilestirme`
+   karşılaştırmaları için `olcum.py` ile ortak bir deney yardımcısı.
 
