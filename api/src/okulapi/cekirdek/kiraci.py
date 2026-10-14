@@ -12,16 +12,20 @@ SQLAlchemy olayları (event) bütün oturumlar için bir kez kaydedilir:
 - `before_flush`: yeni kayda `okul_id` otomatik yazılır; başka bir okulun okul_id'si verilmişse ya
   da var olan bir kaydın okul_id'si değiştirilmişse hata fırlatılır.
 
-Endpoint ya da servis yazan kişinin okul filtresini hatırlaması gerekmez. Bu dosya filtrenin
-uygulandığı tek yerdir. Ham SQL (`text(...)`) bu filtreden geçmez; onu 4. alt adımda veritabanı
-düzeyindeki RLS korur.
+- `after_begin`: her veritabanı işleminin başında oturumun okulu PostgreSQL'e `SET LOCAL
+  app.okul_id` ile bildirilir. Veritabanındaki satır düzeyi güvenlik (RLS) politikaları bu ayara
+  bakar (ikinci katman; migration cekirdek_0003 ve modüllerin RLS migration'ları).
+
+Endpoint ya da servis yazan kişinin okul filtresini hatırlaması gerekmez. Bu dosya okulun hem ORM
+hem veritabanı düzeyinde belirlendiği tek yerdir. Ham SQL (`text(...)`) ORM filtresinden geçmez;
+onu RLS korur.
 """
 
 from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import event, inspect
+from sqlalchemy import event, inspect, text
 from sqlalchemy.orm import ORMExecuteState, Session, sessionmaker, with_loader_criteria
 from sqlalchemy.sql.util import find_tables
 
@@ -94,6 +98,36 @@ def _okul_filtresi(durum: ORMExecuteState) -> None:
     durum.statement = durum.statement.options(
         with_loader_criteria(OkulaAitMixin, lambda sinif: sinif.okul_id == okul_id, include_aliases=True)
     )
+
+
+VERITABANI_OKUL_AYARI = "app.okul_id"
+
+
+@event.listens_for(Session, "after_begin")
+def _veritabanina_okulu_bildir(oturum: Session, _islem, baglanti) -> None:
+    """Her veritabanı işleminin başında oturumun okulu PostgreSQL'e bildirilir (RLS için).
+
+    `set_config(..., true)` = `SET LOCAL`: ayar yalnızca bu işlem (transaction) boyunca geçerlidir.
+    İşlem commit ya da rollback ile bitince PostgreSQL ayarı kendisi siler. Böylece bağlantı havuza
+    dönüp başka bir isteğe verildiğinde önceki okulun ayarı onunla birlikte gitmez.
+    Okulsuz oturumda da açıkça boş değer yazılır: okulsuz oturum hiçbir okulun satırını görmez.
+    (`SET LOCAL` parametre almaz; `set_config` aynı işi parametreyle, SQL enjeksiyonu riski olmadan yapar.)
+    """
+    okul_id = oturumun_okulu(oturum)
+    baglanti.execute(
+        text("SELECT set_config(:ayar, :deger, true)"),
+        {"ayar": VERITABANI_OKUL_AYARI, "deger": "" if okul_id is None else str(okul_id)},
+    )
+
+
+def veritabaninda_okulu_ayarla(oturum: Session, okul_id: uuid.UUID) -> None:
+    """Yalnızca yeni okul oluşturulurken: okulsuz oturumun bu işlemine yeni okulun kimliği bildirilir.
+
+    Okul tablosunun RLS politikası, satırın yalnızca kendi okulunun bağlamında eklenip
+    okunabilmesine izin verir (INSERT ... RETURNING de SELECT politikasından geçer).
+    """
+    oturum.execute(text("SELECT set_config(:ayar, :deger, true)"),
+                   {"ayar": VERITABANI_OKUL_AYARI, "deger": str(okul_id)})
 
 
 @event.listens_for(Session, "before_flush")

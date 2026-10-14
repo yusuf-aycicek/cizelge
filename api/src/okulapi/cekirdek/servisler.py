@@ -19,6 +19,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from okulapi.cekirdek.depo import DersDeposu, OgretmenDeposu, OkulaAitDepo, OkulDeposu, SinifDeposu
+from okulapi.cekirdek.kiraci import veritabaninda_okulu_ayarla
 from okulapi.cekirdek.modeller import Okul, OkulaAitMixin
 
 T = TypeVar("T", bound=OkulaAitMixin)
@@ -132,7 +133,10 @@ class OkulServisi:
         self.depo = OkulDeposu(oturum)
 
     def olustur(self, alanlar: dict[str, Any]) -> Okul:
-        okul = self.depo.ekle(Okul(**alanlar))
+        okul = Okul(id=uuid.uuid4(), **alanlar)
+        # RLS: okul satırı yalnızca kendi bağlamında eklenip okunabilir (bkz. kiraci).
+        veritabaninda_okulu_ayarla(self.oturum, okul.id)
+        self.depo.ekle(okul)
         self.oturum.commit()
         return okul
 

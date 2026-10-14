@@ -11,9 +11,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Ayarlar(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="OKULAPI_")
 
-    # Geliştirme varsayılanı: docker-compose'daki `db` servisine bilgisayardan bağlanmak için.
-    # 4. alt adımda (RLS) migration için tablo sahibi rolü, uygulama için ayrı bir rol kullanılacak.
-    veritabani_url: str = "postgresql+psycopg://okul_sahip:okul_sahip@localhost:5433/okul"
+    # İki ayrı rol (docs/adr/0009):
+    # - uygulama `okul_uygulama` rolüyle bağlanır: tabloların sahibi değildir, yalnızca okuma/yazma
+    #   yetkisi vardır, satır düzeyi güvenliğe (RLS) tabidir;
+    # - migration'lar tablo sahibi `okul_sahip` rolüyle çalışır (tablo oluşturur, RLS politikası yazar).
+    # Varsayılanlar geliştirme içindir (docker-compose'daki db servisine bilgisayardan bağlanmak).
+    veritabani_url: str = "postgresql+psycopg://okul_uygulama:okul_uygulama@localhost:5433/okul"
+    migrasyon_url: str = "postgresql+psycopg://okul_sahip:okul_sahip@localhost:5433/okul"
 
     # Yüklenecek modüller. Yeni bir modül eklemek için adını buraya (ya da ortam değişkenine,
     # ör. OKULAPI_ETKIN_MODULLER='["ders_programi","kutuphane"]') eklemek yeterlidir.

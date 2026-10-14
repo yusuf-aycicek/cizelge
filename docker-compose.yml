@@ -5,17 +5,20 @@ services:
   db:
     image: postgres:17
     environment:
-      # Tablo sahibi rol: migration'lar bu rolle çalışır. 4. alt adımda (RLS) uygulama için
-      # tablo sahibi olmayan ayrı bir rol eklenecek.
+      # Tablo sahibi rol: migration'lar bu rolle çalışır (bu imajda süper kullanıcıdır).
+      # Uygulama ayrı, RLS'ye tabi `okul_uygulama` rolüyle bağlanır (init betiği oluşturur).
       POSTGRES_USER: okul_sahip
       POSTGRES_PASSWORD: okul_sahip  # yalnızca geliştirme; üretimde gizli değişkenden gelir
       POSTGRES_DB: okul
+      OKUL_UYGULAMA_SIFRESI: okul_uygulama  # uygulama rolünün parolası (yalnızca geliştirme)
     ports:
       # Bilgisayardan erişim (testler, inceleme) 5433 üzerinden: aynı makinedeki başka projelerin
       # PostgreSQL konteynerleri 5432 kullanıyor. Konteynerler arası bağlantı yine db:5432.
       - "5433:5432"
     volumes:
       - db_verisi:/var/lib/postgresql/data  # konteyner silinse de veri kalır
+      # İlk başlatmada uygulama rolünü oluşturan betik (yalnızca boş veri biriminde çalışır).
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U okul_sahip -d okul"]
       interval: 2s
@@ -27,7 +30,9 @@ services:
       context: .
       dockerfile: api/Dockerfile
     environment:
-      OKULAPI_VERITABANI_URL: postgresql+psycopg://okul_sahip:okul_sahip@db:5432/okul
+      # Uygulama RLS'ye tabi rolle, migration'lar tablo sahibi rolle bağlanır.
+      OKULAPI_VERITABANI_URL: postgresql+psycopg://okul_uygulama:okul_uygulama@db:5432/okul
+      OKULAPI_MIGRASYON_URL: postgresql+psycopg://okul_sahip:okul_sahip@db:5432/okul
     depends_on:
       db:
         condition: service_healthy  # veritabanı bağlantı kabul etmeden api başlamaz

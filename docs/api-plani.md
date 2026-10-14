@@ -254,8 +254,8 @@ dallarının sürüm klasörleri modül listesinden toplanır.
 | 1 | Altyapı | Bitti (2026-10-14) |
 | 2 | Çekirdek | Bitti (2026-10-14) |
 | 3 | Ders programı modülü | Bitti (2026-10-14) |
-| 4 | İzolasyon kabul testi ve RLS | **Sıradaki** |
-| 5 | Diyagramlar ve belgeler | Bekliyor |
+| 4 | İzolasyon kabul testi ve RLS | Bitti (2026-10-14) |
+| 5 | Diyagramlar ve belgeler | **Sıradaki** |
 
 1. alt adımdan notlar:
 - `docker compose up --build` ile db (PostgreSQL 17.11) ve api ayağa kalkıyor. API açılırken
@@ -321,6 +321,21 @@ dallarının sürüm klasörleri modül listesinden toplanır.
   orijinaliyle birebir aynı çıkar; çözücü çözer, doğrulayıcıdan geçer.
 - `test_modeller_ve_migrationlar_uyumlu` (`alembic check`'in test hali) eklendi.
 - Testler: 63/63.
+
+4. alt adımdan notlar:
+- Roller: uygulama `okul_uygulama` (RLS'ye tabi), migration `okul_sahip`. Ayarlarda
+  `veritabani_url` ve `migrasyon_url`. Rol ve parolası `docker/postgres/init/01-uygulama-rolu.sh`
+  ile (yalnızca boş veri biriminde çalışır; `.gitattributes` ile LF satır sonu).
+- RLS migration'ları: `cekirdek_0003` (rol, `aktif_okul_id()`, çekirdek politikaları) ve
+  `ders_programi_0003` (`depends_on = cekirdek_0003`).
+- `kiraci.py`: her işlemin başında `set_config('app.okul_id', ..., true)` (= SET LOCAL). Okul
+  oluşturma servisi yeni okulun kimliğini işlemin bağlamına yazar.
+- Testler artık uygulama rolüyle, RLS altında çalışıyor. Değişen beklentiler: okulsuz oturum hiçbir
+  okulu görmez; ham SQL ve Core sorguları RLS ile filtrelenir.
+- Kabul testi `tests/test_izolasyon.py`: 26 alt test (tablo kapsamı, tablo başına RLS, okul tablosu,
+  API, bağlantı havuzu). Mutasyon denemesi havuz testinde bir boşluk buldu (istekler commit
+  etmiyordu), düzeltildi; ayrıntılar ADR 0009'da.
+- Testler: 89/89. Docker'da sıfırdan kurulum ve psql ile elle doğrulama yapıldı.
 
 ## 10. Diyagramlar (ders için)
 
@@ -419,3 +434,22 @@ Worker'ın akışı ve sonucu yazan parça (`moduller/ders_programi/sonuc_yazici
    doğrulayıcıdan geçer); aynı işin iki kez işlenmesi; çözüm sırasında atama silinmesi; başarısız
    üretimde çelişkilerin yazılması; başka okulun programına yazma denemesi.
 
+
+## 15. Sonraya
+
+1. **Paylaşılan/yayınlanan programın dondurulması** (yapım sırası 8, öğretmen paylaşım linki
+   adımında ele alınacak).
+   - Sorun: ders ataması silinince yerleşimleri de siliniyor (`ON DELETE CASCADE`, bölüm 3. alt adım
+     notları). Öğretmenlerle paylaşılmış bir programdan bir ders bu yüzden **sessizce kaybolabilir**.
+     Silme davranışı şimdilik değiştirilmedi.
+   - Fikir: bir program yayınlanınca (paylaşım linki oluşturulunca) **dondurulur**. Yayınlanan
+     programın yerleşimleri, atamanın kendisine değil, yayın anındaki kopyasına (sınıf adı, ders adı,
+     öğretmen adı, gün, saat) dayanan değişmez bir anlık görüntüde (snapshot) tutulur. Böylece
+     atama silinse ya da değişse de yayınlanan program aynı kalır.
+   - Veri değiştiğinde kullanıcıya "Bu program eski veriyle üretildi/yayınlandı" uyarısı gösterilir.
+     Bunu anlamak için worker tasarımındaki **girdi özeti** (bölüm 14, adım 3) kullanılır: programın
+     üretildiği girdinin özeti, okulun şu anki verisinden üretilen girdinin özetiyle
+     karşılaştırılır. Farklıysa program "güncel değil" olarak işaretlenir; yönetici isterse en az
+     değişiklikle yeniden üretir ve yeniden yayınlar.
+   - Bu yaklaşım CASCADE'i taslak (yayınlanmamış) programlar için korur; yalnızca yayınlanan
+     programlar korunur.

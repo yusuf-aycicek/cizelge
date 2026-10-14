@@ -248,7 +248,9 @@ Her adımın sonunda çalışan ve test edilen bir şey olmalı. Bir adım bitme
 6. **Arayüz: program.** Üretme, durum göstergesi, sınıf ve öğretmen görünümü, çözülemezlik
    açıklamasının gösterilmesi, mevcut programı temel alarak yeniden üretme.
 7. **Elle düzeltme ve çıktı.** Sürükle bırak, çakışma uyarısı, kilitleme, PDF ve Excel.
-8. **Excel'den içe aktarma ve öğretmen paylaşım linki.**
+8. **Excel'den içe aktarma ve öğretmen paylaşım linki.** Paylaşılan (yayınlanan) program dondurulur:
+   veri değişse de aynı kalır, veri değiştiğinde "eski veriyle üretildi" uyarısı gösterilir
+   (bkz. docs/api-plani.md bölüm 15).
 
 ## 9. Çalışma kuralları
 

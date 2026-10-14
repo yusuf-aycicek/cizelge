@@ -47,7 +47,7 @@ def alembic_ayari(ayarlar: Ayarlar | None = None, veritabani_url: str | None = N
     ayar.set_main_option("script_location", str(Path(__file__).parent))
     ayar.set_main_option("path_separator", "os")  # sürüm klasörleri işletim sisteminin ayıracıyla
     ayar.set_main_option("version_locations", os.pathsep.join(str(d) for d in surum_dizinleri(ayarlar)))
-    url = veritabani_url or ayarlar.veritabani_url
+    url = veritabani_url or ayarlar.migrasyon_url  # migration: tablo sahibi rolüyle
     ayar.set_main_option("sqlalchemy.url", url.replace("%", "%%"))  # Config, % ile değişken açar
     ayar.attributes["ayarlar"] = ayarlar
     return ayar

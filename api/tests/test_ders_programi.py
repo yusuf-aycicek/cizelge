@@ -83,7 +83,8 @@ def test_bilesik_yabanci_anahtar_okullar_arasi_iliskiyi_reddeder(istemci, okul, 
     b_ogretmen = istemci.post("/api/ogretmenler", json={"ad": "B'nin öğretmeni"}, headers=b).json()["id"]
     ekle = text("INSERT INTO ders_atama (id, okul_id, sinif_id, ders_id, ogretmen_id, haftalik_saat) "
                 "VALUES (:id, :okul, :sinif, :ders, :ogretmen, 2)")
-    with oturum_fabrikasi() as oturum:
+    # A'nın bağlamında (RLS bu satırı A'nın satırı olarak kabul eder); yabancı anahtar reddeder.
+    with okul_oturumu(oturum_fabrikasi, uuid.UUID(okul["okul"])) as oturum:
         with pytest.raises(IntegrityError) as hata:
             oturum.execute(ekle, {"id": uuid.uuid4(), "okul": okul["okul"], "sinif": okul["9a"],
                                   "ders": okul["mat"], "ogretmen": b_ogretmen})

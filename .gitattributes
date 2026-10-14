@@ -1,0 +1,3 @@
+# Konteynerde çalışan kabuk betikleri Windows'ta da LF satır sonuyla kalmalı; CRLF ile
+# "/bin/sh^M: not found" hatası verir.
+*.sh text eol=lf

@@ -202,7 +202,9 @@ def test_okula_ait_tablolara_orm_disi_erisim_yok():
     """Ham SQL (`text(...)`) ve Core tablo nesneleri (`Model.__table__`) ORM okul filtresinden
     geçmez (test_kiraci.py, bilinen sınır). Uygulama kodunda yalnızca izin verilen yerlerde
     kullanılabilirler; RLS (4. alt adım) veritabanı düzeyinde ikinci güvencedir."""
-    izinli = {"saglik.py"}  # SELECT 1: hiçbir tabloya dokunmaz
+    # saglik.py: SELECT 1 (hiçbir tabloya dokunmaz); kiraci.py: SET LOCAL app.okul_id (okulun
+    # veritabanında belirlendiği tek yer).
+    izinli = {"saglik.py", "kiraci.py"}
     ihlaller = []
     for dosya in KAYNAK.rglob("*.py"):
         if "migrations" in dosya.parts or "migrasyon" in dosya.parts or dosya.name in izinli:

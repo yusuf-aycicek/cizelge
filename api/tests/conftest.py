@@ -22,9 +22,27 @@ from okulapi.cekirdek.veritabani import motor_olustur
 from okulapi.main import uygulama_olustur
 from okulapi.migrasyon import alembic_ayari
 
+# Tablo sahibi (migration'lar, test veritabanını kurma, "RLS olmadan ne görünür" karşılaştırması).
 TEST_URL = os.environ.get(
     "OKULAPI_TEST_VERITABANI_URL", "postgresql+psycopg://okul_sahip:okul_sahip@localhost:5433/okul_test"
 )
+# Uygulama rolü: testler, üretimdeki gibi RLS'ye tabi bu rolle çalışır.
+UYGULAMA_ROLU, UYGULAMA_SIFRESI = "okul_uygulama", "okul_uygulama"
+TEST_UYGULAMA_URL = make_url(TEST_URL).set(username=UYGULAMA_ROLU, password=UYGULAMA_SIFRESI).render_as_string(
+    hide_password=False)
+
+
+def uygulama_rolunu_hazirla(url: str) -> None:
+    """Uygulama rolü küme düzeyindedir; yoksa oluşturulur, giriş yetkisi ve parolası verilir.
+    (Docker'da bunu ilk başlatmada docker/postgres/init betiği yapar.)"""
+    bakim = motor_olustur(make_url(url).set(database="postgres"), isolation_level="AUTOCOMMIT")
+    try:
+        with bakim.connect() as baglanti:
+            if not baglanti.execute(text("SELECT 1 FROM pg_roles WHERE rolname = :r"), {"r": UYGULAMA_ROLU}).first():
+                baglanti.execute(text(f"CREATE ROLE {UYGULAMA_ROLU}"))
+            baglanti.execute(text(f"ALTER ROLE {UYGULAMA_ROLU} LOGIN PASSWORD '{UYGULAMA_SIFRESI}'"))
+    finally:
+        bakim.dispose()
 
 
 def bos_veritabani_olustur(url: str) -> None:
@@ -47,19 +65,29 @@ def bos_veritabani_olustur(url: str) -> None:
 
 @pytest.fixture(scope="session")
 def ayarlar() -> Ayarlar:
-    return Ayarlar(veritabani_url=TEST_URL)
+    return Ayarlar(veritabani_url=TEST_UYGULAMA_URL, migrasyon_url=TEST_URL)
 
 
 @pytest.fixture(scope="session")
 def veritabani(ayarlar):
-    """Migration'larla kurulmuş test veritabanının adresi."""
+    """Migration'larla (tablo sahibi rolüyle) kurulmuş test veritabanının sahip adresi."""
     bos_veritabani_olustur(TEST_URL)
+    uygulama_rolunu_hazirla(TEST_URL)
     command.upgrade(alembic_ayari(ayarlar), "heads")
     yield TEST_URL
 
 
 @pytest.fixture(scope="session")
 def motor(veritabani):
+    """Uygulama rolüyle (RLS'ye tabi) motor: testler üretimdeki gibi bununla çalışır."""
+    m = motor_olustur(TEST_UYGULAMA_URL)
+    yield m
+    m.dispose()
+
+
+@pytest.fixture(scope="session")
+def sahip_motor(veritabani):
+    """Tablo sahibi (bu imajda süper kullanıcı): RLS'yi atlar. Yalnızca karşılaştırma için."""
     m = motor_olustur(veritabani)
     yield m
     m.dispose()

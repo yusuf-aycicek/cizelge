@@ -7,16 +7,16 @@ from sqlalchemy import delete, func, select, text, update
 
 from okulapi.cekirdek.kiraci import OkulBaglamiYokHatasi, OkulIhlaliHatasi, okul_oturumu, okulsuz_oturum
 from okulapi.cekirdek.modeller import Okul, Ogretmen, Sinif
-from okulapi.cekirdek.servisler import GecersizVeri, SinifServisi
+from okulapi.cekirdek.servisler import GecersizVeri, OkulServisi, SinifServisi
 
 
 @pytest.fixture
 def iki_okul(oturum_fabrikasi):
     """A ve B okulları; her birinde iki öğretmen ve bir sınıf."""
+    # Okul, servis üzerinden oluşturulur: RLS, okul satırının yalnızca kendi bağlamında
+    # eklenmesine izin verir ve servis bu bağlamı kurar.
     with okulsuz_oturum(oturum_fabrikasi) as oturum:
-        a, b = Okul(ad="A Lisesi"), Okul(ad="B Lisesi")
-        oturum.add_all([a, b])
-        oturum.commit()
+        a, b = OkulServisi(oturum).olustur({"ad": "A Lisesi"}), OkulServisi(oturum).olustur({"ad": "B Lisesi"})
     for okul, onek in ((a, "A"), (b, "B")):
         with okul_oturumu(oturum_fabrikasi, okul.id) as oturum:
             oturum.add_all([Ogretmen(ad=f"{onek} Öğretmen 1"), Ogretmen(ad=f"{onek} Öğretmen 2"),
@@ -113,23 +113,24 @@ def test_okulsuz_oturum_okula_ait_tabloya_erisemez(oturum_fabrikasi, iki_okul):
         with pytest.raises(OkulBaglamiYokHatasi):
             oturum.flush()
         oturum.rollback()  # başarısız flush'tan sonra bekleyen kayıt oturumdan atılır
-        # Okul tablosu okula ait değildir: okulsuz oturum okulları görebilir (okul kaydı için).
-        assert {"A Lisesi", "B Lisesi"} <= set(oturum.scalars(select(Okul.ad)))
+        # Okul tablosu ORM filtresine tabi değildir, ama RLS'ye tabidir: okulsuz oturum hiçbir
+        # okulu görmez (RLS öncesinde bütün okulları görüyordu).
+        assert set(oturum.scalars(select(Okul.ad))) == set()
 
 
 @pytest.mark.parametrize("sorgu", [
     text("SELECT count(*) FROM ogretmen"),
     select(func.count()).select_from(Ogretmen.__table__),
 ], ids=["ham SQL", "Core tablo nesnesi"])
-def test_bilinen_sinir_orm_disi_sorgular_filtrelenmez(oturum_fabrikasi, iki_okul, sorgu):
-    """Ham SQL ve Core tablo nesneleri ORM filtresinden geçmez: A'nın oturumu B'nin satırlarını da
-    görür. Uygulama kodunda bunlar yasak (test_okula_ait_tablolara_orm_disi_erisim_yok); asıl
-    kapanış 4. alt adımda PostgreSQL RLS ile olacak ve o adımda bu testin beklentisi tersine
-    dönecek (A yalnızca kendi 2 satırını görecek).
-    """
+def test_orm_disi_sorgulari_rls_filtreler(oturum_fabrikasi, iki_okul, sorgu):
+    """Ham SQL ve Core tablo nesneleri ORM filtresinden geçmez (bilinen sınırdı). 4. alt adımdan
+    beri PostgreSQL'in satır düzeyi güvenliği (RLS) onları da filtreler: A'nın bağlamında yalnızca
+    A'nın 2 öğretmeni görünür (RLS öncesinde 4'ü de görünüyordu). Okulsuz bağlamda hiçbiri."""
     a, _b = iki_okul
     with okul_oturumu(oturum_fabrikasi, a) as oturum:
-        assert oturum.scalar(sorgu) == 4
+        assert oturum.scalar(sorgu) == 2
+    with okulsuz_oturum(oturum_fabrikasi) as oturum:
+        assert oturum.scalar(text("SELECT count(*) FROM ogretmen")) == 0
 
 
 def test_veritabani_check_kisiti_anlasilir_hataya_cevrilir(oturum_fabrikasi, iki_okul):
