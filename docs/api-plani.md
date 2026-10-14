@@ -253,8 +253,8 @@ dallarının sürüm klasörleri modül listesinden toplanır.
 |---|---|---|
 | 1 | Altyapı | Bitti (2026-10-14) |
 | 2 | Çekirdek | Bitti (2026-10-14) |
-| 3 | Ders programı modülü | **Sıradaki** |
-| 4 | İzolasyon kabul testi ve RLS | Bekliyor |
+| 3 | Ders programı modülü | Bitti (2026-10-14) |
+| 4 | İzolasyon kabul testi ve RLS | **Sıradaki** |
 | 5 | Diyagramlar ve belgeler | Bekliyor |
 
 1. alt adımdan notlar:
@@ -295,6 +295,32 @@ dallarının sürüm klasörleri modül listesinden toplanır.
   denendi: B okulu A'nın öğretmenini ne getirebiliyor ne silebiliyor (404).
 - Windows notu: `curl -d` ile Türkçe karakterli gövde gönderilince komut satırı kod sayfası
   yüzünden bozuk UTF-8 gidiyor (API 400 döner). Gövdeyi dosyadan (`--data-binary @dosya`) gönderin.
+
+3. alt adımdan notlar:
+- Modeller ve migration `ders_programi_0002` (`depends_on = cekirdek_0002`). Bütün ilişkiler
+  bileşik yabancı anahtar `(okul_id, x_id) -> x(okul_id, id)`. Silme davranışları: çekirdek
+  kaydı bir atamada kullanılıyorsa RESTRICT; öğretmen -> müsaitlik CASCADE; program -> yerleşim
+  CASCADE; ders ataması -> yerleşim CASCADE (RESTRICT olsaydı program üretilmiş bir atama bir daha
+  silinemezdi); temel program silinince `ON DELETE SET NULL (temel_program_id)` (PostgreSQL 15+).
+- `ders_atama.ogretmen_id` boş olabilir; bileşik anahtar MATCH SIMPLE olduğu için boşken
+  denetlenmez.
+- Yabancı anahtarın gösteren tarafına PostgreSQL indeks koymaz: `ders_atama(okul_id,
+  ogretmen_id)` ve `yerlesim(okul_id, ders_atama_id)` indeksleri elle eklendi.
+- Çekirdeğin `CrudServisi`'ne genişletme noktası eklendi: `_dogrula(alanlar, nesne)`. Modül
+  servisleri iş kurallarını burada denetler (sınıf/ders/öğretmen bu okulda mı, müsaitlik okulun
+  gün/saat aralığında mı). Kısıtlar çözücünün kendi kural kayıt defteriyle (`kural_olustur`)
+  doğrulanıyor: API ile çözücü aynı kural listesini biliyor.
+- Seviye şablonu: `POST /api/ders-programi/seviye-sablonlari/uygula {seviye}`. O seviyedeki her
+  şubeye eksik (sınıf, ders) için öğretmeni boş atama oluşturur. Var olanları çoğaltmaz ve
+  değiştirmez; saati şablondan farklı olanları raporlar.
+- API çözücü paketine bağımlı oldu (`cozucu` bağımlılığı, Dockerfile önce çözücüyü kurar).
+  Bağımlılık tek yönlü: çözücü API'yi bilmez.
+- Dönüştürücü (`moduller/ders_programi/cozucu_donusturucu.py`): oturumun okulundan
+  `CozumGirdisi` üretir; isteğe bağlı kilit programı (kilitli hücreler) ve temel program (en az
+  değişiklik). Gidiş-dönüş testi: mini set API ile yüklenir, dönüştürülür, doğal anahtarlarla
+  orijinaliyle birebir aynı çıkar; çözücü çözer, doğrulayıcıdan geçer.
+- `test_modeller_ve_migrationlar_uyumlu` (`alembic check`'in test hali) eklendi.
+- Testler: 63/63.
 
 ## 10. Diyagramlar (ders için)
 
@@ -357,3 +383,39 @@ Küçük kararlar (uuid anahtar, 404 dönme, gerçek PostgreSQL ile test) ilgili
    okul yalnızca oturumdan belirleniyor (CLAUDE.md bölüm 8'e yazıldı).
 4. Diyagramlar PlantUML; object diyagramları mini set verisiyle, en az iki tane (bölüm 10).
 5. PostgreSQL 17.
+
+## 14. Ters yön: çözücü sonucu -> program ve yerleşim (tasarım; kodu yapım sırası 3'te)
+
+Worker'ın akışı ve sonucu yazan parça (`moduller/ders_programi/sonuc_yazici.py`):
+
+1. **İş:** kuyruğa `(okul_id, program_id)` girer. Worker `okul_oturumu(okul_id)` açar. Okul
+   filtresi ve RLS worker'da da geçerlidir; worker başka okulun verisine dokunamaz.
+2. **Başlatma (ayrı işlem):** `SELECT ... FOR UPDATE` ile program satırı kilitlenir. Durum
+   `bekliyor` değilse iş bırakılır; aynı iş iki kez gelirse ikincisi bir şey yapmaz (idempotent).
+   Durum `uretiliyor` yapılır ve commit edilir; arayüz bunu sorgulamayla görür.
+3. **Girdi:** `cozum_girdisi_olustur(oturum, kilit_programi_id=..., temel_program_id=program.temel_program_id)`.
+   Girdinin bir özeti (`girdi_ozeti`, kanonik JSON'un SHA-256'sı) programa yazılır.
+4. **Çözüm:** `CpSatCozucu().coz(girdi, program.sure_siniri_sn)`; veritabanı bağlantısı çözüm
+   boyunca açık tutulmaz.
+5. **Yazma (tek işlem):**
+   - program satırı yeniden `FOR UPDATE` ile kilitlenir; durum hâlâ `uretiliyor` olmalı;
+   - girdi yeniden üretilir ve özeti karşılaştırılır. Veri çözüm sırasında değiştiyse (atama
+     silindi, saati değişti) program `basarisiz` ve "Program üretilirken veriler değişti, yeniden
+     üretin" olur; eski veriyle üretilmiş program yazılmaz;
+   - başarılıysa çözücünün bağımsız doğrulayıcısı (`dogrula`) son bir kez çalışır (savunma);
+   - programın varsa eski yerleşimleri silinir, yenileri toplu `INSERT` ile eklenir. Toplu ekleme
+     ORM olaylarından geçmediği için `okul_id` açıkça oturumun okulundan yazılır; RLS'nin `WITH
+     CHECK` koşulu ve bileşik yabancı anahtarlar yine korur;
+   - program güncellenir: `durum` (`hazir`/`basarisiz`), `bitis`, ve yeni sütunlar `cozum_durumu`
+     (optimal/uygun/cozumsuz/on_kontrol_hatasi/bilinmiyor), `toplam_ceza`, `olcumler` (JSONB:
+     `kalite.olc` sonuçları), `celiskiler` (JSONB: tür, mesaj, ilgili kimlikler; arayüz ilgili
+     hücreleri vurgulayabilsin), `sure_sn`, `girdi_ozeti`. Bunlar migration `ders_programi_0003`
+     ile eklenecek;
+   - `hata_mesaji`, çelişki mesajlarının kullanıcıya gösterilecek metnidir.
+6. **Hata durumları:** çözücü istisna fırlatmaz (arayüz sözleşmesi). Worker'ın kendisi çökerse
+   program `uretiliyor`da kalır; RQ iş zaman aşımı (süre sınırı + pay) dolunca bir temizleyici
+   onu `basarisiz` ("üretim yarıda kaldı") yapar.
+7. **Testler (o adımda):** mini set uçtan uca (istek -> kuyruk -> worker -> API'den yerleşimler,
+   doğrulayıcıdan geçer); aynı işin iki kez işlenmesi; çözüm sırasında atama silinmesi; başarısız
+   üretimde çelişkilerin yazılması; başka okulun programına yazma denemesi.
+

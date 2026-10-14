@@ -149,7 +149,7 @@ Tüm tablolarda `id` (uuid) ve `okul_id` (FK) bulunur. Aşağıda yalnızca diğ
 | `ders_atama` | sinif_id, ders_id, ogretmen_id (boş olabilir), haftalik_saat | Çözücünün asıl girdisi |
 | `musaitlik` | ogretmen_id, gun, saat, durum (gelemez / tercih_etmez) | |
 | `kisit` | tur, parametreler (JSON), zorunlu, agirlik | Okul geneli kurallar |
-| `program` | ad, durum, hata_mesaji, temel_program_id (boş olabilir), olusturma, bitis | Her üretim denemesi bir kayıt. `temel_program_id` doluysa en az değişiklikle güncellemedir |
+| `program` | ad, durum, hata_mesaji, temel_program_id (boş olabilir), sure_siniri_sn, olusturma, bitis | Her üretim denemesi bir kayıt. `temel_program_id` doluysa en az değişiklikle güncellemedir |
 | `yerlesim` | program_id, ders_atama_id, gun, saat, kilitli | Programın hücreleri |
 
 `program.durum` değerleri: `bekliyor`, `uretiliyor`, `hazir`, `basarisiz`.

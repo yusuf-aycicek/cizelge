@@ -214,3 +214,22 @@ def test_okula_ait_tablolara_orm_disi_erisim_yok():
             if isinstance(dugum, ast.Call) and getattr(dugum.func, "id", getattr(dugum.func, "attr", "")) == "text":
                 ihlaller.append(f"{dosya.name}:{dugum.lineno} text(...)")
     assert ihlaller == []
+
+
+def test_modeller_ve_migrationlar_uyumlu(veritabani):
+    """`alembic check`: modellerde migration'a yansıtılmamış bir değişiklik yok. Biri modeli
+    değiştirip migration yazmayı unutursa bu test kırılır."""
+    from alembic.autogenerate import compare_metadata
+    from alembic.migration import MigrationContext
+
+    import okulapi.cekirdek.modeller  # noqa: F401
+    from okulapi.cekirdek.veritabani import Base
+
+    modulleri_yukle(Ayarlar().etkin_moduller)
+    motor = motor_olustur(veritabani)
+    try:
+        with motor.connect() as baglanti:
+            farklar = compare_metadata(MigrationContext.configure(baglanti), Base.metadata)
+    finally:
+        motor.dispose()
+    assert farklar == []

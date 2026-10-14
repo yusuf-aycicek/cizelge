@@ -66,11 +66,17 @@ class CrudServisi(Generic[T]):
             raise KayitBulunamadi(self.varlik)
         return nesne
 
+    def _dogrula(self, alanlar: dict[str, Any], nesne: T | None = None) -> None:
+        """Genişletme noktası: alt sınıf iş kurallarını burada denetler ve `GecersizVeri` /
+        `KayitBulunamadi` fırlatır. `nesne` güncellemede var olan kayıttır, oluşturmada None."""
+
     def olustur(self, alanlar: dict[str, Any]) -> T:
+        self._dogrula(alanlar)
         return self._kaydet(lambda: self.depo.ekle(self.depo.model(**alanlar)))
 
     def guncelle(self, kayit_id: uuid.UUID, degisiklikler: dict[str, Any]) -> T:
         nesne = self.getir(kayit_id)
+        self._dogrula(degisiklikler, nesne)
 
         def uygula() -> T:
             for alan, deger in degisiklikler.items():

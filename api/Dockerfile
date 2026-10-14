@@ -1,11 +1,15 @@
-# Yapı bağlamı depo köküdür (docker-compose.yml: context: .). Yapım sırası 3'te worker
-# çözücü paketine (/cozucu) ihtiyaç duyduğunda aynı bağlamdan kopyalanabilsin diye.
+# Yapı bağlamı depo köküdür (docker-compose.yml: context: .): API, depodaki çözücü paketine
+# (/cozucu) bağımlıdır. Yapım sırası 3'teki worker aynı imajı kullanabilir.
 FROM python:3.14-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 
-# Önce yalnızca paket tanımı ve kaynak: kod değişmedikçe bağımlılık katmanı önbellekten gelir.
+# Önce çözücü (OR-Tools ile), sonra API. Çözücü değişmedikçe onun katmanı önbellekten gelir.
+COPY cozucu/pyproject.toml cozucu/pyproject.toml
+COPY cozucu/src cozucu/src
+RUN pip install --no-cache-dir ./cozucu
+
 COPY api/pyproject.toml api/pyproject.toml
 COPY api/src api/src
 RUN pip install --no-cache-dir ./api
