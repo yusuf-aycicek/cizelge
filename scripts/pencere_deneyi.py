@@ -5,6 +5,7 @@ kısıtı kesirli çözümlerde `okulda - dolu` ceza terimini negatife düşüre
 sınırı bu yüzden -2229 çıktı. Varyantlar:
 - A: mevcut formül + geçerli eşitsizlik `okulda >= dolu`.
 - B: yardımcılar tam tanımlı: `mesgul == dolu`, `once`/`sonra` = max, `okulda` = min.
+- C: ceza terimleri ayrı 0/1 değişken (pencere ve sınıf boşluğu), bkz. scripts/amac_teshisi.py.
 
 Varyantlar asıl kodu değiştirmeden, kayıt defterindeki `ogretmen_penceresi` sınıfı değiştirilerek
 denenir.
@@ -36,7 +37,7 @@ from cozucu.cpsat import _yerlesimler
 from cozucu.dogrulama import dogrula
 from cozucu.kalite import agirlikli_ceza, olc
 from cozucu.kisitlar import KAYIT_DEFTERI, Baglam, etkin_agirliklar, kurallari_hazirla
-from cozucu.kisitlar.esnek import OgretmenPenceresi, _kumulatif
+from cozucu.kisitlar.esnek import OgretmenPenceresi, SinifBoslugu, _kumulatif
 from cozucu.veri_io import girdi_oku
 
 NOKTALAR = (10.0, 30.0, 60.0)
@@ -92,18 +93,65 @@ class PencereB(OgretmenPenceresi):
         return cezalar
 
 
-VARYANTLAR = {"mevcut": OgretmenPenceresi, "A": PencereA, "B": PencereB}
+class PencereC(OgretmenPenceresi):
+    """Mevcut formül; ceza `okulda - dolu` yerine ayrı bir 0/1 değişken: bosluk >= okulda - dolu.
+
+    Amaçta ders değişkenleri negatif katsayıyla yer almaz (amac_teshisi.py), alan sınırı 0 olur.
+    """
+
+    def uygula(self, baglam):
+        cezalar = []
+        saatler = list(baglam.saatler)
+        for atamalar in baglam.ogretmen_atamalari.values():
+            for g in baglam.gunler:
+                dolu = [baglam.dolu(atamalar, g, s) for s in saatler]
+                once = _kumulatif(baglam, dolu)
+                sonra = _kumulatif(baglam, dolu[::-1])[::-1]
+                for s in saatler:
+                    okulda = baglam.model.new_bool_var("")
+                    baglam.model.add(okulda >= once[s] + sonra[s] - 1)
+                    bosluk = baglam.model.new_bool_var("")
+                    baglam.model.add(bosluk >= okulda - dolu[s])
+                    cezalar.append((bosluk, self.agirlik))
+        return cezalar
+
+
+class SinifBosluguC(SinifBoslugu):
+    """Aynı düzeltme sınıf boşluğu için: bosluk >= sonra - dolu."""
+
+    def uygula(self, baglam):
+        cezalar = []
+        saatler = list(baglam.saatler)
+        for atamalar in baglam.sinif_atamalari.values():
+            for g in baglam.gunler:
+                dolu = [baglam.dolu(atamalar, g, s) for s in saatler]
+                sonra = _kumulatif(baglam, dolu[::-1])[::-1]
+                for s in saatler:
+                    bosluk = baglam.model.new_bool_var("")
+                    baglam.model.add(bosluk >= sonra[s] - dolu[s])
+                    cezalar.append((bosluk, self.agirlik))
+        return cezalar
+
+
+# varyant -> {kural türü: sınıf}. Listede olmayan türler asıl sınıfla kalır.
+VARYANTLAR = {
+    "mevcut": {},
+    "A": {"ogretmen_penceresi": PencereA},
+    "B": {"ogretmen_penceresi": PencereB},
+    "C": {"ogretmen_penceresi": PencereC, "sinif_boslugu": SinifBosluguC},
+}
 
 
 def model_kur(girdi, varyant):
-    KAYIT_DEFTERI["ogretmen_penceresi"] = VARYANTLAR[varyant]
+    asil = dict(KAYIT_DEFTERI)
+    KAYIT_DEFTERI.update(VARYANTLAR[varyant])
     try:
         b = Baglam.kur(girdi)
         cezalar = []
         for kural in kurallari_hazirla(girdi):
             cezalar.extend(kural.uygula(b))
     finally:
-        KAYIT_DEFTERI["ogretmen_penceresi"] = OgretmenPenceresi
+        KAYIT_DEFTERI.update(asil)
     b.model.minimize(sum(a * i for i, a in cezalar))
     return b
 

@@ -7,6 +7,12 @@ cezası sıfır olan bir program o ölçüde kusursuzdur.
 Yardımcı boolean'lar yalnızca alttan sınırlanır (ör. `once >= dolu`). Amaç fonksiyonu
 onları aşağı ittiği için en iyi çözümde tam istenen değeri alırlar; böylece model doğrusal
 ve küçük kalır.
+
+Ceza terimleri amaca yalnızca negatif olamayan tek bir değişken olarak girer (bkz.
+docs/adr/0007). `okulda - dolu` gibi bir fark doğrudan amaca yazılırsa ders değişkenleri
+amaçta negatif katsayı alır ve CP-SAT'ın alt sınırı çok negatiften başlar. Bu, gerçekçi sette
+60. saniyedeki cezayı %33 kötüleştiriyordu. Fark bunun yerine bir 0/1 "boşluk" değişkenine
+bağlanır: `bosluk >= okulda - dolu`.
 """
 
 from __future__ import annotations
@@ -66,7 +72,9 @@ class OgretmenPenceresi(EsnekKural):
                 for s in saatler:
                     okulda = baglam.model.new_bool_var("")
                     baglam.model.add(okulda >= once[s] + sonra[s] - 1)
-                    cezalar.append((okulda - dolu[s], self.agirlik))
+                    pencere = baglam.model.new_bool_var("")  # okulda ama dersi yok
+                    baglam.model.add(pencere >= okulda - dolu[s])
+                    cezalar.append((pencere, self.agirlik))
         return cezalar
 
 
@@ -87,7 +95,10 @@ class SinifBoslugu(EsnekKural):
             for g in baglam.gunler:
                 dolu = [baglam.dolu(atamalar, g, s) for s in saatler]
                 sonra = _kumulatif(baglam, dolu[::-1])[::-1]
-                cezalar.extend((sonra[s] - dolu[s], self.agirlik) for s in saatler)
+                for s in saatler:
+                    bosluk = baglam.model.new_bool_var("")  # sonra dersi var ama bu saat boş
+                    baglam.model.add(bosluk >= sonra[s] - dolu[s])
+                    cezalar.append((bosluk, self.agirlik))
         return cezalar
 
 
@@ -189,7 +200,9 @@ class Degisiklik(EsnekKural):
             if atamalar is None or t.gun not in baglam.gunler or t.saat not in baglam.saatler:
                 cezalar.append((1, self.agirlik))
             else:
-                cezalar.append((1 - baglam.dolu(atamalar, t.gun, t.saat), self.agirlik))
+                degisti = baglam.model.new_bool_var("")
+                baglam.model.add(degisti >= 1 - baglam.dolu(atamalar, t.gun, t.saat))
+                cezalar.append((degisti, self.agirlik))
 
         for (sinif_id, ders_id), atamalar in gruplar.items():
             for a in atamalar:
