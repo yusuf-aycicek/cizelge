@@ -247,6 +247,32 @@ Her alt adım testler geçince commit edilir ve onay alınmadan sonrakine geçil
 Not: modül sözleşmesi (`Modul`, kayıt defteri) 3. alt adımdan 1. alt adıma alındı, çünkü Alembic
 dallarının sürüm klasörleri modül listesinden toplanır.
 
+**Durum:**
+
+| # | Alt adım | Durum |
+|---|---|---|
+| 1 | Altyapı | Bitti (2026-10-14) |
+| 2 | Çekirdek | **Sıradaki** |
+| 3 | Ders programı modülü | Bekliyor |
+| 4 | İzolasyon kabul testi ve RLS | Bekliyor |
+| 5 | Diyagramlar ve belgeler | Bekliyor |
+
+1. alt adımdan notlar:
+- `docker compose up --build` ile db (PostgreSQL 17.11) ve api ayağa kalkıyor. API açılırken
+  `python -m okulapi.migrasyon upgrade heads` çalışıyor, sonra `/api/saglik` gerçek bir sorguyla
+  200 dönüyor. Temiz bir veri biriminden sıfırdan kurulum da denendi.
+- `alembic.ini` yerine `python -m okulapi.migrasyon` sarmalayıcısı kullanılıyor (sürüm klasörleri
+  modül listesinden). Günlük ayarı sarmalayıcıda, "Running upgrade" satırları konteyner
+  kayıtlarında görünüyor.
+- Bu makinede kapalı porta bağlanma hemen reddedilmiyor, zaman aşımına kadar bekliyor. Bütün
+  bağlantılara `connect_timeout` (3 sn) eklendi; yoksa sağlık kontrolü ve testler takılıyordu.
+- Öğrenilen bir Alembic davranışı: `alembic_version` dal başına değil, birbirini kapsamayan uç
+  revizyon başına satır tutar (`depends_on` da kapsama sayılır). Testler uygulanmış revizyonları
+  uçlardan geriye yürüyerek hesaplıyor; sıra garantisi çevrimdışı SQL çıktısıyla ayrıca sınanıyor.
+- Makinede başka projelerin (vtys26-lab01, vtys26-lab02) durdurulmuş PostgreSQL konteynerleri de
+  bilgisayarın 5432 portunu kullanacak şekilde tanımlı. Şu an çakışma yok (durdurulmuşlar), ama
+  aynı anda çalıştırılırlarsa sonra açılan başlayamaz. Proje sahibine soruldu.
+
 ## 10. Diyagramlar (ders için)
 
 - **Class diyagramı:** iki paket (`cekirdek`, `moduller.ders_programi`) ve aralarındaki tek yönlü

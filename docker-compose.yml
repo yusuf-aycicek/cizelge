@@ -1,0 +1,45 @@
+# Bütün sistem tek komutla: docker compose up --build
+# Bu adımda: db (PostgreSQL 17) ve api. Yapım sırası 3'te redis ve worker, 5'te web eklenecek.
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      # Tablo sahibi rol: migration'lar bu rolle çalışır. 4. alt adımda (RLS) uygulama için
+      # tablo sahibi olmayan ayrı bir rol eklenecek.
+      POSTGRES_USER: okul_sahip
+      POSTGRES_PASSWORD: okul_sahip  # yalnızca geliştirme; üretimde gizli değişkenden gelir
+      POSTGRES_DB: okul
+    ports:
+      - "5432:5432"  # bilgisayardan erişim (testler, inceleme)
+    volumes:
+      - db_verisi:/var/lib/postgresql/data  # konteyner silinse de veri kalır
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U okul_sahip -d okul"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    environment:
+      OKULAPI_VERITABANI_URL: postgresql+psycopg://okul_sahip:okul_sahip@db:5432/okul
+    depends_on:
+      db:
+        condition: service_healthy  # veritabanı bağlantı kabul etmeden api başlamaz
+    # Önce migration'lar (bütün dallar en son haline), sonra uygulama.
+    command: >
+      sh -c "python -m okulapi.migrasyon upgrade heads &&
+             uvicorn okulapi.main:uygulama_olustur --factory --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/saglik')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db_verisi:
