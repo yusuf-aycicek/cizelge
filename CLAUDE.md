@@ -291,3 +291,7 @@ Okul müdüründen beklenen bilgiler. Cevaplar geldikçe ilgili bölümler günc
   boş gününe ulaşamıyor. Bu bir hata değil, ağırlık tercihi: boş gün (4) sınıf boşluğundan (30),
   tercih etmezden (5) ve değişiklikten (8) hafif. Müdürün boş güne verdiği öneme göre ağırlık
   ayarlanacak.
+- Arayüzde esnek kurallar "Önemsiz / Önemli / Çok önemli" olarak seçilir. Her kuralın bu
+  seviyelere karşılık gelen ağırlıkları API'de tek yerde tanımlıdır; "Önemli" bugünkü
+  varsayılandır (docs/arayuz-plani.md bölüm 2.3). Müdürün cevaplarına göre bu karşılıklar
+  (özellikle "Önemsiz" ve "Çok önemli" değerleri) ayarlanacak.
