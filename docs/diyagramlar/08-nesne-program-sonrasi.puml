@@ -20,7 +20,11 @@ object "guz : Program" as p1 {
   hata_mesaji = null
   temel_program_id = null
   sure_siniri_sn = 120
-  bitis = 2026-10-14 10:02
+  baslama = 2026-10-14 10:02:00
+  bitis = 2026-10-14 10:02:01
+  cozum_durumu = "optimal"
+  toplam_ceza = 0
+  sure_sn = 0.3
 }
 
 object "y1 : Yerlesim" as y1 {
@@ -62,7 +66,9 @@ object "guz2 : Program" as p2 {
   durum = "bekliyor"
   temel_program_id = p-guz
   sure_siniri_sn = 120
+  baslama = null
   bitis = null
+  cozum_durumu = null
 }
 
 p1 *-- y1

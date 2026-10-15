@@ -48,7 +48,14 @@ package "modeller (tablolar)" {
     +hata_mesaji : str [0..1]
     +temel_program_id : UUID [0..1]
     +sure_siniri_sn : int
+    +baslama : datetime [0..1]
     +bitis : datetime [0..1]
+    +cozum_durumu : str [0..1]
+    +toplam_ceza : int [0..1]
+    +olcumler : dict [JSONB, 0..1]
+    +celiskiler : list [JSONB, 0..1]
+    +sure_sn : float [0..1]
+    +girdi_ozeti : str [0..1]
   }
   class Yerlesim {
     +program_id : UUID
@@ -75,6 +82,14 @@ note right of DersAtama
   bir sınıf, bir ders, bir atama.
   Bileşik FK MATCH SIMPLE:
   ogretmen_id boşken denetlenmez.
+end note
+
+note left of Program
+  Durum: bekliyor → uretiliyor → hazir | basarisiz.
+  CHECK kısıtları durumla alanları tutarlı tutar:
+  uretiliyor/hazir → baslama dolu;
+  hazir → cozum_durumu optimal ya da uygun;
+  hazir/basarisiz → bitis dolu (ADR 0011).
 end note
 
 note bottom of Kisit

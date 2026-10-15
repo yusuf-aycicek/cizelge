@@ -209,3 +209,83 @@ def test_baska_okulun_modul_kayitlari_gorunmez(istemci, okul, okul_olustur):
     assert istemci.get(f"{DP}/atamalar", headers=b).json() == []
     a_atama = istemci.get(f"{DP}/atamalar", headers=okul["baslik"]).json()[0]["id"]
     assert istemci.get(f"{DP}/atamalar/{a_atama}", headers=b).status_code == 404
+
+
+# --- program: üretim alanları ve durum tutarlılığı (yapım sırası 3, migration 0004) ----------
+
+def _simdi():
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc)
+
+
+def test_cozum_durumu_listesi_cozucuyle_ayni():
+    # Veritabanı kısıtındaki liste elle yazıldı (modeller.py); çözücü yeni bir durum eklerse
+    # bu test hatırlatır: önce migration.
+    from cozucu import CozumDurumu
+
+    from okulapi.moduller.ders_programi.modeller import COZUM_DURUMLARI
+
+    assert set(COZUM_DURUMLARI) == {d.value for d in CozumDurumu}
+
+
+@pytest.mark.parametrize(
+    ("alanlar", "kisit"),
+    [
+        ({"durum": "uretiliyor"}, "ck_program_baslama"),
+        ({"durum": "hazir", "baslama": "simdi", "bitis": "simdi"}, "ck_program_hazir_cozum"),
+        ({"durum": "hazir", "baslama": "simdi", "bitis": "simdi", "cozum_durumu": "cozumsuz"},
+         "ck_program_hazir_cozum"),
+        ({"durum": "hazir", "baslama": "simdi", "cozum_durumu": "optimal"}, "ck_program_bitis"),
+        ({"durum": "basarisiz"}, "ck_program_bitis"),
+        ({"cozum_durumu": "neredeyse"}, "ck_program_cozum_durumu"),
+        ({"toplam_ceza": -1}, "ck_program_toplam_ceza"),
+        ({"durum": "bitti"}, "ck_program_durum"),
+    ],
+    ids=["uretiliyor-baslamasiz", "hazir-cozumsuz", "hazir-cozum-yok", "hazir-bitissiz",
+         "basarisiz-bitissiz", "bilinmeyen-cozum-durumu", "negatif-ceza", "bilinmeyen-durum"],
+)
+def test_program_tutarsiz_durumu_veritabani_reddeder(okul, oturum_fabrikasi, alanlar, kisit):
+    alanlar = {k: (_simdi() if v == "simdi" else v) for k, v in alanlar.items()}
+    with okul_oturumu(oturum_fabrikasi, uuid.UUID(okul["okul"])) as oturum:
+        oturum.add(Program(ad="Tutarsız", **alanlar))
+        with pytest.raises(IntegrityError, match=kisit):
+            oturum.flush()
+
+
+def test_program_yasam_dongusu_gecerli_durumlarla_kaydedilir(istemci, okul, oturum_fabrikasi):
+    okul_id = uuid.UUID(okul["okul"])
+    with okul_oturumu(oturum_fabrikasi, okul_id) as oturum:
+        program = Program(ad="Güz")
+        oturum.add(program)
+        oturum.commit()
+        assert (program.durum, program.baslama, program.cozum_durumu) == ("bekliyor", None, None)
+
+        program.durum, program.baslama = "uretiliyor", _simdi()
+        oturum.commit()
+
+        program.durum, program.bitis = "hazir", _simdi()
+        program.cozum_durumu, program.toplam_ceza, program.sure_sn = "optimal", 12, 3.5
+        program.olcumler = {"sinif_boslugu": 0, "ogretmen_penceresi": 4}
+        program.celiskiler = []
+        program.girdi_ozeti = "a" * 64
+        oturum.commit()
+        program_id = program.id
+
+    yanit = istemci.get(f"{DP}/programlar/{program_id}", headers=okul["baslik"]).json()
+    assert yanit["durum"] == "hazir" and yanit["cozum_durumu"] == "optimal"
+    assert yanit["toplam_ceza"] == 12 and yanit["sure_sn"] == 3.5
+    assert yanit["olcumler"] == {"sinif_boslugu": 0, "ogretmen_penceresi": 4}
+    assert yanit["celiskiler"] == [] and yanit["baslama"] is not None
+    assert "girdi_ozeti" not in yanit  # iç bilgi
+
+
+def test_basarisiz_program_celiskileri_saklar(okul, oturum_fabrikasi):
+    celiski = {"tur": "ogretmen_kapasitesi", "mesaj": "Ayşe Yılmaz'ın 24 saat dersi var, müsait olduğu 20 saat var.",
+               "ilgili": ["o-ayse"]}
+    with okul_oturumu(oturum_fabrikasi, uuid.UUID(okul["okul"])) as oturum:
+        program = Program(ad="Olmayacak", durum="basarisiz", baslama=_simdi(), bitis=_simdi(),
+                          cozum_durumu="on_kontrol_hatasi", celiskiler=[celiski], hata_mesaji=celiski["mesaj"])
+        oturum.add(program)
+        oturum.commit()
+        oturum.expire_all()
+        assert oturum.get(Program, program.id).celiskiler == [celiski]  # JSONB gidiş-dönüş, Türkçe dahil

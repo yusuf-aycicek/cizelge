@@ -111,14 +111,46 @@ class Kisit(OkulaAitMixin, Base):
     agirlik: Mapped[int] = mapped_column(default=1, server_default="1")
 
 
+PROGRAM_DURUMLARI = ("bekliyor", "uretiliyor", "hazir", "basarisiz")
+# cozucu.CozumDurumu değerleri. Burada ayrıca yazılır: veritabanı kısıtı Python enum'una değil,
+# migration anındaki listeye bağlı kalmalı. Eşitliği test_ders_programi denetler.
+COZUM_DURUMLARI = ("optimal", "uygun", "cozumsuz", "on_kontrol_hatasi", "bilinmiyor")
+
+
+def _liste(degerler: tuple[str, ...]) -> str:
+    return ", ".join(f"'{d}'" for d in degerler)
+
+
 class Program(OkulaAitMixin, Base):
-    """Bir program üretme denemesi. Yazan taraf: worker (yapım sırası 3)."""
+    """Bir program üretme denemesi. Yazan taraf: worker (yapım sırası 3, docs/kuyruk-plani.md).
+
+    Durum makinesi: bekliyor -> uretiliyor -> hazir | basarisiz. `bekliyor` da doğrudan
+    `basarisiz` olabilir (kuyruğa ulaşılamadı). Sonuç alanları (`cozum_durumu`, `toplam_ceza`,
+    `olcumler`, `celiskiler`, `sure_sn`, `girdi_ozeti`) üretim bitince dolar.
+
+    Durumla alanlar arasındaki tutarlılık veritabanında da korunur (CHECK kısıtları): worker'da
+    bir hata olsa bile "başlama zamanı olmayan üretim" ya da "çözümü olmayan hazır program"
+    kaydedilemez.
+    """
 
     __tablename__ = "program"
     _tablo_kisitlari = (
         okul_ici_fk("temel_program_id", "program", ondelete="SET NULL (temel_program_id)"),
-        CheckConstraint("durum IN ('bekliyor', 'uretiliyor', 'hazir', 'basarisiz')", name="durum"),
+        CheckConstraint(f"durum IN ({_liste(PROGRAM_DURUMLARI)})", name="durum"),
         CheckConstraint("sure_siniri_sn > 0", name="sure_siniri_sn"),
+        CheckConstraint(f"cozum_durumu IN ({_liste(COZUM_DURUMLARI)})", name="cozum_durumu"),
+        CheckConstraint("toplam_ceza >= 0", name="toplam_ceza"),
+        # Takılı üretimin süresi başlama zamanından hesaplanır (plan karar e).
+        CheckConstraint("durum NOT IN ('uretiliyor', 'hazir') OR baslama IS NOT NULL", name="baslama"),
+        # Hazır program, geçerli bir çözümü olan programdır. IS NOT NULL gerekli: NULL IN (...)
+        # sonucu NULL'dır ve CHECK kısıtı NULL'ı "geçti" sayar (SQL'in üç değerli mantığı).
+        CheckConstraint(
+            "durum <> 'hazir' OR (cozum_durumu IS NOT NULL AND cozum_durumu IN ('optimal', 'uygun'))",
+            name="hazir_cozum",
+        ),
+        CheckConstraint("durum NOT IN ('hazir', 'basarisiz') OR bitis IS NOT NULL", name="bitis"),
+        # "Bu okulun etkin üretimi var mı?" sorusu (plan karar c) her üretim isteğinde sorulur.
+        Index(None, "okul_id", "durum"),
     )
 
     ad: Mapped[str] = mapped_column(String(200))
@@ -126,7 +158,19 @@ class Program(OkulaAitMixin, Base):
     hata_mesaji: Mapped[str | None] = mapped_column(Text)
     temel_program_id: Mapped[uuid.UUID | None]
     sure_siniri_sn: Mapped[int] = mapped_column(default=120, server_default="120")
+    baslama: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     bitis: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # --- üretim sonucu ---
+    cozum_durumu: Mapped[str | None] = mapped_column(String(20))
+    toplam_ceza: Mapped[int | None]
+    # kalite.olc sonucu: {"sinif_boslugu": 0, "ogretmen_penceresi": 3, ...}
+    olcumler: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    # [{"tur": ..., "mesaj": ..., "ilgili": [kimlikler]}]; arayüz ilgili satırları vurgulayabilir.
+    celiskiler: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB)
+    sure_sn: Mapped[float | None]
+    # Çözücü girdisinin kanonik JSON'unun SHA-256'sı (hex). Çözüm sırasında veri değişti mi
+    # sorusunu yanıtlar (docs/api-plani.md bölüm 14).
+    girdi_ozeti: Mapped[str | None] = mapped_column(String(64))
 
 
 class Yerlesim(OkulaAitMixin, Base):

@@ -137,7 +137,14 @@ class ProgramYanit(_Yanit):
     temel_program_id: uuid.UUID | None
     sure_siniri_sn: int
     olusturma: datetime
+    baslama: datetime | None
     bitis: datetime | None
+    # Üretim sonucu (üretim bitince dolar). girdi_ozeti iç bilgidir, dışarı verilmez.
+    cozum_durumu: str | None
+    toplam_ceza: int | None
+    olcumler: dict[str, int] | None
+    celiskiler: list[dict[str, Any]] | None
+    sure_sn: float | None
 
 
 class YerlesimYanit(_Yanit):

@@ -443,8 +443,8 @@ Worker'ın akışı ve sonucu yazan parça (`moduller/ders_programi/sonuc_yazici
    - program güncellenir: `durum` (`hazir`/`basarisiz`), `bitis`, ve yeni sütunlar `cozum_durumu`
      (optimal/uygun/cozumsuz/on_kontrol_hatasi/bilinmiyor), `toplam_ceza`, `olcumler` (JSONB:
      `kalite.olc` sonuçları), `celiskiler` (JSONB: tür, mesaj, ilgili kimlikler; arayüz ilgili
-     hücreleri vurgulayabilsin), `sure_sn`, `girdi_ozeti`. Bunlar migration `ders_programi_0003`
-     ile eklenecek;
+     hücreleri vurgulayabilsin), `sure_sn`, `girdi_ozeti`. Bunlar migration `ders_programi_0004`
+     ile eklendi (0003 RLS'ye gitti; ayrıca `baslama` ve durum tutarlılık kısıtları, ADR 0011);
    - `hata_mesaji`, çelişki mesajlarının kullanıcıya gösterilecek metnidir.
 6. **Hata durumları:** çözücü istisna fırlatmaz (arayüz sözleşmesi). Worker'ın kendisi çökerse
    program `uretiliyor`da kalır; RQ iş zaman aşımı (süre sınırı + pay) dolunca bir temizleyici

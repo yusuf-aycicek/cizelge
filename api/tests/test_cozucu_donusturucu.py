@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 
 import pytest
 from cozucu import CpSatCozucu, dogrula, olc, temel_program
@@ -73,7 +74,9 @@ def test_mini_set_gidis_donus_ve_cozum(mini_yukle, oturum_fabrikasi):
     # Ters yönün önizlemesi (asıl kodu worker adımında): çözümü bir programa yaz, sonra o programı
     # temel alan girdi üret. Temel yerleşimler çözümün kendisi olmalı.
     with okul_oturumu(oturum_fabrikasi, okul_id) as oturum:
-        program = Program(ad="Çözüm", durum="hazir")
+        simdi = datetime.now(timezone.utc)
+        program = Program(ad="Çözüm", durum="hazir", baslama=simdi, bitis=simdi,
+                          cozum_durumu=sonuc.durum.value, toplam_ceza=sonuc.toplam_ceza)
         oturum.add(program)
         oturum.flush()
         oturum.add_all([Yerlesim(program_id=program.id, ders_atama_id=uuid.UUID(y.ders_atama_id),

@@ -55,7 +55,7 @@ Yönetici            API                      PostgreSQL           Redis (RQ)   
 - `sure_sn`;
 - `girdi_ozeti`.
 
-`durum` için CHECK kısıtı. Bölüm 14'teki "0003" ifadesi düzeltilecek.
+`durum` için CHECK kısıtı. Bölüm 14'teki "0003" ifadesi düzeltildi.
 
 **Çekirdek:**
 - `IsKuyrugu` arayüzü (`kuyruga_ekle(fonksiyon_yolu, **argumanlar, zaman_asimi)`);
@@ -135,10 +135,21 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 
 | # | Alt adım | Durum |
 |---|---|---|
-| 1 | Şema ve ADR | **Sıradaki** |
-| 2 | Üretim mantığı | |
+| 1 | Şema ve ADR | Bitti (2026-10-15) |
+| 2 | Üretim mantığı | **Sıradaki** |
 | 3 | Kuyruk ve endpoint | |
 | 4 | Worker ve Docker | |
+
+1. alt adımdan notlar:
+- `durum` için CHECK zaten vardı. Buna ek olarak durumla alanların tutarlılığı için beş kısıt eklendi:
+  `cozum_durumu` değerleri, `toplam_ceza >= 0`, `uretiliyor`/`hazir` için `baslama`, `hazir` için
+  geçerli çözüm, biten program için `bitis`. Ayrıca `(okul_id, durum)` indeksi (karar c).
+- Test bir hata yakaladı: `cozum_durumu IN (...)` NULL için NULL döner, CHECK de NULL'ı geçti
+  sayar. Çözümü boş "hazır" program kabul ediliyordu. Koşula `IS NOT NULL` eklendi.
+- Var olan bir test geçersiz bir "hazır" program oluşturuyordu (başlama ve çözüm yok). Yeni
+  kısıt bunu reddetti. Test gerçekçi alanlarla düzeltildi.
+- `girdi_ozeti` API yanıtında yok: iç bilgi.
+- Testler: 206/206.
 
 ## 6. Kapsam dışı (bu adımda)
 
