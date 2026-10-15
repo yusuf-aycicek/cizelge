@@ -17,6 +17,8 @@ dependencies = [
     # İş kuyruğu (ADR 0011). Yalnızca okulapi/cekirdek/kuyruk.py içe aktarır.
     "rq>=2.0",
     "redis>=5",
+    # Parola özeti (ADR 0012).
+    "argon2-cffi>=23.1",
     # Depodaki çözücü paketi (/cozucu). Ders programı modülü onu girdi/çıktı dönüşümü ve kısıt
     # doğrulaması için kullanır; çözücü API'yi bilmez. Geliştirmede: pip install -e ../cozucu
     "cozucu",

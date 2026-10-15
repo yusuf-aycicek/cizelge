@@ -27,3 +27,10 @@ class Ayarlar(BaseSettings):
     # yalnızca konteyner içindeki adlandırmayla anlamlıdır; docker-compose aynısını verir.
     redis_url: str = "redis://redis:6379/0"
     kuyruk_adi: str = "program_uretimi"
+
+    # Kimlik doğrulama (ADR 0012).
+    oturum_hareketsizlik_saat: int = 12  # bu kadar süre kullanılmayan oturum geçersiz olur
+    oturum_en_uzun_gun: int = 7  # kullanılsa da en fazla bu kadar
+    giris_hata_esigi: int = 5  # pencere içinde bu kadar hatalı deneme e-postayı kilitler
+    giris_pencere_dk: int = 15
+    giris_kilit_dk: int = 15

@@ -18,7 +18,9 @@ Yönetim (yalnızca müdür):
         GET    /api/kullanicilar            okulun hesapları
         POST   /api/kullanicilar            müdür yardımcısı ekler {ad, email, sifre}
         PUT    /api/kullanicilar/{id}/sifre yardımcının parolasını yeniden belirler (oturumları kapanır)
-        DELETE /api/kullanicilar/{id}       yardımcıyı siler (oturumları da silinir)
+        PUT    /api/kullanicilar/{id}/rol   müdür yapar ya da rolü düşürür (son müdür düşürülemez)
+        DELETE /api/kullanicilar/{id}       kullanıcıyı siler (oturumları da silinir; son müdür silinemez)
+Kendi:  PUT    /api/ben/sifre {eski, yeni}  o anki oturum dışındaki oturumlar kapanır
 Diğer bütün /api/... uçları: geçerli oturum yoksa 401.
 ```
 
@@ -78,7 +80,7 @@ bir hata olsa bile `okul_giris` başka bir tabloya dokunamaz.
 | # | Karar | Öneri | Alternatif ve neden seçilmedi |
 |---|---|---|---|
 | a | Oturum biçimi | **Sunucu taraflı oturum.** Rastgele jeton (32 bayt) bir `HttpOnly`, `SameSite=Strict` çerezde (üretimde `Secure`). Veritabanında jetonun kendisi değil SHA-256 özeti saklanır. | JWT: oturum sunucuda tutulmaz, ama çıkış ya da hesabı kapatma anında geçersiz kılınamaz (iptal listesi gerekir). `localStorage`'da tutulursa XSS ile çalınabilir. Tek API ve tek veritabanı olan bu sistemde JWT'nin getirisi yok. |
-| b | Parola özeti | **argon2id** (`argon2-cffi`, kütüphanenin önerdiği parametreler). En az 10 karakter. | bcrypt: iyi ama 72 bayt sınırı var ve güncel öneri argon2id. |
+| b | Parola özeti | **argon2id** (`argon2-cffi`, kütüphanenin önerdiği parametreler). En az **12** (kullanıcı önerisi, 2026-10-15), en çok 256 karakter; karakter türü zorunluluğu yok. | bcrypt: iyi ama 72 bayt sınırı var ve güncel öneri argon2id. |
 | c | Oturum süresi | 12 saat hareketsizlik, en fazla 7 gün. Çıkışta oturum satırı silinir. | Sonsuz oturum: paylaşılan okul bilgisayarlarında risk. |
 | d | CSRF (siteler arası istek sahteciliği) | `SameSite=Strict` çerez, ayrıca veri değiştiren isteklerde `Origin` başlığı denetimi. | CSRF jetonu (double-submit): aynı korumayı daha çok kodla verir. Arayüz ile API aynı sitede olacak (Vite proxy, yapım sırası 5). |
 | e | E-posta | Küçük harfe çevrilip saklanır (CHECK `email = lower(email)`) ve **bütün sistemde** tektir: `lower(email)` üzerinde benzersiz indeks. Kayıtta ya da yardımcı eklerken e-posta başka bir okulda kullanılıyorsa anlaşılır hata (409). | Büyük/küçük harfe duyarlı: "Ayse@..." ile "ayse@..." iki ayrı hesap olurdu. Okul içinde benzersiz: giriş okul bilinmeden yapıldığı için hangi hesabın kastedildiği belirsiz kalırdı. |
@@ -239,8 +241,8 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 | # | Alt adım | Durum |
 |---|---|---|
 | 1 | Şema ve veritabanı tarafı | Bitti (2026-10-15) |
-| 2 | Kimlik servisi | **Sıradaki** |
-| 3 | API'ye bağlama | |
+| 2 | Kimlik servisi | Bitti (2026-10-15) |
+| 3 | API'ye bağlama | **Sıradaki** |
 | 4 | Belgeler ve uçtan uca | |
 
 1. alt adımdan notlar:
@@ -274,6 +276,40 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 - İzolasyon kabul testi yeni okula ait `oturum` tablosunu kendiliğinden kapsamına aldı ve veri
   istedi. Test verisine bir oturum eklendi. Test temizlikleri okula ait olmayan tabloyu atlıyor.
 - ADR 0012 yazıldı; ADR 0009'daki "sonraki adıma not" bölümü kararla değiştirildi.
+
+2. alt adımdan notlar (ek kurallar: kullanıcı, 2026-10-15):
+- **Oturumların geçersiz kılınması:**
+  - müdür parolayı yeniden belirleyince o kullanıcının bütün oturumları kapanır;
+  - kullanıcı kendi parolasını değiştirince o anki oturumu dışındakiler kapanır;
+  - `parola-sifirla` komutu bütün oturumları kapatır ve kaba kuvvet kilidini kaldırır;
+  - silinen kullanıcının oturumlarını veritabanı siler (ON DELETE CASCADE).
+- **Son müdür:**
+  - silinemez ve rolü düşürülemez (409, "Okulun son müdürü ... Önce başka bir kullanıcıyı müdür
+    yapın");
+  - kuralı anlamlı kılmak için müdür bir yardımcıyı müdür yapabilir (`rol_degistir`);
+  - iki müdürün aynı anda birbirinin rolünü düşürmesi okulu müdürsüz bırakabilirdi: müdür satırları
+    `FOR UPDATE` ile kilitlenip sayılır; iki iş parçacıklı testle kanıtlandı.
+- **Parola:**
+  - en az 12, en çok 256 karakter (üst sınır: çok uzun parolayla argon2 üzerinden DoS);
+  - karakter türü kuralı yok (NIST SP 800-63B);
+  - argon2id varsayılanları (64 MiB, 3 tur) burada ~170 ms. Testler aynı algoritmayı ucuz
+    parametrelerle kullanır; varsayılanları ayrı bir test denetler.
+- Kendi parolasını değiştirmek için mevcut parola gerekir. Rol değişikliği oturumları kapatmaz:
+  rol her istekte veritabanından okunur.
+- `python -m okulapi parola-sifirla <email> [--rastgele]`:
+  - parola iki kez, görünmez sorulur;
+  - çıkış kodları: 0 başarılı, 1 kullanıcı yok, 2 parola geçersiz ya da eşleşmedi;
+  - veritabanına uygulama rolüyle bağlanır, süper kullanıcı gerekmez;
+  - API'de karşılığı olmadığını bir test denetler.
+- `tests/test_kimlik_servisi.py` (42 test). Mutasyon denemesi: on iki bozmanın hepsi yakalandı:
+  - dört oturum kapatma kuralının her biri;
+  - CASCADE yerine NO ACTION;
+  - iki son müdür denetimi ve `FOR UPDATE`;
+  - en az uzunluk 8;
+  - sahte doğrulama yok;
+  - başarılı girişte sayaç silinmez;
+  - yardımcı yönetim yapabilir.
+- Testler: 351/351.
 
 ## 8. Kapsam dışı (bu adımda)
 

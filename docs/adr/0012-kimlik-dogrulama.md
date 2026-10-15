@@ -22,8 +22,12 @@ müdür yardımcısı). Giriş e-posta ve parolayla, okul seçmeden yapılır. B
      sızsa bile oturumlar ele geçirilemez.
    - Süre: 12 saat hareketsizlik, en fazla 7 gün. Çıkışta oturum satırı silinir; oturum anında
      geçersiz olur.
-2. **Parola özeti argon2id.** `argon2-cffi`, kütüphanenin önerdiği parametrelerle. En az 10
-   karakter. Parametreler ileride değişirse eski özetler girişte yeniden özetlenir.
+2. **Parola özeti argon2id.** `argon2-cffi`, kütüphanenin önerdiği parametrelerle (64 MiB, 3 tur).
+   - En az 12, en çok 256 karakter. NIST SP 800-63B'nin güncel sürümü, yalnızca parolayla girişte
+     15 öneriyor; 12, kaba kuvvet koruması ve argon2id ile birlikte kullanılabilirlikle güvenlik
+     arasında bir orta nokta. Üst sınır, çok uzun parolalarla sunucuyu yormayı önler.
+   - Karakter türü zorunluluğu yok: tahmin edilebilir kalıplara iter.
+   - Parametreler ileride değişirse eski özetler girişte yeniden özetlenir.
 3. **E-posta bütün sistemde ve büyük/küçük harf ayrımsız tektir.** Küçük harfle saklanır (CHECK),
    benzersizlik `lower(email)` üzerindedir. CHECK kaldırılsa bile ikinci hat korur (testle
    kanıtlandı).
@@ -41,8 +45,15 @@ müdür yardımcısı). Giriş e-posta ve parolayla, okul seçmeden yapılır. B
    - Sayaç okula ait olmayan `giris_denemesi` tablosundadır. Uygulama rolünün bu tabloya yetkisi
      yoktur, yalnızca fonksiyonlarla erişir.
 7. **CSRF:** `SameSite=Strict` ve veri değiştiren isteklerde `Origin` başlığı denetimi.
-8. **Yönetim.**
-   - Okulun tek müdürü vardır, kayıtta oluşur.
+8. **Oturumların geçersiz kılınması.**
+   - Parola başkası tarafından yeniden belirlenince ya da sunucuda sıfırlanınca kullanıcının
+     bütün oturumları silinir.
+   - Kullanıcı kendi parolasını değiştirince o anki oturumu dışındakiler silinir.
+   - Kullanıcı silinince oturumlarını veritabanı siler (ON DELETE CASCADE).
+9. **Yönetim.**
+   - İlk müdür kayıtta oluşur. Müdür bir yardımcıyı müdür yapabilir. **Son müdür silinemez ve
+     rolü düşürülemez.** Müdür satırları sayılmadan önce kilitlenir (`FOR UPDATE`): iki müdür
+     aynı anda birbirini düşüremez.
    - Müdür yardımcı ekler, siler ve parolasını yeniden belirler. Yeniden belirlenen parolada
      yardımcının oturumları kapanır. Müdür yardımcısı yönetim uçlarına 403 alır.
    - Müdür parolasını unutursa sistemi işleten kişi sunucuda `python -m okulapi parola-sifirla

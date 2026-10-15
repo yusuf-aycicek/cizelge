@@ -64,6 +64,25 @@ def bos_veritabani_olustur(url: str) -> None:
         bakim.dispose()
 
 
+@pytest.fixture(autouse=True)
+def hizli_parola_ozeti(monkeypatch):
+    """argon2id'nin varsayılanları (64 MiB, 3 tur) bir özette ~170 ms sürer: saldırgan için yavaş
+    olması istenen şey, ama yüzlerce testte gereksiz. Testler aynı algoritmayı ucuz parametrelerle
+    kullanır; varsayılanları test_kimlik_servisi.py ayrıca denetler."""
+    from okulapi.cekirdek.kimlik import parola
+
+    monkeypatch.setattr(parola, "_OZETLEYICI", HIZLI_OZETLEYICI)
+
+
+def _hizli_ozetleyici():
+    from argon2 import PasswordHasher
+
+    return PasswordHasher(time_cost=1, memory_cost=1024, parallelism=1)
+
+
+HIZLI_OZETLEYICI = _hizli_ozetleyici()
+
+
 @pytest.fixture(scope="session")
 def ayarlar() -> Ayarlar:
     return Ayarlar(veritabani_url=TEST_UYGULAMA_URL, migrasyon_url=TEST_URL)
