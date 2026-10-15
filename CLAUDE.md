@@ -275,6 +275,11 @@ Her adımın sonunda çalışan ve test edilen bir şey olmalı. Bir adım bitme
 - Çözücü paketine veritabanı ya da web bağımlılığı ekleme.
 - Okul izolasyonunu atlayan sorgu yazma.
 - Her özellik için test yaz. Testler geçmeden iş bitmiş sayılmaz.
+- Test, lint ve tip denetimi komutlarının çıktısı asla `tail`, `head`, `grep` ya da başka bir
+  komuta borulanmaz (boru, komutun çıkış kodunu son komutunkiyle değiştirir; başarısızlık
+  görünmez olur). Başarı her zaman komutun kendi çıkış koduyla denetlenir; çıktı gerekiyorsa
+  önce dosyaya yazılır, çıkış kodu ayrıca okunur. Commit ancak bütün denetimlerin çıkış kodu 0
+  ise yapılır. (Bu kural, başarısız bir testin iki kez commit edilmesinden sonra eklendi.)
 - Kapsam dışı bir özelliği sormadan ekleme.
 - Bu dosyadaki bir kararın yanlış olduğunu düşünürsen uygulamadan önce söyle.
 
