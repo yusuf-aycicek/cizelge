@@ -38,6 +38,39 @@
   font-size: var(--yazi-buyuk);
 }
 
+.kullanici {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-4);
+  min-width: 0;
+}
+.okulAdi {
+  font-weight: var(--yazi-kalin);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hesap {
+  color: inherit;
+  white-space: nowrap;
+}
+.rol {
+  opacity: 0.9;
+}
+.cikis {
+  min-height: var(--dokunma-hedefi);
+  padding: 0 var(--bosluk-3);
+  border: 1px solid currentColor;
+  border-radius: var(--kose);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.cikis:hover {
+  background: var(--renk-birincil-koyu);
+}
+
 .menuDugmesi {
   display: none;
   align-items: center;
@@ -97,6 +130,9 @@
 @media (max-width: 48rem) {
   .cerceve {
     grid-template-columns: 1fr;
+    /* Üç satır: üst çubuk, menü (kapalıyken yüksekliği 0), içerik. İki satırlık masaüstü tanımı
+       kalırsa gizli menünün satırı boş alanı kaplar (5.2 ekran görüntüsünde yakalandı). */
+    grid-template-rows: auto auto 1fr;
     grid-template-areas:
       "ust"
       "menu"
@@ -118,5 +154,11 @@
   }
   .ust {
     padding-inline: var(--bosluk-4);
+    flex-wrap: wrap;
+  }
+  .urun,
+  .rol,
+  .okulAdi {
+    display: none;
   }
 }

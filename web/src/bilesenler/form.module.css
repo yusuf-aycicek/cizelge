@@ -1,0 +1,9 @@
+.formHatasi {
+  background: var(--renk-hata-zemin);
+  color: var(--renk-hata-metin);
+  border-inline-start: 4px solid currentColor;
+  border-radius: var(--kose);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  margin-bottom: var(--bosluk-4);
+  font-weight: var(--yazi-kalin);
+}

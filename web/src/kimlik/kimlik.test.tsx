@@ -1,0 +1,236 @@
+/**
+ * Kimlik akışları: giriş, kayıt, çıkış, korumalı sayfalar, oturum süresinin dolması, hesabım.
+ * Sahte API (MSW) ile; istek gövdeleri de denetlenir.
+ */
+import { screen, waitFor, within } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { describe, expect, it } from "vitest";
+import { BEN_ORNEK, oturumGerekli, oturumYok, sunucu } from "../test/sunucu";
+import { uygulamayiCiz } from "../test/yardimcilar";
+import { SURE_DOLDU_MESAJI } from "./KorumaliAlan";
+
+const PAROLA = "dogru-at-pil-zimba";
+
+/** Girişi kabul eden sahte sunucu: başarılı girişten sonra /api/ben de kullanıcıyı döner. */
+function girisiKabulEt() {
+  let girisYapildi = false;
+  const govdeler: unknown[] = [];
+  sunucu.use(
+    http.get("/api/ben", () => (girisYapildi ? HttpResponse.json(BEN_ORNEK) : oturumGerekli())),
+    http.post("/api/giris", async ({ request }) => {
+      govdeler.push(await request.json());
+      girisYapildi = true;
+      return HttpResponse.json(BEN_ORNEK);
+    }),
+  );
+  return govdeler;
+}
+
+describe("korumalı sayfalar ve giriş", () => {
+  it("girişsiz kullanıcı giriş sayfasına gider, girişten sonra istediği sayfaya döner", async () => {
+    const govdeler = girisiKabulEt();
+    const { kullanici } = uygulamayiCiz("/ogretmenler");
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Giriş yap" })).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Ana menü" })).not.toBeInTheDocument();
+
+    await kullanici.type(screen.getByLabelText(/E-posta/), "ayse@okul.test");
+    await kullanici.type(screen.getByLabelText(/Parola/), PAROLA);
+    await kullanici.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Öğretmenler" })).toBeInTheDocument();
+    expect(govdeler).toEqual([{ email: "ayse@okul.test", sifre: PAROLA }]);
+    // Üst çubukta okul ve kullanıcı
+    expect(screen.getByText("Atatürk Anadolu Lisesi")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Ayşe Yılmaz/ })).toHaveAttribute("href", "/hesabim");
+  });
+
+  it("boş alanlar sunucuya gitmeden işaretlenir ve ilk hatalı alana odaklanılır", async () => {
+    const govdeler = girisiKabulEt();
+    const { kullanici } = uygulamayiCiz("/giris");
+    await kullanici.click(await screen.findByRole("button", { name: "Giriş yap" }));
+    const eposta = screen.getByLabelText(/E-posta/);
+    expect(eposta).toHaveAccessibleDescription("E-posta adresinizi girin");
+    expect(screen.getByLabelText(/Parola/)).toHaveAccessibleDescription("Parolanızı girin");
+    expect(eposta).toHaveFocus();
+    expect(govdeler).toEqual([]);
+  });
+
+  it.each([
+    [401, "E-posta ya da parola hatalı"],
+    [429, "Çok fazla hatalı deneme. 15 dakika sonra yeniden deneyin."],
+  ])("sunucu %i dönerse mesajı formun üstünde gösterilir", async (durum, mesaj) => {
+    oturumYok();
+    sunucu.use(http.post("/api/giris", () => HttpResponse.json({ detail: mesaj }, { status: durum })));
+    const { kullanici } = uygulamayiCiz("/giris");
+    await kullanici.type(await screen.findByLabelText(/E-posta/), "ayse@okul.test");
+    await kullanici.type(screen.getByLabelText(/Parola/), "yanlis-parola-1234");
+    await kullanici.click(screen.getByRole("button", { name: "Giriş yap" }));
+    expect(await screen.findByText(mesaj)).toBeInTheDocument();
+    expect(screen.getByText(mesaj).closest('[role="alert"]')).not.toBeNull();
+    expect(screen.getByRole("heading", { level: 1, name: "Giriş yap" })).toBeInTheDocument();
+  });
+
+  it("giriş yapmış kullanıcı giriş sayfasına gelirse ana sayfaya gider", async () => {
+    uygulamayiCiz("/giris");
+    expect(await screen.findByRole("heading", { level: 1, name: "Hoş geldiniz" })).toBeInTheDocument();
+  });
+});
+
+describe("oturum süresinin dolması ve çıkış", () => {
+  it("bir istek 401 alırsa giriş sayfasına gidilir ve neden söylenir", async () => {
+    let girisVar = true;
+    sunucu.use(
+      http.get("/api/ben", () => (girisVar ? HttpResponse.json(BEN_ORNEK) : oturumGerekli())),
+      http.get("/api/saglik", () => {
+        girisVar = false; // sunucu tarafında oturum bu arada sona erdi
+        return oturumGerekli();
+      }),
+    );
+    uygulamayiCiz("/");
+    expect(await screen.findByText(SURE_DOLDU_MESAJI)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Giriş yap" })).toBeInTheDocument();
+  });
+
+  it("çıkış yapınca giriş sayfası ve 'Çıkış yaptınız'", async () => {
+    let girisVar = true;
+    sunucu.use(
+      http.get("/api/ben", () => (girisVar ? HttpResponse.json(BEN_ORNEK) : oturumGerekli())),
+      http.post("/api/cikis", () => {
+        girisVar = false;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const { kullanici } = uygulamayiCiz("/");
+    await kullanici.click(await screen.findByRole("button", { name: "Çıkış" }));
+    expect(await screen.findByText("Çıkış yaptınız.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Giriş yap" })).toBeInTheDocument();
+  });
+
+  it("sunucuya ulaşılamasa da çıkış yapılmış sayılır", async () => {
+    sunucu.use(http.post("/api/cikis", () => HttpResponse.error()));
+    const { kullanici } = uygulamayiCiz("/");
+    const cikis = await screen.findByRole("button", { name: "Çıkış" });
+    oturumYok(); // bundan sonra sunucu kullanıcıyı tanımıyor
+    await kullanici.click(cikis);
+    expect(await screen.findByRole("heading", { level: 1, name: "Giriş yap" })).toBeInTheDocument();
+  });
+});
+
+describe("kayıt", () => {
+  async function formuDoldur(kullanici: ReturnType<typeof uygulamayiCiz>["kullanici"], degisen: Record<string, string> = {}) {
+    const deger = { okul: "Atatürk Anadolu Lisesi", saat: "8", ad: "Ayşe Yılmaz", email: "ayse@okul.test", sifre: PAROLA, tekrar: PAROLA, ...degisen };
+    await kullanici.type(await screen.findByLabelText(/Okulun adı/), deger.okul);
+    const saat = screen.getByLabelText(/Günde kaç ders saati/);
+    await kullanici.clear(saat);
+    if (deger.saat) await kullanici.type(saat, deger.saat);
+    await kullanici.type(screen.getByLabelText(/Adınız ve soyadınız/), deger.ad);
+    await kullanici.type(screen.getByLabelText(/E-posta/), deger.email);
+    await kullanici.type(screen.getByLabelText(/^Parola \*/), deger.sifre);
+    await kullanici.type(screen.getByLabelText(/Parola \(tekrar\)/), deger.tekrar);
+  }
+
+  it("başarılı kayıt ana sayfaya götürür ve gövde doğru gider", async () => {
+    oturumYok();
+    const govdeler: unknown[] = [];
+    sunucu.use(http.post("/api/kayit", async ({ request }) => {
+      govdeler.push(await request.json());
+      return HttpResponse.json(BEN_ORNEK, { status: 201 });
+    }));
+    const { kullanici } = uygulamayiCiz("/kayit");
+    await formuDoldur(kullanici);
+    await kullanici.selectOptions(screen.getByLabelText(/Haftada kaç gün/), "6");
+    await kullanici.click(screen.getByRole("button", { name: "Okulu kaydet" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Hoş geldiniz" })).toBeInTheDocument();
+    expect(await screen.findByText("Atatürk Anadolu Lisesi kaydedildi. Hoş geldiniz!")).toBeInTheDocument();
+    expect(govdeler).toEqual([{
+      okul: { ad: "Atatürk Anadolu Lisesi", gun_sayisi: 6, gunluk_ders_saati: 8 },
+      ad: "Ayşe Yılmaz", email: "ayse@okul.test", sifre: PAROLA,
+    }]);
+  });
+
+  it("kısa parola, eşleşmeyen tekrar ve geçersiz saat sunucuya gitmeden yakalanır", async () => {
+    oturumYok();
+    let istek = 0;
+    sunucu.use(http.post("/api/kayit", () => { istek++; return HttpResponse.json(BEN_ORNEK, { status: 201 }); }));
+    const { kullanici } = uygulamayiCiz("/kayit");
+    await formuDoldur(kullanici, { sifre: "kisa", tekrar: "baska", saat: "20" });
+    await kullanici.click(screen.getByRole("button", { name: "Okulu kaydet" }));
+
+    expect(screen.getByLabelText(/^Parola \*/)).toHaveAccessibleDescription(/Parola en az 12 karakter olmalı/);
+    expect(screen.getByLabelText(/Parola \(tekrar\)/)).toHaveAccessibleDescription("Parolalar eşleşmiyor");
+    expect(screen.getByLabelText(/Günde kaç ders saati/)).toHaveAccessibleDescription("1 ile 16 arasında bir sayı girin");
+    expect(screen.getByLabelText(/Günde kaç ders saati/)).toHaveFocus(); // formdaki ilk hatalı alan
+    expect(istek).toBe(0);
+  });
+
+  it("parola uzunluğu yazarken gösterilir", async () => {
+    oturumYok();
+    const { kullanici } = uygulamayiCiz("/kayit");
+    const parola = await screen.findByLabelText(/^Parola \*/);
+    expect(parola).toHaveAccessibleDescription("En az 12 karakter.");
+    await kullanici.type(parola, "abcde");
+    expect(parola).toHaveAccessibleDescription("En az 12 karakter. 7 karakter daha.");
+    await kullanici.type(parola, "fghijkl");
+    expect(parola).toHaveAccessibleDescription("Uzunluk yeterli ✓");
+  });
+
+  it("e-posta başka hesapta kullanılıyorsa (409) mesaj e-posta alanının altında", async () => {
+    oturumYok();
+    sunucu.use(http.post("/api/kayit", () =>
+      HttpResponse.json({ detail: "Bu e-posta adresi başka bir hesapta kullanılıyor" }, { status: 409 })));
+    const { kullanici } = uygulamayiCiz("/kayit");
+    await formuDoldur(kullanici);
+    await kullanici.click(screen.getByRole("button", { name: "Okulu kaydet" }));
+    const eposta = screen.getByLabelText(/E-posta/);
+    await waitFor(() => expect(eposta).toHaveAccessibleDescription(/Bu e-posta adresi başka bir hesapta kullanılıyor/));
+    expect(eposta).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("sunucunun alan hataları (422) ilgili alanların altına yerleşir", async () => {
+    oturumYok();
+    sunucu.use(http.post("/api/kayit", () => HttpResponse.json(
+      { detail: "Bazı alanlar hatalı", alanlar: { "okul.ad": "En fazla 200 karakter olabilir", email: "Geçerli bir e-posta adresi girin" } },
+      { status: 422 })));
+    const { kullanici } = uygulamayiCiz("/kayit");
+    await formuDoldur(kullanici);
+    await kullanici.click(screen.getByRole("button", { name: "Okulu kaydet" }));
+    await waitFor(() => expect(screen.getByLabelText(/Okulun adı/)).toHaveAccessibleDescription("En fazla 200 karakter olabilir"));
+    expect(screen.getByLabelText(/E-posta/)).toHaveAccessibleDescription(/Geçerli bir e-posta adresi girin/);
+    expect(screen.queryByText("Bazı alanlar hatalı")).not.toBeInTheDocument(); // alanlara dağıldı
+  });
+});
+
+describe("hesabım", () => {
+  it("bilgiler görünür; parola değişir, başarı bildirilir ve form temizlenir", async () => {
+    const govdeler: unknown[] = [];
+    sunucu.use(http.put("/api/ben/sifre", async ({ request }) => {
+      govdeler.push(await request.json());
+      return new HttpResponse(null, { status: 204 });
+    }));
+    const { kullanici } = uygulamayiCiz("/hesabim");
+    const bilgiler = await screen.findByRole("region", { name: "Bilgilerim" });
+    expect(within(bilgiler).getByText("ayse@okul.test")).toBeInTheDocument();
+    expect(within(bilgiler).getByText("Müdür")).toBeInTheDocument();
+
+    await kullanici.type(screen.getByLabelText(/Mevcut parola/), PAROLA);
+    await kullanici.type(screen.getByLabelText(/^Yeni parola \*/), "yepyeni-parola-2026");
+    await kullanici.type(screen.getByLabelText(/Yeni parola \(tekrar\)/), "yepyeni-parola-2026");
+    await kullanici.click(screen.getByRole("button", { name: "Parolayı değiştir" }));
+
+    expect(await screen.findByText("Parolanız değiştirildi. Diğer cihazlardaki oturumlarınız kapatıldı.")).toBeInTheDocument();
+    expect(govdeler).toEqual([{ eski: PAROLA, yeni: "yepyeni-parola-2026" }]);
+    expect(screen.getByLabelText(/Mevcut parola/)).toHaveValue("");
+  });
+
+  it("mevcut parola yanlışsa mesaj o alanın altında", async () => {
+    sunucu.use(http.put("/api/ben/sifre", () => HttpResponse.json({ detail: "Mevcut parola hatalı" }, { status: 422 })));
+    const { kullanici } = uygulamayiCiz("/hesabim");
+    await kullanici.type(await screen.findByLabelText(/Mevcut parola/), "yanlis-parola-1234");
+    await kullanici.type(screen.getByLabelText(/^Yeni parola \*/), "yepyeni-parola-2026");
+    await kullanici.type(screen.getByLabelText(/Yeni parola \(tekrar\)/), "yepyeni-parola-2026");
+    await kullanici.click(screen.getByRole("button", { name: "Parolayı değiştir" }));
+    await waitFor(() => expect(screen.getByLabelText(/Mevcut parola/)).toHaveAccessibleDescription("Mevcut parola hatalı"));
+  });
+});

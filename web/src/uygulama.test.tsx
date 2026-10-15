@@ -10,7 +10,7 @@ import { uygulamayiCiz } from "./test/yardimcilar";
 describe("ana sayfa ve sistem durumu", () => {
   it("API çalışıyorsa durum iyi görünür", async () => {
     uygulamayiCiz("/");
-    expect(screen.getByRole("heading", { level: 1, name: "Hoş geldiniz" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "Hoş geldiniz" })).toBeInTheDocument();
     expect(await screen.findByText("✓ Çalışıyor")).toBeInTheDocument();
     expect(screen.getByText("✓ Bağlı")).toBeInTheDocument();
   });
@@ -35,7 +35,7 @@ describe("ana sayfa ve sistem durumu", () => {
 describe("çerçeve", () => {
   it("menüde bütün sayfalar var, geçerli sayfa işaretli", async () => {
     uygulamayiCiz("/ogretmenler");
-    const menu = screen.getByRole("navigation", { name: "Ana menü" });
+    const menu = await screen.findByRole("navigation", { name: "Ana menü" });
     expect(within(menu).getAllByRole("link").map((b) => b.textContent)).toEqual(MENU.map((m) => m.ad));
     expect(within(menu).getByRole("link", { name: "Öğretmenler" })).toHaveAttribute("aria-current", "page");
     expect(within(menu).getByRole("link", { name: "Ana sayfa" })).not.toHaveAttribute("aria-current");
@@ -44,12 +44,13 @@ describe("çerçeve", () => {
 
   it("menü bağlantısıyla sayfa değişir", async () => {
     const { kullanici } = uygulamayiCiz("/");
-    await kullanici.click(screen.getByRole("link", { name: "Sınıflar" }));
+    await kullanici.click(await screen.findByRole("link", { name: "Sınıflar" }));
     expect(screen.getByRole("heading", { level: 1, name: "Sınıflar" })).toBeInTheDocument();
   });
 
   it("ilk Tab 'İçeriğe geç' bağlantısına gider", async () => {
     const { kullanici } = uygulamayiCiz("/");
+    await screen.findByRole("main");
     await kullanici.tab();
     expect(screen.getByRole("link", { name: "İçeriğe geç" })).toHaveFocus();
     expect(screen.getByRole("main")).toHaveAttribute("id", "icerik");
@@ -57,7 +58,7 @@ describe("çerçeve", () => {
 
   it("menü düğmesi açık/kapalı durumunu bildirir, sayfa değişince menü kapanır", async () => {
     const { kullanici } = uygulamayiCiz("/");
-    const dugme = screen.getByRole("button", { name: /Menü/ });
+    const dugme = await screen.findByRole("button", { name: /Menü/ });
     expect(dugme).toHaveAttribute("aria-expanded", "false");
     await kullanici.click(dugme);
     expect(dugme).toHaveAttribute("aria-expanded", "true");
@@ -65,8 +66,8 @@ describe("çerçeve", () => {
     expect(dugme).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("bilinmeyen adres anlaşılır sayfa gösterir", () => {
+  it("bilinmeyen adres anlaşılır sayfa gösterir", async () => {
     uygulamayiCiz("/yok-boyle-sayfa");
-    expect(screen.getByRole("heading", { level: 1, name: "Sayfa bulunamadı" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "Sayfa bulunamadı" })).toBeInTheDocument();
   });
 });

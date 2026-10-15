@@ -1,0 +1,95 @@
+.sayfa {
+  min-height: 100vh;
+  background: var(--renk-yuzey);
+  display: flex;
+  flex-direction: column;
+}
+
+.ust {
+  background: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+  font-weight: var(--yazi-kalin);
+  font-size: var(--yazi-buyuk);
+  padding: var(--bosluk-3) var(--bosluk-5);
+}
+
+.orta {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: var(--bosluk-7) var(--bosluk-4);
+}
+
+.kart {
+  width: min(30rem, 100%);
+  background: var(--renk-zemin);
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-buyuk);
+  box-shadow: var(--golge);
+  padding: var(--bosluk-6);
+}
+.genis {
+  width: min(36rem, 100%);
+}
+
+.kart h1 {
+  font-size: var(--yazi-baslik);
+}
+
+.aciklama {
+  color: var(--renk-metin-ikincil);
+}
+
+.bolum {
+  border: none;
+  padding: 0;
+  margin: 0 0 var(--bosluk-5);
+}
+.bolum legend {
+  font-weight: var(--yazi-kalin);
+  font-size: var(--yazi-buyuk);
+  padding: 0;
+  margin-bottom: var(--bosluk-3);
+}
+
+.ikili {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 var(--bosluk-4);
+}
+
+.tamGenislik {
+  width: 100%;
+}
+
+.alt {
+  margin: var(--bosluk-5) 0 0;
+  text-align: center;
+}
+
+.bilgi {
+  background: var(--renk-bilgi-zemin);
+  color: var(--renk-bilgi-metin);
+  border-inline-start: 4px solid currentColor;
+  border-radius: var(--kose);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  margin-bottom: var(--bosluk-4);
+}
+
+.bekle {
+  padding: var(--bosluk-7) var(--bosluk-5);
+  text-align: center;
+}
+
+@media (max-width: 30rem) {
+  .kart {
+    padding: var(--bosluk-5) var(--bosluk-4);
+  }
+  .orta {
+    padding: var(--bosluk-4) var(--bosluk-3);
+  }
+  .ikili {
+    grid-template-columns: 1fr;
+  }
+}

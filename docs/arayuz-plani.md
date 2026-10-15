@@ -295,8 +295,8 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 | # | Alt adım | Durum |
 |---|---|---|
 | 5.1 | Altyapı | Bitti (2026-10-16) |
-| 5.2 | Kimlik | **Sıradaki** |
-| 5.3 | Okul ayarları ve listeler | |
+| 5.2 | Kimlik | Bitti (2026-10-16) |
+| 5.3 | Okul ayarları ve listeler | **Sıradaki** |
 | 5.4 | Seviye şablonu ve ders dağılımı | |
 | 5.5 | Müsaitlik çizelgesi | |
 | 5.6 | Kullanıcılar, kontrol listesi, uçtan uca | |
@@ -332,6 +332,40 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
   Edge), `docs/ekranlar/5.1/`.
 - **Testler:** web 52 (tasarım ve kontrast, bileşenler, hata çözümü, uygulama ve çerçeve, tip
   tazeliği); api 406.
+
+5.2'den notlar:
+- **Oturum durumu:** global depo yok; giriş yapan kullanıcı `/api/ben` sorgusunun önbelleğinde.
+  `null` = giriş yok. Giriş, kayıt ve çıkış önbelleği elle günceller (`setQueryData`).
+- **Korumalı alan (`KorumaliAlan`):** girişsiz kullanıcıyı gelinen adresle birlikte giriş
+  sayfasına gönderir; girişten sonra o adrese dönülür.
+- **Oturum süresi dolunca:** herhangi bir sorgu ya da değişiklik 401 alırsa sorgu istemcisinin
+  hata dinleyicisi kullanıcıyı `null` yapar. Giriş sayfası "Oturumunuzun süresi doldu"
+  mesajını gösterir.
+- **Formlar:** `useFormDegerleri` (kontrollü form kancası), `sunucuHatalari` (sunucu hatasını
+  alanlara dağıtır), `useIlkHatayaOdaklan` (gönderimden sonra ilk hatalı alana odak),
+  `FormHatasi` (genel hata).
+  - Alan listesi olmayan bilinen sunucu hataları ilgili alana bağlanır: kayıtta 409 → e-posta,
+    "Parola..." → parola; hesabımda "Mevcut parola hatalı" → mevcut parola.
+- **Ekranlar:** giriş, kayıt (okul + müdür hesabı, yazarken parola uzunluğu göstergesi), hesabım
+  (bilgiler + parola değiştirme); üst çubukta okul, kullanıcı ve rol, Çıkış.
+- **Çıkış:** sunucuya ulaşılamasa da kullanıcı çıkmış sayılır (önbellek temizlenir).
+- **Ekran görüntüsünde yakalanan düzen hatası:** telefonda gizli menünün ızgara satırı boş alanı
+  kaplıyordu (üç satıra iki satırlık yükseklik tanımı). jsdom testleri düzeni görmez.
+  Düzeltildi.
+- **Ekran görüntüsü betiği:**
+  - akış kipi eklendi: tek tarayıcı oturumunda giriş → kayıt → hesabım → çıkış → telefon;
+  - liste kipi artık önce geçici bir okul kaydediyor (sayfalar giriş istiyor);
+  - her çalıştırma geliştirme veritabanına bir okul ekler.
+- **Mutasyon denemesi:** sekiz bozmanın hepsi yakalandı:
+  - korumalı alan yönlendirmez;
+  - 401'de oturum kapanmaz;
+  - girişten sonra hep ana sayfa;
+  - 409 alana bağlanmaz;
+  - odak yok;
+  - istemci denetimi yok;
+  - form temizlenmez;
+  - çıkış hatada kalır.
+- **Testler:** web 67 (kimlik 18).
 
 ### Yapım sırası 6 (program)
 
