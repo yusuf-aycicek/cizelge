@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "okulworker"
+version = "0.1.0"
+description = "Okul ders programı sistemi: kuyruk işçisi (genel çalıştırıcı, ADR 0011)"
+requires-python = ">=3.12"
+# İş fonksiyonları okulapi modüllerindedir; worker yalnızca onları çalıştırır.
+dependencies = ["okulapi"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

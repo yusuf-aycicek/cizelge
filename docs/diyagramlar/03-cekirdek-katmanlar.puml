@@ -68,6 +68,7 @@ package "servisler (iş kuralları, işlem sınırı)" {
   class KayitBulunamadi <<istisna>>
   class KayitCakismasi <<istisna>>
   class GecersizVeri <<istisna>>
+  class HizmetKullanilamiyor <<istisna>>
 }
 
 ' @kod okulapi.cekirdek.depo
@@ -134,7 +135,8 @@ note right of CrudServisi
   servisleri iş kurallarını burada denetler.
   Veritabanı kısıt ihlalleri (SQLSTATE
   23505, 23503, 23514) istisnalara çevrilir;
-  main.py bunları 404/409/422 yapar.
+  main.py bunları 404/409/422 yapar
+  (HizmetKullanilamiyor: 503).
 end note
 
 note right of Modul

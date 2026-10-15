@@ -145,42 +145,44 @@ MINI = os.path.join(os.path.dirname(__file__), "..", "..", "veri", "mini.json")
 DP = "/api/ders-programi"
 
 
-@pytest.fixture
-def mini_yukle(istemci):
+def mini_api_ile_yukle(istemci, okul_adi: str = "Mini Lisesi") -> tuple[str, dict[str, str]]:
     """Mini veri setini (veri/mini.json) API üzerinden yeni bir okula yükler.
 
-    (okul_id, kimlik haritası) döner: mini setteki kimlik ("o-ayse", "a-9a-mat" ...) -> veritabanı
-    kimliği. Kilitli yerleşimler API ile yüklenemez (elle düzeltme yapım sırası 7'de); testler
-    onları gerekirse doğrudan ekler.
+    `istemci`: FastAPI TestClient ya da gerçek bir httpx.Client (kabul testi). (okul_id, kimlik
+    haritası) döner: mini setteki kimlik ("o-ayse", "a-9a-mat" ...) -> veritabanı kimliği.
+    Kilitli yerleşimler API ile yüklenemez (elle düzeltme yapım sırası 7'de).
     """
     import json
 
-    def yukle() -> tuple[str, dict[str, str]]:
-        with open(MINI, encoding="utf-8") as f:
-            mini = json.load(f)
-        okul = istemci.post("/api/okullar", json={"ad": "Mini Lisesi", **mini["ayar"]}).json()
-        baslik = okul_basligi(okul["id"])
-        harita: dict[str, str] = {}
+    with open(MINI, encoding="utf-8") as f:
+        mini = json.load(f)
+    okul = istemci.post("/api/okullar", json={"ad": okul_adi, **mini["ayar"]}).json()
+    baslik = okul_basligi(okul["id"])
+    harita: dict[str, str] = {}
 
-        def ekle(yol: str, kayit: dict, govde: dict) -> None:
-            yanit = istemci.post(yol, json=govde, headers=baslik)
-            assert yanit.status_code == 201, (yol, yanit.text)
-            if "id" in kayit:
-                harita[kayit["id"]] = yanit.json()["id"]
+    def ekle(yol: str, kayit: dict, govde: dict) -> None:
+        yanit = istemci.post(yol, json=govde, headers=baslik)
+        assert yanit.status_code == 201, (yol, yanit.text)
+        if "id" in kayit:
+            harita[kayit["id"]] = yanit.json()["id"]
 
-        for o in mini["ogretmenler"]:
-            ekle("/api/ogretmenler", o, {"ad": o["ad"], "brans": o["brans"]})
-        for s in mini["siniflar"]:
-            ekle("/api/siniflar", s, {"ad": s["ad"], "seviye": s["seviye"]})
-        for d in mini["dersler"]:
-            ekle("/api/dersler", d, {"ad": d["ad"], "kisa_ad": d["kisa_ad"]})
-        for a in mini["atamalar"]:
-            ekle(f"{DP}/atamalar", a, {"sinif_id": harita[a["sinif_id"]], "ders_id": harita[a["ders_id"]],
-                                       "ogretmen_id": harita[a["ogretmen_id"]], "haftalik_saat": a["haftalik_saat"]})
-        for m in mini["musaitlikler"]:
-            ekle(f"{DP}/musaitlikler", m, {**m, "ogretmen_id": harita[m["ogretmen_id"]]})
-        for k in mini["kisitlar"]:
-            ekle(f"{DP}/kisitlar", k, k)
-        return okul["id"], harita
+    for o in mini["ogretmenler"]:
+        ekle("/api/ogretmenler", o, {"ad": o["ad"], "brans": o["brans"]})
+    for s in mini["siniflar"]:
+        ekle("/api/siniflar", s, {"ad": s["ad"], "seviye": s["seviye"]})
+    for d in mini["dersler"]:
+        ekle("/api/dersler", d, {"ad": d["ad"], "kisa_ad": d["kisa_ad"]})
+    for a in mini["atamalar"]:
+        ekle(f"{DP}/atamalar", a, {"sinif_id": harita[a["sinif_id"]], "ders_id": harita[a["ders_id"]],
+                                   "ogretmen_id": harita[a["ogretmen_id"]], "haftalik_saat": a["haftalik_saat"]})
+    for m in mini["musaitlikler"]:
+        ekle(f"{DP}/musaitlikler", m, {**m, "ogretmen_id": harita[m["ogretmen_id"]]})
+    for k in mini["kisitlar"]:
+        ekle(f"{DP}/kisitlar", k, k)
+    return okul["id"], harita
 
-    return yukle
+
+@pytest.fixture
+def mini_yukle(istemci):
+    """Mini veri setini test istemcisiyle yükler (bkz. mini_api_ile_yukle)."""
+    return lambda: mini_api_ile_yukle(istemci)

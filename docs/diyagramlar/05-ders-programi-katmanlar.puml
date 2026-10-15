@@ -1,6 +1,6 @@
 @startuml 05-ders-programi-katmanlar
 !include _stil.iuml
-title Ders programı modülü (2/2): servisler, depolar, dönüştürücü ve modül kaydı
+title Ders programı modülü (2/2): servisler, depolar, program üretimi ve iş kuyruğu
 hide empty members
 
 skinparam class<<çekirdek>> {
@@ -19,6 +19,24 @@ package "okulapi.cekirdek.depo" {
 ' @kod okulapi.cekirdek.modul
 package "okulapi.cekirdek.modul" {
   class Modul <<çekirdek>>
+}
+' @kod okulapi.cekirdek.kuyruk
+package "okulapi.cekirdek.kuyruk (RQ yalnızca burada)" {
+  interface IsKuyrugu <<çekirdek>> {
+    +kuyruga_ekle(is_id : str, fonksiyon : str, argumanlar : dict, zaman_asimi_sn : int, basarisizlikta : str)
+    +kuyrukta_mi(is_id : str) : bool
+  }
+  class RqKuyrugu <<çekirdek>> {
+    +redis_url : str
+    +kuyruk_adi : str
+  }
+  class BellekKuyrugu <<çekirdek>> {
+    +isler : dict[str, KayitliIs]
+    +ulasilamaz : bool
+    +bitir(is_id : str)
+    +kaybet(is_id : str)
+  }
+  class KuyrukHatasi <<istisna>>
 }
 
 ' @kod okulapi.moduller.ders_programi
@@ -44,9 +62,12 @@ package "servisler" {
     #_dogrula(alanlar, nesne)
   }
   class ProgramServisi {
+    +kuyruk : IsKuyrugu [0..1]
+    +uret(ad : str, temel_program_id : UUID, sure_siniri_sn : int) : Program
     +listele() : list[Program]
     +getir(program_id : UUID) : Program
     +yerlesimler(program_id : UUID) : list[Yerlesim]
+    -_temizle()
   }
 }
 
@@ -61,6 +82,28 @@ package "depo" {
   class YerlesimDeposu {
     +programin(program_id : UUID, yalnizca_kilitli : bool) : list[Yerlesim]
   }
+}
+
+' @kod okulapi.moduller.ders_programi.uretim
+package "uretim (worker'ın işi)" {
+  class uretim <<modül>> {
+    {static} +programi_uret(fabrika, okul_id, program_id, cozucu, bulunamazsa_bekle) : UretimSonucu
+    {static} +takili_uretimleri_temizle(oturum : Session, kuyruk : IsKuyrugu) : int
+    {static} +uretimi_basarisiz_yap(fabrika, okul_id, program_id, mesaj : str) : bool
+    {static} +girdi_ozeti(girdi : CozumGirdisi) : str
+    {static} +uretim_isi(okul_id : str, program_id : str) : str
+    {static} +uretim_basarisiz_oldu(okul_id : str, program_id : str, zaman_asimi : bool)
+  }
+  enum UretimSonucu {
+    ATLANDI
+    HAZIR
+    BASARISIZ
+  }
+}
+
+' @kod cozucu.arayuz
+package "cozucu.arayuz (ayrıntı: 06)" {
+  interface ProgramCozucu
 }
 
 ' @kod okulapi.moduller.ders_programi.cozucu_donusturucu
@@ -99,11 +142,37 @@ cozucu_donusturucu ..> DersAtamaDeposu
 cozucu_donusturucu ..> YerlesimDeposu
 cozucu_donusturucu ..> CozumGirdisi : üretir
 
+IsKuyrugu <|.. RqKuyrugu
+IsKuyrugu <|.. BellekKuyrugu
+IsKuyrugu ..> KuyrukHatasi : fırlatır
+ProgramServisi --> "0..1" IsKuyrugu : kuyruk
+ProgramServisi ..> uretim : takili_uretimleri_temizle()\nURETIM_ISI (yol adı)
+uretim ..> cozucu_donusturucu : girdi
+uretim ..> ProgramCozucu : coz()
+uretim ..> IsKuyrugu : kuyrukta_mi()
+uretim ..> UretimSonucu
+
 note bottom of cozucu_donusturucu
-  Veritabanı → çözücü girdisi (worker kullanacak).
+  Veritabanı → çözücü girdisi (uretim kullanır).
   Bağımlılık yalnızca modülden çözücüye doğru.
-  Ters yönün (sonuç → program, yerleşim)
-  tasarımı: docs/api-plani.md bölüm 14.
+  Ters yön (sonuç → program, yerleşim):
+  uretim.programi_uret, 3. adım.
+end note
+
+note bottom of uretim
+  programi_uret üç işlemdir:
+  1. başlat: FOR UPDATE, bekliyor → uretiliyor, özet
+  2. çöz: veritabanı bağlantısı yok
+  3. yaz: FOR UPDATE, özet aynı mı, dogrula, yerleşimler
+  Kuyruk uretim_isi'ni adıyla çağırır (ADR 0011).
+end note
+
+note right of IsKuyrugu
+  İşin kimliği = program kimliği.
+  kuyrukta_mi: öksüz "bekliyor"
+  programı bulmak için (süreye
+  bakılmaz). Testler BellekKuyrugu
+  kullanır; RqKuyrugu fakeredis ile.
 end note
 
 note right of KisitServisi

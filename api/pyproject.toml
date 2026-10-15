@@ -33,3 +33,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["uctan_uca: çalışan sisteme (docker compose up) HTTP ile bağlanan kabul testi"]
+# Kabul testi varsayılan olarak çalışmaz (geliştirme veritabanına okul ekler); açıkça istenir:
+#   pytest -m uctan_uca -s
+addopts = "-m 'not uctan_uca'"

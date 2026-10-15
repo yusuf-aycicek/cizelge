@@ -16,10 +16,12 @@ alt kümesini anlar; bir şey bulamazsa sessizce geçmesin diye sayılar da dene
 
 from __future__ import annotations
 
+import ast
 import dataclasses
 import importlib
 import inspect
 import re
+import textwrap
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -155,9 +157,26 @@ def _ornek_niteligi_var_mi(sinif: type, ad: str) -> bool:
             kaynak = inspect.getsource(ata)
         except (OSError, TypeError):
             continue
-        if re.search(rf"\bself\.{re.escape(ad)}\s*[:=]", kaynak):
+        if ad in _self_atamalari(kaynak):
             return True
     return False
+
+
+def _self_atamalari(kaynak: str) -> set[str]:
+    """`self.x = ...`, `self.x: T = ...` ve `self.x, self.y = ...` ile atanan nitelik adları."""
+    adlar = set()
+    for dugum in ast.walk(ast.parse(textwrap.dedent(kaynak))):
+        if isinstance(dugum, ast.Assign):
+            hedefler = dugum.targets
+        elif isinstance(dugum, ast.AnnAssign):
+            hedefler = [dugum.target]
+        else:
+            continue
+        for hedef in hedefler:
+            for h in hedef.elts if isinstance(hedef, ast.Tuple) else [hedef]:
+                if isinstance(h, ast.Attribute) and isinstance(h.value, ast.Name) and h.value.id == "self":
+                    adlar.add(h.attr)
+    return adlar
 
 
 def uye_hatalari(sinif: DiyagramSinifi) -> list[str]:

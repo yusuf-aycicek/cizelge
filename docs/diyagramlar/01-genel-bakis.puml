@@ -6,7 +6,8 @@ title Genel bakış: paketler ve bağımlılıklar
 
 package "web (React arayüzü)" <<planlanan>> as web #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A {
 }
-package "worker (kuyruk işçisi)" <<planlanan>> as worker #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A {
+' @paket okulworker
+package "okulworker\n(kuyruk işçisi, genel çalıştırıcı)" as worker {
 }
 
 package "okulapi (API, modüler monolit)" as okulapi {
@@ -35,6 +36,7 @@ package "cozucu\n(saf Python, OR-Tools CP-SAT)" as cozucu {
 }
 
 database "PostgreSQL 17" as pg
+queue "Redis\n(RQ kuyruğu)" as redis
 
 web ..> main : HTTP / JSON
 main ..> cekirdek : <<import>>
@@ -45,9 +47,10 @@ ders_programi ..> cekirdek : <<import>>
 ders_programi ..> cozucu : <<import>>
 ders_notlari ..> cekirdek : <<import>>
 kutuphane ..> cekirdek : <<import>>
-worker ..> ders_programi : dönüştürücü
-worker ..> cozucu : <<import>>
+worker ..> cekirdek : <<import>>\nayarlar, rq_worker_calistir
+worker ..> ders_programi : işi Python yoluyla\nçalıştırır (adıyla;\nmodülü içe aktarmaz)
 cekirdek ..> pg : SQL (SQLAlchemy)
+cekirdek ..> redis : IsKuyrugu (RQ)\nyalnızca cekirdek/kuyruk.py
 
 note right of cekirdek
   Çekirdekten modüllere ok yoktur:

@@ -36,8 +36,14 @@ node "Geliştirici bilgisayarı\n<<cihaz>>\nWindows 11" as pc {
       artifact "migrasyon\n(Alembic: upgrade heads)" as migrasyon
     }
 
-    node "redis\n<<konteyner>>" <<planlanan>> as redis #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A
-    node "worker\n<<konteyner>>\n(api ile aynı imaj, RQ işçisi)" <<planlanan>> as worker #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A
+    node "redis\n<<konteyner>>\nredis:7.4" as redis {
+      queue "program_uretimi\n(RQ kuyruğu;\niş kimliği = program kimliği)" as kuyruk
+    }
+
+    node "worker\n<<konteyner>>\napi ile aynı imaj" as worker {
+      artifact "okulworker\n(python -m okulworker;\nRQ worker'ı, iş başına fork)" as okulworker
+      artifact "okulapi + cozucu\n(iş fonksiyonu:\nuretim.uretim_isi)" as isler
+    }
     node "web\n<<konteyner>>\n(React, Vite derlemesi)" <<planlanan>> as web #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A
   }
 }
@@ -49,22 +55,29 @@ migrasyon --> rol_sahip : bağlanır (db:5432)\nOKULAPI_MIGRASYON_URL
 db --> birim : /var/lib/postgresql/data
 init ..> rol_uyg : ilk açılışta oluşturur
 okulapi ..> cozucu : import
+okulapi --> kuyruk : işi ekler, "kuyrukta mı?"\n(redis:6379, port dışarı açılmaz)
+okulworker --> kuyruk : işi alır
+okulworker ..> isler : çalıştırır
+isler --> rol_uyg : bağlanır (db:5432)\nRLS, işteki okul_id ile
 
 tarayici ..> web #9A9A9A;line.dashed : HTTP (planlanan)
 web ..> api #9A9A9A;line.dashed : /api/... (planlanan)
-api ..> redis #9A9A9A;line.dashed : iş kuyruğa (planlanan)
-worker ..> redis #9A9A9A;line.dashed : iş alır (planlanan)
-worker ..> db #9A9A9A;line.dashed : okul_uygulama ile\nokur/yazar (planlanan)
 
 note right of db
   Konteyner içinde 5432; bilgisayara 5433 ile açılır
   (aynı makinedeki başka projeler 5432 kullanıyor).
-  api, db sağlıklı olmadan başlamaz (healthcheck: pg_isready).
+  api, db ve redis sağlıklı olmadan başlamaz (healthcheck).
+  worker, api sağlıklı olmadan başlamaz: migration'ları api uygular.
+end note
+
+note bottom of worker
+  Ölçeklenir: docker compose up --scale worker=3.
+  Aynı iş iki kez yapılmaz (FOR UPDATE, ADR 0011).
 end note
 
 legend right
   Düz çizgi, beyaz: şu an çalışan.
   Kesik çizgi, gri, <<planlanan>>: henüz yapılmadı
-  (redis ve worker: yapım sırası 3; web: 5).
+  (web: yapım sırası 5).
 endlegend
 @enduml

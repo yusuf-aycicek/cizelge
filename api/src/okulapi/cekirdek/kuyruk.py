@@ -120,6 +120,20 @@ class RqKuyrugu(IsKuyrugu):
         return durum is not None and getattr(durum, "value", durum) in _KUYRUKTA_SAYILAN
 
 
+def rq_worker_calistir(redis_url: str, kuyruk_adi: str) -> None:
+    """Kuyruktaki işleri çalıştıran RQ worker'ı (bloklar). `/worker` paketi bunu çağırır.
+
+    RQ'nun varsayılan worker'ı her iş için `fork` ile bir alt süreç açar: bir işin çökmesi ya da
+    belleği şişirmesi worker'ı etkilemez; süre sınırı aşılırsa alt süreç öldürülür. `fork`
+    yalnızca Linux/macOS'ta var: worker konteynerde çalışır.
+    """
+    from redis import Redis
+    from rq import Queue, Worker
+
+    baglanti = Redis.from_url(redis_url)
+    Worker([Queue(kuyruk_adi, connection=baglanti)], connection=baglanti).work(with_scheduler=False)
+
+
 # --- testler için ----------------------------------------------------------------------------
 
 @dataclass

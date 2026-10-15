@@ -1,5 +1,5 @@
 # Bütün sistem tek komutla: docker compose up --build
-# Bu adımda: db (PostgreSQL 17) ve api. Yapım sırası 3'te redis ve worker, 5'te web eklenecek.
+# Servisler: db (PostgreSQL 17), redis (iş kuyruğu), api, worker. Yapım sırası 5'te web eklenecek.
 
 services:
   db:
@@ -25,6 +25,17 @@ services:
       timeout: 3s
       retries: 30
 
+  redis:
+    # İş kuyruğu (RQ). Bilgisayara port açılmaz (docs/kuyruk-plani.md karar g): yalnızca api ve
+    # worker konteynerleri redis:6379 ile ulaşır. Kalıcı birim yok: Redis silinirse kuyruktaki
+    # işler kaybolur; programları ilk okumada "öksüz" olarak kapanır (ADR 0011 madde 8).
+    image: redis:7.4
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
   api:
     build:
       context: .
@@ -33,9 +44,12 @@ services:
       # Uygulama RLS'ye tabi rolle, migration'lar tablo sahibi rolle bağlanır.
       OKULAPI_VERITABANI_URL: postgresql+psycopg://okul_uygulama:okul_uygulama@db:5432/okul
       OKULAPI_MIGRASYON_URL: postgresql+psycopg://okul_sahip:okul_sahip@db:5432/okul
+      OKULAPI_REDIS_URL: redis://redis:6379/0
     depends_on:
       db:
         condition: service_healthy  # veritabanı bağlantı kabul etmeden api başlamaz
+      redis:
+        condition: service_healthy
     # Önce migration'lar (bütün dallar en son haline), sonra uygulama.
     command: >
       sh -c "python -m okulapi.migrasyon upgrade heads &&
@@ -47,6 +61,23 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  worker:
+    # API ile aynı imaj, farklı komut: kuyruktaki program üretme işlerini çalıştırır.
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    command: python -m okulworker
+    environment:
+      # Worker da RLS'ye tabi uygulama rolüyle bağlanır (ADR 0011 madde 10).
+      OKULAPI_VERITABANI_URL: postgresql+psycopg://okul_uygulama:okul_uygulama@db:5432/okul
+      OKULAPI_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy  # migration'ları api uygular; worker tablolar hazır olunca başlar
+    # Ölçek: docker compose up --scale worker=3 (aynı iş iki kez yapılmaz, ADR 0011 madde 5).
 
 volumes:
   db_verisi:

@@ -1,6 +1,6 @@
 # Yapım sırası 3: kuyruk ve worker (plan)
 
-Durum: **onaylandı (2026-10-15)**, (e) kullanıcı düzeltmesiyle. Alt adım durumu bölüm 5'te.
+Durum: **tamamlandı (2026-10-15)**. Alt adım notları bölüm 5'te.
 
 Kabul (CLAUDE.md bölüm 8): API'den istek atılır, durum `bekliyor` → `uretiliyor` → `hazir` olarak
 değişir. Tasarımın temeli `docs/api-plani.md` bölüm 14 (ters yön: sonuç → program ve yerleşim).
@@ -141,7 +141,9 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 | 1 | Şema ve ADR | Bitti (2026-10-15) |
 | 2 | Üretim mantığı | Bitti (2026-10-15) |
 | 3 | Kuyruk ve endpoint | Bitti (2026-10-15) |
-| 4 | Worker ve Docker | **Sıradaki** |
+| 4 | Worker ve Docker | Bitti (2026-10-15) |
+
+Yapım sırası 3 tamamlandı (2026-10-15).
 
 1. alt adımdan notlar:
 - `durum` için CHECK zaten vardı. Buna ek olarak durumla alanların tutarlılığı için beş kısıt eklendi:
@@ -221,6 +223,38 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
   - süreye dayalı kural;
   - worker yeniden aramaz.
 - Testler: 269/269 (test_kuyruk 17, test_program_uretimi 19, test_uretim 27).
+
+3\. alt adımdan sonra iki doğrulama (kullanıcı isteği, 2026-10-15), test olarak:
+- Kuyruğa eklenip commit edilemeyen programın işi: gerçek RQ worker kodu (fakeredis üzerinde
+  SimpleWorker) işi alır. Programı ~4 sn arar, bulamaz, sessizce biter. Sonuç: iş `finished`,
+  başarısız işler kaydı boş, yeniden deneme yok.
+- Eşzamanlı iki istekte kuyruğa ekleme bir kez çağrılır. Benzersizlik ihlali flush'ta, yani
+  kuyruktan önce alınır.
+- İkisi de mutasyonla denendi: flush kaldırılınca ve bulunamayan programda istisna
+  fırlatılınca testler kırılıyor.
+
+4. alt adımdan notlar:
+- `/worker` (`okulworker`): `python -m okulworker`. Günlük, ayarlar ve modül listesini açılışta
+  denetler, sonra `cekirdek.kuyruk.rq_worker_calistir`'ı çağırır. RQ yine yalnızca
+  `cekirdek/kuyruk.py`'de. Worker hiçbir modülü içe aktarmaz.
+- `docker-compose.yml`:
+  - `redis` (redis:7.4, sağlık kontrolü, port açılmaz);
+  - `worker` (api imajı, api sağlıklı olunca başlar);
+  - api Redis'i bekler.
+  - Redis'in kalıcı birimi yok: kaybolan işlerin programları öksüz olarak kapanır.
+- Kabul testi `tests/test_kabul_uctan_uca.py` (`-m uctan_uca`, varsayılan çalıştırmada yok):
+  - gerçek sistemde HTTP ile mini set yüklenir, program istenir, durum 20 ms aralıkla izlenir;
+  - beş çalıştırmanın beşinde de `bekliyor → uretiliyor → hazir` görüldü (çözüm ~0,2 sn);
+  - 71 yerleşim, sınıf boşluğu 0;
+  - test sonunda 9-A'nın haftalık çizelgesini yazdırır.
+- Diyagramlar:
+  - 01: worker gerçek paket; Redis eklendi;
+  - 03: `HizmetKullanilamiyor`;
+  - 05: `uretim`, `IsKuyrugu` ve gerçeklemeleri, `ProgramServisi.uret`;
+  - 09: redis ve worker konteynerleri; yalnızca web planlanan.
+  - Diyagram denetleyicisi `self.a, self.b = ...` atamasını tanımıyordu; AST'ye geçirildi.
+- README: servisler, program üretme akışı, kabul testi.
+- Testler: api 279 (+1 kabul testi, ayrıca çalıştırılır), çözücü 137.
 
 ## 6. Kapsam dışı (bu adımda)
 
