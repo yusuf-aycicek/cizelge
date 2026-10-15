@@ -31,24 +31,20 @@ def test_okul_olusturma_ve_ayarlar(istemci, okul_olustur):
     assert yanit.status_code == 200 and yanit.json()["gunluk_ders_saati"] == 7
 
 
-@pytest.mark.parametrize("veri", [{"ad": ""}, {"ad": "X", "gun_sayisi": 8}, {"ad": "X", "gunluk_ders_saati": 0}])
-def test_gecersiz_okul_422(istemci, veri):
-    assert istemci.post("/api/okullar", json=veri).status_code == 422
+@pytest.mark.parametrize("okul", [{"ad": ""}, {"ad": "X", "gun_sayisi": 8}, {"ad": "X", "gunluk_ders_saati": 0}])
+def test_gecersiz_okul_422(istemci, okul):
+    yanit = istemci.post("/api/kayit", json={"okul": okul, "ad": "Müdür", "email": "m@x.test",
+                                             "sifre": "yeterince-uzun-parola"})
+    assert yanit.status_code == 422
 
 
-def test_okul_basligi_yoksa_400(istemci):
+def test_oturum_yoksa_401(istemci):
     yanit = istemci.get("/api/ogretmenler")
-    assert yanit.status_code == 400
-    assert "X-Okul-Id" in yanit.json()["detail"]
+    assert yanit.status_code == 401 and yanit.json()["detail"] == "Oturum açmanız gerekiyor"
 
 
-def test_bilinmeyen_okul_404(istemci):
-    yanit = istemci.get("/api/ogretmenler", headers=okul_basligi(uuid.uuid4()))
-    assert yanit.status_code == 404 and yanit.json()["detail"] == "Okul bulunamadı"
-
-
-def test_gecersiz_okul_kimligi_422(istemci):
-    assert istemci.get("/api/ogretmenler", headers={"X-Okul-Id": "abc"}).status_code == 422
+def test_gecersiz_cerez_401(istemci):
+    assert istemci.get("/api/ogretmenler", headers={"Cookie": "oturum=uydurma"}).status_code == 401
 
 
 # --- CRUD -------------------------------------------------------------------------------

@@ -13,18 +13,27 @@ from okulapi.ayarlar import Ayarlar
 from okulapi.cekirdek import saglik
 from okulapi.cekirdek.api import ROUTERLAR as CEKIRDEK_ROUTERLARI
 from okulapi.cekirdek.modul import modulleri_yukle
+from okulapi.cekirdek.kimlik.api import router as kimlik_router
+from okulapi.cekirdek.kimlik.koken import KokenDenetimi
+from okulapi.cekirdek.kimlik.servis import CokFazlaDeneme, GirisHatasi, YetkiYok
 from okulapi.cekirdek.kuyruk import RqKuyrugu
 from okulapi.cekirdek.servisler import GecersizVeri, HizmetKullanilamiyor, KayitBulunamadi, KayitCakismasi
 from okulapi.cekirdek.veritabani import motor_olustur, oturum_fabrikasi
 
 # Servis istisnası -> HTTP durum kodu. Başka okulun kaydı da "bulunamadı" (404) döner: kaydın
 # var olduğu bile sızmasın.
-_HATA_KODLARI = {KayitBulunamadi: 404, KayitCakismasi: 409, GecersizVeri: 422, HizmetKullanilamiyor: 503}
+_HATA_KODLARI = {
+    GirisHatasi: 401, YetkiYok: 403, KayitBulunamadi: 404, KayitCakismasi: 409, GecersizVeri: 422,
+    CokFazlaDeneme: 429, HizmetKullanilamiyor: 503,
+}
 
 
 def _hata_isleyici(kod: int):
-    def isle(_istek: Request, hata: Exception) -> JSONResponse:
-        return JSONResponse({"detail": str(hata)}, status_code=kod)
+    def isle(istek: Request, hata: Exception) -> JSONResponse:
+        basliklar = {}
+        if kod == 429:  # istemci ne zaman yeniden deneyebileceğini bilsin
+            basliklar["Retry-After"] = str(istek.app.state.ayarlar.giris_kilit_dk * 60)
+        return JSONResponse({"detail": str(hata)}, status_code=kod, headers=basliklar)
 
     return isle
 
@@ -41,7 +50,10 @@ def uygulama_olustur(ayarlar: Ayarlar | None = None) -> FastAPI:
     for hata_sinifi, kod in _HATA_KODLARI.items():
         uygulama.add_exception_handler(hata_sinifi, _hata_isleyici(kod))
 
+    uygulama.add_middleware(KokenDenetimi, izinli_kokenler=ayarlar.izinli_kokenler)
+
     uygulama.include_router(saglik.router, prefix="/api")
+    uygulama.include_router(kimlik_router, prefix="/api")
     for router in CEKIRDEK_ROUTERLARI:
         uygulama.include_router(router, prefix="/api")
     moduller = modulleri_yukle(ayarlar.etkin_moduller)

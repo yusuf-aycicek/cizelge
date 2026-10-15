@@ -456,5 +456,7 @@ def test_parola_sifirla_hatalarda_hicbir_sey_degismez(kimlik, monkeypatch, capsy
 def test_parola_sifirlamanin_api_karsiligi_yok(ayarlar):
     from okulapi.main import uygulama_olustur
 
-    yollar = [getattr(r, "path", "") for r in uygulama_olustur(ayarlar).routes]
-    assert yollar and not any("sifirla" in y or "parolayi" in y for y in yollar)
+    # Yollar OpenAPI şemasından: bu FastAPI sürümünde app.routes iç içe router'ları sarmalar.
+    yollar = list(uygulama_olustur(ayarlar).openapi()["paths"])
+    assert len(yollar) > 20
+    assert not any("sifirla" in y or "parolayi" in y for y in yollar)

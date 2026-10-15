@@ -34,3 +34,14 @@ class Ayarlar(BaseSettings):
     giris_hata_esigi: int = 5  # pencere içinde bu kadar hatalı deneme e-postayı kilitler
     giris_pencere_dk: int = 15
     giris_kilit_dk: int = 15
+
+    # Tarayıcı tarafı (ADR 0013). Arayüz ile API tarayıcıya her zaman aynı köken (origin) üzerinden
+    # görünür: geliştirmede Vite proxy'si, yayında aynı alan adı.
+    cerez_adi: str = "oturum"
+    # Secure: çerez yalnızca HTTPS üzerinden gönderilir. Varsayılan açık (yayın); yerel
+    # geliştirmede http çalışabilsin diye docker-compose kapatır: OKULAPI_CEREZ_SECURE=false
+    cerez_secure: bool = True
+    # Veri değiştiren isteklerde (POST, PUT, PATCH, DELETE) kabul edilen Origin başlıkları.
+    # Varsayılan boş: tarayıcıdan gelen hiçbir yazma isteği kabul edilmez; ortam açıkça belirtir.
+    # Örnek (geliştirme): OKULAPI_IZINLI_KOKENLER='["http://localhost:5173","http://localhost:8000"]'
+    izinli_kokenler: list[str] = []

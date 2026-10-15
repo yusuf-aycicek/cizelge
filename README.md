@@ -35,9 +35,55 @@ Veritabanı rolleri (yalnızca geliştirme parolaları, `docker-compose.yml`):
 | `okul_sahip` | Tabloların sahibi. Migration'lar bu rolle çalışır. |
 | `okul_uygulama` | Uygulamanın bağlandığı rol. Satır düzeyi güvenliğe (RLS) tabidir, yalnızca kendi okulunun satırlarını görür. |
 
-Geçici not: 4. yapım adımına kadar aktif okul `X-Okul-Id` başlığıyla seçilir. Örnek akış:
-`POST /api/okullar` ile bir okul oluşturulur, dönen `id` sonraki isteklerde `X-Okul-Id`
-başlığında gönderilir.
+Kayıt ve giriş (ADR 0012). Aktif okul yalnızca oturumdan belirlenir:
+
+1. `POST /api/kayit` `{"okul": {"ad": "..."}, "ad": "...", "email": "...", "sifre": "..."}`: okul, ilk
+   müdür ve oturum oluşur. Oturum jetonu `HttpOnly` bir çerezde (`oturum`) döner.
+2. `POST /api/giris` `{"email", "sifre"}` ve `POST /api/cikis`. `GET /api/ben`: giriş yapan kullanıcı
+   ve okulu (yoksa 401).
+3. Diğer bütün `/api/...` uçları oturum çerezi ister. Swagger sayfasında (`/docs`) önce
+   `/api/kayit` ya da `/api/giris` çalıştırılır; tarayıcı çerezi sonraki isteklere kendisi ekler.
+4. Müdür, yardımcı hesaplarını `/api/kullanicilar` uçlarıyla yönetir. Parola en az 12 karakterdir.
+
+Müdür parolasını unutursa sistemi işleten kişi sunucuda (API'den erişilemez):
+
+```bash
+docker compose exec api python -m okulapi parola-sifirla mudur@okul.example
+```
+
+Yeni parola iki kez sorulur. `--rastgele` ile rastgele bir parola üretilip bir kez gösterilir.
+Kullanıcının bütün oturumları kapanır, hatalı giriş kilidi kalkar.
+
+### Geliştirme ortamı: arayüz ve API aynı kökenden (ADR 0013)
+
+Tarayıcı arayüzü ve API'yi her zaman **aynı köken** (şema + alan adı + port) üzerinden görür.
+Oturum çerezi `SameSite=Strict`'tir ve veri değiştiren isteklerde `Origin` başlığı denetlenir.
+Ayrı kökenden yapılan istekler (CORS) bilerek desteklenmez.
+
+- **Geliştirmede** arayüz Vite ile `http://localhost:5173`'te çalışır (yapım sırası 5). Vite'ın
+  proxy'si `/api` isteklerini API'ye iletir. Arayüz kodu API'yi göreli adresle çağırır
+  (`fetch("/api/ben")`). `web/vite.config.ts` şöyle olacak:
+
+  ```ts
+  export default defineConfig({
+    plugins: [react()],
+    server: { proxy: { "/api": "http://localhost:8000" } },
+  })
+  ```
+
+- **Yayında** arayüzün derlenmiş dosyaları ve API aynı alan adının arkasındadır (ters vekil
+  sunucu, ör. nginx ya da Caddy: `/` statik dosyalar, `/api` API).
+
+Ayarlar (ortam değişkenleri, `docker-compose.yml`):
+
+| Değişken | Geliştirme | Yayın |
+|---|---|---|
+| `OKULAPI_IZINLI_KOKENLER` | `["http://localhost:5173", "http://localhost:8000"]` (Vite ve `/docs`) | `["https://<alan adı>"]` |
+| `OKULAPI_CEREZ_SECURE` | `false` (http) | verilmez; varsayılan `true` (yalnızca HTTPS) |
+
+`OKULAPI_IZINLI_KOKENLER` verilmezse tarayıcıdan hiçbir yazma isteği kabul edilmez, giriş bile
+yapılamaz (403, "köken denetimi"). Bu, güvenli bir varsayılandır. curl gibi tarayıcı dışı
+istemciler `Origin` göndermez; onlar için yalnızca oturum çerezi gerekir.
 
 Program üretme akışı (ADR 0011):
 

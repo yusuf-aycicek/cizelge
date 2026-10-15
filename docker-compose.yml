@@ -45,6 +45,12 @@ services:
       OKULAPI_VERITABANI_URL: postgresql+psycopg://okul_uygulama:okul_uygulama@db:5432/okul
       OKULAPI_MIGRASYON_URL: postgresql+psycopg://okul_sahip:okul_sahip@db:5432/okul
       OKULAPI_REDIS_URL: redis://redis:6379/0
+      # Yerel geliştirme (ADR 0013): http üzerinden çalışılır, çerez Secure değildir. Yayında
+      # bu satır olmaz (varsayılan: Secure açık).
+      OKULAPI_CEREZ_SECURE: "false"
+      # Veri değiştiren isteklerde kabul edilen kökenler: Vite geliştirme sunucusu (arayüz, /api
+      # isteklerini buraya yönlendirir) ve API'nin kendi belge sayfası (/docs).
+      OKULAPI_IZINLI_KOKENLER: '["http://localhost:5173", "http://localhost:8000"]'
     depends_on:
       db:
         condition: service_healthy  # veritabanı bağlantı kabul etmeden api başlamaz

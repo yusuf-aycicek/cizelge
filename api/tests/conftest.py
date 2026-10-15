@@ -9,6 +9,7 @@ Adres değiştirilebilir: OKULAPI_TEST_VERITABANI_URL=postgresql+psycopg://.../o
 from __future__ import annotations
 
 import os
+import uuid
 
 import pytest
 from alembic import command
@@ -85,7 +86,9 @@ HIZLI_OZETLEYICI = _hizli_ozetleyici()
 
 @pytest.fixture(scope="session")
 def ayarlar() -> Ayarlar:
-    return Ayarlar(veritabani_url=TEST_UYGULAMA_URL, migrasyon_url=TEST_URL)
+    # TestClient http://testserver üzerinden konuşur: Secure çerez http'de gönderilmez.
+    return Ayarlar(veritabani_url=TEST_UYGULAMA_URL, migrasyon_url=TEST_URL, cerez_secure=False,
+                   izinli_kokenler=[IZINLI_KOKEN])
 
 
 @pytest.fixture(scope="session")
@@ -144,20 +147,56 @@ def istemci(ayarlar, oturum_fabrikasi, kuyruk):
     uygulama.state.motor.dispose()
 
 
+IZINLI_KOKEN = "http://localhost:5173"
+CEREZ = "oturum"
+PAROLA = "test-parolasi-uzun-1"
+
+# Okul kimliği -> o okulun müdürünün oturum jetonu. `okul_basligi` bunu çereze çevirir: testler bir
+# okulun adına istek atmak için o okulun gerçek bir oturumunu kullanır (aktif okul yalnızca
+# oturumdan belirlenir).
+JETONLAR: dict[str, str] = {}
+
+
+def oturum_kaydet(okul_id, jeton: str) -> None:
+    JETONLAR[str(okul_id)] = jeton
+
+
+def okul_basligi(okul_id) -> dict[str, str]:
+    """O okulun müdürü adına istek: oturum çerezi."""
+    return {"Cookie": f"{CEREZ}={JETONLAR[str(okul_id)]}"}
+
+
+def cerezden_jeton(yanit) -> str:
+    """Set-Cookie başlığından oturum jetonu (Secure çerezler http'de istemci kavanozuna girmez)."""
+    import re
+
+    eslesme = re.search(rf"{CEREZ}=([^;]+)", yanit.headers.get("set-cookie", ""))
+    assert eslesme, yanit.headers
+    return eslesme.group(1)
+
+
+def api_ile_kayit(istemci, okul_adi: str, **okul_alanlari) -> tuple[str, str, str]:
+    """POST /api/kayit: okul + müdür + oturum. (okul_id, e-posta, jeton) döner. İstemcinin çerez
+    kavanozu temizlenir: testler hangi okul adına istek attığını açıkça (okul_basligi) seçer."""
+    email = f"mudur-{uuid.uuid4().hex[:12]}@test.okul"
+    yanit = istemci.post("/api/kayit", json={"okul": {"ad": okul_adi, **okul_alanlari}, "ad": "Test Müdürü",
+                                             "email": email, "sifre": PAROLA})
+    assert yanit.status_code == 201, yanit.text
+    jeton = cerezden_jeton(yanit)
+    istemci.cookies.clear()
+    okul_id = yanit.json()["okul"]["id"]
+    oturum_kaydet(okul_id, jeton)
+    return okul_id, email, jeton
+
+
 @pytest.fixture
 def okul_olustur(istemci):
-    """API ile okul oluşturur, kimliğini döner."""
+    """API ile okul (ve müdürü, oturumu) oluşturur, okul kimliğini döner."""
 
     def olustur(ad: str = "Deneme Lisesi", **alanlar) -> str:
-        yanit = istemci.post("/api/okullar", json={"ad": ad, **alanlar})
-        assert yanit.status_code == 201, yanit.text
-        return yanit.json()["id"]
+        return api_ile_kayit(istemci, ad, **alanlar)[0]
 
     return olustur
-
-
-def okul_basligi(okul_id: str) -> dict[str, str]:
-    return {"X-Okul-Id": str(okul_id)}
 
 
 MINI = os.path.join(os.path.dirname(__file__), "..", "..", "veri", "mini.json")
@@ -175,8 +214,8 @@ def mini_api_ile_yukle(istemci, okul_adi: str = "Mini Lisesi") -> tuple[str, dic
 
     with open(MINI, encoding="utf-8") as f:
         mini = json.load(f)
-    okul = istemci.post("/api/okullar", json={"ad": okul_adi, **mini["ayar"]}).json()
-    baslik = okul_basligi(okul["id"])
+    okul_id, _, _ = api_ile_kayit(istemci, okul_adi, **mini["ayar"])
+    baslik = okul_basligi(okul_id)
     harita: dict[str, str] = {}
 
     def ekle(yol: str, kayit: dict, govde: dict) -> None:
@@ -198,7 +237,7 @@ def mini_api_ile_yukle(istemci, okul_adi: str = "Mini Lisesi") -> tuple[str, dic
         ekle(f"{DP}/musaitlikler", m, {**m, "ogretmen_id": harita[m["ogretmen_id"]]})
     for k in mini["kisitlar"]:
         ekle(f"{DP}/kisitlar", k, k)
-    return okul["id"], harita
+    return okul_id, harita
 
 
 @pytest.fixture

@@ -10,7 +10,6 @@ class APIRouter <<harici>>
 package "api (router: HTTP)" {
   class api <<modül>> {
     {static} +crud_router(yol, servis_sinifi, olustur_semasi, guncelle_semasi, yanit_semasi, etiket) : APIRouter
-    {static} +okul_olustur(veri, oturum)
     {static} +okul_getir(okul_id, oturum)
     {static} +okul_guncelle(veri, okul_id, oturum)
   }
@@ -19,9 +18,12 @@ package "api (router: HTTP)" {
 ' @kod okulapi.cekirdek.bagimliliklar
 package "bagimliliklar (FastAPI Depends)" {
   class bagimliliklar <<modül>> {
-    {static} +aktif_okul_id(x_okul_id : UUID) : UUID
+    {static} +aktif_oturum(istek) : OturumBilgisi
+    {static} +aktif_okul_id(oturum : OturumBilgisi) : UUID
     {static} +okul_oturumu_al(istek, okul_id) : Session
     {static} +okulsuz_oturum_al(istek) : Session
+    {static} +kimlik_servisi(istek) : KimlikServisi
+    {static} +kuyruk_al(istek) : IsKuyrugu
   }
 }
 
@@ -111,6 +113,7 @@ api ..> CrudServisi : çağırır
 api ..> OgretmenOlustur : istek
 api ..> OgretmenYanit : yanıt
 bagimliliklar ..> Session : okul_oturumu()
+oturumun okulu ile
 
 ' --- kalıtım ve bileşim ---------------------------------------------------------------
 CrudServisi <|-- OgretmenServisi

@@ -1,4 +1,4 @@
-"""Çekirdek endpoint'leri: /api/okullar, /api/okul, /api/ogretmenler, /api/siniflar, /api/dersler.
+"""Çekirdek endpoint'leri: /api/okul, /api/ogretmenler, /api/siniflar, /api/dersler.
 
 Router yalnızca HTTP ile ilgilenir: yol, durum kodu, şema doğrulaması. İşi servise devreder.
 Okula ait varlıkların CRUD'u tek bir fabrika (`crud_router`) ile üretilir; modüller de aynı
@@ -15,7 +15,7 @@ from fastapi import APIRouter, Response, status
 from pydantic import BaseModel
 
 from okulapi.cekirdek import semalar
-from okulapi.cekirdek.bagimliliklar import AktifOkulId, OkulOturumu, OkulsuzOturum
+from okulapi.cekirdek.bagimliliklar import AktifOkulId, OkulOturumu
 from okulapi.cekirdek.servisler import CrudServisi, DersServisi, OgretmenServisi, OkulServisi, SinifServisi
 
 
@@ -55,12 +55,6 @@ def crud_router(
 
 
 okul_router = APIRouter(tags=["okul"])
-
-
-@okul_router.post("/okullar", response_model=semalar.OkulYanit, status_code=status.HTTP_201_CREATED)
-def okul_olustur(veri: semalar.OkulOlustur, oturum: OkulsuzOturum) -> Any:
-    """Okul kaydı. Yapım sırası 4'te ilk yöneticinin hesabıyla birlikte oluşturulacak."""
-    return OkulServisi(oturum).olustur(veri.model_dump())
 
 
 @okul_router.get("/okul", response_model=semalar.OkulYanit)

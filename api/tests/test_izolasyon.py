@@ -18,7 +18,8 @@ import pytest
 from sqlalchemy import delete, select, text
 from sqlalchemy.exc import DBAPIError
 
-from conftest import TEST_UYGULAMA_URL, okul_basligi
+from conftest import TEST_UYGULAMA_URL, okul_basligi, oturum_kaydet
+from okulapi.cekirdek.kimlik.servis import jeton_ozeti, jeton_uret
 from okulapi.cekirdek.kiraci import okul_oturumu, okulsuz_oturum
 from okulapi.cekirdek.modeller import Ders, Kullanici, Ogretmen, Oturum, Sinif
 from okulapi.cekirdek.servisler import OkulServisi
@@ -47,7 +48,9 @@ def _okul_verisi(fabrika, ad: str) -> tuple[uuid.UUID, dict[str, set[uuid.UUID]]
         mudur = Kullanici(email=f"mudur@{uuid.uuid4().hex}.test", sifre_hash="x", ad="Müdür", rol="mudur")
         o.add_all([ogretmen, ogretmen2, sinif, ders, mudur])
         o.flush()
-        o.add(Oturum(kullanici_id=mudur.id, jeton_ozeti=uuid.uuid4().hex * 2,
+        jeton = jeton_uret()  # API testleri bu okul adına bu oturumla istek atar (okul_basligi)
+        oturum_kaydet(okul_id, jeton)
+        o.add(Oturum(kullanici_id=mudur.id, jeton_ozeti=jeton_ozeti(jeton),
                      hareketsizlik_siniri=timedelta(hours=12), bitis_mutlak=datetime.now(timezone.utc) + timedelta(days=7)))
         atama = DersAtama(sinif_id=sinif.id, ders_id=ders.id, ogretmen_id=ogretmen.id, haftalik_saat=6)
         program = Program(ad="Eylül")

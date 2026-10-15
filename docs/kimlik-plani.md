@@ -242,8 +242,8 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 |---|---|---|
 | 1 | Şema ve veritabanı tarafı | Bitti (2026-10-15) |
 | 2 | Kimlik servisi | Bitti (2026-10-15) |
-| 3 | API'ye bağlama | **Sıradaki** |
-| 4 | Belgeler ve uçtan uca | |
+| 3 | API'ye bağlama | Bitti (2026-10-15) |
+| 4 | Belgeler ve uçtan uca | **Sıradaki** |
 
 1. alt adımdan notlar:
 - E-posta kısıtı denetlendi:
@@ -310,6 +310,61 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
   - başarılı girişte sayaç silinmez;
   - yardımcı yönetim yapabilir.
 - Testler: 351/351.
+
+3. alt adımdan notlar:
+- Aktif okul yalnızca oturumdan: `bagimliliklar.aktif_oturum` çerezdeki jetonu `oturum_coz` ile
+  çözer. `X-Okul-Id` kodu ve `POST /api/okullar` silindi.
+- Uçlar:
+  - `POST /api/kayit`, `/giris`, `/cikis`;
+  - `GET /api/ben`, `PUT /api/ben/sifre`;
+  - `/api/kullanicilar` (liste, ekle, parola belirle, rol, sil).
+  - Durum kodları: 401 (oturum yok, giriş hatalı), 403 (yetki yok, köken), 409 (e-posta, son
+    müdür), 422 (parola kuralı), 429 + `Retry-After`.
+- Çerez: `HttpOnly`, `SameSite=Strict`, `Path=/api`, `Max-Age` 7 gün, `Secure` ayara bağlı.
+- **Aynı köken kararı (kullanıcı, 2026-10-15; ADR 0013):** arayüz ile API tarayıcıya hep aynı
+  kökenden görünür.
+  - Geliştirmede Vite proxy'si `/api`'yi API'ye iletir; yayında aynı alan adı kullanılır.
+  - `izinli_kokenler` ve `cerez_secure` ayardan gelir. Varsayılanlar güvenlidir: izinli köken yok,
+    `Secure` açık.
+  - docker-compose geliştirme değerlerini verir.
+  - CORS eklenmedi.
+- Köken denetimi bir ASGI ara katmanı (`kimlik/koken.py`):
+  - veri değiştiren isteklerde `Origin` varsa izinli listede olmalı; `null` reddedilir;
+  - `Origin` yoksa (tarayıcı dışı istemci) geçer ama oturum ister.
+- Mevcut testlerin geçişi: `okul_basligi(okul_id)` artık o okulun gerçek oturumunun çerezini
+  döndürüyor. `okul_olustur` ve mini set yükleme `/api/kayit` kullanıyor. Testlerin geri kalanı
+  değişmedi.
+- Bulunan bir test açığı: bu FastAPI sürümünde `app.routes` iç içe router'ları sarmaladığı için
+  "parola sıfırlamanın API karşılığı yok" testi boş bir yol listesiyle geçiyordu. Yollar artık
+  OpenAPI şemasından alınıyor, en az sayı da denetleniyor.
+- Diyagram denetimi kod değişikliğini yakaladı: 03'teki `okul_olustur` ve `aktif_okul_id(x_okul_id)`
+  güncellendi.
+- `tests/test_kimlik_api.py` (29 test). Kabul testleri:
+  - başlık + başka okulun oturumu → başlık yok sayılır;
+  - yalnızca başlık → 401;
+  - kaynakta `x-okul-id` geçmez;
+  - oturumsuz ya da geçersiz çerezle uygulamanın **her** korunan ucu (OpenAPI'den otomatik, 30+)
+    401 alır;
+  - açık uç listesi elle tutulur.
+- Mutasyon denemesi: on bozmanın hepsi yakalandı:
+  - başlık varsa okul başlıktan;
+  - korumasız yeni bir uç eklenmesi;
+  - köken ara katmanının takılmaması;
+  - kökende porta bakılmaması;
+  - `Origin: null` kabulü;
+  - `SameSite=Lax`;
+  - `HttpOnly` yok;
+  - `Secure`'un ayardan bağımsız olması;
+  - çıkışın veritabanı oturumunu silmemesi;
+  - `Retry-After` yok.
+- Gerçek sistemde denendi:
+  - kayıt (Vite kökeni) 201 ve çerez özellikleri;
+  - yabancı köken 403;
+  - yalnızca başlık 401;
+  - çıkıştan sonra 401;
+  - konteynerde `parola-sifirla` (çıkış kodu 0 ve 1);
+  - uçtan uca kabul testi yeni kayıt akışıyla geçti.
+- Testler: 379/379.
 
 ## 8. Kapsam dışı (bu adımda)
 
