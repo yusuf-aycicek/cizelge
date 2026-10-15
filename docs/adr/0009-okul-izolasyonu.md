@@ -105,9 +105,19 @@ Başka bir okulun kaydına erişim denemesi 404 döner, 403 değil: kaydın var 
   de geri alınır). İstekler servisler gibi commit edecek şekilde düzeltildi; mutasyon artık
   yakalanıyor. Ayarın hiç bildirilmemesi mutasyonu da yakalanıyor.
 
-## Sonraki adıma not (yapım sırası 4, kimlik doğrulama)
+## Okul bilinmeden arama: giriş ve oturum çözme (yapım sırası 4, 2026-10-15)
 
-Giriş sırasında kullanıcı e-postasıyla, okul bilinmeden aranır; RLS bunu engeller (okulsuz bağlamda
-kullanici tablosu boş görünür). Seçenekler: yalnızca e-postaya göre arayıp `okul_id` döndüren dar
-kapsamlı bir `SECURITY DEFINER` fonksiyon, ya da giriş için ayrı, yalnızca o sorguya yetkili bir rol.
-Karar o adımda bir ADR ile verilecek.
+Girişte kullanıcı e-postasıyla, okul bilinmeden aranır. Her istekte oturum, okul bilinmeden
+çerezdeki jetondan çözülür. RLS ikisini de engeller: okulsuz bağlamda `kullanici` ve `oturum`
+tabloları boş görünür.
+
+**Karar:** dar kapsamlı `SECURITY DEFINER` fonksiyonlar (`giris_bilgisi`, `oturum_coz` ve kaba
+kuvvet sayacı fonksiyonları, migration `cekirdek_0004`). Sahipleri girişi olmayan (`NOLOGIN`), süper
+kullanıcı olmayan, RLS'yi atlayamayan `okul_giris` rolüdür:
+- yalnızca gereken sütunlarda yetkisi vardır;
+- `kullanici` ve `oturum` tablolarında yalnızca bu role tanımlı birer politika vardır;
+- fonksiyonların arama yolu sabittir, `PUBLIC` çağıramaz.
+
+Uygulama rolü bu fonksiyonları çağırabilir ama tablolara okul bağlamı dışında hâlâ erişemez.
+Fonksiyon okulu bulduktan sonra istek normal yoldan devam eder: `okul_oturumu`, `SET LOCAL`, RLS.
+Gerekçe ve değerlendirilen alternatifler: ADR 0012 ve `docs/kimlik-plani.md` bölüm 2.

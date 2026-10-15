@@ -12,6 +12,7 @@ tablo kabul testinin dışında kalamaz.
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from sqlalchemy import delete, select, text
@@ -19,7 +20,7 @@ from sqlalchemy.exc import DBAPIError
 
 from conftest import TEST_UYGULAMA_URL, okul_basligi
 from okulapi.cekirdek.kiraci import okul_oturumu, okulsuz_oturum
-from okulapi.cekirdek.modeller import Ders, Kullanici, Ogretmen, Sinif
+from okulapi.cekirdek.modeller import Ders, Kullanici, Ogretmen, Oturum, Sinif
 from okulapi.cekirdek.servisler import OkulServisi
 from okulapi.cekirdek.veritabani import Base, motor_olustur, oturum_fabrikasi as fabrika_olustur
 from okulapi.main import uygulama_olustur
@@ -43,9 +44,11 @@ def _okul_verisi(fabrika, ad: str) -> tuple[uuid.UUID, dict[str, set[uuid.UUID]]
     with okul_oturumu(fabrika, okul_id) as o:
         ogretmen, ogretmen2 = Ogretmen(ad=f"{ad} Öğretmen 1"), Ogretmen(ad=f"{ad} Öğretmen 2")
         sinif, ders = Sinif(ad="9-A", seviye=9), Ders(ad="Matematik", kisa_ad="MAT")
-        o.add_all([ogretmen, ogretmen2, sinif, ders,
-                   Kullanici(email=f"mudur@{uuid.uuid4().hex}.test", sifre_hash="x", ad="Müdür", rol="mudur")])
+        mudur = Kullanici(email=f"mudur@{uuid.uuid4().hex}.test", sifre_hash="x", ad="Müdür", rol="mudur")
+        o.add_all([ogretmen, ogretmen2, sinif, ders, mudur])
         o.flush()
+        o.add(Oturum(kullanici_id=mudur.id, jeton_ozeti=uuid.uuid4().hex * 2,
+                     hareketsizlik_siniri=timedelta(hours=12), bitis_mutlak=datetime.now(timezone.utc) + timedelta(days=7)))
         atama = DersAtama(sinif_id=sinif.id, ders_id=ders.id, ogretmen_id=ogretmen.id, haftalik_saat=6)
         program = Program(ad="Eylül")
         o.add_all([atama, program, SeviyeSablonu(seviye=9, ders_id=ders.id, haftalik_saat=6),
@@ -67,6 +70,8 @@ def iki_okul(motor, sahip_motor):
     # Temizlik (tablo sahibi, RLS'yi atlar): yabancı anahtar sırasının tersiyle.
     with sahip_motor.begin() as baglanti:
         for tablo in reversed(Base.metadata.sorted_tables):
+            if "okul_id" not in tablo.c and tablo.name != "okul":
+                continue  # okula ait olmayan tablolar (ör. giris_denemesi)
             sutun = tablo.c.okul_id if "okul_id" in tablo.c else tablo.c.id
             baglanti.execute(delete(tablo).where(sutun.in_([a, b])))
 

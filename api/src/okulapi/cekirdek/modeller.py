@@ -11,9 +11,20 @@ Okula ait her model `OkulaAitMixin`'den türer. Bu mixin şunları sağlar:
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, UniqueConstraint, func
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKeyConstraint,
+    ForeignKey,
+    Index,
+    Interval,
+    String,
+    UniqueConstraint,
+    column,
+    func,
+)
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from okulapi.cekirdek.veritabani import Base
@@ -64,11 +75,17 @@ class OkulaAitMixin(ZamanDamgasi):
 
 
 class Kullanici(OkulaAitMixin, Base):
-    """Yönetici hesabı. Endpoint'leri ve giriş yapım sırası 4'te (kimlik doğrulama)."""
+    """Yönetici hesabı (müdür ya da müdür yardımcısı). Giriş: okulapi.cekirdek.kimlik, ADR 0012.
+
+    E-posta **bütün sistemde** tektir ve büyük/küçük harf ayrımı yapılmaz: giriş okul bilinmeden,
+    yalnızca e-postayla yapılır. Saklanan e-posta küçük harftir (CHECK) ve benzersizlik
+    `lower(email)` üzerindedir (CHECK kaldırılsa bile "Ayse@" ile "ayse@" iki hesap olamasın).
+    """
 
     __tablename__ = "kullanici"
     _tablo_kisitlari = (
-        UniqueConstraint("email"),  # e-posta bütün sistemde tektir (giriş okul seçmeden yapılır)
+        Index("uq_kullanici_email_kucuk", func.lower(column("email")), unique=True),
+        CheckConstraint("email = lower(email)", name="email_kucuk_harf"),
         CheckConstraint("rol IN ('mudur', 'mudur_yardimcisi')", name="rol"),
     )
 
@@ -104,3 +121,47 @@ class Ders(OkulaAitMixin, Base):
 
     ad: Mapped[str] = mapped_column(String(200))
     kisa_ad: Mapped[str] = mapped_column(String(20), default="", server_default="")
+
+
+class Oturum(OkulaAitMixin, Base):
+    """Giriş yapmış bir kullanıcının oturumu (ADR 0012).
+
+    Tarayıcıdaki çerezde rastgele bir jeton durur; burada yalnızca onun SHA-256 özeti saklanır.
+    Veritabanı sızsa bile özetten jeton elde edilemez, yani oturumlar çalınamaz.
+
+    Geçerlilik: `son_kullanim + hareketsizlik_siniri > now()` ve `bitis_mutlak > now()`. İstek
+    gelirken okul henüz bilinmez: oturum `oturum_coz()` veritabanı fonksiyonuyla çözülür
+    (migration cekirdek_0004).
+    """
+
+    __tablename__ = "oturum"
+    _tablo_kisitlari = (
+        ForeignKeyConstraint(["okul_id", "kullanici_id"], ["kullanici.okul_id", "kullanici.id"], ondelete="CASCADE"),
+        UniqueConstraint("jeton_ozeti"),
+        Index(None, "okul_id", "kullanici_id"),
+    )
+
+    kullanici_id: Mapped[uuid.UUID]
+    jeton_ozeti: Mapped[str] = mapped_column(String(64))
+    son_kullanim: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    hareketsizlik_siniri: Mapped[timedelta] = mapped_column(Interval)
+    bitis_mutlak: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class GirisDenemesi(Base):
+    """Kaba kuvvet sayacı: e-posta başına hatalı giriş denemeleri (ADR 0012).
+
+    **Okula ait değildir** (giriş okul bilinmeden yapılır) ve uygulama rolünün bu tabloya hiçbir
+    yetkisi yoktur. Uygulama yalnızca `okul_giris` rolünün fonksiyonlarını çağırır
+    (`giris_kilitli_mi`, `giris_hatasi_kaydet`, `giris_denemelerini_sil`). Model, şemanın kodda
+    da belgelenmesi ve migration tutarlılık testi için vardır; uygulama kodu bu sınıfı kullanmaz.
+
+    Kayıtlı olmayan e-postalar da sayılır: kilitlenme, e-postanın kayıtlı olup olmadığını söylemez.
+    """
+
+    __tablename__ = "giris_denemesi"
+
+    email: Mapped[str] = mapped_column(String(320), primary_key=True)
+    hata_sayisi: Mapped[int]
+    pencere_basi: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    kilit_bitis: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

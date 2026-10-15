@@ -138,6 +138,8 @@ def kalici(motor, sahip_motor):
     yield fabrika, yukle
     with sahip_motor.begin() as baglanti:  # tablo sahibi: RLS'yi atlar
         for tablo in reversed(Base.metadata.sorted_tables):
+            if "okul_id" not in tablo.c and tablo.name != "okul":
+                continue  # okula ait olmayan tablolar (ör. giris_denemesi)
             sutun = tablo.c.okul_id if "okul_id" in tablo.c else tablo.c.id
             baglanti.execute(delete(tablo).where(sutun.in_(okullar)))
 

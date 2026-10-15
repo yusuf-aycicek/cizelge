@@ -238,10 +238,42 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 
 | # | Alt adım | Durum |
 |---|---|---|
-| 1 | Şema ve veritabanı tarafı | **Sıradaki** |
-| 2 | Kimlik servisi | |
+| 1 | Şema ve veritabanı tarafı | Bitti (2026-10-15) |
+| 2 | Kimlik servisi | **Sıradaki** |
 | 3 | API'ye bağlama | |
 | 4 | Belgeler ve uçtan uca | |
+
+1. alt adımdan notlar:
+- E-posta kısıtı denetlendi:
+  - `uq_kullanici_email` zaten bütün sistemde benzersizdi (okul içinde değil), ama büyük/küçük
+    harfe duyarlıydı. "Ayse@" ile "ayse@" iki okulda iki hesap olabiliyordu.
+  - Migration bunu `lower(email)` üzerinde benzersiz indeksle değiştirdi ve CHECK ekledi.
+- Migration `cekirdek_0004`:
+  - `oturum` (okula ait, RLS) ve `giris_denemesi` (okula ait değil, uygulama rolünün yetkisi yok)
+    tabloları;
+  - `okul_giris` rolü;
+  - beş SECURITY DEFINER fonksiyon (`giris_bilgisi`, `oturum_coz`, `giris_kilitli_mi`,
+    `giris_hatasi_kaydet`, `giris_denemelerini_sil`);
+  - yalnızca `okul_giris` için politikalar.
+- Kaba kuvvet sayacı e-posta başına tek satırdır (hata sayısı, pencere başı, kilit bitişi). Kilit,
+  beşinci hatadan itibaren tam 15 dakika sürer. Eşik ve süreler uygulamadan parametre olarak
+  gelir. Eski satırlar her hata kaydında temizlenir.
+- `oturum_coz` son kullanım zamanını en çok dakikada bir yazar.
+- `tests/test_kimlik_veritabani.py` (29 test):
+  - RLS altında arama ve tam eşleşme (joker, önek, boş, büyük harf);
+  - fonksiyonların güvenli tanımı (SECURITY DEFINER, sahip, `search_path`, PUBLIC yetkisi);
+  - `okul_giris`'in dar yetkisi;
+  - oturum geçerliliği ve son kullanım yazma sıklığı;
+  - kaba kuvvet (eşik, kilit süresi, pencere, temizlik, büyük/küçük harf);
+  - e-posta benzersizliği: CHECK kaldırılsa bile indeks korur.
+- Mutasyon denemesi: migration'da dokuz bozma denendi.
+  - İlk turda biri yakalanmadı: e-posta indeksinin büyük/küçük harfe duyarlı hale gelmesi.
+    CHECK zaten bütün e-postaları küçük harfe zorladığı için fark görünmüyordu, yani "ikinci
+    savunma hattı" test edilmemişti.
+  - CHECK'i bir işlem içinde kaldırıp deneyen test eklendi; artık dokuzu da yakalanıyor.
+- İzolasyon kabul testi yeni okula ait `oturum` tablosunu kendiliğinden kapsamına aldı ve veri
+  istedi. Test verisine bir oturum eklendi. Test temizlikleri okula ait olmayan tabloyu atlıyor.
+- ADR 0012 yazıldı; ADR 0009'daki "sonraki adıma not" bölümü kararla değiştirildi.
 
 ## 8. Kapsam dışı (bu adımda)
 
