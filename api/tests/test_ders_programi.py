@@ -173,11 +173,11 @@ def test_sablon_seviyedeki_subelere_uygulanir_ve_coğaltmaz(istemci, okul):
 # --- program ve yerleşim: silme davranışları (veritabanı düzeyi) ------------------------------
 
 
-def test_program_silme_davranislari(istemci, okul, oturum_fabrikasi):
+def test_program_silme_davranislari(istemci, okul, oturum_fabrikasi, kuyruk):
     atama_id = uuid.UUID(atama_olustur(istemci, okul).json()["id"])
     okul_id = uuid.UUID(okul["okul"])
     with okul_oturumu(oturum_fabrikasi, okul_id) as oturum:
-        p1 = Program(ad="Eylül")
+        p1 = Program(ad="Eylül", durum="hazir", baslama=_simdi(), bitis=_simdi(), cozum_durumu="optimal")
         oturum.add(p1)
         oturum.flush()
         p2 = Program(ad="Ekim", temel_program_id=p1.id)
@@ -198,6 +198,8 @@ def test_program_silme_davranislari(istemci, okul, oturum_fabrikasi):
         oturum.commit()
         assert oturum.scalars(select(Yerlesim)).all() == []  # atama silinince yerleşimleri de
 
+    # p2'nin işi kuyrukta: gerçekten bekliyor (yoksa okunurken öksüz sayılırdı, test_program_uretimi.py).
+    kuyruk.kuyruga_ekle(str(p2_id), "is", {}, 60)
     yanit = istemci.get(f"{DP}/programlar/{p2_id}", headers=okul["baslik"])
     assert yanit.status_code == 200 and yanit.json()["durum"] == "bekliyor"
     assert istemci.get(f"{DP}/programlar/{p1_id}", headers=okul["baslik"]).status_code == 404

@@ -17,10 +17,19 @@ from typing import Any
 
 from cozucu.kisitlar import GirdiHatasi, kural_olustur
 from cozucu.model import KisitTanimi
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 
 from okulapi.cekirdek.depo import DersDeposu, OgretmenDeposu, OkulDeposu, SinifDeposu
 from okulapi.cekirdek.kiraci import oturumun_okulu
-from okulapi.cekirdek.servisler import CrudServisi, GecersizVeri, KayitBulunamadi
+from okulapi.cekirdek.kuyruk import IsKuyrugu, KuyrukHatasi
+from okulapi.cekirdek.servisler import (
+    CrudServisi,
+    GecersizVeri,
+    HizmetKullanilamiyor,
+    KayitBulunamadi,
+    KayitCakismasi,
+)
 from okulapi.moduller.ders_programi.depo import (
     DersAtamaDeposu,
     KisitDeposu,
@@ -29,7 +38,13 @@ from okulapi.moduller.ders_programi.depo import (
     SeviyeSablonuDeposu,
     YerlesimDeposu,
 )
-from okulapi.moduller.ders_programi.modeller import DersAtama, Program, Yerlesim
+from okulapi.moduller.ders_programi.modeller import ETKIN_DURUMLAR, DersAtama, Program, Yerlesim
+from okulapi.moduller.ders_programi.uretim import (
+    URETIM_BASARISIZ,
+    URETIM_ISI,
+    is_suresi_siniri_sn,
+    takili_uretimleri_temizle,
+)
 
 
 def _bu_okulda_olmali(depo, kayit_id: uuid.UUID | None, varlik: str) -> None:
@@ -121,22 +136,92 @@ class KisitServisi(CrudServisi):
             raise GecersizVeri(str(hata)) from hata
 
 
-class ProgramServisi:
-    """Yalnızca okuma. Program üretme (oluşturma ve sonucu yazma) yapım sırası 3'te worker ile."""
+ETKIN_URETIM_VAR = (
+    "Bu okulun devam eden bir program üretimi var. Bitmesini bekleyin; durumu program listesinden "
+    "izleyebilirsiniz."
+)
+KUYRUGA_ULASILAMADI = "Program üretim kuyruğuna ulaşılamadı. Biraz sonra yeniden deneyin."
 
-    def __init__(self, oturum) -> None:
+
+class ProgramServisi:
+    """Program üretme isteği, durum sorgulama, yerleşimler (ADR 0011).
+
+    Okuma ve yeni üretim isteği önce takılı üretimleri temizler (`takili_uretimleri_temizle`):
+    çökmüş bir worker'ın ya da kuyruğa hiç girmemiş bir isteğin bıraktığı program, okulun yeni
+    üretim yapmasını kalıcı olarak engellemesin. `kuyruk` verilmezse yalnızca süreye dayalı
+    (`uretiliyor`) temizlik yapılır.
+    """
+
+    def __init__(self, oturum, kuyruk: IsKuyrugu | None = None) -> None:
         self.oturum = oturum
+        self.kuyruk = kuyruk
         self.depo = ProgramDeposu(oturum)
 
+    def _temizle(self) -> None:
+        if takili_uretimleri_temizle(self.oturum, self.kuyruk):
+            self.oturum.commit()
+
     def listele(self) -> list[Program]:
+        self._temizle()
         return self.depo.listele()
 
     def getir(self, program_id: uuid.UUID) -> Program:
+        self._temizle()
+        return self._getir(program_id)
+
+    def _getir(self, program_id: uuid.UUID) -> Program:
         program = self.depo.getir(program_id)
         if program is None:
             raise KayitBulunamadi("Program")
         return program
 
     def yerlesimler(self, program_id: uuid.UUID) -> list[Yerlesim]:
-        self.getir(program_id)
+        self._getir(program_id)
         return YerlesimDeposu(self.oturum).programin(program_id)
+
+    def uret(self, ad: str, temel_program_id: uuid.UUID | None, sure_siniri_sn: int) -> Program:
+        """Yeni üretim isteği: program (`bekliyor`) eklenir, iş kuyruğa konur, sonra commit.
+
+        Sıra bilerek "önce kuyruk, sonra commit"tir (ADR 0011 madde 4): commit edilmemiş program
+        başka işlemlere görünmez, yani temizlik "bekliyor ama işi kuyrukta yok" durumunu yalnızca
+        gerçekten öksüz kalmış programlarda görür. Worker işi commit'ten önce alırsa programı kısa
+        bir süre yeniden arar (`uretim.BULUNAMAZSA_BEKLE_SN`).
+        """
+        if self.kuyruk is None:
+            raise RuntimeError("Program üretmek için iş kuyruğu gerekli")
+        self._temizle()  # 409 denetiminden önce: takılı üretim yeni isteği engellemesin
+        etkin = select(Program.id).where(Program.durum.in_(ETKIN_DURUMLAR)).limit(1)
+        if self.oturum.scalar(etkin) is not None:
+            raise KayitCakismasi(ETKIN_URETIM_VAR)
+        if temel_program_id is not None:
+            temel = self._getir(temel_program_id)
+            if temel.durum != "hazir":
+                raise GecersizVeri("Temel alınacak program hazır (başarıyla üretilmiş) bir program olmalı")
+
+        program = Program(ad=ad, temel_program_id=temel_program_id, sure_siniri_sn=sure_siniri_sn)
+        self.oturum.add(program)
+        try:
+            self.oturum.flush()  # aynı anda gelen ikinci istek burada kısmi benzersiz indekse takılır
+        except IntegrityError as hata:
+            self.oturum.rollback()
+            if "uq_program_okul_id_etkin" in str(hata.orig):
+                raise KayitCakismasi(ETKIN_URETIM_VAR) from hata
+            raise
+
+        okul_id = oturumun_okulu(self.oturum)
+        try:
+            self.kuyruk.kuyruga_ekle(
+                is_id=str(program.id),  # işin kimliği = program kimliği
+                fonksiyon=URETIM_ISI,
+                argumanlar={"okul_id": str(okul_id), "program_id": str(program.id)},
+                zaman_asimi_sn=is_suresi_siniri_sn(sure_siniri_sn),
+                basarisizlikta=URETIM_BASARISIZ,
+            )
+        except KuyrukHatasi as hata:
+            # Program aynı istekte kapatılır: "bekliyor" kalıp okulu engellemesin, kullanıcı da
+            # isteğinin kaydını ve nedenini görsün.
+            program.durum, program.hata_mesaji, program.bitis = "basarisiz", KUYRUGA_ULASILAMADI, func.now()
+            self.oturum.commit()
+            raise HizmetKullanilamiyor(KUYRUGA_ULASILAMADI) from hata
+        self.oturum.commit()
+        return program

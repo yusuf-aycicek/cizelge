@@ -18,6 +18,7 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.orm import sessionmaker
 
 from okulapi.ayarlar import Ayarlar
+from okulapi.cekirdek.kuyruk import BellekKuyrugu
 from okulapi.cekirdek.veritabani import motor_olustur
 from okulapi.main import uygulama_olustur
 from okulapi.migrasyon import alembic_ayari
@@ -109,9 +110,16 @@ def oturum_fabrikasi(motor):
 
 
 @pytest.fixture
-def istemci(ayarlar, oturum_fabrikasi):
+def kuyruk():
+    """Bellek içi iş kuyruğu: testlerde Redis yok (gerçek RQ: test_kuyruk.py ve kabul testi)."""
+    return BellekKuyrugu()
+
+
+@pytest.fixture
+def istemci(ayarlar, oturum_fabrikasi, kuyruk):
     uygulama = uygulama_olustur(ayarlar)
     uygulama.state.oturum_fabrikasi = oturum_fabrikasi
+    uygulama.state.kuyruk = kuyruk
     with TestClient(uygulama) as istemci:
         yield istemci
     uygulama.state.motor.dispose()

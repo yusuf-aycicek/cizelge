@@ -134,11 +134,17 @@ def kalici(motor, sahip_motor):
         okullar.append(okul_id)
         return okul_id, harita
 
+    yukle.okullar = okullar
     yield fabrika, yukle
     with sahip_motor.begin() as baglanti:  # tablo sahibi: RLS'yi atlar
         for tablo in reversed(Base.metadata.sorted_tables):
             sutun = tablo.c.okul_id if "okul_id" in tablo.c else tablo.c.id
             baglanti.execute(delete(tablo).where(sutun.in_(okullar)))
+
+
+def kalici_okullar_ekle(kalici, okul_id) -> None:
+    """`kalici` düzeneğine, kendisinin oluşturmadığı bir okulu da sildirir."""
+    kalici[1].okullar.append(okul_id)
 
 
 # --- 1. uçtan uca (gerçek çözücü) -----------------------------------------------------------
@@ -388,36 +394,157 @@ def test_basarisiz_yap_bitmis_programa_dokunmaz(oturum_fabrikasi, mini):
     program_id = program_ekle(oturum_fabrikasi, okul_id)
     assert uretimi_basarisiz_yap(oturum_fabrikasi, okul_id, program_id, "kuyruğa ulaşılamadı") is True
     program, _ = program_oku(oturum_fabrikasi, okul_id, program_id)
-    assert (program.durum, program.baslama is not None) == ("basarisiz", True)  # CHECK kısıtları sağlandı
+    assert (program.durum, program.baslama, program.bitis is not None) == ("basarisiz", None, True)  # hiç başlamadı
     assert uretimi_basarisiz_yap(oturum_fabrikasi, okul_id, program_id, "ikinci kez") is False
     assert program_oku(oturum_fabrikasi, okul_id, program_id)[0].hata_mesaji == "kuyruğa ulaşılamadı"
 
 
 # --- takılı üretim temizliği ---------------------------------------------------------------
 
-def test_takili_uretim_temizligi_yalnizca_suresi_gecmisleri_ve_kendi_okulunu_etkiler(oturum_fabrikasi, mini):
-    okul_a, _ = mini
-    okul_b, _ = mini_yukle(oturum_fabrikasi, "B Lisesi")
+def bos_okul(fabrika, ad: str) -> uuid.UUID:
+    with okulsuz_oturum(fabrika) as oturum:
+        return OkulServisi(oturum).olustur({"ad": ad}).id
+
+
+def temizle(fabrika, okul_id, kuyruk=None) -> int:
+    with okul_oturumu(fabrika, okul_id) as o:
+        sayi = takili_uretimleri_temizle(o, kuyruk)
+        o.commit()
+        return sayi
+
+
+def test_takili_uretim_temizligi_yalnizca_suresi_gecmisleri_ve_kendi_okulunu_etkiler(oturum_fabrikasi):
+    # Okul başına en fazla bir etkin üretim olabildiği için her durum ayrı bir okulda.
     simdi = datetime.now(timezone.utc)
     sinir = timedelta(seconds=is_suresi_siniri_sn(SURE))  # 2 × 30 + 120 = 180 sn
     assert sinir == timedelta(seconds=180)
+    durumlar = {
+        # ad: (sure_siniri_sn, ne zaman başladı, temizlenmeli mi)
+        "takili": (SURE, simdi - sinir - timedelta(minutes=10), True),
+        "suruyor": (SURE, simdi - timedelta(seconds=10), False),
+        # 1 saattir sürüyor ama sınırı 2 × 3600 + 120 sn: takılı değil
+        "uzun": (3600, simdi - timedelta(hours=1), False),
+    }
+    programlar = {}
+    for ad, (sure, baslama, _) in durumlar.items():
+        okul_id = bos_okul(oturum_fabrikasi, ad)
+        programlar[ad] = (okul_id, program_ekle(oturum_fabrikasi, okul_id, durum="uretiliyor",
+                                                sure_siniri_sn=sure, baslama=baslama))
+    b_okul, b_takili = programlar["takili"]
 
-    takili = program_ekle(oturum_fabrikasi, okul_a, ad="Takılı", durum="uretiliyor", baslama=simdi - sinir - timedelta(minutes=10))
-    program_ekle(oturum_fabrikasi, okul_a, ad="Sürüyor", durum="uretiliyor", baslama=simdi - timedelta(seconds=10))
-    # Uzun süre sınırı olan program: 1 saattir sürüyor ama sınırı 2 × 3600 + 120 sn.
-    program_ekle(oturum_fabrikasi, okul_a, ad="Uzun", durum="uretiliyor", sure_siniri_sn=3600,
-                        baslama=simdi - timedelta(hours=1))
-    program_ekle(oturum_fabrikasi, okul_a, ad="Bekleyen")
-    b_takili = program_ekle(oturum_fabrikasi, okul_b, ad="B takılı", durum="uretiliyor", baslama=simdi - timedelta(hours=2))
+    # Başka bir okulun oturumuyla temizlik: "takili" okulunun programına dokunmaz (okul filtresi).
+    assert temizle(oturum_fabrikasi, programlar["suruyor"][0]) == 0
+    assert program_oku(oturum_fabrikasi, b_okul, b_takili)[0].durum == "uretiliyor"
 
-    with okul_oturumu(oturum_fabrikasi, okul_a) as o:
-        assert takili_uretimleri_temizle(o) == 1
-        o.commit()
-        durumlar = dict(o.execute(select(Program.ad, Program.durum)).all())
-        t = o.get(Program, takili)
-        assert (t.hata_mesaji, t.bitis is not None) == (YARIDA_KALDI, True)
-    assert durumlar == {"Takılı": "basarisiz", "Sürüyor": "uretiliyor", "Uzun": "uretiliyor", "Bekleyen": "bekliyor"}
-    assert program_oku(oturum_fabrikasi, okul_b, b_takili)[0].durum == "uretiliyor"  # A'nın oturumu B'ye dokunmaz
+    for ad, (okul_id, program_id) in programlar.items():
+        temizle(oturum_fabrikasi, okul_id)
+        program, _ = program_oku(oturum_fabrikasi, okul_id, program_id)
+        if durumlar[ad][2]:
+            assert (program.durum, program.hata_mesaji, program.bitis is not None) == ("basarisiz", YARIDA_KALDI, True)
+        else:
+            assert program.durum == "uretiliyor", ad
+
+
+def test_temizlik_veritabani_saatini_kullanir(oturum_fabrikasi):
+    # baslama = now() - (sınır - 5 sn): henüz takılı değil; now() - (sınır + 5 sn): takılı.
+    sinir = func.make_interval(0, 0, 0, 0, 0, 0, is_suresi_siniri_sn(SURE))
+    bes = func.make_interval(0, 0, 0, 0, 0, 0, 5)
+    for ad, baslama, beklenen in (("az", func.now() - sinir + bes, "uretiliyor"),
+                                  ("cok", func.now() - sinir - bes, "basarisiz")):
+        okul_id = bos_okul(oturum_fabrikasi, ad)
+        with okul_oturumu(oturum_fabrikasi, okul_id) as o:
+            program = Program(ad=ad, sure_siniri_sn=SURE, durum="uretiliyor")
+            program.baslama = baslama
+            o.add(program)
+            o.flush()
+            takili_uretimleri_temizle(o, None)
+            o.commit()
+            o.refresh(program)
+            assert program.durum == beklenen, ad
+
+
+# --- öksüz "bekliyor" program: kuyruğa sorulur, süreye bakılmaz -------------------------------
+
+@pytest.mark.parametrize(
+    ("kuyruk_durumu", "temizlenir"),
+    [
+        ("kuyrukta", False),      # sırada ya da çalışıyor: gerçekten bekliyor
+        ("hic_yok", True),        # iş kaydı yok: kuyruğa hiç girmedi ya da kayboldu
+        ("bitti", True),          # iş bitti ama program hâlâ bekliyor: öksüz
+        ("ulasilamaz", False),    # kuyruğa sorulamıyor: "bilmiyorum" ile iptal edilmez
+        ("kuyruk_verilmedi", False),
+    ],
+)
+def test_bekleyen_program_isi_kuyrukta_yoksa_temizlenir(oturum_fabrikasi, kuyruk_durumu, temizlenir):
+    from okulapi.cekirdek.kuyruk import BellekKuyrugu
+    from okulapi.moduller.ders_programi.uretim import OKSUZ
+
+    okul_id = bos_okul(oturum_fabrikasi, "Bekleyen Lisesi")
+    # Çok eski bir program: süreye dayalı bir kural olsaydı kesinlikle temizlenirdi.
+    program_id = program_ekle(oturum_fabrikasi, okul_id)
+    kuyruk = BellekKuyrugu()
+    if kuyruk_durumu in ("kuyrukta", "bitti", "ulasilamaz"):
+        kuyruk.kuyruga_ekle(str(program_id), "is", {}, 60)
+    if kuyruk_durumu == "bitti":
+        kuyruk.bitir(str(program_id))
+    kuyruk.ulasilamaz = kuyruk_durumu == "ulasilamaz"
+
+    sayi = temizle(oturum_fabrikasi, okul_id, None if kuyruk_durumu == "kuyruk_verilmedi" else kuyruk)
+
+    program, _ = program_oku(oturum_fabrikasi, okul_id, program_id)
+    if temizlenir:
+        assert (sayi, program.durum, program.hata_mesaji) == (1, "basarisiz", OKSUZ)
+        assert program.baslama is None and program.bitis is not None
+    else:
+        assert (sayi, program.durum) == (0, "bekliyor")
+
+
+def test_worker_baslatirken_kilitledigi_bekleyen_programa_temizlik_dokunmaz(kalici):
+    """SKIP LOCKED: worker satırı kilitlemişse (başlatma işleminin ortası) temizlik onu atlar ve
+    beklemez. Burada iş kuyrukta görünmüyor; kilit olmasa öksüz sayılırdı."""
+    from okulapi.cekirdek.kuyruk import BellekKuyrugu
+
+    fabrika, _ = kalici
+    okul_id = bos_okul(fabrika, "Kilit Lisesi")
+    kalici_okullar_ekle(kalici, okul_id)
+    program_id = program_ekle(fabrika, okul_id)
+
+    with okul_oturumu(fabrika, okul_id) as worker:
+        worker.scalars(select(Program).where(Program.id == program_id).with_for_update()).one()
+        baslangic = time.monotonic()
+        assert temizle(fabrika, okul_id, BellekKuyrugu()) == 0  # ayrı bağlantı
+        assert time.monotonic() - baslangic < 2  # kilidi beklemedi
+        worker.rollback()
+    assert temizle(fabrika, okul_id, BellekKuyrugu()) == 1  # kilit kalkınca öksüz olarak görülür
+
+
+# --- worker işi commit'ten önce alırsa ------------------------------------------------------
+
+def test_program_henuz_commit_edilmemisse_worker_kisa_sure_yeniden_arar(kalici):
+    """API önce kuyruğa ekler, sonra commit eder (ADR 0011 madde 4). Worker programı ilk denemede
+    bulamazsa bekleyip yeniden arar."""
+    fabrika, yukle = kalici
+    okul_id, _ = yukle()
+    program_id = uuid.uuid4()
+    api = okul_oturumu(fabrika, okul_id)
+    api.add(Program(id=program_id, ad="Geç commit", sure_siniri_sn=SURE))
+    api.flush()  # satır eklendi ama commit edilmedi: başka bağlantılar görmez
+    zamanlayici = threading.Timer(0.3, lambda: (api.commit(), api.close()))
+    zamanlayici.start()
+    try:
+        sonuc = programi_uret(fabrika, okul_id, program_id, SahteCozucu(), bulunamazsa_bekle=(0.1, 0.2, 0.5, 1.0))
+    finally:
+        zamanlayici.join()
+    assert sonuc is UretimSonucu.HAZIR
+
+
+def test_program_hic_gelmezse_worker_vazgecer(oturum_fabrikasi, mini):
+    okul_id, _ = mini
+    cozucu = SahteCozucu()
+    baslangic = time.monotonic()
+    assert programi_uret(oturum_fabrikasi, okul_id, uuid.uuid4(), cozucu, bulunamazsa_bekle=(0.05, 0.05)) \
+        is UretimSonucu.ATLANDI
+    assert cozucu.cagri_sayisi == 0 and time.monotonic() - baslangic >= 0.1
 
 
 def test_temizlenen_program_icin_gec_gelen_is_bir_sey_yapmaz(oturum_fabrikasi, mini):
@@ -425,22 +552,6 @@ def test_temizlenen_program_icin_gec_gelen_is_bir_sey_yapmaz(oturum_fabrikasi, m
     eski = datetime.now(timezone.utc) - timedelta(hours=1)
     program_id = program_ekle(oturum_fabrikasi, okul_id, durum="uretiliyor", baslama=eski)
     with okul_oturumu(oturum_fabrikasi, okul_id) as o:
-        takili_uretimleri_temizle(o)
+        takili_uretimleri_temizle(o, None)
         o.commit()
     assert programi_uret(oturum_fabrikasi, okul_id, program_id, SahteCozucu()) is UretimSonucu.ATLANDI
-
-
-def test_temizlik_veritabani_saatini_kullanir(oturum_fabrikasi, mini):
-    # baslama = now() - (sınır - 5 sn): henüz takılı değil; now() - (sınır + 5 sn): takılı.
-    okul_id, _ = mini
-    with okul_oturumu(oturum_fabrikasi, okul_id) as o:
-        sinir = func.make_interval(0, 0, 0, 0, 0, 0, is_suresi_siniri_sn(SURE))
-        az = Program(ad="az", sure_siniri_sn=SURE, durum="uretiliyor")
-        az.baslama = func.now() - sinir + func.make_interval(0, 0, 0, 0, 0, 0, 5)
-        cok = Program(ad="çok", sure_siniri_sn=SURE, durum="uretiliyor")
-        cok.baslama = func.now() - sinir - func.make_interval(0, 0, 0, 0, 0, 0, 5)
-        o.add_all([az, cok])
-        o.flush()
-        assert takili_uretimleri_temizle(o) == 1
-        o.commit()
-        assert dict(o.execute(select(Program.ad, Program.durum)).all()) == {"az": "uretiliyor", "çok": "basarisiz"}

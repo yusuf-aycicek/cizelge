@@ -13,12 +13,13 @@ from okulapi.ayarlar import Ayarlar
 from okulapi.cekirdek import saglik
 from okulapi.cekirdek.api import ROUTERLAR as CEKIRDEK_ROUTERLARI
 from okulapi.cekirdek.modul import modulleri_yukle
-from okulapi.cekirdek.servisler import GecersizVeri, KayitBulunamadi, KayitCakismasi
+from okulapi.cekirdek.kuyruk import RqKuyrugu
+from okulapi.cekirdek.servisler import GecersizVeri, HizmetKullanilamiyor, KayitBulunamadi, KayitCakismasi
 from okulapi.cekirdek.veritabani import motor_olustur, oturum_fabrikasi
 
 # Servis istisnası -> HTTP durum kodu. Başka okulun kaydı da "bulunamadı" (404) döner: kaydın
 # var olduğu bile sızmasın.
-_HATA_KODLARI = {KayitBulunamadi: 404, KayitCakismasi: 409, GecersizVeri: 422}
+_HATA_KODLARI = {KayitBulunamadi: 404, KayitCakismasi: 409, GecersizVeri: 422, HizmetKullanilamiyor: 503}
 
 
 def _hata_isleyici(kod: int):
@@ -34,6 +35,8 @@ def uygulama_olustur(ayarlar: Ayarlar | None = None) -> FastAPI:
     uygulama.state.ayarlar = ayarlar
     uygulama.state.motor = motor_olustur(ayarlar.veritabani_url)
     uygulama.state.oturum_fabrikasi = oturum_fabrikasi(uygulama.state.motor)
+    # Testler bunu BellekKuyrugu ile değiştirir. Redis bağlantısı ilk kullanımda kurulur.
+    uygulama.state.kuyruk = RqKuyrugu(ayarlar.redis_url, ayarlar.kuyruk_adi)
 
     for hata_sinifi, kod in _HATA_KODLARI.items():
         uygulama.add_exception_handler(hata_sinifi, _hata_isleyici(kod))

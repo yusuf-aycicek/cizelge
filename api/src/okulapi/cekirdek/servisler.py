@@ -42,6 +42,10 @@ class GecersizVeri(Exception):
     pass
 
 
+class HizmetKullanilamiyor(Exception):
+    """Bağımlı bir altyapı parçasına (ör. iş kuyruğu) ulaşılamadı; istek sonra yeniden denenebilir."""
+
+
 def _sqlstate(hata: IntegrityError) -> str | None:
     return getattr(hata.orig, "sqlstate", None)
 

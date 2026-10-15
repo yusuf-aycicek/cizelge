@@ -6,10 +6,10 @@ Not: `from __future__ import annotations` yok (FastAPI tip ipuçlarını çalı�
 import uuid
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request, Response
 
 from okulapi.cekirdek.api import crud_router
-from okulapi.cekirdek.bagimliliklar import OkulOturumu
+from okulapi.cekirdek.bagimliliklar import Kuyruk, OkulOturumu
 from okulapi.moduller.ders_programi import semalar
 from okulapi.moduller.ders_programi.servisler import (
     DersAtamaServisi,
@@ -33,14 +33,28 @@ def sablonu_uygula(veri: semalar.SablonUygula, oturum: OkulOturumu) -> Any:
 program_router = APIRouter(prefix="/programlar", tags=["program"])
 
 
+@program_router.post("", response_model=semalar.ProgramYanit, status_code=202)
+def program_uret(veri: semalar.ProgramUret, oturum: OkulOturumu, kuyruk: Kuyruk, istek: Request,
+                 yanit: Response) -> Any:
+    """Program üretme isteği. Üretim arka planda çalışır: 202 (kabul edildi) ve `bekliyor`
+    durumundaki program döner; durum `GET /programlar/{id}` ile izlenir.
+
+    409: okulun devam eden bir üretimi var. 503: iş kuyruğuna ulaşılamadı (program `basarisiz`
+    olarak kaydedilir)."""
+    program = ProgramServisi(oturum, kuyruk).uret(veri.ad, veri.temel_program_id, veri.sure_siniri_sn)
+    yanit.headers["Location"] = f"{istek.url.path.rstrip('/')}/{program.id}"
+    return program
+
+
 @program_router.get("", response_model=list[semalar.ProgramYanit])
-def programlari_listele(oturum: OkulOturumu) -> Any:
-    return ProgramServisi(oturum).listele()
+def programlari_listele(oturum: OkulOturumu, kuyruk: Kuyruk) -> Any:
+    return ProgramServisi(oturum, kuyruk).listele()
 
 
 @program_router.get("/{program_id}", response_model=semalar.ProgramYanit)
-def program_getir(program_id: uuid.UUID, oturum: OkulOturumu) -> Any:
-    return ProgramServisi(oturum).getir(program_id)
+def program_getir(program_id: uuid.UUID, oturum: OkulOturumu, kuyruk: Kuyruk) -> Any:
+    """Programın durumu. Arayüz üretim sürerken bunu birkaç saniyede bir sorar (polling)."""
+    return ProgramServisi(oturum, kuyruk).getir(program_id)
 
 
 @program_router.get("/{program_id}/yerlesimler", response_model=list[semalar.YerlesimYanit])

@@ -22,3 +22,8 @@ class Ayarlar(BaseSettings):
     # Yüklenecek modüller. Yeni bir modül eklemek için adını buraya (ya da ortam değişkenine,
     # ör. OKULAPI_ETKIN_MODULLER='["ders_programi","kutuphane"]') eklemek yeterlidir.
     etkin_moduller: list[str] = ["ders_programi"]
+
+    # İş kuyruğu (Redis + RQ, ADR 0011). Redis bilgisayara açılmaz (plan karar g): bu varsayılan
+    # yalnızca konteyner içindeki adlandırmayla anlamlıdır; docker-compose aynısını verir.
+    redis_url: str = "redis://redis:6379/0"
+    kuyruk_adi: str = "program_uretimi"

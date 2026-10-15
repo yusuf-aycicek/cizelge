@@ -15,6 +15,7 @@ from fastapi import Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from okulapi.cekirdek.kiraci import okul_oturumu, okulsuz_oturum
+from okulapi.cekirdek.kuyruk import IsKuyrugu
 from okulapi.cekirdek.modeller import Okul
 
 
@@ -44,6 +45,11 @@ def okulsuz_oturum_al(istek: Request) -> Iterator[Session]:
         oturum.close()
 
 
+def kuyruk_al(istek: Request) -> IsKuyrugu:
+    return istek.app.state.kuyruk
+
+
 OkulOturumu = Annotated[Session, Depends(okul_oturumu_al)]
 AktifOkulId = Annotated[uuid.UUID, Depends(aktif_okul_id)]
 OkulsuzOturum = Annotated[Session, Depends(okulsuz_oturum_al)]
+Kuyruk = Annotated[IsKuyrugu, Depends(kuyruk_al)]

@@ -14,13 +14,16 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "alembic>=1.14",
     "pydantic-settings>=2.6",
+    # İş kuyruğu (ADR 0011). Yalnızca okulapi/cekirdek/kuyruk.py içe aktarır.
+    "rq>=2.0",
+    "redis>=5",
     # Depodaki çözücü paketi (/cozucu). Ders programı modülü onu girdi/çıktı dönüşümü ve kısıt
     # doğrulaması için kullanır; çözücü API'yi bilmez. Geliştirmede: pip install -e ../cozucu
     "cozucu",
 ]
 
 [project.optional-dependencies]
-test = ["pytest>=8", "httpx>=0.27"]
+test = ["pytest>=8", "httpx>=0.27", "fakeredis>=2.26"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

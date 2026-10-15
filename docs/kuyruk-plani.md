@@ -11,8 +11,9 @@ değişir. Tasarımın temeli `docs/api-plani.md` bölüm 14 (ters yön: sonuç 
 Yönetici            API                      PostgreSQL           Redis (RQ)        Worker
   | POST /programlar  |                          |                    |                 |
   |------------------>| program (bekliyor) ekle   |                    |                 |
+  |                   |   (commit edilmedi)       |                    |                 |
+  |                   |-- iş (kimliği = program_id) ---------------->|                 |
   |                   |-- commit --------------->|                    |                 |
-  |                   |-- iş: (okul_id, program_id) ---------------->|                 |
   |<-- 202 + program --|                          |                    |-- iş --------->|
   |                   |                          |<-- FOR UPDATE, uretiliyor, commit --|
   | GET /programlar/{id} (birkaç sn'de bir)       |                    |   girdi, çöz    |
@@ -22,10 +23,12 @@ Yönetici            API                      PostgreSQL           Redis (RQ)   
   |<-- hazir ----------|                          |                    |                 |
 ```
 
-- **Önce commit, sonra kuyruk.** İş kuyruğa program satırı commit edildikten sonra konur. Tersi
-  olsaydı worker henüz görünmeyen bir programı arayabilirdi.
-- Kuyruğa ekleme başarısız olursa (Redis kapalı) program `basarisiz` ("kuyruğa ulaşılamadı")
-  yapılır, API 503 döner.
+- **Önce kuyruk, sonra commit; işin kimliği program kimliği** (2026-10-15 kararıyla değişti; ilk
+  plan "önce commit, sonra kuyruk" idi). Gerekçe ADR 0011 madde 4: öksüz program temizliği
+  "bekliyor ama işi kuyrukta yok" durumuna bakar; ters sırada iki adım arasında gelen bir okuma
+  meşru programı iptal ederdi. Worker işi commit'ten önce alırsa programı kısa süre yeniden arar.
+- Kuyruğa ekleme başarısız olursa (Redis kapalı) program aynı istekte `basarisiz` ("kuyruğa
+  ulaşılamadı") yapılır, API 503 döner.
 - Worker, işteki `okul_id` ile `okul_oturumu` açar ve uygulama rolüyle (RLS) bağlanır. Başka
   okulun verisine worker da dokunamaz.
 - Başlatma, çözme ve yazma adımları bölüm 14'teki gibidir: `FOR UPDATE` ile idempotent başlatma,
@@ -40,7 +43,7 @@ Yönetici            API                      PostgreSQL           Redis (RQ)   
 | b | Kilitli hücreler nereden | **Temel programdan.** Tek parametre: `temel_program_id`. Temel programdaki kilitli hücreler yeni programda da kilitli kalır. | Ayrı `kilit_programi_id`: dönüştürücü bunu destekliyor ama iki farklı programdan kilit ve temel almak kullanıcıya anlamsız. |
 | c | Aynı anda kaç üretim | **Okul başına bir etkin üretim.** `bekliyor` ya da `uretiliyor` durumunda programı olan okul yenisini isterse 409. | Sınırsız: tek okul dönem başında kuyruğu doldurup diğer okulları bekletebilir. |
 | d | Ön kontroller nerede | **Worker'da** (çözücünün içinde, bugünkü gibi). Hata, sonuçla aynı yoldan gelir (`basarisiz` + mesaj). | API'de eşzamanlı ön kontrol: anında 422 verirdi ama iki ayrı hata yolu olurdu, API çözücü mantığını çalıştırmaya başlardı. |
-| e | Takılan üretim | **Okunurken ve yeni üretim isteğinde temizleme:** `uretiliyor` durumunda ve `baslama + iş süresi sınırı` geçmiş program `basarisiz` ("üretim yarıda kaldı") yapılır. Bu temizlik hem program okunurken hem de yeni üretim isteği geldiğinde, (c)'deki 409 kontrolünden **önce** yapılır; yoksa takılı bir üretim okulun yeni üretim yapmasını kalıcı olarak engellerdi (kullanıcı düzeltmesi, 2026-10-15). RQ'nun başarısızlık geri çağrısı da aynı şeyi hemen yapar. | Worker açılışında tarama: worker uygulama rolüyle bağlanır, RLS yüzünden bütün okulları göremez. Zamanlanmış görev: yeni bir parça gerektirir. |
+| e | Takılan üretim | **Okunurken ve yeni üretim isteğinde temizleme:** `uretiliyor` durumunda ve `baslama + iş süresi sınırı` geçmiş program `basarisiz` ("üretim yarıda kaldı") yapılır. Bu temizlik hem program okunurken hem de yeni üretim isteği geldiğinde, (c)'deki 409 kontrolünden **önce** yapılır; yoksa takılı bir üretim okulun yeni üretim yapmasını kalıcı olarak engellerdi (kullanıcı düzeltmesi, 2026-10-15). **`bekliyor` için** süreye bakılmaz, kuyruğa sorulur: işi kuyrukta olmayan program öksüzdür ve `basarisiz` olur; kuyruktaysa dokunulmaz (kullanıcı kararı, 2026-10-15; ADR 0011 madde 8). RQ'nun başarısızlık geri çağrısı da aynı şeyi hemen yapar. | Worker açılışında tarama: worker uygulama rolüyle bağlanır, RLS yüzünden bütün okulları göremez. Zamanlanmış görev: yeni bir parça gerektirir. |
 | f | İş süresi sınırı (RQ `job_timeout`) | `2 × sure_siniri_sn + 120 sn`. Ana çözüm, süre dolunca zorunlu kısıtlarla ikinci kontrol ve çelişki analizi aynı işte çalışır. | Yalnızca `sure_siniri_sn`: ikinci kontrol ve çelişki analizi yarıda kesilirdi. |
 | g | Redis portu | **Bilgisayara açılmaz.** Yalnızca konteynerler arası (`redis:6379`). Uçtan uca test HTTP üzerinden yapılır. | 6379'u açmak: gerek yok ve başka projelerle çakışma riski. |
 
@@ -137,8 +140,8 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 |---|---|---|
 | 1 | Şema ve ADR | Bitti (2026-10-15) |
 | 2 | Üretim mantığı | Bitti (2026-10-15) |
-| 3 | Kuyruk ve endpoint | **Sıradaki** |
-| 4 | Worker ve Docker | |
+| 3 | Kuyruk ve endpoint | Bitti (2026-10-15) |
+| 4 | Worker ve Docker | **Sıradaki** |
 
 1. alt adımdan notlar:
 - `durum` için CHECK zaten vardı. Buna ek olarak durumla alanların tutarlılığı için beş kısıt eklendi:
@@ -180,6 +183,44 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
   alır) 3. alt adımda, endpoint ile birlikte (bölüm 4, madde 8). Temizliğin kendisi burada test
   edildi.
 - Testler: 225/225.
+
+3. alt adımdan notlar:
+- Öksüz `bekliyor` program kararı (kullanıcı, 2026-10-15) uygulandı:
+  - işin kimliği program kimliği;
+  - `IsKuyrugu.kuyrukta_mi`, RQ'da iş durumuna bakar (queued, started, deferred, scheduled:
+    kuyrukta);
+  - temizlik `bekliyor` programlar için kuyruğa sorar, süreye bakmaz.
+- Bu karar sırayı değiştirdi: **önce kuyruk, sonra commit** (ADR 0011 madde 4). Sıra testle
+  kanıtlandı: eski sıraya dönen mutasyonu bir test yakalıyor.
+- Kuyruk hatasında program aynı istekte `basarisiz` olur, 503 döner. Gerçek konteynerde Redis
+  yokken de denendi.
+- Plana ek: **kısmi benzersiz indeks** (migration `ders_programi_0005`): okul başına tek etkin
+  üretim, aynı anda gelen iki istekte de veritabanında korunur.
+- `okulapi/cekirdek/kuyruk.py`: `IsKuyrugu`, `RqKuyrugu`, `BellekKuyrugu`, `KuyrukHatasi`.
+  - RQ'nun on_failure imzası kuyruktan bağımsız bir çağrıya çevrilir.
+  - RQ ve Redis'i yalnızca bu dosya içe aktarır (mimari testi).
+  - RQ Windows'ta içe aktarılabiliyor; RQ gerçeklemesi fakeredis ile bilgisayarda test
+    ediliyor (plandaki risk maddesi böylece daraldı).
+- `okulapi/cekirdek/isci.py`: worker sürecinin oturum fabrikası. Tembel kurulur: RQ'nun `fork`
+  ettiği alt süreçte açılır.
+- `uretim.py`'ye eklenenler:
+  - kuyruk giriş noktaları `uretim_isi` ve `uretim_basarisiz_oldu`;
+  - programı bulamayınca kısa süre yeniden arama.
+- Endpoint'ler:
+  - `POST /api/ders-programi/programlar` → 202 + `Location`; 409 (etkin üretim var), 422 (temel
+    program hazır değil), 404 (temel program başka okulun), 503 (kuyruk yok);
+  - GET'ler temizliği çalıştırır.
+- Mutasyon denemesi: dokuz bozma denendi, hepsini en az bir test yakaladı:
+  - 409 denetimi temizlikten önce;
+  - yeni istekte temizlik yok;
+  - eski sıra;
+  - kuyruk hatasında program kapatılmaz;
+  - benzersizlik hatası 409'a çevrilmez;
+  - kuyruğa sorulmaz;
+  - ulaşılamazken öksüz sayılır;
+  - süreye dayalı kural;
+  - worker yeniden aramaz.
+- Testler: 269/269 (test_kuyruk 17, test_program_uretimi 19, test_uretim 27).
 
 ## 6. Kapsam dışı (bu adımda)
 

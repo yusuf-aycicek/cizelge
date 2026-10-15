@@ -126,7 +126,15 @@ class KisitYanit(_Yanit):
     agirlik: int
 
 
-# --- program (yalnızca okuma; üretimi yapım sırası 3) ---------------------------------------
+# --- program -----------------------------------------------------------------------------
+
+
+class ProgramUret(BaseModel):
+    ad: str = Field(min_length=1, max_length=200)
+    # Doluysa en az değişiklikle güncelleme; o programın kilitli hücreleri de korunur.
+    temel_program_id: uuid.UUID | None = None
+    # Çözücü süre sınırı. Varsayılan 120 sn (docs/olcumler.md).
+    sure_siniri_sn: int = Field(default=120, ge=5, le=3600)
 
 
 class ProgramYanit(_Yanit):

@@ -24,7 +24,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKeyConstraint, Index, String, Text, UniqueConstraint
+from sqlalchemy import CheckConstraint, column, DateTime, ForeignKeyConstraint, Index, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -114,6 +114,8 @@ class Kisit(OkulaAitMixin, Base):
 PROGRAM_DURUMLARI = ("bekliyor", "uretiliyor", "hazir", "basarisiz")
 # cozucu.CozumDurumu değerleri. Burada ayrıca yazılır: veritabanı kısıtı Python enum'una değil,
 # migration anındaki listeye bağlı kalmalı. Eşitliği test_ders_programi denetler.
+# Bitmemiş üretim: okulda aynı anda en fazla bir tane olabilir.
+ETKIN_DURUMLAR = ("bekliyor", "uretiliyor")
 COZUM_DURUMLARI = ("optimal", "uygun", "cozumsuz", "on_kontrol_hatasi", "bilinmiyor")
 
 
@@ -151,6 +153,12 @@ class Program(OkulaAitMixin, Base):
         CheckConstraint("durum NOT IN ('hazir', 'basarisiz') OR bitis IS NOT NULL", name="bitis"),
         # "Bu okulun etkin üretimi var mı?" sorusu (plan karar c) her üretim isteğinde sorulur.
         Index(None, "okul_id", "durum"),
+        # Okul başına en fazla bir etkin üretim (plan karar c), veritabanı düzeyinde. Kısmi
+        # benzersiz indeks: yalnızca WHERE koşulunu sağlayan satırlar arasında benzersizlik. Aynı
+        # anda gelen iki istek de "etkin üretim yok" görürse ikinci INSERT birincinin commit'ini
+        # bekler, sonra benzersizlik hatası alır (409).
+        Index("uq_program_okul_id_etkin", "okul_id", unique=True,
+              postgresql_where=column("durum").in_(ETKIN_DURUMLAR)),
     )
 
     ad: Mapped[str] = mapped_column(String(200))
