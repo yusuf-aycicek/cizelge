@@ -159,7 +159,10 @@ def test_ayni_anda_iki_istek_veritabani_duzeyinde_tek_uretim(kalici):  # noqa: F
     kalici[1].okullar.append(okul_id)
 
     class YavasKuyruk(BellekKuyrugu):
+        cagri = 0
+
         def kuyruga_ekle(self, *a, **k):
+            YavasKuyruk.cagri += 1
             time.sleep(0.5)  # ilk istek kuyruğa eklerken (commit'ten önce) ikincisi gelsin
             super().kuyruga_ekle(*a, **k)
 
@@ -182,7 +185,9 @@ def test_ayni_anda_iki_istek_veritabani_duzeyinde_tek_uretim(kalici):  # noqa: F
     ikinci.join(10)
 
     assert sorted(sonuclar) == sorted(["bekliyor", ETKIN_URETIM_VAR])
-    assert len(kuyruk.isler) == 1
+    # İkinci istek benzersizlik ihlalini kuyruğa eklemeden ÖNCE almalı (program satırı kuyruktan
+    # önce flush edilir). Yoksa 409 alan her istek kuyrukta öksüz bir iş bırakırdı.
+    assert YavasKuyruk.cagri == 1 and len(kuyruk.isler) == 1
 
 
 # --- takılı üretim yeni üretimi engellemez -------------------------------------------------
@@ -289,3 +294,67 @@ def test_kuyruga_eklenirken_yapilan_temizlik_yeni_programi_oksuz_saymaz(kalici):
         program_id = ProgramServisi(o, AraTemizlikliKuyruk()).uret("Güz", None, SURE).id
     with okul_oturumu(fabrika, okul_id) as o:
         assert o.get(Program, program_id).durum == "bekliyor"
+
+
+def test_commit_basarisiz_olursa_kuyrukta_kalan_is_sessizce_biter(kalici, monkeypatch):  # noqa: F811
+    """Kuyruğa ekleme başarılı, commit başarısız: kuyrukta var olmayan bir programın işi kalır.
+    Worker onu alınca programı bulamaz ve sessizce bitmelidir: istisna yok, yeniden deneme yok,
+    RQ'nun başarısız işler kaydında birikme yok.
+
+    İş gerçek RQ koduyla çalıştırılır: fakeredis üzerinde bir RQ worker'ı (SimpleWorker: iş için
+    fork etmez; Windows'ta sinyal yerine zamanlayıcıyla süre sınırı)."""
+    import fakeredis
+    from rq import Queue, SimpleWorker
+    from rq.job import Job, JobStatus
+    from rq.registry import FailedJobRegistry
+    from rq.timeouts import TimerDeathPenalty
+
+    from conftest import TEST_UYGULAMA_URL
+    from okulapi.cekirdek.isci import isci_fabrikasi
+    from okulapi.cekirdek.kuyruk import RqKuyrugu
+
+    fabrika, _ = kalici
+    okul_id = bos_okul(fabrika, "Commit Lisesi")
+    kalici[1].okullar.append(okul_id)
+    redis = fakeredis.FakeStrictRedis()
+    kuyruk = RqKuyrugu("redis://kullanilmaz", "program_uretimi", baglanti=redis)
+
+    # 1) İstek: iş kuyruğa girer, sonra commit başarısız olur (ör. veritabanı bağlantısı koptu).
+    oturum = okul_oturumu(fabrika, okul_id)
+
+    def bozuk_commit():
+        raise RuntimeError("commit sırasında bağlantı koptu")
+
+    monkeypatch.setattr(oturum, "commit", bozuk_commit)
+    with pytest.raises(RuntimeError, match="bağlantı koptu"):
+        ProgramServisi(oturum, kuyruk).uret("Güz", None, SURE)
+    oturum.close()  # commit edilmemiş program geri alınır
+
+    is_ = Queue("program_uretimi", connection=redis).jobs[0]
+    program_id = uuid.UUID(is_.id)
+    assert kuyruk.kuyrukta_mi(is_.id)
+    with okul_oturumu(fabrika, okul_id) as o:
+        assert o.get(Program, program_id) is None  # program yok, işi var
+
+    # 2) Worker işi alır. İş fonksiyonu worker sürecinin fabrikasını kullanır: test veritabanı.
+    monkeypatch.setenv("OKULAPI_VERITABANI_URL", TEST_UYGULAMA_URL)
+    isci_fabrikasi.cache_clear()
+    try:
+        class Worker(SimpleWorker):
+            death_penalty_class = TimerDeathPenalty
+
+        baslangic = time.monotonic()
+        Worker([Queue("program_uretimi", connection=redis)], connection=redis).work(burst=True)
+        gecen = time.monotonic() - baslangic
+    finally:
+        isci_fabrikasi().kw["bind"].dispose()
+        isci_fabrikasi.cache_clear()
+
+    is_ = Job.fetch(str(program_id), connection=redis)
+    assert is_.get_status() == JobStatus.FINISHED  # başarısız değil
+    assert is_.return_value() == UretimSonucu.ATLANDI.value
+    assert len(FailedJobRegistry("program_uretimi", connection=redis)) == 0
+    assert not kuyruk.kuyrukta_mi(str(program_id))
+    assert 3 < gecen < 30  # programı kısa süre yeniden aradı (~4 sn), sonra vazgeçti
+    with okul_oturumu(fabrika, okul_id) as o:
+        assert o.get(Program, program_id) is None  # worker program oluşturmadı
