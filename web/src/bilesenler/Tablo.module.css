@@ -1,0 +1,51 @@
+.kutu {
+  overflow-x: auto;
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-buyuk);
+  background: var(--renk-zemin);
+}
+
+.tablo {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.baslik {
+  text-align: left;
+  padding: var(--bosluk-3) var(--bosluk-4);
+  font-weight: var(--yazi-kalin);
+  font-size: var(--yazi-buyuk);
+}
+
+.tablo th,
+.tablo td {
+  padding: var(--bosluk-3) var(--bosluk-4);
+  text-align: left;
+  border-bottom: 1px solid var(--renk-kenar);
+  white-space: nowrap;
+}
+
+.tablo th {
+  background: var(--renk-yuzey);
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
+  font-weight: var(--yazi-kalin);
+}
+
+.tablo tbody tr:last-child td {
+  border-bottom: none;
+}
+.tablo tbody tr:hover td {
+  background: var(--renk-yuzey);
+}
+
+.sag {
+  text-align: right !important;
+}
+
+.bos {
+  text-align: center !important;
+  color: var(--renk-metin-ikincil);
+  padding: var(--bosluk-6) var(--bosluk-4) !important;
+  white-space: normal !important;
+}

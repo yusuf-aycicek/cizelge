@@ -1,5 +1,5 @@
 # Bütün sistem tek komutla: docker compose up --build
-# Servisler: db (PostgreSQL 17), redis (iş kuyruğu), api, worker. Yapım sırası 5'te web eklenecek.
+# Servisler: db (PostgreSQL 17), redis (iş kuyruğu), api, worker, web (arayüz, Vite geliştirme sunucusu).
 
 services:
   db:
@@ -85,5 +85,25 @@ services:
         condition: service_healthy  # migration'ları api uygular; worker tablolar hazır olunca başlar
     # Ölçek: docker compose up --scale worker=3 (aynı iş iki kez yapılmaz, ADR 0011 madde 5).
 
+  web:
+    # Arayüz (React, Vite geliştirme sunucusu): http://localhost:5173. Tarayıcı yalnızca bunu görür;
+    # Vite /api isteklerini api konteynerine iletir (aynı köken, ADR 0013).
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm ci --no-audit --no-fund && npm run dev -- --host 0.0.0.0"
+    environment:
+      VITE_API_HEDEF: http://api:8000
+      WEB_YOKLAMA: "1"  # Windows'tan bağlanan klasörde dosya değişikliği yoklamayla izlenir
+    volumes:
+      - ./web:/app
+      # Paketler konteynerin kendi biriminde: bilgisayardaki (Windows) node_modules kullanılmaz.
+      - web_paketleri:/app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      api:
+        condition: service_healthy
+
 volumes:
   db_verisi:
+  web_paketleri:

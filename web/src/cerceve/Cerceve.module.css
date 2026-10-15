@@ -1,0 +1,122 @@
+/* Masaüstü: solda menü, üstte ince çubuk. Dar ekran (< 48rem): menü düğmeyle açılır. */
+.cerceve {
+  display: grid;
+  grid-template-columns: var(--menu-genisligi) 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "ust ust"
+    "menu icerik";
+  min-height: 100vh;
+}
+
+.icerigeGec {
+  position: absolute;
+  left: var(--bosluk-2);
+  top: -10rem;
+  z-index: 200;
+  background: var(--renk-zemin);
+  padding: var(--bosluk-2) var(--bosluk-4);
+  border-radius: var(--kose);
+}
+.icerigeGec:focus {
+  top: var(--bosluk-2);
+}
+
+.ust {
+  grid-area: ust;
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-2) var(--bosluk-5);
+  min-height: 3.5rem;
+  background: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+}
+
+.urun {
+  font-weight: var(--yazi-kalin);
+  font-size: var(--yazi-buyuk);
+}
+
+.menuDugmesi {
+  display: none;
+  align-items: center;
+  gap: var(--bosluk-2);
+  min-height: var(--dokunma-hedefi);
+  padding: 0 var(--bosluk-3);
+  border: 1px solid currentColor;
+  border-radius: var(--kose);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.menu {
+  grid-area: menu;
+  background: var(--renk-yuzey);
+  border-inline-end: 1px solid var(--renk-kenar);
+  padding: var(--bosluk-4) var(--bosluk-3);
+}
+.menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-1);
+}
+
+.baglanti {
+  display: flex;
+  align-items: center;
+  min-height: var(--dokunma-hedefi);
+  padding: 0 var(--bosluk-3);
+  border-radius: var(--kose);
+  color: var(--renk-metin);
+  text-decoration: none;
+}
+.baglanti:hover {
+  background: var(--renk-yuzey-vurgu);
+}
+.baglanti[aria-current="page"] {
+  background: var(--renk-yuzey-vurgu);
+  font-weight: var(--yazi-kalin);
+  box-shadow: inset 4px 0 0 var(--renk-birincil);
+}
+
+.icerik {
+  grid-area: icerik;
+  padding: var(--bosluk-6) var(--bosluk-6) var(--bosluk-7);
+  max-width: var(--icerik-genisligi);
+  width: 100%;
+}
+.icerik:focus {
+  outline: none;
+}
+
+@media (max-width: 48rem) {
+  .cerceve {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "ust"
+      "menu"
+      "icerik";
+  }
+  .menuDugmesi {
+    display: inline-flex;
+  }
+  .menu {
+    display: none;
+    border-inline-end: none;
+    border-bottom: 1px solid var(--renk-kenar);
+  }
+  .menu.acik {
+    display: block;
+  }
+  .icerik {
+    padding: var(--bosluk-4) var(--bosluk-4) var(--bosluk-6);
+  }
+  .ust {
+    padding-inline: var(--bosluk-4);
+  }
+}

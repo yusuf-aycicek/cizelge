@@ -1,0 +1,57 @@
+.alan {
+  position: fixed;
+  inset-block-end: var(--bosluk-4);
+  inset-inline-end: var(--bosluk-4);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-2);
+  width: min(26rem, calc(100vw - 2 * var(--bosluk-4)));
+}
+
+.liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-2);
+}
+
+.kart {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border-radius: var(--kose);
+  box-shadow: var(--golge);
+  border-inline-start: 4px solid currentColor;
+}
+
+.mesaj {
+  margin: 0;
+  flex: 1;
+}
+
+.kapat {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  min-width: 2rem;
+  min-height: 2rem;
+  color: inherit;
+}
+
+.basari {
+  background: var(--renk-basari-zemin);
+  color: var(--renk-basari-metin);
+}
+.hata {
+  background: var(--renk-hata-zemin);
+  color: var(--renk-hata-metin);
+}
+.uyari {
+  background: var(--renk-uyari-zemin);
+  color: var(--renk-uyari-metin);
+}
+.bilgi {
+  background: var(--renk-bilgi-zemin);
+  color: var(--renk-bilgi-metin);
+}

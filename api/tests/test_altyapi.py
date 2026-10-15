@@ -37,7 +37,7 @@ def test_saglik_veritabani_yoksa_503():
     with TestClient(uygulama_olustur(ayarlar)) as istemci:
         yanit = istemci.get("/api/saglik")
     assert yanit.status_code == 503
-    assert yanit.json()["veritabani"] == "ulaşılamıyor"
+    assert yanit.json() == {"detail": "Veritabanına ulaşılamıyor"}
 
 
 # --- modüller --------------------------------------------------------------------------

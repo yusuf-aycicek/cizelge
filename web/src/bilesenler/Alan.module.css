@@ -1,0 +1,39 @@
+.alan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-1);
+  margin-bottom: var(--bosluk-4);
+}
+
+.etiket {
+  font-weight: var(--yazi-kalin);
+}
+
+.denetim {
+  min-height: var(--dokunma-hedefi);
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose);
+  background: var(--renk-zemin);
+  width: 100%;
+  max-width: 28rem;
+}
+.denetim[aria-invalid="true"] {
+  border: 2px solid var(--renk-tehlike);
+}
+
+.aciklama {
+  margin: 0;
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
+}
+
+.hata {
+  margin: 0;
+  font-size: var(--yazi-kucuk);
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-hata-metin);
+}
+.hata::before {
+  content: "⚠ ";
+}

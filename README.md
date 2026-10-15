@@ -21,9 +21,12 @@ Bu komut:
 4. `worker`: aynı imaj, `python -m okulworker`. Kuyruktaki program üretme işlerini çalıştırır.
    API sağlıklı olunca (migration'lar bitince) başlar. Birden fazla worker için:
    `docker compose up --scale worker=3`.
+5. `web`: arayüz (React + TypeScript, Vite geliştirme sunucusu). İlk açılışta paketleri kurar
+   (bir iki dakika sürebilir). `/api` isteklerini api konteynerine iletir.
 
 | Adres | Ne |
 |---|---|
+| http://localhost:5173 | **Arayüz** (geliştirme). `/tasarim`: tasarım temeli vitrini |
 | http://localhost:8000/docs | API belgeleri (Swagger), endpoint'leri buradan denemek mümkün |
 | http://localhost:8000/api/saglik | Sağlık kontrolü (API ve veritabanı) |
 | `localhost:5433` | PostgreSQL. Bilgisayardan erişim için 5433 kullanılır (5432 aynı makinedeki başka projelerde). |
@@ -144,6 +147,38 @@ cd api && .venv/Scripts/python -m pytest -m uctan_uca -s
 Linux/macOS'ta `.venv/Scripts/` yerine `.venv/bin/` kullanılır. Uzun süren ölçüm testleri
 `-m slow` ile ayrıca çalıştırılır.
 
+## Arayüz (web/)
+
+React + TypeScript + Vite. Plan ve kararlar: [docs/arayuz-plani.md](docs/arayuz-plani.md).
+Docker olmadan, bilgisayarda (Node 22; API `localhost:8000`'de çalışıyor olmalı):
+
+```bash
+cd web && npm install && npm run dev
+```
+
+Denetimler: tip denetimi, lint ve testler (Vitest + Testing Library + MSW; API gerekmez):
+
+```bash
+cd web && npm run denetim
+```
+
+API değişince arayüzün tipleri yenilenir. Yenilenmezse iki test (api ve web) kırılır:
+
+```bash
+api/.venv/Scripts/python scripts/openapi_yaz.py
+```
+
+```bash
+cd web && npm run api:tipler
+```
+
+Ekran görüntüleri, çalışan arayüzden bilgisayardaki Edge ile alınır ve `docs/ekranlar/<adım>/`
+altına yazılır:
+
+```bash
+cd web && node scripts/ekran-goruntusu.mjs 5.1
+```
+
 ## Çözücüyü komut satırından çalıştırma
 
 ```bash
@@ -186,6 +221,7 @@ gerektiğini söyler.
 cozucu/    Saf Python çözücü paketi (OR-Tools CP-SAT) ve testleri
 api/       FastAPI uygulaması (okulapi): çekirdek + modüller
 worker/    Kuyruk işçisi (okulworker): modülleri bilmeyen genel çalıştırıcı
+web/       Arayüz (React + TypeScript + Vite)
 docker/    Konteyner başlangıç betikleri
 docs/      Diyagramlar, ADR'ler, planlar, ölçümler
 veri/      Test veri setleri (mini, gerçekçi, büyük)

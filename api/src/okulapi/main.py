@@ -6,11 +6,13 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 import okulapi.cekirdek.kiraci  # noqa: F401  (okul filtresi olayları kaydolur)
 from okulapi.ayarlar import Ayarlar
 from okulapi.cekirdek import saglik
+from okulapi.cekirdek.dogrulama_hatalari import dogrulama_hatasi_isleyici, openapi_semasini_uyarla
 from okulapi.cekirdek.api import ROUTERLAR as CEKIRDEK_ROUTERLARI
 from okulapi.cekirdek.modul import modulleri_yukle
 from okulapi.cekirdek.kimlik.api import router as kimlik_router
@@ -50,6 +52,7 @@ def uygulama_olustur(ayarlar: Ayarlar | None = None) -> FastAPI:
     for hata_sinifi, kod in _HATA_KODLARI.items():
         uygulama.add_exception_handler(hata_sinifi, _hata_isleyici(kod))
 
+    uygulama.add_exception_handler(RequestValidationError, dogrulama_hatasi_isleyici)
     uygulama.add_middleware(KokenDenetimi, izinli_kokenler=ayarlar.izinli_kokenler)
 
     uygulama.include_router(saglik.router, prefix="/api")
@@ -60,4 +63,5 @@ def uygulama_olustur(ayarlar: Ayarlar | None = None) -> FastAPI:
     for modul in moduller:
         uygulama.include_router(modul.router, prefix=f"/api/{modul.onek}")
     uygulama.state.modul_adlari = [m.ad for m in moduller]
+    openapi_semasini_uyarla(uygulama)
     return uygulama

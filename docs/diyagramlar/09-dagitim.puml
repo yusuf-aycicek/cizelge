@@ -45,7 +45,10 @@ node "Geliştirici bilgisayarı\n<<cihaz>>\nWindows 11" as pc {
       artifact "okulworker\n(python -m okulworker;\nRQ worker'ı, iş başına fork)" as okulworker
       artifact "okulapi + cozucu\n(iş fonksiyonu:\nuretim.uretim_isi)" as isler
     }
-    node "web\n<<konteyner>>\nVite geliştirme sunucusu\nlocalhost:5173" <<planlanan>> as web #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A
+    node "web\n<<konteyner>>\nnode:22-alpine" as web {
+      artifact "Vite geliştirme sunucusu\n(React + TypeScript)\nlocalhost:5173" as vite
+    }
+    storage "web_paketleri\n<<birim>>\n(node_modules)" as paketler
   }
 }
 
@@ -62,8 +65,9 @@ okulworker ..> isler : çalıştırır
 isler --> rol_uyg : bağlanır (db:5432)\nRLS, işteki okul_id ile
 rol_uyg ..> rol_giris : yalnızca EXECUTE\n(okul bilinmeden arama)
 
-tarayici ..> web #9A9A9A;line.dashed : HTTP localhost:5173\n(arayüz ve /api aynı köken)
-web ..> api #9A9A9A;line.dashed : Vite proxy: /api → api:8000\n(ADR 0013)
+tarayici --> vite : HTTP localhost:5173\n(arayüz ve /api aynı köken)
+vite --> api : Vite proxy: /api → api:8000\n(ADR 0013)
+web --> paketler
 
 note right of db
   Konteyner içinde 5432; bilgisayara 5433 ile açılır
@@ -78,8 +82,7 @@ note bottom of worker
 end note
 
 legend right
-  Düz çizgi, beyaz: şu an çalışan.
-  Kesik çizgi, gri, <<planlanan>>: henüz yapılmadı
-  (web: yapım sırası 5).
+  Bütün konteynerler çalışıyor (web, yapım sırası 5.1'den beri).
+  Yayın ortamı (ters vekil sunucu, HTTPS) yayına alma adımında.
 endlegend
 @enduml

@@ -1,0 +1,24 @@
+/// <reference types="vitest/config" />
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+
+// Arayüz ile API tarayıcıya aynı kökenden görünür (ADR 0013): tarayıcı yalnızca Vite'ı görür,
+// Vite /api isteklerini API'ye iletir. Hedef: bilgisayarda localhost:8000, docker-compose'da
+// api konteyneri (VITE_API_HEDEF).
+const apiHedefi = process.env.VITE_API_HEDEF ?? "http://localhost:8000";
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
+    strictPort: true,
+    proxy: { "/api": { target: apiHedefi } },
+    // Windows'ta Docker'a bağlanan klasörde dosya değişiklikleri olayla gelmez: yoklama.
+    watch: process.env.WEB_YOKLAMA ? { usePolling: true, interval: 300 } : undefined,
+  },
+  test: {
+    environment: "jsdom",
+    setupFiles: ["./src/test/kurulum.ts"],
+    css: { modules: { classNameStrategy: "non-scoped" } },
+  },
+});

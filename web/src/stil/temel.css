@@ -1,0 +1,80 @@
+/* Temel stiller: sıfırlama, yazı, odak halkası. Değerler belirtecler.css'ten gelir. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--yazi-ailesi);
+  font-size: 100%; /* kullanıcının tarayıcıdaki yazı boyutu tercihine saygı */
+  line-height: var(--satir-yuksekligi);
+  color: var(--renk-metin);
+  background: var(--renk-zemin);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  margin: 0 0 var(--bosluk-4);
+}
+h1 {
+  font-size: var(--yazi-sayfa-basligi);
+}
+h2 {
+  font-size: var(--yazi-baslik);
+}
+h3 {
+  font-size: var(--yazi-buyuk);
+}
+
+p {
+  margin: 0 0 var(--bosluk-4);
+}
+
+a {
+  color: var(--renk-birincil);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Odak her zaman görünür: klavyeyle gezinen kullanıcı nerede olduğunu bilir. Fareyle tıklamada
+   halka çıkmaz (:focus-visible), klavyede çıkar. */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--odak-halkasi);
+  border-radius: var(--kose-kucuk);
+}
+
+/* Yalnızca ekran okuyuculara görünen metin (ör. tablo başlığı, simgeli düğmenin adı). */
+.gorunmez {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Hareketi azaltmak isteyen kullanıcı için geçişler kapanır. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

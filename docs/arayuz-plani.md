@@ -294,12 +294,44 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 
 | # | Alt adım | Durum |
 |---|---|---|
-| 5.1 | Altyapı | **Sıradaki** |
-| 5.2 | Kimlik | |
+| 5.1 | Altyapı | Bitti (2026-10-16) |
+| 5.2 | Kimlik | **Sıradaki** |
 | 5.3 | Okul ayarları ve listeler | |
 | 5.4 | Seviye şablonu ve ders dağılımı | |
 | 5.5 | Müsaitlik çizelgesi | |
 | 5.6 | Kullanıcılar, kontrol listesi, uçtan uca | |
+
+5.1'den notlar:
+- **Backend:**
+  - doğrulama hataları Türkçe ve tek biçimli: `{"detail", "alanlar": {yol: mesaj}}`;
+  - OpenAPI şemasındaki 422 tanımı da buna uyduruldu;
+  - pydantic'in "a or b" seçenek metnindeki İngilizce "or" testte yakalandı, "ya da" yapıldı;
+  - `/api/saglik` tipli yanıt modeli aldı; veritabanı yoksa 503 + `detail`.
+- **web/:**
+  - Vite 8, React 19, TypeScript 5.9;
+  - TypeScript 6, openapi-typescript'in desteklediği aralıkta olmadığı için 5.9'a sabitlendi;
+  - çalışma zamanı bağımlılıkları: react, react-dom, react-router, @tanstack/react-query,
+    openapi-fetch.
+- **Tasarım temeli:**
+  - `src/stil/belirtecler.css` (renk, boşluk, yazı, köşe); `temel.css` (odak halkası
+    `:focus-visible`, azaltılmış hareket);
+  - ortak bileşenler: `Dugme`, `Alan`/`MetinAlani`/`SecimAlani`, `Tablo`, `Bildirim`
+    (Context + iki canlı bölge), `OnayPenceresi` (doğal `<dialog>`);
+  - vitrin sayfası `/tasarim`.
+- **Kontrast testi:** belirteç dosyasını okuyup 16 metin çiftinin 4.5:1, 3 sınır çiftinin 3:1
+  olduğunu hesaplar.
+- **API tipleri:** `scripts/openapi_yaz.py` → `web/openapi.json` → `npm run api:tipler` →
+  `src/api/sema.d.ts`. İki tazelik testi var: pytest (json = API) ve vitest (tipler = json).
+- **Çerçeve:** "İçeriğe geç" bağlantısı, `aria-current`, dar ekranda menü düğmesi
+  (`aria-expanded`). Plandaki "telefonda alt menü" yerine şimdilik açılır menü; 5.6'da telefon
+  kontrolünde yeniden bakılacak.
+- **docker-compose `web` servisi:**
+  - node:22-alpine, kendi `node_modules` birimi, Windows için dosya izleme yoklaması;
+  - ilk açılışta konteynerin içinden npm'e ağ zaman aşımı oldu, yeniden başlatınca geçti.
+- **Ekran görüntüleri:** `web/scripts/ekran-goruntusu.mjs` (playwright-core + bilgisayardaki
+  Edge), `docs/ekranlar/5.1/`.
+- **Testler:** web 52 (tasarım ve kontrast, bileşenler, hata çözümü, uygulama ve çerçeve, tip
+  tazeliği); api 406.
 
 ### Yapım sırası 6 (program)
 

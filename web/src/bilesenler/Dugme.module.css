@@ -1,0 +1,51 @@
+.dugme {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bosluk-2);
+  min-height: var(--dokunma-hedefi);
+  padding: var(--bosluk-2) var(--bosluk-4);
+  border: 1px solid transparent;
+  border-radius: var(--kose);
+  font-weight: var(--yazi-kalin);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.dugme:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.birincil {
+  background: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+}
+.birincil:hover:not(:disabled) {
+  background: var(--renk-birincil-koyu);
+}
+
+.ikincil {
+  background: var(--renk-zemin);
+  color: var(--renk-metin);
+  border-color: var(--renk-kenar-alan);
+}
+.ikincil:hover:not(:disabled) {
+  background: var(--renk-yuzey);
+}
+
+.tehlike {
+  background: var(--renk-tehlike);
+  color: var(--renk-tehlike-metin);
+}
+.tehlike:hover:not(:disabled) {
+  background: var(--renk-tehlike-koyu);
+}
+
+.metin {
+  background: transparent;
+  color: var(--renk-birincil);
+  padding-inline: var(--bosluk-2);
+}
+.metin:hover:not(:disabled) {
+  text-decoration: underline;
+}

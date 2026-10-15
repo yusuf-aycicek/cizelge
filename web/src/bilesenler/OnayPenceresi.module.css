@@ -1,0 +1,23 @@
+.pencere {
+  border: none;
+  border-radius: var(--kose-buyuk);
+  padding: var(--bosluk-5);
+  box-shadow: var(--golge-pencere);
+  width: min(30rem, calc(100vw - 2 * var(--bosluk-4)));
+  color: var(--renk-metin);
+}
+.pencere::backdrop {
+  background: rgb(16 24 40 / 0.45);
+}
+
+.baslik {
+  font-size: var(--yazi-baslik);
+}
+
+.dugmeler {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--bosluk-3);
+  margin-top: var(--bosluk-5);
+}

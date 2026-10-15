@@ -1,0 +1,66 @@
+/* Sayfaların ortak parçaları: giriş paragrafı, kart, durum listesi, hata kutusu. */
+.giris {
+  max-width: 44rem;
+  color: var(--renk-metin-ikincil);
+  font-size: var(--yazi-buyuk);
+}
+
+.kart {
+  background: var(--renk-zemin);
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-buyuk);
+  padding: var(--bosluk-5);
+  margin-bottom: var(--bosluk-5);
+  box-shadow: var(--golge);
+}
+
+.durumListesi {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--bosluk-2) var(--bosluk-5);
+  margin: 0;
+}
+.durumListesi dt {
+  font-weight: var(--yazi-kalin);
+}
+.durumListesi dd {
+  margin: 0;
+}
+
+.iyi {
+  color: var(--renk-basari-metin);
+  font-weight: var(--yazi-kalin);
+}
+
+.hataKutusu {
+  background: var(--renk-hata-zemin);
+  color: var(--renk-hata-metin);
+  border-radius: var(--kose);
+  padding: var(--bosluk-4);
+}
+
+.satir {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bosluk-3);
+  align-items: center;
+}
+
+.renkler {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--bosluk-3);
+}
+.renk {
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose);
+  overflow: hidden;
+  font-size: var(--yazi-kucuk);
+}
+.renkOrnegi {
+  height: 3rem;
+}
+.renkAdi {
+  padding: var(--bosluk-2);
+  font-family: ui-monospace, monospace;
+}

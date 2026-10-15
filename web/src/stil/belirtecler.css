@@ -1,0 +1,67 @@
+/*
+ * Tasarım belirteçleri (design tokens): arayüzün bütün renkleri, boşlukları, yazı boyutları ve
+ * köşe yuvarlaklıkları YALNIZCA burada tanımlanır. Bileşenler sabit değer yazmaz, bu değişkenleri
+ * kullanır (docs/arayuz-plani.md bölüm 3). Bir rengi değiştirmek bütün arayüzü değiştirir.
+ *
+ * Kontrast: metin renkleri kendi zeminlerinde en az WCAG AA (4.5:1). Form alanı kenarı gibi
+ * arayüz sınırları en az 3:1. Bunu src/stil/belirtecler.test.ts hesaplayarak denetler.
+ */
+:root {
+  /* --- renkler: metin ve zemin --- */
+  --renk-zemin: #ffffff;
+  --renk-yuzey: #f4f6f9;          /* menü, kart, tablo başlığı zemini */
+  --renk-yuzey-vurgu: #e6ebf2;    /* üzerine gelinen satır, seçili menü */
+  --renk-metin: #1c2733;
+  --renk-metin-ikincil: #4f5d6b;
+  --renk-kenar: #d5dbe3;          /* süs çizgileri (bilgi taşımaz) */
+  --renk-kenar-alan: #75828f;     /* form alanı ve düğme sınırı: zeminde en az 3:1 */
+
+  /* --- renkler: anlam --- */
+  --renk-birincil: #1f4fbf;
+  --renk-birincil-koyu: #173c93;
+  --renk-birincil-metin: #ffffff;
+  --renk-tehlike: #b42318;
+  --renk-tehlike-koyu: #8f1c13;
+  --renk-tehlike-metin: #ffffff;
+  --renk-odak: #1f4fbf;
+
+  /* bildirim ve uyarı kutuları: koyu metin, açık zemin */
+  --renk-basari-zemin: #e9f7ef;
+  --renk-basari-metin: #135c35;
+  --renk-hata-zemin: #fdecea;
+  --renk-hata-metin: #8f1c13;
+  --renk-uyari-zemin: #fff5e0;
+  --renk-uyari-metin: #7a3d00;
+  --renk-bilgi-zemin: #e8f0fc;
+  --renk-bilgi-metin: #173c93;
+
+  /* --- boşluklar (4 px ızgarası) --- */
+  --bosluk-1: 0.25rem;
+  --bosluk-2: 0.5rem;
+  --bosluk-3: 0.75rem;
+  --bosluk-4: 1rem;
+  --bosluk-5: 1.5rem;
+  --bosluk-6: 2rem;
+  --bosluk-7: 3rem;
+
+  /* --- yazı --- */
+  --yazi-ailesi: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --yazi-kucuk: 0.875rem;
+  --yazi-normal: 1rem;
+  --yazi-buyuk: 1.125rem;
+  --yazi-baslik: 1.375rem;
+  --yazi-sayfa-basligi: 1.75rem;
+  --yazi-kalin: 600;
+  --satir-yuksekligi: 1.5;
+
+  /* --- köşe, gölge, ölçü --- */
+  --kose-kucuk: 4px;
+  --kose: 6px;
+  --kose-buyuk: 10px;
+  --golge: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.1);
+  --golge-pencere: 0 20px 40px rgb(16 24 40 / 0.2);
+  --odak-halkasi: 0 0 0 3px var(--renk-zemin), 0 0 0 5px var(--renk-odak);
+  --dokunma-hedefi: 2.75rem;      /* 44 px: telefonda parmakla rahat basılır */
+  --menu-genisligi: 15rem;
+  --icerik-genisligi: 72rem;
+}
