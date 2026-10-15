@@ -17,7 +17,5 @@ def test_web_openapi_json_guncel():
     modul = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(modul)
     # Satır sonu farkı (Windows git: CRLF) içerik farkı sayılmaz.
-    kayitli = (KOK / "web" / "openapi.json").read_text(encoding="utf-8").replace("
-", "
-")
+    kayitli = (KOK / "web" / "openapi.json").read_text(encoding="utf-8").replace("\r\n", "\n")
     assert kayitli == modul.sema_metni(), "API şeması değişti: scripts/openapi_yaz.py ve npm run api:tipler çalıştırın"
