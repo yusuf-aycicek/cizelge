@@ -107,3 +107,33 @@ def test_uretim_istegi_gercek_sistemde_bekliyor_uretiliyor_hazir(sistem):
 
     print()
     print(cizelge(sistem, baslik, program["id"], "9-A"))
+
+
+def test_kimlik_gercek_sistemde(sistem):
+    """Yapım sırası 4 kabulünün gerçek sistemdeki hali: kayıt, çıkış, giriş; başlık yok sayılır;
+    yabancı kökenden yazma reddedilir; docker-compose'un geliştirme ayarları (Vite kökeni izinli,
+    Secure kapalı) gerçekten etkin."""
+    from conftest import PAROLA, api_ile_kayit, cerezden_jeton
+
+    okul_id, email, jeton = api_ile_kayit(sistem, f"Kimlik Kabul Lisesi {time.strftime('%H:%M:%S')}")
+    cerez = {"Cookie": f"oturum={jeton}"}
+    assert sistem.get("/api/ben", headers=cerez).json()["okul"]["id"] == okul_id
+
+    # Okul başlığı tek başına hiçbir şey açmaz; oturumla birlikte gönderilse de yok sayılır.
+    assert sistem.get("/api/ogretmenler", headers={"X-Okul-Id": okul_id}).status_code == 401
+
+    # Vite kökeni (geliştirme) izinli, yabancı köken değil.
+    vite = {"Origin": "http://localhost:5173"}
+    assert sistem.post("/api/ogretmenler", json={"ad": "Ali"}, headers={**cerez, **vite}).status_code == 201
+    kotu = sistem.post("/api/ogretmenler", json={"ad": "Kötü"}, headers={**cerez, "Origin": "http://kotu.example"})
+    assert kotu.status_code == 403
+
+    # Çıkış: çerez geçersiz. Giriş: yeni çerez, Secure değil (geliştirme ayarı).
+    assert sistem.post("/api/cikis", headers={**cerez, **vite}).status_code == 204
+    assert sistem.get("/api/ben", headers=cerez).status_code == 401
+    yanit = sistem.post("/api/giris", json={"email": email, "sifre": PAROLA}, headers=vite)
+    sistem.cookies.clear()
+    assert yanit.status_code == 200 and "Secure" not in yanit.headers["set-cookie"]
+    yeni = {"Cookie": f"oturum={cerezden_jeton(yanit)}"}
+    assert [o["ad"] for o in sistem.get("/api/ogretmenler", headers=yeni).json()] == ["Ali"]
+    print(f"\nKimlik kabulü: kayıt, başlık 401, Vite kökeni 201, yabancı köken 403, çıkış, giriş: tamam")

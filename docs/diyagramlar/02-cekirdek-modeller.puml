@@ -50,6 +50,19 @@ package "modeller (tablolar)" {
     +ad : str
     +kisa_ad : str
   }
+  class Oturum {
+    +kullanici_id : UUID
+    +jeton_ozeti : str
+    +son_kullanim : datetime
+    +hareketsizlik_siniri : timedelta
+    +bitis_mutlak : datetime
+  }
+  class GirisDenemesi {
+    +email : str
+    +hata_sayisi : int
+    +pencere_basi : datetime
+    +kilit_bitis : datetime [0..1]
+  }
 }
 
 ' @kod okulapi.cekirdek.kiraci
@@ -75,6 +88,9 @@ OkulaAitMixin <|-- Kullanici
 OkulaAitMixin <|-- Ogretmen
 OkulaAitMixin <|-- Sinif
 OkulaAitMixin <|-- Ders
+OkulaAitMixin <|-- Oturum
+Base <|-- GirisDenemesi
+Kullanici "1" *-- "0..*" Oturum : ON DELETE\nCASCADE
 
 Okul "1" -- "0..*" Kullanici
 Okul "1" -- "0..*" Ogretmen
@@ -84,6 +100,17 @@ Okul "1" -- "0..*" Ders
 kiraci ..> OkulaAitMixin : koşul ekler,\nokul_id yazar
 kiraci ..> OkulBaglamiYokHatasi : fırlatır
 kiraci ..> OkulIhlaliHatasi : fırlatır
+
+note bottom of GirisDenemesi
+  Okula ait değil: giriş okul bilinmeden yapılır.
+  Uygulama rolünün bu tabloya yetkisi yok;
+  yalnızca okul_giris'in fonksiyonları (ADR 0012).
+end note
+
+note left of Kullanici
+  e-posta bütün sistemde tek:
+  UNIQUE lower(email) + CHECK küçük harf
+end note
 
 note right of OkulaAitMixin
   Okula ait her tablonun sütunları:

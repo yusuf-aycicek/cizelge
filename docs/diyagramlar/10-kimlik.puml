@@ -1,0 +1,134 @@
+@startuml 10-kimlik
+!include _stil.iuml
+title Kimlik doğrulama: servisler, uçlar, köken denetimi ve okul bilinmeden arama (ADR 0012, 0013)
+hide empty members
+
+skinparam class<<çekirdek>> {
+  BackgroundColor #EEF4FB
+  BorderColor #6C8EBF
+}
+
+' @kod okulapi.cekirdek.kimlik.api
+package "kimlik.api (uçlar)" {
+  class api <<modül>> {
+    {static} +kayit(veri, kimlik, istek, yanit)
+    {static} +giris(veri, kimlik, istek, yanit)
+    {static} +cikis(kimlik, istek)
+    {static} +ben(bilgi, oturum)
+    {static} +kendi_sifremi_degistir(veri, bilgi, oturum)
+    {static} +yardimci_ekle(veri, bilgi, oturum)
+    {static} +sifre_belirle(kullanici_id, veri, bilgi, oturum)
+    {static} +rol_degistir(kullanici_id, veri, bilgi, oturum)
+    {static} +kullanici_sil(kullanici_id, bilgi, oturum)
+  }
+}
+
+' @kod okulapi.cekirdek.bagimliliklar
+package "bagimliliklar (okulun belirlendiği tek yer)" {
+  class bagimliliklar <<modül>> {
+    {static} +aktif_oturum(istek) : OturumBilgisi
+    {static} +aktif_okul_id(oturum : OturumBilgisi) : UUID
+  }
+}
+
+' @kod okulapi.cekirdek.kimlik.koken
+package "kimlik.koken (ASGI ara katmanı)" {
+  class KokenDenetimi {
+    +izinli : set[str]
+  }
+}
+
+' @kod okulapi.cekirdek.kimlik.servis
+package "kimlik.servis" {
+  class KimlikServisi {
+    +fabrika : sessionmaker
+    +ayarlar : Ayarlar
+    +kayit(okul_alanlari, ad, email, sifre) : tuple[Okul, Kullanici, str]
+    +giris(email, sifre) : tuple[OturumBilgisi, str]
+    +oturum_coz(jeton : str) : OturumBilgisi [0..1]
+    +cikis(jeton : str)
+    +parolayi_sifirla(email, yeni_sifre) : Kullanici
+    -_giris_bilgisi(oturum, email)
+    -_oturum_ac(oturum, okul_id, kullanici_id) : str
+  }
+  class KullaniciServisi {
+    +oturum : Session
+    +istek : OturumBilgisi
+    +listele() : list[Kullanici]
+    +yardimci_ekle(ad, email, sifre) : Kullanici
+    +parola_belirle(kullanici_id, yeni_sifre)
+    +kendi_parolasini_degistir(eski_sifre, yeni_sifre)
+    +rol_degistir(kullanici_id, rol) : Kullanici
+    +sil(kullanici_id)
+    -_mudurleri_kilitle() : list[UUID]
+  }
+  class OturumBilgisi <<dataclass>> {
+    +oturum_id : UUID
+    +kullanici_id : UUID
+    +okul_id : UUID
+  }
+  class GirisHatasi <<istisna>>
+  class CokFazlaDeneme <<istisna>>
+  class YetkiYok <<istisna>>
+  class EpostaKullaniliyor <<istisna>>
+  class SonMudur <<istisna>>
+}
+
+' @kod okulapi.cekirdek.kimlik.parola
+package "kimlik.parola" {
+  class parola <<modül>> {
+    {static} +EN_AZ_UZUNLUK : int = 12
+    {static} +ozetle(parola : str) : str
+    {static} +dogrula(ozet : str, parola : str) : bool
+    {static} +sahte_dogrulama(parola : str)
+    {static} +yeniden_ozetlenmeli(ozet : str) : bool
+  }
+}
+
+' @kod okulapi.cekirdek.servisler
+package "okulapi.cekirdek.servisler" {
+  class KayitCakismasi <<çekirdek>>
+}
+
+package "PostgreSQL: SECURITY DEFINER fonksiyonlar (sahibi okul_giris)" {
+  class "giris_bilgisi(email)" as f_giris <<harici>>
+  class "oturum_coz(jeton_ozeti)" as f_oturum <<harici>>
+  class "giris_kilitli_mi / giris_hatasi_kaydet /\ngiris_denemelerini_sil" as f_sayac <<harici>>
+}
+
+api ..> KimlikServisi : kayıt, giriş, çıkış
+api ..> KullaniciServisi : yönetim
+bagimliliklar ..> KimlikServisi : oturum_coz(çerezdeki jeton)
+KimlikServisi ..> parola
+KullaniciServisi ..> parola
+KimlikServisi ..> f_giris : okulsuz oturumla
+KimlikServisi ..> f_oturum
+KimlikServisi ..> f_sayac
+KimlikServisi ..> OturumBilgisi : üretir
+KullaniciServisi --> "1" OturumBilgisi : istek
+KayitCakismasi <|-- EpostaKullaniliyor
+KayitCakismasi <|-- SonMudur
+KimlikServisi ..> GirisHatasi : fırlatır
+KimlikServisi ..> CokFazlaDeneme : fırlatır
+KullaniciServisi ..> YetkiYok : fırlatır
+KokenDenetimi ..> api : önünde çalışır
+
+note right of KokenDenetimi
+  Veri değiştiren isteklerde Origin varsa
+  izinli_kokenler'de olmalı (yoksa 403).
+  Birinci katman: SameSite=Strict çerez.
+end note
+
+note bottom of f_giris
+  Okul bilinmeden çağrılır; okul bulununca
+  istek normal yoldan devam eder:
+  okul_oturumu, SET LOCAL, RLS (ADR 0009).
+end note
+
+note right of KullaniciServisi
+  Yönetim yalnızca müdür (403).
+  Son müdür silinemez, rolü düşürülemez:
+  müdür satırları FOR UPDATE ile kilitlenip sayılır.
+  Parola değişince oturumlar kapanır.
+end note
+@enduml

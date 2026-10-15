@@ -1,6 +1,6 @@
 # Yapım sırası 4: kayıt, giriş, oturum (plan)
 
-Durum: **onaylandı (2026-10-15)**: (a)-(h) kabul. Açık soruların cevapları bölüm 4'te. Alt adım durumu bölüm 7'de.
+Durum: **tamamlandı (2026-10-15)**. Alt adım notları bölüm 7'de, kapanış bölüm 9'da.
 
 Kabul (CLAUDE.md bölüm 8): 2. adımdaki geçici `X-Okul-Id` başlığı tamamen kaldırılmıştır. Aktif
 okul yalnızca oturumdan belirlenir. Başlık gönderilse bile yok sayıldığı ve oturumsuz isteklerin
@@ -243,7 +243,9 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 | 1 | Şema ve veritabanı tarafı | Bitti (2026-10-15) |
 | 2 | Kimlik servisi | Bitti (2026-10-15) |
 | 3 | API'ye bağlama | Bitti (2026-10-15) |
-| 4 | Belgeler ve uçtan uca | **Sıradaki** |
+| 4 | Belgeler ve uçtan uca | Bitti (2026-10-15) |
+
+Yapım sırası 4 tamamlandı (2026-10-15).
 
 1. alt adımdan notlar:
 - E-posta kısıtı denetlendi:
@@ -365,6 +367,35 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
   - konteynerde `parola-sifirla` (çıkış kodu 0 ve 1);
   - uçtan uca kabul testi yeni kayıt akışıyla geçti.
 - Testler: 379/379.
+
+4. alt adımdan notlar:
+- Diyagramlar:
+  - 02: `Oturum`, `GirisDenemesi`, e-posta notu;
+  - yeni 10: kimlik paketi; SECURITY DEFINER fonksiyonlar `<<harici>>` olarak;
+  - 09: `okul_giris` rolü, köken ayarları, planlanan Vite proxy'si.
+  - 03'te bir önceki adımda yapılan düzenleme kaynağı bozmuştu (etiketteki `
+` gerçek satır
+    sonu olmuştu). İsim denetleyicisi bunu görmez, PlantUML çıktıyı üretirken yakaladı. Ders:
+    kaynak değişince çıktılar aynı adımda yeniden üretilmeli.
+- Uçtan uca kabul testine yapım sırası 4 adımı eklendi: kayıt, başlık 401, Vite kökeni 201,
+  yabancı köken 403, çıkış, giriş. Gerçek sistemde geçti.
+- CLAUDE.md: mimari karar 8 (kimlik), veri modeline `oturum` ve `giris_denemesi`. README: roller,
+  diyagram 10, kabul testleri.
+
+## 9. Kapanış (2026-10-15)
+
+Kabul kriterleri (CLAUDE.md bölüm 8) testle kanıtlandı:
+- `X-Okul-Id` kaldırıldı (kaynak taraması);
+- aktif okul yalnızca oturumdan belirleniyor; başlık gönderilse bile yok sayılıyor;
+- oturumsuz istek uygulamanın her korunan ucunda 401 alıyor (liste OpenAPI'den otomatik).
+
+Hem TestClient ile hem de gerçek sistemde HTTP ile.
+
+Sonraya:
+- Kayıt formu bir e-postanın kayıtlı olup olmadığını söylüyor (ADR 0012'de bilinen ödünleşim).
+  Kötüye kullanılırsa kayda da hız sınırı eklenebilir.
+- Yayın ortamı için ters vekil sunucu yapılandırması (ADR 0013) ve HTTPS: yayına alma adımında.
+- Oturum listesi ("açık oturumlarım", tek tek kapatma) ve iki adımlı doğrulama: istenirse.
 
 ## 8. Kapsam dışı (bu adımda)
 

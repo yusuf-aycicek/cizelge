@@ -34,6 +34,7 @@ Veritabanı rolleri (yalnızca geliştirme parolaları, `docker-compose.yml`):
 |---|---|
 | `okul_sahip` | Tabloların sahibi. Migration'lar bu rolle çalışır. |
 | `okul_uygulama` | Uygulamanın bağlandığı rol. Satır düzeyi güvenliğe (RLS) tabidir, yalnızca kendi okulunun satırlarını görür. |
+| `okul_giris` | Girişi olmayan (NOLOGIN) rol. Okul bilinmeden kullanıcı ve oturum arayan `SECURITY DEFINER` fonksiyonların sahibidir (ADR 0012). |
 
 Kayıt ve giriş (ADR 0012). Aktif okul yalnızca oturumdan belirlenir:
 
@@ -125,9 +126,11 @@ cd api && python -m venv .venv && .venv/Scripts/pip install -e ../cozucu -e ".[t
 Bu testler Redis gerektirmez: kuyruk bellek içi bir ikizle, RQ gerçeklemesi fakeredis ile
 sınanır.
 
-Uçtan uca kabul testi, çalışan bütün sisteme (api, redis, worker, db) HTTP ile bağlanır, mini
-seti yükler, program ister ve durumun `bekliyor` → `uretiliyor` → `hazir` olduğunu denetler.
-Sonunda 9-A'nın haftalık çizelgesini yazdırır. Geliştirme veritabanına yeni bir okul eklediği için
+Uçtan uca kabul testleri, çalışan bütün sisteme (api, redis, worker, db) HTTP ile bağlanır:
+- yapım sırası 3: mini seti yükler, program ister, durumun `bekliyor` → `uretiliyor` → `hazir`
+  olduğunu denetler ve 9-A'nın haftalık çizelgesini yazdırır;
+- yapım sırası 4: kayıt, çıkış ve giriş; `X-Okul-Id` başlığının işe yaramadığı; Vite kökeninin
+  izinli, yabancı kökenin reddedildiği. Geliştirme veritabanına yeni bir okul eklediği için
 varsayılan çalıştırmada yer almaz:
 
 ```bash
@@ -167,7 +170,8 @@ gerektiğini söyler.
 | 04, 05 | Ders programı modülü: tablolar; servisler, depolar, dönüştürücü |
 | 06 | Çözücü: `ProgramCozucu`, `CpSatCozucu`, kısıt kuralları (strategy deseni) |
 | 07, 08 | Nesne diyagramları: mini set, veri girişinden ve program üretiminden sonra |
-| 09 | Dağıtım: konteynerler (db, redis, api, worker), portlar, roller; planlanan web |
+| 09 | Dağıtım: konteynerler (db, redis, api, worker), portlar, roller; planlanan web (Vite proxy) |
+| 10 | Kimlik doğrulama: servisler, uçlar, köken denetimi, okul bilinmeden arama |
 
 ## Belgeler
 

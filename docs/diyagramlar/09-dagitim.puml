@@ -27,10 +27,11 @@ node "Geliştirici bilgisayarı\n<<cihaz>>\nWindows 11" as pc {
       artifact "rol: okul_sahip\n(tablo sahibi, süper kullanıcı;\nmigration'lar)" as rol_sahip
       artifact "rol: okul_uygulama\n(uygulama; RLS'ye tabi,\nyalnızca DML yetkisi)" as rol_uyg
       artifact "01-uygulama-rolu.sh\n(docker-entrypoint-initdb.d)" as init
+      artifact "rol: okul_giris (NOLOGIN)\nSECURITY DEFINER fonksiyonların sahibi:\ngiris_bilgisi, oturum_coz, kaba kuvvet sayacı" as rol_giris
     }
     storage "db_verisi\n<<birim>>" as birim
 
-    node "api\n<<konteyner>>\npython:3.14-slim" as api {
+    node "api\n<<konteyner>>\npython:3.14-slim\nOKULAPI_CEREZ_SECURE=false\nOKULAPI_IZINLI_KOKENLER=[:5173, :8000]" as api {
       artifact "okulapi\n(FastAPI, uvicorn)" as okulapi
       artifact "cozucu\n(OR-Tools CP-SAT)" as cozucu
       artifact "migrasyon\n(Alembic: upgrade heads)" as migrasyon
@@ -44,7 +45,7 @@ node "Geliştirici bilgisayarı\n<<cihaz>>\nWindows 11" as pc {
       artifact "okulworker\n(python -m okulworker;\nRQ worker'ı, iş başına fork)" as okulworker
       artifact "okulapi + cozucu\n(iş fonksiyonu:\nuretim.uretim_isi)" as isler
     }
-    node "web\n<<konteyner>>\n(React, Vite derlemesi)" <<planlanan>> as web #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A
+    node "web\n<<konteyner>>\nVite geliştirme sunucusu\nlocalhost:5173" <<planlanan>> as web #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A
   }
 }
 
@@ -59,9 +60,10 @@ okulapi --> kuyruk : işi ekler, "kuyrukta mı?"\n(redis:6379, port dışarı a�
 okulworker --> kuyruk : işi alır
 okulworker ..> isler : çalıştırır
 isler --> rol_uyg : bağlanır (db:5432)\nRLS, işteki okul_id ile
+rol_uyg ..> rol_giris : yalnızca EXECUTE\n(okul bilinmeden arama)
 
-tarayici ..> web #9A9A9A;line.dashed : HTTP (planlanan)
-web ..> api #9A9A9A;line.dashed : /api/... (planlanan)
+tarayici ..> web #9A9A9A;line.dashed : HTTP localhost:5173\n(arayüz ve /api aynı köken)
+web ..> api #9A9A9A;line.dashed : Vite proxy: /api → api:8000\n(ADR 0013)
 
 note right of db
   Konteyner içinde 5432; bilgisayara 5433 ile açılır

@@ -102,6 +102,16 @@ Kuyruk (Redis)  ---->  Worker (Python)  -->  Çözücü modülü (OR-Tools CP-SA
    (ders programı; ileride ders notları, kütüphane) ayrı paketlerdir. Modül çekirdeğe bağımlı
    olabilir, çekirdek modülleri bilmez, modüller birbirini doğrudan kullanmaz. Yeni modül eklemek
    çekirdeği değiştirmeyi gerektirmez (bkz. ADR 0008, 0010).
+8. **Kimlik doğrulama sunucu taraflı oturumladır.**
+   - Jeton `HttpOnly`, `SameSite=Strict` bir çerezde taşınır; veritabanında jetonun özeti saklanır.
+   - Parola özeti argon2id'dir.
+   - Aktif okul yalnızca oturumdan belirlenir.
+   - Girişte okul bilinmediği için kullanıcı, RLS altında dar kapsamlı `SECURITY DEFINER`
+     fonksiyonlarla aranır.
+   - Arayüz ile API tarayıcıya hep aynı kökenden görünür (geliştirmede Vite proxy'si); CORS
+     kullanılmaz.
+
+   Bkz. ADR 0012, 0013.
 
 Her önemli karar için `docs/adr/` altına kısa bir karar kaydı (ADR) yazılır: bağlam, karar,
 değerlendirilen alternatifler, sonuçları.
@@ -141,7 +151,8 @@ Tüm tablolarda `id` (uuid) ve `okul_id` (FK) bulunur. Aşağıda yalnızca diğ
 | Tablo | Alanlar | Açıklama |
 |---|---|---|
 | `okul` | ad, gun_sayisi, gunluk_ders_saati | Kök kayıt (okul_id yok) |
-| `kullanici` | email, sifre_hash, ad, rol | Yönetici hesapları |
+| `kullanici` | email, sifre_hash, ad, rol | Yönetici hesapları (rol: mudur / mudur_yardimcisi). E-posta bütün sistemde, büyük/küçük harf ayrımsız tektir. Her okulda en az bir müdür bulunur |
+| `oturum` | kullanici_id, jeton_ozeti, son_kullanim, hareketsizlik_siniri, bitis_mutlak | Giriş oturumları. Kullanıcı silinince silinir |
 | `ogretmen` | ad, brans | |
 | `sinif` | ad, seviye | Şube, ör. 9-A |
 | `ders` | ad, kisa_ad | |
@@ -151,6 +162,9 @@ Tüm tablolarda `id` (uuid) ve `okul_id` (FK) bulunur. Aşağıda yalnızca diğ
 | `kisit` | tur, parametreler (JSON), zorunlu, agirlik | Okul geneli kurallar |
 | `program` | ad, durum, hata_mesaji, temel_program_id (boş olabilir), sure_siniri_sn, olusturma, bitis | Her üretim denemesi bir kayıt. `temel_program_id` doluysa en az değişiklikle güncellemedir |
 | `yerlesim` | program_id, ders_atama_id, gun, saat, kilitli | Programın hücreleri |
+
+`giris_denemesi` (email, hata_sayisi, pencere_basi, kilit_bitis) okula ait **olmayan** tek tablodur.
+Kaba kuvvet sayacıdır; uygulama rolünün bu tabloya doğrudan yetkisi yoktur (ADR 0012).
 
 `program.durum` değerleri: `bekliyor`, `uretiliyor`, `hazir`, `basarisiz`.
 
