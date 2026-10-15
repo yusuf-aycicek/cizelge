@@ -136,8 +136,8 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 | # | Alt adım | Durum |
 |---|---|---|
 | 1 | Şema ve ADR | Bitti (2026-10-15) |
-| 2 | Üretim mantığı | **Sıradaki** |
-| 3 | Kuyruk ve endpoint | |
+| 2 | Üretim mantığı | Bitti (2026-10-15) |
+| 3 | Kuyruk ve endpoint | **Sıradaki** |
 | 4 | Worker ve Docker | |
 
 1. alt adımdan notlar:
@@ -150,6 +150,36 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
   kısıt bunu reddetti. Test gerçekçi alanlarla düzeltildi.
 - `girdi_ozeti` API yanıtında yok: iç bilgi.
 - Testler: 206/206.
+
+2. alt adımdan notlar:
+- `moduller/ders_programi/uretim.py`:
+  - `programi_uret` (başlat, çöz, yaz);
+  - `uretimi_basarisiz_yap` (bitmemiş üretimi kapatır; 3. alt adımda RQ geri çağrısı ve kuyruk
+    hatası da bunu kullanacak);
+  - `takili_uretimleri_temizle` (tek UPDATE, süre program başına, veritabanı saatiyle);
+  - `girdi_ozeti` (kanonik JSON'un SHA-256'sı: liste sırası özeti değiştirmez).
+- Herhangi bir adımda beklenmeyen istisna olursa program `basarisiz` yapılır ve istisna yeniden
+  fırlatılır. Program `uretiliyor`da kalmaz; yalnızca worker sürecinin kendisi ölürse temizlik
+  gerekir.
+- Yazma adımında durum yeniden denetlenir: çözüm iş süresi sınırını aşıp bu arada temizlenmiş bir
+  program, geç gelen sonuçla yeniden "hazır" olmaz.
+- **Bölüm 14'ten sapma:** yerleşimler Core toplu INSERT ile değil, ORM `add_all` ile ekleniyor.
+  SQLAlchemy 2 bunları zaten çok değerli INSERT'lerle gönderiyor ("insertmanyvalues"). Böylece
+  `okul_id`'yi de okul filtresi yazıyor, ayrı bir yol açılmıyor.
+- Testler (`tests/test_uretim.py`, 19):
+  - plandaki 1-7 numaralı testler;
+  - iki worker'ın aynı anda aynı işi alması (gerçek commit, iki iş parçacığı);
+  - çözücü istisnası;
+  - doğrulayıcı savunması;
+  - temizlenmiş programa geç gelen sonuç;
+  - temizliğin yalnızca süresi geçenleri ve yalnızca kendi okulunu etkilemesi.
+- Mutasyon denemesi: altı bozma denendi (FOR UPDATE yok, başlatmada gevşek durum denetimi, özet
+  karşılaştırması yok, yazmada durum denetimi yok, temizlikte süre sınırı yok, doğrulayıcı yok).
+  Hepsini en az bir test yakaladı.
+- Takılı üretim düzeltmesinin API testi (zaman aşımı geçmiş `uretiliyor` varken yeni istek 202
+  alır) 3. alt adımda, endpoint ile birlikte (bölüm 4, madde 8). Temizliğin kendisi burada test
+  edildi.
+- Testler: 225/225.
 
 ## 6. Kapsam dışı (bu adımda)
 
