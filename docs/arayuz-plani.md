@@ -459,7 +459,51 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
   - api: özetin kendi mesajı, toplu atamanın yarıda kalması, öğretmenin okul denetimi.
 - **Testler:** web 144 (branş 20, ders dağılımı 17, şablon 6); api 447; çözücü 149.
 
+### Tasarım yenileme (5.4 ile 5.5 arası, kullanıcı isteği 2026-10-16)
+
+Arayüz işlevsel ama fazla sade; daha modern, canlı ve akıcı olacak. Kullanıcının kullanım limiti
+azaldığı için **her parça bitince testler çalışır, geçerse commit edilir ve bu tablo güncellenir**.
+Yarıda kalırsa sonraki oturum buradan devam eder.
+
+| # | Parça | Durum |
+|---|---|---|
+| 0 | Örnek okul komutu (`python -m okulapi ornek-okul --evet`, README) | Bitti |
+| 1 | İki tasarım yönü, beşer masaüstü ekran görüntüsü (giriş, ana sayfa, öğretmenler, okul ayarları, ders dağılımı); **kullanıcının seçimi beklenir** | **Sıradaki** |
+| 2 | (1 ile birlikte, iki yönde ortak) animasyonlar, ikonlar, kartlar, yazı tipi | |
+| 3 | Seçilen yönün bütün ekranlara uygulanması; masaüstü ve telefon görüntüleri, taşma denetimi; 5.5'ten önce kullanıcıya sorulur | |
+
+İstekler (parça 2, iki yönde de):
+- **Animasyonlar** (150-250 ms, abartısız):
+  - düğme ve satırlarda üzerine gelme ve tıklama geçişleri;
+  - bildirimlerin kayarak gelip gitmesi;
+  - onay penceresinin yumuşak açılıp kapanması;
+  - sayfa geçişlerinde hafif solma;
+  - listeye eklenen ve silinen satırlar;
+  - sekme geçişleri;
+  - "Yükleniyor..." yerine iskelet görünüm.
+- `prefers-reduced-motion` açıksa animasyonlar kapanır.
+- **Görünüm:**
+  - düğmelerde ve menüde ikon;
+  - belirgin kartlar, hafif gölgeler;
+  - Türkçe karakterleri iyi gösteren modern bir yazı tipi.
+- **Yöntem:**
+  - mümkün olduğunca CSS ile; kütüphane gerekirse küçük ve yaygın olanı, gerekçesiyle;
+  - tasarım belirteçleri üzerinden; kontrast testi ve taşma denetimi geçmeye devam eder.
+
+Parça 0 notları: `api/src/okulapi/ornek_okul.py`.
+- Bütün okulları `TRUNCATE okul, giris_denemesi CASCADE` ile siler; `--evet` olmadan hiçbir şey
+  yapmaz.
+- Mini seti API'den geçirerek, süreç içinde (`TestClient`) yükler. Testlerin mini yükleyicisi de
+  artık aynı fonksiyonu (`veri_setini_yukle`) kullanır.
+- Her seviyenin şablonu ilk şubesinden üretilir.
+- Giriş: `mudur@ornek.test` / `ornek-okul-parolasi`. Test: `api/tests/test_ornek_okul.py`.
+
 ### Yapım sırası 6 (program)
+
+**Animasyonlara özellikle özen gösterilecek** (kullanıcı isteği, 2026-10-16):
+- "program hazırlanıyor" beklemesi;
+- ilerleme göstergesi;
+- çizelgenin yerleşmesi (hücrelerin sırayla yerine oturması).
 
 1. **Program üretme ve durum:**
    - "Program üret" (ad, süre; temel program seçimi);

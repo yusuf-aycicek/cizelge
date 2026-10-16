@@ -214,30 +214,10 @@ def mini_api_ile_yukle(istemci, okul_adi: str = "Mini Lisesi") -> tuple[str, dic
 
     with open(MINI, encoding="utf-8") as f:
         mini = json.load(f)
+    from okulapi.ornek_okul import veri_setini_yukle
+
     okul_id, _, _ = api_ile_kayit(istemci, okul_adi, **mini["ayar"])
-    baslik = okul_basligi(okul_id)
-    harita: dict[str, str] = {}
-
-    def ekle(yol: str, kayit: dict, govde: dict) -> None:
-        yanit = istemci.post(yol, json=govde, headers=baslik)
-        assert yanit.status_code == 201, (yol, yanit.text)
-        if "id" in kayit:
-            harita[kayit["id"]] = yanit.json()["id"]
-
-    for o in mini["ogretmenler"]:
-        ekle("/api/ogretmenler", o, {"ad": o["ad"], "brans": o["brans"]})
-    for s in mini["siniflar"]:
-        ekle("/api/siniflar", s, {"ad": s["ad"], "seviye": s["seviye"]})
-    for d in mini["dersler"]:
-        ekle("/api/dersler", d, {"ad": d["ad"], "kisa_ad": d["kisa_ad"]})
-    for a in mini["atamalar"]:
-        ekle(f"{DP}/atamalar", a, {"sinif_id": harita[a["sinif_id"]], "ders_id": harita[a["ders_id"]],
-                                   "ogretmen_id": harita[a["ogretmen_id"]], "haftalik_saat": a["haftalik_saat"]})
-    for m in mini["musaitlikler"]:
-        ekle(f"{DP}/musaitlikler", m, {**m, "ogretmen_id": harita[m["ogretmen_id"]]})
-    for k in mini["kisitlar"]:
-        ekle(f"{DP}/kisitlar", k, k)
-    return okul_id, harita
+    return okul_id, veri_setini_yukle(istemci, mini, okul_basligi(okul_id))
 
 
 @pytest.fixture

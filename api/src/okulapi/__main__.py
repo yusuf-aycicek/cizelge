@@ -3,6 +3,9 @@
     python -m okulapi parola-sifirla <email>             yeni parola sorulur (iki kez, görünmez)
     python -m okulapi parola-sifirla <email> --rastgele  rastgele parola üretilir, bir kez gösterilir
 
+    python -m okulapi ornek-okul --evet                  geliştirme veritabanını temizler, örnek okulu yükler
+                                                         (bilgisayarda çalıştırılır; bkz. okulapi/ornek_okul.py)
+
 Docker'da: docker compose exec api python -m okulapi parola-sifirla <email>
 
 Okul müdürü parolasını unuttuğunda sistemi işleten kişi içindir (e-postayla sıfırlama yok,
@@ -51,15 +54,33 @@ def parola_sifirla(email: str, rastgele: bool, fabrika: sessionmaker, ayarlar: A
     return 0
 
 
-def main(argv: list[str] | None = None, fabrika: sessionmaker | None = None) -> int:
+def ornek_okul(evet: bool, ayarlar: Ayarlar) -> int:
+    from okulapi.ornek_okul import ORNEK_EMAIL, ORNEK_PAROLA, ornek_okul_kur
+
+    if not evet:
+        print("Bu komut veritabanındaki BÜTÜN okulları, kullanıcıları ve oturumları siler, sonra örnek "
+              "okulu yükler. Yalnızca geliştirme veritabanında kullanın. Devam etmek için: --evet",
+              file=sys.stderr)
+        return 2
+    sayilar = ornek_okul_kur(ayarlar)
+    print("Örnek okul yüklendi: " + ", ".join(f"{v} {k}" for k, v in sayilar.items()))
+    print(f"Giriş: {ORNEK_EMAIL} / {ORNEK_PAROLA}")
+    return 0
+
+
+def main(argv: list[str] | None = None, fabrika: sessionmaker | None = None, ayarlar: Ayarlar | None = None) -> int:
     ayristirici = argparse.ArgumentParser(prog="python -m okulapi", description="Sunucu yönetim komutları")
     komutlar = ayristirici.add_subparsers(dest="komut", required=True)
     sifirla = komutlar.add_parser("parola-sifirla", help="Bir kullanıcının parolasını sıfırlar")
     sifirla.add_argument("email")
     sifirla.add_argument("--rastgele", action="store_true", help="Rastgele parola üret ve göster")
+    ornek = komutlar.add_parser("ornek-okul", help="Geliştirme veritabanını temizler, örnek okulu yükler")
+    ornek.add_argument("--evet", action="store_true", help="Bütün verinin silineceğini onaylıyorum")
     secim = ayristirici.parse_args(argv)
 
-    ayarlar = Ayarlar()
+    ayarlar = ayarlar or Ayarlar()
+    if secim.komut == "ornek-okul":
+        return ornek_okul(secim.evet, ayarlar)
     motor = None
     if fabrika is None:
         motor = motor_olustur(ayarlar.veritabani_url)

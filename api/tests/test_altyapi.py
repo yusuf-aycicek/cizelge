@@ -203,8 +203,9 @@ def test_okula_ait_tablolara_orm_disi_erisim_yok():
     geçmez (test_kiraci.py, bilinen sınır). Uygulama kodunda yalnızca izin verilen yerlerde
     kullanılabilirler; RLS (4. alt adım) veritabanı düzeyinde ikinci güvencedir."""
     # saglik.py: SELECT 1 (hiçbir tabloya dokunmaz); kiraci.py: SET LOCAL app.okul_id (okulun
-    # veritabanında belirlendiği tek yer).
-    izinli = {"saglik.py", "kiraci.py"}
+    # veritabanında belirlendiği tek yer); ornek_okul.py: geliştirme aracı, tablo sahibi rolüyle
+    # (migration'lar gibi) bilerek bütün okulları siler (`TRUNCATE okul ... CASCADE`, --evet ister).
+    izinli = {"saglik.py", "kiraci.py", "ornek_okul.py"}
     ihlaller = []
     for dosya in KAYNAK.rglob("*.py"):
         if "migrations" in dosya.parts or "migrasyon" in dosya.parts or dosya.name in izinli:

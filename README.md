@@ -58,6 +58,23 @@ docker compose exec api python -m okulapi parola-sifirla mudur@okul.example
 Yeni parola iki kez sorulur. `--rastgele` ile rastgele bir parola üretilip bir kez gösterilir.
 Kullanıcının bütün oturumları kapanır, hatalı giriş kilidi kalkar.
 
+### Örnek okul (demo ve ekran görüntüleri)
+
+Geliştirme veritabanını temizleyip mini veri setiyle (`veri/mini.json`) örnek bir okul yükler.
+Sistem `docker compose up` ile çalışırken bilgisayarda çalıştırılır:
+
+```bash
+cd api && .venv/Scripts/python -m okulapi ornek-okul --evet
+```
+
+- **Veritabanındaki bütün okullar, kullanıcılar ve oturumlar silinir.** `--evet` olmadan hiçbir
+  şey yapılmaz. Yalnızca geliştirme veritabanında kullanın.
+- Yüklenenler: 5 öğretmen, 3 şube, 7 ders, 18 ders ataması, 15 müsaitlik kaydı. Ayrıca her seviye
+  için bir seviye şablonu, o seviyenin ilk şubesinin derslerinden üretilir.
+- Giriş: `mudur@ornek.test` / `ornek-okul-parolasi` (http://localhost:5173).
+- Veri, API'nin kendisinden geçerek yüklenir (süreç içinde, sunucuya istek atmadan); bütün
+  doğrulamalar uygulanır. Kod: `api/src/okulapi/ornek_okul.py`.
+
 ### Geliştirme ortamı: arayüz ve API aynı kökenden (ADR 0013)
 
 Tarayıcı arayüzü ve API'yi her zaman **aynı köken** (şema + alan adı + port) üzerinden görür.
