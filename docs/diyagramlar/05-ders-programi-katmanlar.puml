@@ -84,6 +84,28 @@ package "depo" {
   }
 }
 
+' @kod okulapi.moduller.ders_programi.kurallar
+package "kurallar (önem seviyeleri tek yerde)" {
+  class KurallarServisi {
+    +listele() : list[dict]
+    +ayarla(tur : str, parametreler, onem) : dict
+    +varsayilana_don(tur : str) : dict
+  }
+  class kurallar <<modül>> {
+    {static} +ONEM_KARSILIKLARI : dict[str, dict[str, int]]
+    {static} +KURAL_METINLERI : dict[str, tuple[str, str]]
+    {static} +seviye(tur : str, agirlik : int) : str
+  }
+}
+
+' @kod okulapi.moduller.ders_programi.kancalar
+package "kancalar (çekirdeğe, ADR 0014)" {
+  class kancalar <<modül>> {
+    {static} +okul_ayari_etkisi(oturum, gun_sayisi, gunluk_ders_saati, uygula) : list[str]
+    {static} +kullanim_aciklamasi(oturum, tablo, kayit_id) : list[str]
+  }
+}
+
 ' @kod okulapi.moduller.ders_programi.uretim
 package "uretim (worker'ın işi)" {
   class uretim <<modül>> {
@@ -142,6 +164,8 @@ cozucu_donusturucu ..> DersAtamaDeposu
 cozucu_donusturucu ..> YerlesimDeposu
 cozucu_donusturucu ..> CozumGirdisi : üretir
 
+KurallarServisi ..> kurallar
+ders_programi ..> kancalar : MODUL kancaları
 IsKuyrugu <|.. RqKuyrugu
 IsKuyrugu <|.. BellekKuyrugu
 IsKuyrugu ..> KuyrukHatasi : fırlatır

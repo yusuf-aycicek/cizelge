@@ -27,6 +27,11 @@ describe("govdedenHata", () => {
     expect(govdedenHata(durum, "<html>Bad Gateway</html>").message).toBe(mesaj);
   });
 
+  it("ham gövde ek bilgi için saklanır (ör. 409 etkiler)", () => {
+    const h = govdedenHata(409, { detail: "Etkiliyor", etkiler: ["3 müsaitlik kaydı silinecek."] });
+    expect((h.govde as { etkiler: string[] }).etkiler).toEqual(["3 müsaitlik kaydı silinecek."]);
+  });
+
   it("sunucunun 503 metni varsa o kullanılır (ör. kuyruk)", () => {
     expect(govdedenHata(503, { detail: "Program üretim kuyruğuna ulaşılamadı." }).message).toBe("Program üretim kuyruğuna ulaşılamadı.");
   });
@@ -39,7 +44,7 @@ describe("cagir", () => {
 
   it("hata yanıtında ApiHatasi fırlatır", async () => {
     const istek = cagir(Promise.resolve({ error: { detail: "Kayıt yok" }, response: yanit(404) }));
-    await expect(istek).rejects.toEqual(new ApiHatasi(404, "Kayıt yok"));
+    await expect(istek).rejects.toEqual(new ApiHatasi(404, "Kayıt yok", {}, { detail: "Kayıt yok" }));
   });
 
   it("bağlantı hiç kurulamazsa durum 0 ve bağlantı mesajı", async () => {

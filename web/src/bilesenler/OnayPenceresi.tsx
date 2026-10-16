@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { Dugme } from "./Dugme";
 import stil from "./OnayPenceresi.module.css";
 
@@ -13,6 +13,8 @@ type Props = {
   yukleniyor?: boolean;
   onOnayla: () => void;
   onVazgec: () => void;
+  /** Mesajın altında ek içerik (ör. etkilerin listesi). */
+  children?: ReactNode;
 };
 
 /**
@@ -32,6 +34,7 @@ export function OnayPenceresi({
   yukleniyor = false,
   onOnayla,
   onVazgec,
+  children,
 }: Props) {
   // useRef: çizimler arasında kalıcı bir kutu; burada DOM'daki <dialog> öğesini tutar.
   // Değeri değişince bileşen yeniden çizilmez (useState'ten farkı).
@@ -68,7 +71,10 @@ export function OnayPenceresi({
       <h2 id={baslikId} className={stil.baslik}>
         {baslik}
       </h2>
-      <p id={mesajId}>{mesaj}</p>
+      <div id={mesajId}>
+        <p>{mesaj}</p>
+        {children}
+      </div>
       <div className={stil.dugmeler}>
         <Dugme ref={vazgec} tur="ikincil" onClick={onVazgec} disabled={yukleniyor}>
           {vazgecMetni}

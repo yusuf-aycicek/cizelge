@@ -6,7 +6,7 @@
 from pathlib import Path
 
 from okulapi.cekirdek.modul import Modul
-from okulapi.moduller.ders_programi import modeller
+from okulapi.moduller.ders_programi import kancalar, modeller
 from okulapi.moduller.ders_programi.api import router
 
 MODUL = Modul(
@@ -15,4 +15,6 @@ MODUL = Modul(
     router=router,
     migration_dizini=Path(__file__).parent / "migrations",
     modeller=modeller,
+    okul_ayari_etkisi=kancalar.okul_ayari_etkisi,
+    kullanim_aciklamasi=kancalar.kullanim_aciklamasi,
 )

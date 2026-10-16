@@ -11,7 +11,7 @@ fonksiyonların tip ipuçlarını (ör. `olustur_semasi`) çalışma anında ger
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Request, Response, status
 from pydantic import BaseModel
 
 from okulapi.cekirdek import semalar
@@ -47,8 +47,9 @@ def crud_router(
         return servis_sinifi(oturum).guncelle(kayit_id, veri.model_dump(exclude_unset=True))
 
     @router.delete("/{kayit_id}", status_code=status.HTTP_204_NO_CONTENT)
-    def sil(kayit_id: uuid.UUID, oturum: OkulOturumu) -> Response:
-        servis_sinifi(oturum).sil(kayit_id)
+    def sil(kayit_id: uuid.UUID, oturum: OkulOturumu, istek: Request) -> Response:
+        # Modüller: silinemezse kaydın nerede kullanıldığını söylerler (ADR 0014).
+        servis_sinifi(oturum, istek.app.state.moduller).sil(kayit_id)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     return router
@@ -62,9 +63,20 @@ def okul_getir(okul_id: AktifOkulId, oturum: OkulOturumu) -> Any:
     return OkulServisi(oturum).getir(okul_id)
 
 
-@okul_router.patch("/okul", response_model=semalar.OkulYanit)
-def okul_guncelle(veri: semalar.OkulGuncelle, okul_id: AktifOkulId, oturum: OkulOturumu) -> Any:
-    return OkulServisi(oturum).guncelle(okul_id, veri.model_dump(exclude_unset=True))
+@okul_router.patch(
+    "/okul", response_model=semalar.OkulYanit,
+    responses={409: {"description": "Değişiklik mevcut kayıtları etkiliyor; `etkiler` listesi döner"}},
+)
+def okul_guncelle(veri: semalar.OkulGuncelle, okul_id: AktifOkulId, oturum: OkulOturumu, istek: Request) -> Any:
+    degisiklikler = veri.model_dump(exclude_unset=True, exclude={"etkileri_onayla"})
+    return OkulServisi(oturum).guncelle(okul_id, degisiklikler, istek.app.state.moduller, veri.etkileri_onayla)
+
+
+@okul_router.post("/okul/ayar-etkisi", response_model=semalar.AyarEtkisiYanit)
+def okul_ayar_etkisi(veri: semalar.AyarEtkisiIstegi, okul_id: AktifOkulId, oturum: OkulOturumu, istek: Request) -> Any:
+    """Önizleme: gün/saat bu değerlere getirilirse mevcut kayıtlara ne olur? Hiçbir şeyi değiştirmez."""
+    etkiler = OkulServisi(oturum).ayar_etkileri(okul_id, veri.gun_sayisi, veri.gunluk_ders_saati, istek.app.state.moduller)
+    return {"etkiler": etkiler}
 
 
 ROUTERLAR = [

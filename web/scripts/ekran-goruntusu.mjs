@@ -120,6 +120,82 @@ const AKISLAR = {
   },
 };
 
+AKISLAR["5.3"] = async (tarayici, kaydet) => {
+  const baglam = await tarayici.newContext({ viewport: MASAUSTU, locale: "tr-TR" });
+  const istek = async (yontem, yol, data) => {
+    const y = await baglam.request.fetch(ADRES + yol, { method: yontem, headers: { Origin: ADRES }, data });
+    if (!y.ok()) throw new Error(`${yontem} ${yol}: ${y.status()} ${await y.text()}`);
+    return y.json();
+  };
+  await istek("POST", "/api/kayit", {
+    okul: { ad: "Atatürk Anadolu Lisesi", gun_sayisi: 5, gunluk_ders_saati: 8 },
+    ad: "Ayşe Yılmaz", email: `ekran-${Date.now()}@ornek.test`, sifre: "ekran-goruntusu-parolasi",
+  });
+  const s = await baglam.newPage();
+
+  await s.goto(ADRES + "/ogretmenler");
+  await s.getByRole("heading", { name: "Henüz öğretmen eklenmedi" }).waitFor();
+  await kaydet(s, "1-ogretmenler-bos.png");
+
+  const ogretmenler = {};
+  for (const [ad, brans] of [["Zeynep Demir", "Fizik"], ["Çağla Öz", "Kimya"], ["Şule Kaya", "Matematik"],
+    ["İsmail Er", "Tarih"], ["Ömer Can", "Coğrafya"], ["Ali Çelik", "İngilizce"], ["Ümit Kara", "Biyoloji"],
+    ["Gül Ay", "Türk Dili ve Edebiyatı"], ["Irmak Su", "Beden Eğitimi"]]) {
+    ogretmenler[ad] = (await istek("POST", "/api/ogretmenler", { ad, brans })).id;
+  }
+  const siniflar = {};
+  for (const ad of ["10-A", "9-B", "9-A", "11-A"]) siniflar[ad] = (await istek("POST", "/api/siniflar", { ad, seviye: Number(ad.split("-")[0]) })).id;
+  const mat = (await istek("POST", "/api/dersler", { ad: "Matematik", kisa_ad: "MAT" })).id;
+  for (const sinif of ["9-A", "9-B"]) {
+    await istek("POST", "/api/ders-programi/atamalar", { sinif_id: siniflar[sinif], ders_id: mat, ogretmen_id: ogretmenler["Şule Kaya"], haftalik_saat: 6 });
+  }
+  for (const [gun, saat] of [[4, 7], [0, 7], [2, 7]]) {
+    await istek("POST", "/api/ders-programi/musaitlikler", { ogretmen_id: ogretmenler["Ali Çelik"], gun, saat, durum: "gelemez" });
+  }
+
+  await s.reload();
+  await s.getByRole("table", { name: "Öğretmenler" }).waitFor();
+  await kaydet(s, "2-ogretmenler-turkce-sirali.png", true);
+
+  await s.getByRole("button", { name: "Ali Çelik düzenle" }).click();
+  await kaydet(s, "3-satirda-duzenleme.png");
+  await s.keyboard.press("Escape");
+
+  await s.getByRole("button", { name: "Şule Kaya sil" }).click();
+  await kaydet(s, "4-silme-onayi.png");
+  await s.getByRole("dialog").getByRole("button", { name: "Sil" }).click();
+  await s.getByText(/Şule Kaya silinemez/).waitFor();
+  await kaydet(s, "5-silinemez-aciklamasi.png");
+
+  await s.goto(ADRES + "/siniflar");
+  await s.getByRole("table", { name: "Sınıflar" }).waitFor();
+  await kaydet(s, "6-siniflar.png");
+
+  await s.goto(ADRES + "/okul");
+  await s.getByRole("heading", { name: "Kurallar", exact: true }).waitFor();
+  await kaydet(s, "7-okul-ayarlari.png", true);
+
+  await s.getByLabel(/Günde kaç ders saati/).fill("7");
+  await s.getByRole("note").waitFor();
+  await kaydet(s, "8-azaltma-uyarisi.png");
+  await s.getByRole("button", { name: "Kaydet", exact: true }).click();
+  await s.getByRole("dialog", { name: "Bu değişiklik mevcut kayıtları etkileyecek" }).waitFor();
+  await kaydet(s, "9-azaltma-etkileri.png");
+  await s.getByRole("dialog").getByRole("button", { name: "Vazgeç" }).click();
+
+  await s.getByText("Gelişmiş: kuralların önemi").click();
+  await s.getByRole("group", { name: "Öğretmene boş gün" }).getByRole("radio", { name: "Çok önemli" }).check();
+  await s.getByRole("heading", { name: "Gelişmiş: kuralların önemi" }).scrollIntoViewIfNeeded();
+  await kaydet(s, "10-kurallarin-onemi.png", true);
+
+  const telefon = await baglam.newPage();
+  await telefon.setViewportSize(TELEFON);
+  await telefon.goto(ADRES + "/ogretmenler");
+  await telefon.getByRole("table", { name: "Öğretmenler" }).waitFor();
+  await kaydet(telefon, "11-telefon-ogretmenler.png", true);
+  await baglam.close();
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {

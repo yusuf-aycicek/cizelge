@@ -118,7 +118,12 @@ def test_ogretmen_silinince_musaitligi_de_silinir_ama_atamasi_varsa_silinemez(is
 
     atama_olustur(istemci, okul)
     yanit = istemci.delete(f"/api/ogretmenler/{okul['ayse']}", headers=b)  # RESTRICT
-    assert yanit.status_code == 409 and "kullanılıyor" in yanit.json()["detail"]
+    # Mesaj kaydın nerede kullanıldığını ve ne yapılacağını söyler (modül kancası, ADR 0014).
+    assert yanit.status_code == 409
+    assert yanit.json()["detail"] == (
+        "Ayşe Yılmaz silinemez: 1 derste öğretmen olarak seçili (9-A Matematik). Önce Ders dağılımı "
+        "sayfasında bu derslere başka bir öğretmen seçin."
+    )
 
 
 # --- kısıt (çözücünün kayıt defteriyle doğrulanır) --------------------------------------------

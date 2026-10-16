@@ -296,8 +296,8 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 |---|---|---|
 | 5.1 | Altyapı | Bitti (2026-10-16) |
 | 5.2 | Kimlik | Bitti (2026-10-16) |
-| 5.3 | Okul ayarları ve listeler | **Sıradaki** |
-| 5.4 | Seviye şablonu ve ders dağılımı | |
+| 5.3 | Okul ayarları ve listeler | Bitti (2026-10-16) |
+| 5.4 | Seviye şablonu ve ders dağılımı | **Sıradaki** |
 | 5.5 | Müsaitlik çizelgesi | |
 | 5.6 | Kullanıcılar, kontrol listesi, uçtan uca | |
 
@@ -366,6 +366,38 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
   - form temizlenmez;
   - çıkış hatada kalır.
 - **Testler:** web 67 (kimlik 18).
+
+5.3'ten notlar:
+- **API davranışı değişti (ADR 0014):** çekirdekten modüle iki isteğe bağlı kanca.
+  - Gün ya da ders saati azaltılırsa `PATCH /api/okul` etkileri onaylanmadan 409 + `etkiler`
+    döner; `etkileri_onayla: true` ile aralık dışındaki müsaitlik kayıtları aynı işlemde silinir.
+    Programlar değişmez, yeniden üretilmeleri gerektiği söylenir. `POST /api/okul/ayar-etkisi`
+    önizlemedir.
+  - Kullanımdaki öğretmen, sınıf ya da ders silinemeyince 409 mesajı nerede kullanıldığını ve ne
+    yapılacağını söyler ("Şule Kaya silinemez: 2 derste öğretmen olarak seçili (9-A Matematik,
+    9-B Matematik). Önce Ders dağılımı sayfasında..."). Kancası olmayan modülde genel mesaj kalır.
+- **Kurallar:** `GET/PUT/DELETE /api/ders-programi/kurallar[/{tur}]`. Önem seviyelerinin sayısal
+  karşılıkları `kurallar.py`'de tek yerde (`ONEM_KARSILIKLARI`); "Önemli" çözücünün varsayılanına
+  eşit (testle denetlenir). Seviyelerden birine denk gelmeyen ağırlık "özel" olarak gösterilir.
+- **Ortak liste bileşeni (`ListeSayfasi`):** öğretmen, sınıf ve ders sayfaları yalnızca alan
+  tanımı ve metin verir. Türkçe sıralama (`Intl.Collator("tr")`), arama (`toLocaleLowerCase("tr")`),
+  boş durum (açıklama + ilk kaydı ekleme düğmesi), satır içi düzenleme (Enter/Escape), onaylı
+  silme. Silinemeyen kayıtta API'nin mesajı kalıcı hata bildirimi olur.
+- **Okul ayarları:** okul bilgileri (azaltırken önceden uyarı, kaydetmeden önce önizleme ve etki
+  listeli onay penceresi), kurallar (N, M, boş gün hedefi), "Gelişmiş: kuralların önemi"
+  (`<details>`, kural başına radyo grubu, varsayılana dönüş).
+- **Çıkışta bildirimler temizlenir** (5.2'nin 7 numaralı görüntüsündeki sorun).
+- **Erişilebilir ad çakışması:** satır içi düzenleme kutusu ekleme formundaki alanla aynı adı
+  taşıyordu; testte yakalandı, "(düzenleme)" eklendi.
+- **Diyagram denetimi** `KurallarServisi`'nin diyagramda yanlış pakette olduğunu yakaladı.
+- **Ertelenen:** telefonda tablo yerine kart düzeni. Tablo 375 px'te sığıyor (görüntü 11); uzun
+  sütunlu listelerde 5.6'da yeniden bakılacak.
+- **Mutasyon denemesi:** on iki bozmanın hepsi yakalandı:
+  - api: onaysız azaltma uygulanır; onayda silme atlanır; silmede modüle sorulmaz; "Önemli"
+    karşılığı kayar;
+  - web: çıkışta bildirim kalır; JS'nin varsayılan sıralaması; Türkçe olmayan küçük harf; önizleme
+    yok; uyarı yok; 409 mesajı gösterilmez; boş durum yok; değişmeyen önem seviyeleri de gönderilir.
+- **Testler:** web 101 (metin 12, listeler 12, okul ayarları 9); api 432; çözücü 137.
 
 ### Yapım sırası 6 (program)
 

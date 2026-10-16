@@ -19,7 +19,13 @@ from okulapi.cekirdek.kimlik.api import router as kimlik_router
 from okulapi.cekirdek.kimlik.koken import KokenDenetimi
 from okulapi.cekirdek.kimlik.servis import CokFazlaDeneme, GirisHatasi, YetkiYok
 from okulapi.cekirdek.kuyruk import RqKuyrugu
-from okulapi.cekirdek.servisler import GecersizVeri, HizmetKullanilamiyor, KayitBulunamadi, KayitCakismasi
+from okulapi.cekirdek.servisler import (
+    AyarEtkisiOnayGerekli,
+    GecersizVeri,
+    HizmetKullanilamiyor,
+    KayitBulunamadi,
+    KayitCakismasi,
+)
 from okulapi.cekirdek.veritabani import motor_olustur, oturum_fabrikasi
 
 # Servis istisnası -> HTTP durum kodu. Başka okulun kaydı da "bulunamadı" (404) döner: kaydın
@@ -40,6 +46,11 @@ def _hata_isleyici(kod: int):
     return isle
 
 
+def _ayar_etkisi_isleyici(_istek: Request, hata: Exception) -> JSONResponse:
+    etkiler = getattr(hata, "etkiler", [])
+    return JSONResponse({"detail": str(hata), "etkiler": etkiler}, status_code=409)
+
+
 def uygulama_olustur(ayarlar: Ayarlar | None = None) -> FastAPI:
     ayarlar = ayarlar or Ayarlar()
     uygulama = FastAPI(title="Okul Ders Programı API", version="0.1.0")
@@ -53,6 +64,7 @@ def uygulama_olustur(ayarlar: Ayarlar | None = None) -> FastAPI:
         uygulama.add_exception_handler(hata_sinifi, _hata_isleyici(kod))
 
     uygulama.add_exception_handler(RequestValidationError, dogrulama_hatasi_isleyici)
+    uygulama.add_exception_handler(AyarEtkisiOnayGerekli, _ayar_etkisi_isleyici)
     uygulama.add_middleware(KokenDenetimi, izinli_kokenler=ayarlar.izinli_kokenler)
 
     uygulama.include_router(saglik.router, prefix="/api")
@@ -63,5 +75,6 @@ def uygulama_olustur(ayarlar: Ayarlar | None = None) -> FastAPI:
     for modul in moduller:
         uygulama.include_router(modul.router, prefix=f"/api/{modul.onek}")
     uygulama.state.modul_adlari = [m.ad for m in moduller]
+    uygulama.state.moduller = moduller  # çekirdek kancaları sorar (ADR 0014)
     openapi_semasini_uyarla(uygulama)
     return uygulama

@@ -1,6 +1,55 @@
 {
   "components": {
     "schemas": {
+      "AyarEtkisiIstegi": {
+        "properties": {
+          "gun_sayisi": {
+            "anyOf": [
+              {
+                "maximum": 7.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gun Sayisi"
+          },
+          "gunluk_ders_saati": {
+            "anyOf": [
+              {
+                "maximum": 16.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gunluk Ders Saati"
+          }
+        },
+        "title": "AyarEtkisiIstegi",
+        "type": "object"
+      },
+      "AyarEtkisiYanit": {
+        "description": "Bu değişiklik yapılırsa mevcut kayıtlara ne olur (kullanıcının diliyle). Boşsa etkisi yok.",
+        "properties": {
+          "etkiler": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Etkiler",
+            "type": "array"
+          }
+        },
+        "required": [
+          "etkiler"
+        ],
+        "title": "AyarEtkisiYanit",
+        "type": "object"
+      },
       "BenYanit": {
         "properties": {
           "kullanici": {
@@ -454,6 +503,138 @@
         "title": "KullaniciYanit",
         "type": "object"
       },
+      "KuralAyari": {
+        "properties": {
+          "parametreler": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parametreler"
+          },
+          "seviye": {
+            "anyOf": [
+              {
+                "enum": [
+                  "onemsiz",
+                  "onemli",
+                  "cok_onemli"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seviye"
+          }
+        },
+        "title": "KuralAyari",
+        "type": "object"
+      },
+      "KuralYanit": {
+        "properties": {
+          "aciklama": {
+            "title": "Aciklama",
+            "type": "string"
+          },
+          "ad": {
+            "title": "Ad",
+            "type": "string"
+          },
+          "agirlik": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agirlik"
+          },
+          "parametreler": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Parametreler",
+            "type": "object"
+          },
+          "seviye": {
+            "anyOf": [
+              {
+                "enum": [
+                  "onemsiz",
+                  "onemli",
+                  "cok_onemli",
+                  "ozel"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seviye"
+          },
+          "tur": {
+            "title": "Tur",
+            "type": "string"
+          },
+          "varsayilan": {
+            "title": "Varsayilan",
+            "type": "boolean"
+          },
+          "varsayilan_parametreler": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Varsayilan Parametreler",
+            "type": "object"
+          },
+          "varsayilan_seviye": {
+            "anyOf": [
+              {
+                "enum": [
+                  "onemsiz",
+                  "onemli",
+                  "cok_onemli"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Varsayilan Seviye"
+          },
+          "zorunlu": {
+            "title": "Zorunlu",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "tur",
+          "ad",
+          "aciklama",
+          "zorunlu",
+          "parametreler",
+          "varsayilan_parametreler",
+          "agirlik",
+          "seviye",
+          "varsayilan_seviye",
+          "varsayilan"
+        ],
+        "title": "KuralYanit",
+        "type": "object"
+      },
       "MusaitlikGuncelle": {
         "properties": {
           "durum": {
@@ -639,6 +820,11 @@
               }
             ],
             "title": "Ad"
+          },
+          "etkileri_onayla": {
+            "default": false,
+            "title": "Etkileri Onayla",
+            "type": "boolean"
           },
           "gun_sayisi": {
             "anyOf": [
@@ -1723,6 +1909,125 @@
         "summary": "Guncelle",
         "tags": [
           "kısıt"
+        ]
+      }
+    },
+    "/api/ders-programi/kurallar": {
+      "get": {
+        "description": "Okulun geçerli kuralları: çözücünün varsayılanları + okulun değiştirdikleri.",
+        "operationId": "kurallari_listele_api_ders_programi_kurallar_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/KuralYanit"
+                  },
+                  "title": "Response Kurallari Listele Api Ders Programi Kurallar Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Kurallari Listele",
+        "tags": [
+          "kural"
+        ]
+      }
+    },
+    "/api/ders-programi/kurallar/{tur}": {
+      "delete": {
+        "operationId": "kurali_varsayilana_dondur_api_ders_programi_kurallar__tur__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tur",
+            "required": true,
+            "schema": {
+              "title": "Tur",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KuralYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Kurali Varsayilana Dondur",
+        "tags": [
+          "kural"
+        ]
+      },
+      "put": {
+        "description": "Bir kuralın ayarını (ör. {\"n\": 3}) ve/veya önem seviyesini değiştirir.",
+        "operationId": "kurali_ayarla_api_ders_programi_kurallar__tur__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tur",
+            "required": true,
+            "schema": {
+              "title": "Tur",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KuralAyari"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KuralYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Kurali Ayarla",
+        "tags": [
+          "kural"
         ]
       }
     },
@@ -3026,6 +3331,9 @@
             },
             "description": "Successful Response"
           },
+          "409": {
+            "description": "Değişiklik mevcut kayıtları etkiliyor; `etkiler` listesi döner"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -3038,6 +3346,48 @@
           }
         },
         "summary": "Okul Guncelle",
+        "tags": [
+          "okul"
+        ]
+      }
+    },
+    "/api/okul/ayar-etkisi": {
+      "post": {
+        "description": "Önizleme: gün/saat bu değerlere getirilirse mevcut kayıtlara ne olur? Hiçbir şeyi değiştirmez.",
+        "operationId": "okul_ayar_etkisi_api_okul_ayar_etkisi_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AyarEtkisiIstegi"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AyarEtkisiYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Okul Ayar Etkisi",
         "tags": [
           "okul"
         ]

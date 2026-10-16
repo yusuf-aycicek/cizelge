@@ -126,6 +126,32 @@ class KisitYanit(_Yanit):
     agirlik: int
 
 
+# --- kurallar (okul geneli kısıtlar, kullanıcının diliyle) --------------------------------
+
+
+OnemSeviyesi = Literal["onemsiz", "onemli", "cok_onemli"]
+
+
+class KuralYanit(BaseModel):
+    tur: str
+    ad: str
+    aciklama: str
+    zorunlu: bool
+    parametreler: dict[str, int]
+    varsayilan_parametreler: dict[str, int]
+    # Yalnızca esnek kurallarda: sayısal ağırlık ve karşılık gelen önem seviyesi ("ozel": hiçbir
+    # seviyeye denk gelmeyen, elle girilmiş ağırlık).
+    agirlik: int | None
+    seviye: Literal["onemsiz", "onemli", "cok_onemli", "ozel"] | None
+    varsayilan_seviye: OnemSeviyesi | None
+    varsayilan: bool
+
+
+class KuralAyari(BaseModel):
+    parametreler: dict[str, int] | None = None
+    seviye: OnemSeviyesi | None = None
+
+
 # --- program -----------------------------------------------------------------------------
 
 

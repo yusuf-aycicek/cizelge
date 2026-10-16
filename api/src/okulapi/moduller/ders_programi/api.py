@@ -11,6 +11,7 @@ from fastapi import APIRouter, Request, Response
 from okulapi.cekirdek.api import crud_router
 from okulapi.cekirdek.bagimliliklar import Kuyruk, OkulOturumu
 from okulapi.moduller.ders_programi import semalar
+from okulapi.moduller.ders_programi.kurallar import KurallarServisi
 from okulapi.moduller.ders_programi.servisler import (
     DersAtamaServisi,
     KisitServisi,
@@ -28,6 +29,26 @@ sablon_router = APIRouter(prefix="/seviye-sablonlari", tags=["seviye şablonu"])
 def sablonu_uygula(veri: semalar.SablonUygula, oturum: OkulOturumu) -> Any:
     """Seviyenin şablonunu o seviyedeki her şubeye uygular (öğretmeni boş atamalar)."""
     return SeviyeSablonuServisi(oturum).uygula(veri.seviye)
+
+
+kural_router = APIRouter(prefix="/kurallar", tags=["kural"])
+
+
+@kural_router.get("", response_model=list[semalar.KuralYanit])
+def kurallari_listele(oturum: OkulOturumu) -> Any:
+    """Okulun geçerli kuralları: çözücünün varsayılanları + okulun değiştirdikleri."""
+    return KurallarServisi(oturum).listele()
+
+
+@kural_router.put("/{tur}", response_model=semalar.KuralYanit)
+def kurali_ayarla(tur: str, veri: semalar.KuralAyari, oturum: OkulOturumu) -> Any:
+    """Bir kuralın ayarını (ör. {"n": 3}) ve/veya önem seviyesini değiştirir."""
+    return KurallarServisi(oturum).ayarla(tur, veri.parametreler, veri.seviye)
+
+
+@kural_router.delete("/{tur}", response_model=semalar.KuralYanit)
+def kurali_varsayilana_dondur(tur: str, oturum: OkulOturumu) -> Any:
+    return KurallarServisi(oturum).varsayilana_don(tur)
 
 
 program_router = APIRouter(prefix="/programlar", tags=["program"])
@@ -64,6 +85,7 @@ def program_yerlesimleri(program_id: uuid.UUID, oturum: OkulOturumu) -> Any:
 
 # Özel yollar (/uygula) CRUD'un /{kayit_id} yollarından önce eklenir.
 router.include_router(sablon_router)
+router.include_router(kural_router)
 for alt in (
     crud_router("/seviye-sablonlari", SeviyeSablonuServisi, semalar.SeviyeSablonuOlustur,
                 semalar.SeviyeSablonuGuncelle, semalar.SeviyeSablonuYanit, "seviye şablonu"),

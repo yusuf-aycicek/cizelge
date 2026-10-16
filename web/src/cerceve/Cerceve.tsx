@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import { cagir } from "../api/hata";
+import { useBildirimleriTemizle } from "../bilesenler/Bildirim";
 import { api } from "../api/istemci";
 import { BEN_ANAHTARI, ROL_ADLARI, useBen } from "../kimlik/oturum";
 import type { GirisDurumu } from "../kimlik/KorumaliAlan";
@@ -35,11 +36,13 @@ export function Cerceve() {
   const ben = useBen().data;
   const istemci = useQueryClient();
   const yonlendir = useNavigate();
+  const bildirimleriTemizle = useBildirimleriTemizle();
 
   const cikis = useMutation({
     mutationFn: () => cagir(api.POST("/api/cikis")),
     // Sunucuya ulaşılamasa da kullanıcı çıkmış sayılır: önbellek temizlenir, giriş sayfasına gidilir.
     onSettled: () => {
+      bildirimleriTemizle();
       istemci.clear();
       istemci.setQueryData(BEN_ANAHTARI, null);
       const durum: GirisDurumu = { mesaj: "Çıkış yaptınız." };

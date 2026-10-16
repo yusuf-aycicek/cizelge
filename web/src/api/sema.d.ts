@@ -138,6 +138,47 @@ export interface paths {
         patch: operations["guncelle_api_ders_programi_kisitlar__kayit_id__patch"];
         trace?: never;
     };
+    "/api/ders-programi/kurallar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kurallari Listele
+         * @description Okulun geçerli kuralları: çözücünün varsayılanları + okulun değiştirdikleri.
+         */
+        get: operations["kurallari_listele_api_ders_programi_kurallar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/kurallar/{tur}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Kurali Ayarla
+         * @description Bir kuralın ayarını (ör. {"n": 3}) ve/veya önem seviyesini değiştirir.
+         */
+        put: operations["kurali_ayarla_api_ders_programi_kurallar__tur__put"];
+        post?: never;
+        /** Kurali Varsayilana Dondur */
+        delete: operations["kurali_varsayilana_dondur_api_ders_programi_kurallar__tur__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ders-programi/musaitlikler": {
         parameters: {
             query?: never;
@@ -505,6 +546,26 @@ export interface paths {
         patch: operations["okul_guncelle_api_okul_patch"];
         trace?: never;
     };
+    "/api/okul/ayar-etkisi": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Okul Ayar Etkisi
+         * @description Önizleme: gün/saat bu değerlere getirilirse mevcut kayıtlara ne olur? Hiçbir şeyi değiştirmez.
+         */
+        post: operations["okul_ayar_etkisi_api_okul_ayar_etkisi_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/saglik": {
         parameters: {
             query?: never;
@@ -563,6 +624,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AyarEtkisiIstegi */
+        AyarEtkisiIstegi: {
+            /** Gun Sayisi */
+            gun_sayisi?: number | null;
+            /** Gunluk Ders Saati */
+            gunluk_ders_saati?: number | null;
+        };
+        /**
+         * AyarEtkisiYanit
+         * @description Bu değişiklik yapılırsa mevcut kayıtlara ne olur (kullanıcının diliyle). Boşsa etkisi yok.
+         */
+        AyarEtkisiYanit: {
+            /** Etkiler */
+            etkiler: string[];
+        };
         /** BenYanit */
         BenYanit: {
             kullanici: components["schemas"]["KullaniciYanit"];
@@ -754,6 +830,42 @@ export interface components {
             /** Rol */
             rol: string;
         };
+        /** KuralAyari */
+        KuralAyari: {
+            /** Parametreler */
+            parametreler?: {
+                [key: string]: number;
+            } | null;
+            /** Seviye */
+            seviye?: ("onemsiz" | "onemli" | "cok_onemli") | null;
+        };
+        /** KuralYanit */
+        KuralYanit: {
+            /** Aciklama */
+            aciklama: string;
+            /** Ad */
+            ad: string;
+            /** Agirlik */
+            agirlik: number | null;
+            /** Parametreler */
+            parametreler: {
+                [key: string]: number;
+            };
+            /** Seviye */
+            seviye: ("onemsiz" | "onemli" | "cok_onemli" | "ozel") | null;
+            /** Tur */
+            tur: string;
+            /** Varsayilan */
+            varsayilan: boolean;
+            /** Varsayilan Parametreler */
+            varsayilan_parametreler: {
+                [key: string]: number;
+            };
+            /** Varsayilan Seviye */
+            varsayilan_seviye: ("onemsiz" | "onemli" | "cok_onemli") | null;
+            /** Zorunlu */
+            zorunlu: boolean;
+        };
         /** MusaitlikGuncelle */
         MusaitlikGuncelle: {
             /** Durum */
@@ -834,6 +946,11 @@ export interface components {
         OkulGuncelle: {
             /** Ad */
             ad?: string | null;
+            /**
+             * Etkileri Onayla
+             * @default false
+             */
+            etkileri_onayla: boolean;
             /** Gun Sayisi */
             gun_sayisi?: number | null;
             /** Gunluk Ders Saati */
@@ -1424,6 +1541,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KisitYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    kurallari_listele_api_ders_programi_kurallar_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KuralYanit"][];
+                };
+            };
+        };
+    };
+    kurali_ayarla_api_ders_programi_kurallar__tur__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tur: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KuralAyari"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KuralYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    kurali_varsayilana_dondur_api_ders_programi_kurallar__tur__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tur: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KuralYanit"];
                 };
             };
             /** @description Validation Error */
@@ -2433,6 +2636,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OkulYanit"];
+                };
+            };
+            /** @description Değişiklik mevcut kayıtları etkiliyor; `etkiler` listesi döner */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    okul_ayar_etkisi_api_okul_ayar_etkisi_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AyarEtkisiIstegi"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AyarEtkisiYanit"];
                 };
             };
             /** @description Validation Error */

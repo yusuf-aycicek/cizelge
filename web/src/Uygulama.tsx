@@ -7,6 +7,8 @@ import { HesabimSayfasi } from "./kimlik/HesabimSayfasi";
 import { KayitSayfasi } from "./kimlik/KayitSayfasi";
 import { KimlikCercevesi } from "./kimlik/KimlikCercevesi";
 import { KorumaliAlan } from "./kimlik/KorumaliAlan";
+import { DerslerSayfasi, OgretmenlerSayfasi, SiniflarSayfasi } from "./listeler/sayfalar";
+import { OkulAyarlariSayfasi } from "./okul/OkulAyarlariSayfasi";
 import { AnaSayfa } from "./sayfalar/AnaSayfa";
 import { Bulunamadi, YapimAsamasinda } from "./sayfalar/BasitSayfalar";
 import { TasarimSayfasi } from "./sayfalar/TasarimSayfasi";
@@ -17,6 +19,9 @@ import { TasarimSayfasi } from "./sayfalar/TasarimSayfasi";
  * Yönlendirici (BrowserRouter ya da testte MemoryRouter) dışarıdan sarılır: aynı uygulama
  * tarayıcıda gerçek adres çubuğuyla, testte bellekteki bir adresle çalışır.
  */
+/** Kendi sayfası olan menü öğeleri; gerisi "hazırlanıyor" gösterir. */
+const HAZIR_SAYFALAR = new Set(["/", "/okul", "/ogretmenler", "/siniflar", "/dersler"]);
+
 export function Uygulama({ sorguIstemcisi }: { sorguIstemcisi: QueryClient }) {
   return (
     <QueryClientProvider client={sorguIstemcisi}>
@@ -32,7 +37,11 @@ export function Uygulama({ sorguIstemcisi }: { sorguIstemcisi: QueryClient }) {
               <Route index element={<AnaSayfa />} />
               <Route path="hesabim" element={<HesabimSayfasi />} />
               <Route path="tasarim" element={<TasarimSayfasi />} />
-              {MENU.filter((m) => m.yol !== "/").map((m) => (
+              <Route path="okul" element={<OkulAyarlariSayfasi />} />
+              <Route path="ogretmenler" element={<OgretmenlerSayfasi />} />
+              <Route path="siniflar" element={<SiniflarSayfasi />} />
+              <Route path="dersler" element={<DerslerSayfasi />} />
+              {MENU.filter((m) => !HAZIR_SAYFALAR.has(m.yol)).map((m) => (
                 <Route key={m.yol} path={m.yol.slice(1)} element={<YapimAsamasinda baslik={m.ad} />} />
               ))}
               <Route path="*" element={<Bulunamadi />} />

@@ -53,6 +53,7 @@ package "servisler (iş kuralları, işlem sınırı)" {
     +getir(kayit_id : UUID) : T
     +olustur(alanlar : dict) : T
     +guncelle(kayit_id : UUID, degisiklikler : dict) : T
+    +moduller : Sequence[Modul]
     +sil(kayit_id : UUID)
     #_dogrula(alanlar : dict, nesne : T | None)
     -_kaydet(islem)
@@ -65,7 +66,8 @@ package "servisler (iş kuralları, işlem sınırı)" {
     +depo : OkulDeposu
     +olustur(alanlar : dict) : Okul
     +getir(okul_id : UUID) : Okul
-    +guncelle(okul_id : UUID, degisiklikler : dict) : Okul
+    +guncelle(okul_id : UUID, degisiklikler : dict, moduller, etkileri_onayla : bool) : Okul
+    +ayar_etkileri(okul_id : UUID, gun_sayisi, gunluk_ders_saati, moduller, uygula : bool) : list[str]
   }
   class KayitBulunamadi <<istisna>>
   class KayitCakismasi <<istisna>>
@@ -101,6 +103,8 @@ package "modul (modül sözleşmesi)" {
     +router : APIRouter
     +migration_dizini : Path
     +modeller
+    +okul_ayari_etkisi : OkulAyariEtkisi [0..1]
+    +kullanim_aciklamasi : KullanimAciklamasi [0..1]
   }
   class modul <<modül>> {
     {static} +modulleri_yukle(adlar : list[str]) : list[Modul]
@@ -141,9 +145,14 @@ note right of CrudServisi
   (HizmetKullanilamiyor: 503).
 end note
 
+CrudServisi ..> Modul : silinemeyince\nkullanim_aciklamasi()
+OkulServisi ..> Modul : okul_ayari_etkisi()
+
 note right of Modul
   Her modül paketinde MODUL adlı bir
   Modul nesnesi tanımlar; çekirdek modülleri
   adıyla yükler, kaynak kodunda içe aktarmaz.
+  İsteğe bağlı kancalar (ADR 0014): çekirdeğin bir
+  işi modül verisini etkilediğinde modüle sorulur.
 end note
 @enduml

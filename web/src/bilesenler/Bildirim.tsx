@@ -10,7 +10,8 @@ type Goster = (tur: BildirimTuru, mesaj: string) => void;
  * geçirmeden ulaştırır. Burada değer `goster` fonksiyonudur: herhangi bir sayfa
  * `useBildirim()` ile bildirim gösterebilir.
  */
-const BildirimBaglami = createContext<Goster | null>(null);
+type Baglam = { goster: Goster; temizle: () => void };
+const BildirimBaglami = createContext<Baglam | null>(null);
 
 export const KAYBOLMA_MS = 6000;
 
@@ -39,11 +40,15 @@ export function BildirimSaglayici({ children }: { children: ReactNode }) {
     [kapat],
   );
 
+  // Çıkışta çağrılır: bir kullanıcının bildirimi sonraki kullanıcının ekranında kalmasın.
+  const temizle = useCallback(() => setBildirimler([]), []);
+  const baglam = useMemo(() => ({ goster, temizle }), [goster, temizle]);
+
   const sakin = useMemo(() => bildirimler.filter((b) => b.tur === "basari" || b.tur === "bilgi"), [bildirimler]);
   const acil = useMemo(() => bildirimler.filter((b) => b.tur === "hata" || b.tur === "uyari"), [bildirimler]);
 
   return (
-    <BildirimBaglami.Provider value={goster}>
+    <BildirimBaglami.Provider value={baglam}>
       {children}
       <div className={stil.alan}>
         <div role="alert" className={stil.liste}>
@@ -74,9 +79,18 @@ function Kart({ bildirim, kapat }: { bildirim: Bildirim; kapat: (id: number) => 
 
 /** Bir kanca (hook): adı `use` ile başlayan, React'in özelliklerini kullanan fonksiyon. */
 export function useBildirim(): Goster {
-  const goster = useContext(BildirimBaglami);
-  if (!goster) {
+  return useBaglam().goster;
+}
+
+/** Ekrandaki bütün bildirimleri kaldırır (ör. çıkışta). */
+export function useBildirimleriTemizle(): () => void {
+  return useBaglam().temizle;
+}
+
+function useBaglam(): Baglam {
+  const baglam = useContext(BildirimBaglami);
+  if (!baglam) {
     throw new Error("useBildirim, BildirimSaglayici içinde kullanılmalı");
   }
-  return goster;
+  return baglam;
 }

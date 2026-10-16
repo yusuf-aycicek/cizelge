@@ -16,12 +16,15 @@ export class ApiHatasi extends Error {
   readonly durum: number;
   /** Alan yolu -> mesaj, ör. {"okul.ad": "Boş bırakılamaz"}. */
   readonly alanlar: AlanHatalari;
+  /** Sunucunun ham yanıt gövdesi: bazı uçlar ek bilgi taşır (ör. 409'da `etkiler` listesi). */
+  readonly govde: unknown;
 
-  constructor(durum: number, mesaj: string, alanlar: AlanHatalari = {}) {
+  constructor(durum: number, mesaj: string, alanlar: AlanHatalari = {}, govde: unknown = undefined) {
     super(mesaj);
     this.name = "ApiHatasi";
     this.durum = durum;
     this.alanlar = alanlar;
+    this.govde = govde;
   }
 
   get baglantiHatasi(): boolean {
@@ -54,7 +57,7 @@ export function govdedenHata(durum: number, govde: unknown): ApiHatasi {
         if (typeof mesaj === "string") alanlar[yol] = mesaj;
       }
     }
-    return new ApiHatasi(durum, govde.detail, alanlar);
+    return new ApiHatasi(durum, govde.detail, alanlar, govde);
   }
   if (durum === 502 || durum === 503 || durum === 504) {
     return new ApiHatasi(durum, BAGLANTI_HATASI);

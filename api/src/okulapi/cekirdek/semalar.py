@@ -26,6 +26,20 @@ class OkulGuncelle(BaseModel):
     ad: str | None = Field(default=None, min_length=1, max_length=200)
     gun_sayisi: int | None = Field(default=None, ge=1, le=7)
     gunluk_ders_saati: int | None = Field(default=None, ge=1, le=16)
+    # Gün/saat azaltılınca mevcut kayıtlar etkilenebilir; etkiler bu alanla açıkça onaylanmadıkça
+    # değişiklik yapılmaz (409, etkiler listesiyle). Önizleme: POST /api/okul/ayar-etkisi.
+    etkileri_onayla: bool = False
+
+
+class AyarEtkisiIstegi(BaseModel):
+    gun_sayisi: int | None = Field(default=None, ge=1, le=7)
+    gunluk_ders_saati: int | None = Field(default=None, ge=1, le=16)
+
+
+class AyarEtkisiYanit(BaseModel):
+    """Bu değişiklik yapılırsa mevcut kayıtlara ne olur (kullanıcının diliyle). Boşsa etkisi yok."""
+
+    etkiler: list[str]
 
 
 class OkulYanit(_Yanit):
