@@ -1,0 +1,33 @@
+.liste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bosluk-1);
+  border-bottom: 1px solid var(--renk-kenar-alan);
+  margin-bottom: var(--bosluk-5);
+}
+
+.sekme {
+  font: inherit;
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-metin-ikincil);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: var(--bosluk-3) var(--bosluk-4);
+  min-height: var(--dokunma-hedefi);
+  cursor: pointer;
+  margin-bottom: -1px;
+}
+.sekme:hover {
+  color: var(--renk-metin);
+  background: var(--renk-yuzey);
+}
+.sekme[aria-selected="true"] {
+  color: var(--renk-birincil);
+  border-bottom-color: var(--renk-birincil);
+}
+
+.panel:focus-visible {
+  outline: none;
+  box-shadow: var(--odak-halkasi);
+}

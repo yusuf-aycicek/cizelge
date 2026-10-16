@@ -147,8 +147,10 @@ söyler.
     müsait olduğu 20 saat var";
   - satıra tıklayınca o öğretmenin dersleri açılır (hangi şube, hangi ders, kaç saat).
   
-  Hesap arayüzde, listelerden yapılır: veri küçük, ayrı bir uca gerek yok. Kuralın sunucudaki
-  ön kontrolle aynı olduğunu bir test denetler.
+  **Değişti (5.4, kullanıcı isteği, ADR 0015):** hesap arayüzde yapılmaz. Çözücü paketindeki
+  `cozucu.yuk` hem ön kontrolün hem de API'nin `GET /api/ders-programi/dagilim-ozeti` ucunun
+  kaynağıdır; arayüz yalnızca gösterir. İlk plan ("hesap arayüzde, ortak örnek dosyayla iki
+  tarafta test") aynı kuralı iki dilde iki kez yazmak demekti.
 
 ### 2.7 Öğretmen müsaitlik çizelgesi
 - Üstte öğretmen seçimi (önceki/sonraki okları ile hızlı geçiş).
@@ -242,9 +244,10 @@ Her alt adımda yeni kavramlar, o adımın kodu üzerinden, küçük örneklerle
     - sunucu hatasının doğru yerde gösterilmesi;
     - yükleniyor durumu;
     - yetki farkı (müdür / yardımcı).
-- **Saf hesap testleri: Vitest.** Öğretmen yükü ve müsait saat hesabı. Aynı girdilerle
-  sunucunun ön kontrolüyle aynı sonucu vermeli: mini setten üretilmiş ortak bir örnek dosya iki
-  tarafta da test edilir.
+- **Saf hesap testleri:** öğretmen yükü ve müsait saat hesabı arayüzde değil, çözücü paketinde
+  (`cozucu/tests/test_yuk.py`). Özetin ön kontrolle aynı mesajları verdiğini
+  `api/tests/test_dagilim.py` gerçek veritabanıyla denetler (5.4'te değişti, ADR 0015). Arayüzde
+  saf fonksiyon testi olarak branş eşleştirmesi kalır (Vitest).
 - **Uçtan uca: Playwright**, çalışan gerçek sisteme karşı (docker compose + Vite):
   - kayıt → mini setin arayüzden girilmesi (ayarlar, listeler, şablon, dağılım, müsaitlik) →
     ana sayfadaki kontrol listesinin tamamlanması;
@@ -283,8 +286,8 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 2. **Kimlik:** giriş, kayıt, çıkış; korumalı sayfalar; 401'de giriş sayfası; Hesabım (parola).
 3. **Okul ayarları ve listeler:** okul ayarları ve kurallar; öğretmen, sınıf, ders listeleri
    (ortak liste bileşeni).
-4. **Seviye şablonu ve ders dağılımı:** şube görünümü, öğretmen görünümü, yük hesabı (sunucuyla
-   aynılık testi).
+4. **Seviye şablonu ve ders dağılımı:** şube, öğretmen ve ders görünümü; yük özeti sunucudan
+   (ön kontrolle aynı hesap, ADR 0015); toplu öğretmen atama.
 5. **Müsaitlik çizelgesi.**
 6. **Kullanıcılar, ana sayfa kontrol listesi ve uçtan uca:** Playwright ile mini setin arayüzden
    girilmesi; telefon görünümü ve erişilebilirlik kontrolü; README, diyagram 09'da web artık
@@ -297,8 +300,8 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 | 5.1 | Altyapı | Bitti (2026-10-16) |
 | 5.2 | Kimlik | Bitti (2026-10-16) |
 | 5.3 | Okul ayarları ve listeler | Bitti (2026-10-16) |
-| 5.4 | Seviye şablonu ve ders dağılımı | **Sıradaki** |
-| 5.5 | Müsaitlik çizelgesi | |
+| 5.4 | Seviye şablonu ve ders dağılımı | Bitti (2026-10-16) |
+| 5.5 | Müsaitlik çizelgesi | **Sıradaki** |
 | 5.6 | Kullanıcılar, kontrol listesi, uçtan uca | |
 
 5.1'den notlar:
@@ -398,6 +401,63 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
   - web: çıkışta bildirim kalır; JS'nin varsayılan sıralaması; Türkçe olmayan küçük harf; önizleme
     yok; uyarı yok; 409 mesajı gösterilmez; boş durum yok; değişmeyen önem seviyeleri de gönderilir.
 - **Testler:** web 101 (metin 12, listeler 12, okul ayarları 9); api 432; çözücü 137.
+
+5.4'ten notlar:
+- **Yük hesabının tek kaynağı (ADR 0015):**
+  - `cozucu/yuk.py` (`YukHesabi`) öğretmen ve sınıf yükünü, kapasiteyi ve aşım mesajını üretir;
+  - ön kontrolün kapasite kontrolleri artık bunu kullanır;
+  - API'de `GET /api/ders-programi/dagilim-ozeti`; arayüz hiç hesap yapmaz;
+  - aynılığı `test_yuk.py` (çözücü) ve `test_dagilim.py` (gerçek veritabanı, ön kontrolle birebir
+    mesaj karşılaştırması) denetler.
+  - Ölçüm: hesap gerçekçi sette 0,3 ms, büyük sette 0,5 ms.
+- **Toplu öğretmen atama:** `POST /api/ders-programi/atamalar/toplu-ogretmen`. Tek işlemdir:
+  atamalardan biri okulda yoksa hiçbiri değişmez (404); başka okulun öğretmeni 422.
+- **Ders dağılımı sayfası, üç sekme:**
+  - şubelere göre: şube listesinde toplam saat ve öğretmensiz sayısı; tabloda saat, öğretmen,
+    kaldırma, ders ekleme;
+  - öğretmenlere göre: yük çubuğu; aşanlar en üstte, ön kontrolün mesajıyla; dersinden şubesine
+    gidilir;
+  - derslere göre: işaretle, öğretmen seç, tek istekle ver; "Öğretmeni seçilmemişleri işaretle".
+  - Seçili sekme, şube ve ders adres çubuğunda (`?gorunum=&sinif=&ders=`), sayfanın durumudur.
+- **Erken uyarılar:**
+  - sayfanın üstünde öğretmensiz ders sayısı, kapasitesi aşılan öğretmen ve şube sayısı
+    (`aria-live`);
+  - bir seçim öğretmenin kapasitesini aştırırsa sunucunun mesajı hemen uyarı bildirimi olarak
+    gelir;
+  - öğretmen seçicide her öğretmenin yükü ("18 / 24 saat · kapasite aşıldı") yazar.
+- **Öğretmen seçici:**
+  - doğal `<select>`; branşı uyanlar `<optgroup>` ile üstte, diğerleri altta, kimse gizlenmez;
+  - plandaki "aranabilir liste" yerine doğal seçici kullanıldı: harf yazınca atlıyor, telefonda
+    sistemin seçicisi açılıyor;
+  - branş eşleşmesi: kelime başında ve en az 4 harf; kısa ad birebir. Test "MA"nın her şeye
+    uyduğunu yakaladı, kural sıkılaştırıldı. Bilinen sınır: 3 harfli branş ("Din") eşleşmez,
+    yalnızca sıralamayı etkiler.
+- **Seviye şablonu:**
+  - seviye seçimi, satırda saat düzenleme, toplam ve kapasite;
+  - uygulama raporu: eklenen ve zaten olan dersler, saati farklı olanlar tablosu ve "Şablondaki
+    saati kullan"; rapor açılınca odak başlığına gider.
+- **Ekran görüntüsünde ve tarayıcı ölçümünde yakalanan eski düzen hataları** (jsdom düzeni
+  görmez):
+  1. Çerçeve ızgarası `1fr` kullanıyordu: alt sınırı içerik olduğu için geniş bir tablo
+     telefonda öğretmen, ders ve şablon sayfalarını yana kaydırıyordu (5.3'ün 11 numaralı telefon
+     görüntüsü de 495 px'ti). `minmax(0, 1fr)` yapıldı.
+  2. `Tablo`daki görünmez sütun başlığı (`position: absolute`) kaydırma kutusundan kaçıp sayfayı
+     genişletiyordu. Kutuya `position: relative` verildi.
+  - Bunun için `web/scripts/tasma-denetimi.mjs` eklendi: bütün sayfaları masaüstü ve telefonda
+    açar, taşan varsa çıkış kodu 1. Geri alınan düzeltmeyle denendi: 4 taşma buldu.
+- **Ertelenen (5.6):** telefonda şube tablosu yatay kayıyor, öğretmen sütunu kaydırmadan
+  görünmüyor. Kart düzeni orada yeniden değerlendirilecek.
+- **Ana sayfa kontrol listesi (5.6)** öğretmensiz ders sayısını aynı özetten (`ogretmensiz_atama`)
+  alacak.
+- **Mutasyon denemesi:** 19 bozmanın 19'u yakalandı (ilk turda 18; "şubeye git şubeyi seçmez"
+  kaçtı, çünkü varsayılan şube de 9-A'ydı; test başka şube seçiliyken başlayacak şekilde
+  düzeltildi).
+  - web: branş gruplaması, seçicide aşım, özetin tazelenmesi, aşım uyarısı, Enter'da çift kayıt,
+    toplu atamada işaretsizler, öğretmensiz sayısı, aşanın üstte olması, şubeye git, rapordaki
+    farklı saatler, rapora odak, yarı dolu kutu, sekmede ok tuşu;
+  - çözücü: "tercih etmez"in düşülmesi, günlük sınır, ön kontrolün yük hesabını kullanması;
+  - api: özetin kendi mesajı, toplu atamanın yarıda kalması, öğretmenin okul denetimi.
+- **Testler:** web 144 (branş 20, ders dağılımı 17, şablon 6); api 447; çözücü 149.
 
 ### Yapım sırası 6 (program)
 

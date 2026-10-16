@@ -1,0 +1,351 @@
+/* --- ortak ------------------------------------------------------------------------- */
+
+.aciklama {
+  color: var(--renk-metin-ikincil);
+  max-width: 48rem;
+}
+
+.ikincil {
+  color: var(--renk-metin-ikincil);
+  font-weight: normal;
+}
+
+.bosDurum {
+  border: 2px dashed var(--renk-kenar-alan);
+  border-radius: var(--kose-buyuk);
+  padding: var(--bosluk-5);
+  background: var(--renk-yuzey);
+  margin-bottom: var(--bosluk-5);
+}
+.bosDurum p {
+  color: var(--renk-metin-ikincil);
+  max-width: 40rem;
+}
+
+.eksikListesi {
+  margin: 0;
+  padding-inline-start: var(--bosluk-5);
+}
+
+.dersSecimi {
+  max-width: 24rem;
+}
+
+.formBasligi {
+  font-size: var(--yazi-buyuk);
+  margin: 0 0 var(--bosluk-3);
+}
+
+.secici,
+.saat {
+  min-height: 2.25rem;
+  padding: var(--bosluk-1) var(--bosluk-2);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose);
+  background: var(--renk-zemin);
+  font: inherit;
+}
+.secici {
+  width: 100%;
+  min-width: 14rem;
+  max-width: 26rem;
+}
+/* Öğretmeni seçilmemiş seçici: kalın, uyarı renkli kenar (yalnızca renge dayanmaz: satırda yazı da var). */
+.seciciBos {
+  border: 2px solid var(--renk-uyari-metin);
+}
+.saat {
+  width: 5rem;
+}
+
+.islemler {
+  display: inline-flex;
+  gap: var(--bosluk-2);
+}
+
+.iyiMetin {
+  color: var(--renk-basari-metin);
+  font-weight: var(--yazi-kalin);
+}
+
+/* Tablonun içinde öğretmensiz satır. */
+.eksikSatir td {
+  background: var(--renk-uyari-zemin);
+}
+.eksikRozet,
+.rozet {
+  display: inline-block;
+  margin-inline-start: var(--bosluk-2);
+  padding: 0 var(--bosluk-2);
+  border-radius: var(--kose-kucuk);
+  background: var(--renk-uyari-zemin);
+  color: var(--renk-uyari-metin);
+  font-size: var(--yazi-kucuk);
+  font-weight: var(--yazi-kalin);
+  white-space: nowrap;
+}
+/* Tablo hücresinde ders adının altında: tablo genişlemesin, telefonda da sığsın. */
+.eksikRozet {
+  display: block;
+  width: fit-content;
+  margin: var(--bosluk-1) 0 0;
+  border: 1px solid currentColor;
+}
+
+.asimMetni {
+  color: var(--renk-hata-metin);
+  font-weight: var(--yazi-kalin);
+}
+
+.toplam,
+.toplamAsim {
+  margin: var(--bosluk-3) 0 var(--bosluk-5);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border-radius: var(--kose);
+  max-width: 48rem;
+}
+.toplam {
+  background: var(--renk-yuzey);
+}
+.toplamAsim {
+  background: var(--renk-hata-zemin);
+  color: var(--renk-hata-metin);
+  border-inline-start: 4px solid currentColor;
+  font-weight: var(--yazi-kalin);
+}
+
+/* Ekleme formu: alanlar yan yana, düğme alanların hizasında. */
+.ekleFormu {
+  border-top: 1px solid var(--renk-kenar);
+  padding-top: var(--bosluk-4);
+}
+.ekleAlanlari {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0 var(--bosluk-4);
+}
+.ekleAlanlari > div {
+  flex: 1 1 12rem;
+  max-width: 20rem;
+}
+.ekleDugmesi {
+  margin-top: 1.9rem;
+}
+
+/* --- durum özeti (sayfanın üstü) ------------------------------------------------------ */
+
+.durum ul {
+  list-style: none;
+  margin: 0 0 var(--bosluk-5);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-2);
+}
+.durum li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bosluk-2) var(--bosluk-4);
+  padding: var(--bosluk-2) var(--bosluk-4);
+  border-radius: var(--kose);
+  border-inline-start: 4px solid currentColor;
+}
+.durumUyari {
+  background: var(--renk-uyari-zemin);
+  color: var(--renk-uyari-metin);
+}
+.durumHata {
+  background: var(--renk-hata-zemin);
+  color: var(--renk-hata-metin);
+}
+.durumIyi {
+  background: var(--renk-basari-zemin);
+  color: var(--renk-basari-metin);
+}
+.durumBilgi {
+  background: var(--renk-bilgi-zemin);
+  color: var(--renk-bilgi-metin);
+}
+
+/* --- şube görünümü -------------------------------------------------------------------- */
+
+.ikiSutun {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: var(--bosluk-5);
+  align-items: start;
+}
+
+.subeListesi {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-1);
+}
+.subeDugmesi {
+  width: 100%;
+  min-height: var(--dokunma-hedefi);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--bosluk-2);
+  text-align: left;
+  font: inherit;
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin);
+  background: var(--renk-zemin);
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose);
+  padding: var(--bosluk-2) var(--bosluk-3);
+  cursor: pointer;
+}
+.subeDugmesi:hover {
+  background: var(--renk-yuzey);
+}
+.subeDugmesi[aria-current="true"] {
+  background: var(--renk-yuzey-vurgu);
+  border-color: var(--renk-birincil);
+  box-shadow: inset 4px 0 0 var(--renk-birincil);
+}
+.subeAdi {
+  font-size: var(--yazi-normal);
+  font-weight: var(--yazi-kalin);
+}
+.subeDugmesi .rozet {
+  margin-inline-start: 0;
+}
+
+.subePaneli h2 {
+  margin-top: 0;
+}
+
+/* --- öğretmen görünümü ---------------------------------------------------------------- */
+
+.ogretmenListesi {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--bosluk-3);
+}
+.ogretmenKarti {
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  background: var(--renk-zemin);
+}
+.ogretmenAsim {
+  border: 2px solid var(--renk-tehlike);
+  background: var(--renk-hata-zemin);
+}
+.ogretmenUst {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 var(--bosluk-4);
+}
+.ogretmenAdi {
+  font-size: var(--yazi-normal);
+  margin: 0;
+}
+.cubuk {
+  height: 0.5rem;
+  margin: var(--bosluk-2) 0;
+  border-radius: 999px;
+  background: var(--renk-yuzey-vurgu);
+  overflow: hidden;
+}
+.cubukDolgu,
+.cubukAsim {
+  height: 100%;
+  border-radius: inherit;
+}
+.cubukDolgu {
+  background: var(--renk-birincil);
+}
+.cubukAsim {
+  background: var(--renk-tehlike);
+}
+.asimMesaji {
+  margin: 0 0 var(--bosluk-2);
+  color: var(--renk-hata-metin);
+  font-weight: var(--yazi-kalin);
+}
+.dersListesi {
+  margin: var(--bosluk-2) 0 0;
+  padding-inline-start: var(--bosluk-5);
+}
+.dersListesi li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--bosluk-3);
+}
+
+/* --- ders görünümü (toplu atama) ------------------------------------------------------ */
+
+.toplu {
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-buyuk);
+  background: var(--renk-yuzey);
+  padding: var(--bosluk-4);
+  margin-bottom: var(--bosluk-4);
+}
+.toplu .aciklama {
+  margin-top: 0;
+}
+.topluSatir {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bosluk-3);
+}
+.kutu {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--renk-birincil);
+}
+
+/* --- şablon uygulama raporu ----------------------------------------------------------- */
+
+.rapor {
+  margin-top: var(--bosluk-4);
+  padding: var(--bosluk-4);
+  border: 1px solid var(--renk-kenar);
+  border-inline-start: 4px solid var(--renk-basari-metin);
+  border-radius: var(--kose);
+  background: var(--renk-zemin);
+}
+.raporBasligi {
+  margin-top: 0;
+  color: var(--renk-basari-metin);
+}
+.raporBasligi:focus-visible {
+  outline: none;
+  box-shadow: var(--odak-halkasi);
+}
+.raporListesi {
+  padding-inline-start: var(--bosluk-5);
+}
+
+@media (max-width: 48rem) {
+  .ikiSutun {
+    /* minmax(0, ...): 1fr'nin alt sınırı içeriktir; geniş tablo sütunu sayfadan taşırırdı. */
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .subeListesi {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .subeListesi li {
+    flex: 1 1 9rem;
+  }
+  .ekleDugmesi {
+    margin-top: 0;
+  }
+}

@@ -1,4 +1,8 @@
 .kutu {
+  /* position: relative şart: içerideki görünmez (position: absolute) başlıklar kutuyu kapsayıcı
+     blok alır ve onunla birlikte kırpılır. Yoksa geniş tabloda sütun başlığı kaydırma kutusundan
+     kaçıp bütün sayfayı yatayda genişletir (5.4 ekran görüntüsünde yakalandı). */
+  position: relative;
   overflow-x: auto;
   border: 1px solid var(--renk-kenar);
   border-radius: var(--kose-buyuk);

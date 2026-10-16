@@ -82,6 +82,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ders-programi/atamalar/toplu-ogretmen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Toplu Ogretmen Ata
+         * @description Aynı öğretmeni birden fazla atamaya tek işlemde verir. Atamalardan biri bulunamazsa
+         *     hiçbiri değişmez (404).
+         */
+        post: operations["toplu_ogretmen_ata_api_ders_programi_atamalar_toplu_ogretmen_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ders-programi/atamalar/{kayit_id}": {
         parameters: {
             query?: never;
@@ -99,6 +120,27 @@ export interface paths {
         head?: never;
         /** Guncelle */
         patch: operations["guncelle_api_ders_programi_atamalar__kayit_id__patch"];
+        trace?: never;
+    };
+    "/api/ders-programi/dagilim-ozeti": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dagilim Ozetini Getir
+         * @description Öğretmen ve sınıf yükleri: ders saati, müsaitliğe ve günlük sınıra göre kapasite, aşım
+         *     mesajı; öğretmeni seçilmemiş atama sayısı. Program üretiminin ön kontrolüyle aynı hesap.
+         */
+        get: operations["dagilim_ozetini_getir_api_ders_programi_dagilim_ozeti_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/ders-programi/kisitlar": {
@@ -645,6 +687,26 @@ export interface components {
             okul: components["schemas"]["OkulYanit"];
         };
         /**
+         * DagilimOzeti
+         * @description Ders dağılımının erken uyarıları. Hesap, program üretiminin ön kontrolüyle aynıdır
+         *     (çözücü paketi, `cozucu.yuk`; ADR 0015).
+         */
+        DagilimOzeti: {
+            /** Haftalik Kapasite */
+            haftalik_kapasite: number;
+            /** Ogretmen Gunluk Siniri */
+            ogretmen_gunluk_siniri: number;
+            /** Ogretmenler */
+            ogretmenler: components["schemas"]["OgretmenYukuYanit"][];
+            /**
+             * Ogretmensiz Atama
+             * @description Öğretmeni seçilmemiş atama sayısı (bütün okul)
+             */
+            ogretmensiz_atama: number;
+            /** Siniflar */
+            siniflar: components["schemas"]["SinifYukuYanit"][];
+        };
+        /**
          * DersAtamaGuncelle
          * @description Sınıf ve ders değiştirilemez: (sınıf, ders) atamanın kimliğidir. Başka bir sınıf/ders için
          *     yeni atama oluşturulur. `ogretmen_id: null` göndermek öğretmeni boşaltır.
@@ -942,6 +1004,33 @@ export interface components {
              */
             id: string;
         };
+        /** OgretmenYukuYanit */
+        OgretmenYukuYanit: {
+            /** Asim */
+            asim: boolean;
+            /** Ders Saati */
+            ders_saati: number;
+            /**
+             * Kullanilabilir Saat
+             * @description Günlük ders sınırıyla birlikte derse girebileceği en fazla saat
+             */
+            kullanilabilir_saat: number;
+            /**
+             * Mesaj
+             * @description Aşım varsa ön kontrolün mesajı
+             */
+            mesaj: string | null;
+            /**
+             * Musait Saat
+             * @description Haftada gelemez olmadığı saat sayısı
+             */
+            musait_saat: number;
+            /**
+             * Ogretmen Id
+             * Format: uuid
+             */
+            ogretmen_id: string;
+        };
         /** OkulGuncelle */
         OkulGuncelle: {
             /** Ad */
@@ -1152,6 +1241,35 @@ export interface components {
             /** Seviye */
             seviye: number;
         };
+        /** SinifYukuYanit */
+        SinifYukuYanit: {
+            /** Asim */
+            asim: boolean;
+            /** Ders Saati */
+            ders_saati: number;
+            /** Kapasite */
+            kapasite: number;
+            /** Mesaj */
+            mesaj: string | null;
+            /** Ogretmensiz Atama */
+            ogretmensiz_atama: number;
+            /**
+             * Sinif Id
+             * Format: uuid
+             */
+            sinif_id: string;
+        };
+        /**
+         * TopluOgretmenAta
+         * @description Aynı öğretmeni birden fazla atamaya tek seferde verir (ör. 9-A, 9-B, 9-C Matematik).
+         *     `ogretmen_id: null` hepsinin öğretmenini boşaltır.
+         */
+        TopluOgretmenAta: {
+            /** Atama Idleri */
+            atama_idleri: string[];
+            /** Ogretmen Id */
+            ogretmen_id: string | null;
+        };
         /** YardimciOlustur */
         YardimciOlustur: {
             /** Ad */
@@ -1311,6 +1429,39 @@ export interface operations {
             };
         };
     };
+    toplu_ogretmen_ata_api_ders_programi_atamalar_toplu_ogretmen_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TopluOgretmenAta"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DersAtamaYanit"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     getir_api_ders_programi_atamalar__kayit_id__get: {
         parameters: {
             query?: never;
@@ -1402,6 +1553,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dagilim_ozetini_getir_api_ders_programi_dagilim_ozeti_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DagilimOzeti"];
                 };
             };
         };

@@ -1,7 +1,8 @@
 /* Masaüstü: solda menü, üstte ince çubuk. Dar ekran (< 48rem): menü düğmeyle açılır. */
 .cerceve {
   display: grid;
-  grid-template-columns: var(--menu-genisligi) 1fr;
+  /* minmax(0, 1fr): 1fr'nin alt sınırı içeriktir; geniş bir tablo içerik sütununu ve sayfayı taşırırdı. */
+  grid-template-columns: var(--menu-genisligi) minmax(0, 1fr);
   grid-template-rows: auto 1fr;
   grid-template-areas:
     "ust ust"
@@ -129,7 +130,7 @@
 
 @media (max-width: 48rem) {
   .cerceve {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     /* Üç satır: üst çubuk, menü (kapalıyken yüksekliği 0), içerik. İki satırlık masaüstü tanımı
        kalırsa gizli menünün satırı boş alanı kaplar (5.2 ekran görüntüsünde yakalandı). */
     grid-template-rows: auto auto 1fr;

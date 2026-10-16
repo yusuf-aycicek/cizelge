@@ -51,6 +51,11 @@ export const varsayilanIsleyiciler = [
   http.get("/api/ogretmenler", () => HttpResponse.json([])),
   http.get("/api/siniflar", () => HttpResponse.json([])),
   http.get("/api/dersler", () => HttpResponse.json([])),
+  http.get("/api/ders-programi/atamalar", () => HttpResponse.json([])),
+  http.get("/api/ders-programi/seviye-sablonlari", () => HttpResponse.json([])),
+  http.get("/api/ders-programi/dagilim-ozeti", () =>
+    HttpResponse.json({ haftalik_kapasite: 40, ogretmen_gunluk_siniri: 8, ogretmensiz_atama: 0, ogretmenler: [], siniflar: [] }),
+  ),
 ];
 
 export const sunucu = setupServer(...varsayilanIsleyiciler);

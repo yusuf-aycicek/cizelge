@@ -18,6 +18,7 @@ from okulapi.moduller.ders_programi.servisler import (
     MusaitlikServisi,
     ProgramServisi,
     SeviyeSablonuServisi,
+    dagilim_ozeti,
 )
 
 router = APIRouter()
@@ -29,6 +30,23 @@ sablon_router = APIRouter(prefix="/seviye-sablonlari", tags=["seviye şablonu"])
 def sablonu_uygula(veri: semalar.SablonUygula, oturum: OkulOturumu) -> Any:
     """Seviyenin şablonunu o seviyedeki her şubeye uygular (öğretmeni boş atamalar)."""
     return SeviyeSablonuServisi(oturum).uygula(veri.seviye)
+
+
+atama_router = APIRouter(prefix="/atamalar", tags=["ders atama"])
+
+
+@atama_router.post("/toplu-ogretmen", response_model=list[semalar.DersAtamaYanit])
+def toplu_ogretmen_ata(veri: semalar.TopluOgretmenAta, oturum: OkulOturumu) -> Any:
+    """Aynı öğretmeni birden fazla atamaya tek işlemde verir. Atamalardan biri bulunamazsa
+    hiçbiri değişmez (404)."""
+    return DersAtamaServisi(oturum).toplu_ogretmen_ata(veri.atama_idleri, veri.ogretmen_id)
+
+
+@router.get("/dagilim-ozeti", response_model=semalar.DagilimOzeti, tags=["ders atama"])
+def dagilim_ozetini_getir(oturum: OkulOturumu) -> Any:
+    """Öğretmen ve sınıf yükleri: ders saati, müsaitliğe ve günlük sınıra göre kapasite, aşım
+    mesajı; öğretmeni seçilmemiş atama sayısı. Program üretiminin ön kontrolüyle aynı hesap."""
+    return dagilim_ozeti(oturum)
 
 
 kural_router = APIRouter(prefix="/kurallar", tags=["kural"])
@@ -85,6 +103,7 @@ def program_yerlesimleri(program_id: uuid.UUID, oturum: OkulOturumu) -> Any:
 
 # Özel yollar (/uygula) CRUD'un /{kayit_id} yollarından önce eklenir.
 router.include_router(sablon_router)
+router.include_router(atama_router)
 router.include_router(kural_router)
 for alt in (
     crud_router("/seviye-sablonlari", SeviyeSablonuServisi, semalar.SeviyeSablonuOlustur,

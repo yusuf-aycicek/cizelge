@@ -7,6 +7,8 @@ export type Sutun<T> = {
   hizala?: "sol" | "sag";
   /** Sütun başlığı yalnızca ekran okuyucuya görünsün (ör. işlem düğmeleri sütunu). */
   baslikGizli?: boolean;
+  /** Başlık hücresinde metin yerine bir öğe (ör. "tümünü seç" kutusu). `baslik` yine anahtardır. */
+  baslikIcerik?: ReactNode;
 };
 
 type Props<T> = {
@@ -18,6 +20,8 @@ type Props<T> = {
   /** Her satırın kalıcı anahtarı (genellikle kimlik). React satırları bununla tanır. */
   satirAnahtari: (satir: T) => string;
   bosMesaj?: ReactNode;
+  /** Satıra CSS sınıfı (ör. öğretmeni seçilmemiş satırı vurgulamak için). */
+  satirSinifi?: (satir: T) => string | undefined;
 };
 
 /**
@@ -28,7 +32,15 @@ type Props<T> = {
  *
  * Dar ekranda tablo kendi kutusunda yatay kayar; sayfa kaymaz.
  */
-export function Tablo<T>({ baslik, baslikGorunur = false, sutunlar, satirlar, satirAnahtari, bosMesaj }: Props<T>) {
+export function Tablo<T>({
+  baslik,
+  baslikGorunur = false,
+  sutunlar,
+  satirlar,
+  satirAnahtari,
+  bosMesaj,
+  satirSinifi,
+}: Props<T>) {
   return (
     <div className={stil.kutu}>
       <table className={stil.tablo}>
@@ -37,7 +49,7 @@ export function Tablo<T>({ baslik, baslikGorunur = false, sutunlar, satirlar, sa
           <tr>
             {sutunlar.map((s) => (
               <th key={s.baslik} scope="col" className={s.hizala === "sag" ? stil.sag : undefined}>
-                <span className={s.baslikGizli ? "gorunmez" : undefined}>{s.baslik}</span>
+                {s.baslikIcerik ?? <span className={s.baslikGizli ? "gorunmez" : undefined}>{s.baslik}</span>}
               </th>
             ))}
           </tr>
@@ -53,7 +65,7 @@ export function Tablo<T>({ baslik, baslikGorunur = false, sutunlar, satirlar, sa
             // `key`: React'in her satırı tanıması için. Dizin (index) değil, kalıcı kimlik
             // kullanılır; yoksa satır silinince ya da sıralanınca durum yanlış satıra kayar.
             satirlar.map((satir) => (
-              <tr key={satirAnahtari(satir)}>
+              <tr key={satirAnahtari(satir)} className={satirSinifi?.(satir)}>
                 {sutunlar.map((s) => (
                   <td key={s.baslik} className={s.hizala === "sag" ? stil.sag : undefined}>
                     {s.hucre(satir)}

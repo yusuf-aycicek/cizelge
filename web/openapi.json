@@ -66,6 +66,47 @@
         "title": "BenYanit",
         "type": "object"
       },
+      "DagilimOzeti": {
+        "description": "Ders dağılımının erken uyarıları. Hesap, program üretiminin ön kontrolüyle aynıdır\n(çözücü paketi, `cozucu.yuk`; ADR 0015).",
+        "properties": {
+          "haftalik_kapasite": {
+            "title": "Haftalik Kapasite",
+            "type": "integer"
+          },
+          "ogretmen_gunluk_siniri": {
+            "title": "Ogretmen Gunluk Siniri",
+            "type": "integer"
+          },
+          "ogretmenler": {
+            "items": {
+              "$ref": "#/components/schemas/OgretmenYukuYanit"
+            },
+            "title": "Ogretmenler",
+            "type": "array"
+          },
+          "ogretmensiz_atama": {
+            "description": "Öğretmeni seçilmemiş atama sayısı (bütün okul)",
+            "title": "Ogretmensiz Atama",
+            "type": "integer"
+          },
+          "siniflar": {
+            "items": {
+              "$ref": "#/components/schemas/SinifYukuYanit"
+            },
+            "title": "Siniflar",
+            "type": "array"
+          }
+        },
+        "required": [
+          "haftalik_kapasite",
+          "ogretmen_gunluk_siniri",
+          "ogretmensiz_atama",
+          "ogretmenler",
+          "siniflar"
+        ],
+        "title": "DagilimOzeti",
+        "type": "object"
+      },
       "DersAtamaGuncelle": {
         "description": "Sınıf ve ders değiştirilemez: (sınıf, ders) atamanın kimliğidir. Başka bir sınıf/ders için\nyeni atama oluşturulur. `ogretmen_id: null` göndermek öğretmeni boşaltır.",
         "properties": {
@@ -806,6 +847,55 @@
         "title": "OgretmenYanit",
         "type": "object"
       },
+      "OgretmenYukuYanit": {
+        "properties": {
+          "asim": {
+            "title": "Asim",
+            "type": "boolean"
+          },
+          "ders_saati": {
+            "title": "Ders Saati",
+            "type": "integer"
+          },
+          "kullanilabilir_saat": {
+            "description": "Günlük ders sınırıyla birlikte derse girebileceği en fazla saat",
+            "title": "Kullanilabilir Saat",
+            "type": "integer"
+          },
+          "mesaj": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Aşım varsa ön kontrolün mesajı",
+            "title": "Mesaj"
+          },
+          "musait_saat": {
+            "description": "Haftada gelemez olmadığı saat sayısı",
+            "title": "Musait Saat",
+            "type": "integer"
+          },
+          "ogretmen_id": {
+            "format": "uuid",
+            "title": "Ogretmen Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ogretmen_id",
+          "ders_saati",
+          "musait_saat",
+          "kullanilabilir_saat",
+          "asim",
+          "mesaj"
+        ],
+        "title": "OgretmenYukuYanit",
+        "type": "object"
+      },
       "OkulGuncelle": {
         "properties": {
           "ad": {
@@ -1383,6 +1473,85 @@
         "title": "SinifYanit",
         "type": "object"
       },
+      "SinifYukuYanit": {
+        "properties": {
+          "asim": {
+            "title": "Asim",
+            "type": "boolean"
+          },
+          "ders_saati": {
+            "title": "Ders Saati",
+            "type": "integer"
+          },
+          "kapasite": {
+            "title": "Kapasite",
+            "type": "integer"
+          },
+          "mesaj": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mesaj"
+          },
+          "ogretmensiz_atama": {
+            "title": "Ogretmensiz Atama",
+            "type": "integer"
+          },
+          "sinif_id": {
+            "format": "uuid",
+            "title": "Sinif Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sinif_id",
+          "ders_saati",
+          "kapasite",
+          "ogretmensiz_atama",
+          "asim",
+          "mesaj"
+        ],
+        "title": "SinifYukuYanit",
+        "type": "object"
+      },
+      "TopluOgretmenAta": {
+        "description": "Aynı öğretmeni birden fazla atamaya tek seferde verir (ör. 9-A, 9-B, 9-C Matematik).\n`ogretmen_id: null` hepsinin öğretmenini boşaltır.",
+        "properties": {
+          "atama_idleri": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Atama Idleri",
+            "type": "array"
+          },
+          "ogretmen_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ogretmen Id"
+          }
+        },
+        "required": [
+          "atama_idleri",
+          "ogretmen_id"
+        ],
+        "title": "TopluOgretmenAta",
+        "type": "object"
+      },
       "YardimciOlustur": {
         "properties": {
           "ad": {
@@ -1592,6 +1761,52 @@
         ]
       }
     },
+    "/api/ders-programi/atamalar/toplu-ogretmen": {
+      "post": {
+        "description": "Aynı öğretmeni birden fazla atamaya tek işlemde verir. Atamalardan biri bulunamazsa\nhiçbiri değişmez (404).",
+        "operationId": "toplu_ogretmen_ata_api_ders_programi_atamalar_toplu_ogretmen_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TopluOgretmenAta"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DersAtamaYanit"
+                  },
+                  "title": "Response Toplu Ogretmen Ata Api Ders Programi Atamalar Toplu Ogretmen Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Toplu Ogretmen Ata",
+        "tags": [
+          "ders atama"
+        ]
+      }
+    },
     "/api/ders-programi/atamalar/{kayit_id}": {
       "delete": {
         "operationId": "sil_api_ders_programi_atamalar__kayit_id__delete",
@@ -1715,6 +1930,28 @@
           }
         },
         "summary": "Guncelle",
+        "tags": [
+          "ders atama"
+        ]
+      }
+    },
+    "/api/ders-programi/dagilim-ozeti": {
+      "get": {
+        "description": "Öğretmen ve sınıf yükleri: ders saati, müsaitliğe ve günlük sınıra göre kapasite, aşım\nmesajı; öğretmeni seçilmemiş atama sayısı. Program üretiminin ön kontrolüyle aynı hesap.",
+        "operationId": "dagilim_ozetini_getir_api_ders_programi_dagilim_ozeti_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DagilimOzeti"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Dagilim Ozetini Getir",
         "tags": [
           "ders atama"
         ]

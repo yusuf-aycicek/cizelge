@@ -17,6 +17,7 @@ from typing import Any
 
 from cozucu.kisitlar import GirdiHatasi, kural_olustur
 from cozucu.model import KisitTanimi
+from cozucu.yuk import YukHesabi
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
@@ -30,6 +31,7 @@ from okulapi.cekirdek.servisler import (
     KayitBulunamadi,
     KayitCakismasi,
 )
+from okulapi.moduller.ders_programi.cozucu_donusturucu import cozum_girdisi_olustur
 from okulapi.moduller.ders_programi.depo import (
     DersAtamaDeposu,
     KisitDeposu,
@@ -99,6 +101,42 @@ class DersAtamaServisi(CrudServisi):
         _bu_okulda_olmali(SinifDeposu(self.oturum), alanlar.get("sinif_id"), "Sınıf")
         _bu_okulda_olmali(DersDeposu(self.oturum), alanlar.get("ders_id"), "Ders")
         _bu_okulda_olmali(OgretmenDeposu(self.oturum), alanlar.get("ogretmen_id"), "Öğretmen")
+
+    def toplu_ogretmen_ata(self, atama_idleri: list[uuid.UUID], ogretmen_id: uuid.UUID | None) -> list[DersAtama]:
+        """Hepsi ya da hiçbiri: atamalardan biri bu okulda yoksa hiçbiri değişmez (404)."""
+        _bu_okulda_olmali(OgretmenDeposu(self.oturum), ogretmen_id, "Öğretmen")
+        atamalar = [self.getir(i) for i in dict.fromkeys(atama_idleri)]
+
+        def uygula() -> list[DersAtama]:
+            for atama in atamalar:
+                atama.ogretmen_id = ogretmen_id
+            self.oturum.flush()
+            return atamalar
+
+        return self._kaydet(uygula)
+
+
+def dagilim_ozeti(oturum) -> dict[str, Any]:
+    """Öğretmen ve sınıf yükleri, öğretmensiz atama sayısı. Hesap ve mesajlar çözücünün ön
+    kontrolüyle aynı kaynaktandır (`cozucu.yuk.YukHesabi`, ADR 0015); burada yeniden yazılmaz."""
+    girdi = cozum_girdisi_olustur(oturum)
+    hesap = YukHesabi(girdi)
+    siniflar = hesap.sinif_yukleri()
+    return {
+        "haftalik_kapasite": girdi.ayar.haftalik_kapasite,
+        "ogretmen_gunluk_siniri": hesap.m,
+        "ogretmensiz_atama": sum(y.ogretmensiz_atama for y in siniflar),
+        "ogretmenler": [
+            {"ogretmen_id": y.ogretmen_id, "ders_saati": y.ders_saati, "musait_saat": y.musait_saat,
+             "kullanilabilir_saat": y.kullanilabilir_saat, "asim": y.asim, "mesaj": hesap.ogretmen_mesaji(y)}
+            for y in hesap.ogretmen_yukleri()
+        ],
+        "siniflar": [
+            {"sinif_id": y.sinif_id, "ders_saati": y.ders_saati, "kapasite": y.kapasite,
+             "ogretmensiz_atama": y.ogretmensiz_atama, "asim": y.asim, "mesaj": hesap.sinif_mesaji(y)}
+            for y in siniflar
+        ],
+    }
 
 
 class MusaitlikServisi(CrudServisi):

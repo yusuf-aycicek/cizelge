@@ -14,16 +14,8 @@ from collections import Counter, defaultdict
 
 from cozucu.anlatim import Anlatim, iyelik
 from cozucu.kisitlar import GirdiHatasi, kural_olustur
-from cozucu.model import (
-    GUNLUK_DERS_SINIRI_TURU,
-    OGRETMEN_GUNLUK_SINIRI_TURU,
-    VARSAYILAN_GUNLUK_DERS_SINIRI,
-    VARSAYILAN_OGRETMEN_GUNLUK_SINIRI,
-    Celiski,
-    CozumGirdisi,
-    DersAtama,
-    MusaitlikDurumu,
-)
+from cozucu.model import Celiski, CozumGirdisi, DersAtama, MusaitlikDurumu
+from cozucu.yuk import YukHesabi
 
 
 def on_kontrol(girdi: CozumGirdisi) -> list[Celiski]:
@@ -46,26 +38,14 @@ class _Kontrol:
     def __init__(self, girdi: CozumGirdisi) -> None:
         self.girdi = girdi
         self.ad = Anlatim(girdi)
-        self.gun_sayisi = girdi.ayar.gun_sayisi
-        self.saat_sayisi = girdi.ayar.gunluk_ders_saati
-        n = girdi.zorunlu_parametre(GUNLUK_DERS_SINIRI_TURU, "n", VARSAYILAN_GUNLUK_DERS_SINIRI)
-        m = girdi.zorunlu_parametre(OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI)
-        # Esnek tanımlanmış sınır zorunlu kontrol gerektirmez: gün uzunluğu kadar kabul edilir.
-        self.n = n if n is not None else self.saat_sayisi
-        self.m = min(m if m is not None else self.saat_sayisi, self.saat_sayisi)
+        # Günlük sınırlar, müsait saatler ve yükler tek yerde hesaplanır (yuk.py, ADR 0015).
+        self.yuk = YukHesabi(girdi)
+        self.gun_sayisi = self.yuk.gun_sayisi
+        self.saat_sayisi = self.yuk.saat_sayisi
+        self.n = self.yuk.n
+        self.m = self.yuk.m
         self.atama = {a.id: a for a in girdi.atamalar}
-        # Öğretmen -> her gün için gelemez olmadığı saat sayısı (aynı hücre iki kez sayılmaz).
-        gelemez_hucreler = {
-            (mu.ogretmen_id, mu.gun, mu.saat)
-            for mu in girdi.musaitlikler
-            if mu.durum is MusaitlikDurumu.GELEMEZ
-        }
-        gelemez_gunluk = Counter((o, g) for o, g, _s in gelemez_hucreler)
-        self._musait = {
-            o: [self.saat_sayisi - gelemez_gunluk[o, g] for g in range(self.gun_sayisi)]
-            for o in {o for o, _g, _s in gelemez_hucreler}
-        }
-        self._gelemez = gelemez_hucreler
+        self._gelemez = self.yuk.gelemez
 
     # --- veri tutarlılığı -------------------------------------------------------------
 
@@ -137,39 +117,18 @@ class _Kontrol:
         ]
 
     def sinif_kapasitesi(self) -> list[Celiski]:
-        kapasite = self.girdi.ayar.haftalik_kapasite
-        sorunlar = []
-        for sinif_id, atamalar in self._gruplar(lambda a: a.sinif_id).items():
-            yuk = sum(a.haftalik_saat for a in atamalar)
-            if yuk > kapasite:
-                sorunlar.append(Celiski(
-                    "sinif_kapasitesi",
-                    f"{self.ad.sinif(sinif_id)} sınıfının haftada {yuk} saat dersi var, haftalık "
-                    f"kapasite {kapasite} saat ({self.gun_sayisi} gün × {self.saat_sayisi} saat).",
-                    (sinif_id, *(a.id for a in atamalar)),
-                ))
-        return sorunlar
+        return [
+            Celiski("sinif_kapasitesi", self.yuk.sinif_mesaji(y), (y.sinif_id, *y.atama_idleri))
+            for y in self.yuk.sinif_yukleri()
+            if y.asim
+        ]
 
     def ogretmen_kapasitesi(self) -> list[Celiski]:
-        sorunlar = []
-        for ogretmen_id, atamalar in self._gruplar(lambda a: a.ogretmen_id).items():
-            if ogretmen_id is None:
-                continue
-            yuk = sum(a.haftalik_saat for a in atamalar)
-            musait = self._musait_saat(ogretmen_id)
-            kullanilabilir = sum(min(s, self.m) for s in musait)
-            if yuk <= kullanilabilir:
-                continue
-            ad = iyelik(self.ad.ogretmen(ogretmen_id))
-            if kullanilabilir == sum(musait):
-                mesaj = f"{ad} {yuk} saat dersi var, müsait olduğu {kullanilabilir} saat var."
-            else:
-                mesaj = (
-                    f"{ad} {yuk} saat dersi var. Müsait olduğu {sum(musait)} saatin, günde en fazla "
-                    f"{self.m} saat derse girebildiği için yalnızca {kullanilabilir} saati kullanılabilir."
-                )
-            sorunlar.append(Celiski("ogretmen_kapasitesi", mesaj, (ogretmen_id, *(a.id for a in atamalar))))
-        return sorunlar
+        return [
+            Celiski("ogretmen_kapasitesi", self.yuk.ogretmen_mesaji(y), (y.ogretmen_id, *y.atama_idleri))
+            for y in self.yuk.ogretmen_yukleri()
+            if y.asim
+        ]
 
     def ders_gun_kapasitesi(self) -> list[Celiski]:
         """Bir ders bir sınıfa günde en fazla n saat konabilir; öğretmenin müsait günleri de sınırlar."""
@@ -368,5 +327,4 @@ class _Kontrol:
         return gruplar
 
     def _musait_saat(self, ogretmen_id: str) -> list[int]:
-        """Her gün için öğretmenin gelemez olmadığı saat sayısı."""
-        return self._musait.get(ogretmen_id, [self.saat_sayisi] * self.gun_sayisi)
+        return self.yuk.musait_saat(ogretmen_id)

@@ -196,6 +196,96 @@ AKISLAR["5.3"] = async (tarayici, kaydet) => {
   await baglam.close();
 };
 
+AKISLAR["5.4"] = async (tarayici, kaydet) => {
+  const baglam = await tarayici.newContext({ viewport: MASAUSTU, locale: "tr-TR" });
+  const istek = async (yontem, yol, data) => {
+    const y = await baglam.request.fetch(ADRES + yol, { method: yontem, headers: { Origin: ADRES }, data });
+    if (!y.ok()) throw new Error(`${yontem} ${yol}: ${y.status()} ${await y.text()}`);
+    return y.json();
+  };
+  await istek("POST", "/api/kayit", {
+    okul: { ad: "Atatürk Anadolu Lisesi", gun_sayisi: 5, gunluk_ders_saati: 8 },
+    ad: "Ayşe Yılmaz", email: `ekran-${Date.now()}@ornek.test`, sifre: "ekran-goruntusu-parolasi",
+  });
+  const o = {};
+  for (const [ad, brans] of [["Zeynep Demir", "Fizik"], ["Çağla Öz", "Kimya"], ["Şule Kaya", "Matematik"],
+    ["Ayşe Yılmaz", "Matematik Öğretmeni"], ["Ali Çelik", "İngilizce"], ["Gül Ay", "Edebiyat"],
+    ["Ömer Can", "Coğrafya"], ["Irmak Su", "Beden Eğitimi"]]) {
+    o[ad] = (await istek("POST", "/api/ogretmenler", { ad, brans })).id;
+  }
+  const s = {};
+  for (const ad of ["9-A", "9-B", "9-C", "10-A", "10-B"]) s[ad] = (await istek("POST", "/api/siniflar", { ad, seviye: Number(ad.split("-")[0]) })).id;
+  const d = {};
+  for (const [ad, kisa_ad] of [["Matematik", "MAT"], ["Fizik", "FİZ"], ["Kimya", "KİM"], ["İngilizce", "İNG"],
+    ["Türk Dili ve Edebiyatı", "TDE"], ["Coğrafya", "COĞ"], ["Beden Eğitimi", "BED"]]) {
+    d[ad] = (await istek("POST", "/api/dersler", { ad, kisa_ad })).id;
+  }
+  const DP = "/api/ders-programi";
+  // Şablondan önce elle eklenmiş, saati şablondan farklı bir ders: rapor bunu gösterecek.
+  await istek("POST", `${DP}/atamalar`, { sinif_id: s["9-B"], ders_id: d["Matematik"], haftalik_saat: 6 });
+  for (const [ders, saat] of [["Matematik", 5], ["Fizik", 3], ["Kimya", 2], ["İngilizce", 4],
+    ["Türk Dili ve Edebiyatı", 5], ["Coğrafya", 2], ["Beden Eğitimi", 2]]) {
+    await istek("POST", `${DP}/seviye-sablonlari`, { seviye: 9, ders_id: d[ders], haftalik_saat: saat });
+  }
+  // Zeynep yalnızca cuma müsait: 8 saat.
+  for (let gun = 0; gun < 4; gun++) for (let saat = 0; saat < 8; saat++) {
+    await istek("POST", `${DP}/musaitlikler`, { ogretmen_id: o["Zeynep Demir"], gun, saat, durum: "gelemez" });
+  }
+  // 10-A: kapasiteyi aşan şube (42 saat > 40).
+  await istek("POST", `${DP}/atamalar`, { sinif_id: s["10-A"], ders_id: d["Matematik"], ogretmen_id: o["Ayşe Yılmaz"], haftalik_saat: 22 });
+  await istek("POST", `${DP}/atamalar`, { sinif_id: s["10-A"], ders_id: d["Türk Dili ve Edebiyatı"], ogretmen_id: o["Gül Ay"], haftalik_saat: 20 });
+
+  const p = await baglam.newPage();
+  await p.goto(ADRES + "/seviye-sablonu?seviye=9");
+  await p.getByRole("table", { name: "9. sınıf şablonu" }).waitFor();
+  await kaydet(p, "1-seviye-sablonu.png", true);
+
+  await p.getByRole("button", { name: "9. sınıf şubelerine uygula" }).click();
+  await p.getByRole("heading", { name: "Şablon uygulandı" }).waitFor();
+  await p.getByRole("heading", { name: "Şubelere uygula" }).evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await kaydet(p, "2-sablon-raporu.png");
+
+  await p.goto(ADRES + "/ders-dagilimi");
+  await p.getByRole("heading", { name: "9-A şubesinin dersleri" }).waitFor();
+  await kaydet(p, "3-sube-gorunumu.png", true);
+
+  // Açık <select> listesi işletim sisteminin penceresidir, ekran görüntüsüne girmez. Görüntü için
+  // seçici geçici olarak liste kutusu (size) yapılır; gruplar ve yükler aynen görünür.
+  // Rolle değil öznitelikle bulunur: size verilince rol combobox'tan listbox'a döner.
+  const secici = p.locator('select[aria-label="9-A Matematik öğretmeni"]');
+  await secici.evaluate((e) => e.scrollIntoView({ block: "center" }));
+  await secici.evaluate((e) => { e.size = 11; e.style.position = "relative"; e.style.zIndex = "5"; e.style.background = "white"; });
+  await kaydet(p, "4-ogretmen-secici.png");
+  await secici.evaluate((e) => { e.size = 0; e.removeAttribute("style"); });
+  await secici.selectOption(o["Şule Kaya"]);
+  await p.getByText("9-A Matematik: Şule Kaya seçildi.").waitFor();
+
+  await p.getByRole("tab", { name: "Derslere göre" }).click();
+  await p.getByRole("combobox", { name: "Ders" }).selectOption(d["Fizik"]);
+  await p.getByRole("checkbox", { name: "Bütün şubeleri işaretle" }).check();
+  await p.getByRole("combobox", { name: "İşaretli şubelere verilecek öğretmen" }).selectOption(o["Zeynep Demir"]);
+  await kaydet(p, "5-derse-gore-toplu-secim.png");
+  await p.getByRole("button", { name: "İşaretli 3 şubeye ver" }).click();
+  await p.getByText(/Fizik dersinin öğretmeni 3 şubede/).waitFor();
+  await p.getByText("Zeynep Demir'in 9 saat dersi var, müsait olduğu 8 saat var.").first().waitFor();
+  await kaydet(p, "6-toplu-atama-ve-asim-uyarisi.png");
+
+  await p.getByRole("tab", { name: "Öğretmenlere göre" }).click();
+  await p.getByRole("button", { name: /Derslerini göster/ }).first().click();
+  await kaydet(p, "7-ogretmen-yukleri.png", true);
+
+  await p.goto(ADRES + `/ders-dagilimi?gorunum=sube&sinif=${s["10-A"]}`);
+  await p.getByRole("heading", { name: "10-A şubesinin dersleri" }).waitFor();
+  await kaydet(p, "8-sube-kapasite-asimi.png");
+
+  const telefon = await baglam.newPage();
+  await telefon.setViewportSize(TELEFON);
+  await telefon.goto(ADRES + `/ders-dagilimi?gorunum=sube&sinif=${s["9-B"]}`);
+  await telefon.getByRole("heading", { name: "9-B şubesinin dersleri" }).waitFor();
+  await kaydet(telefon, "9-telefon-ders-dagilimi.png", true);
+  await baglam.close();
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {

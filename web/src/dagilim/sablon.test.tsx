@@ -1,0 +1,107 @@
+/** Seviye şablonu: dersler ve saatler, toplam ve kapasite, şubelere uygulama ve raporu. */
+import { screen, waitFor, within } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { dagilimApisiKur } from "../test/dagilimApisi";
+import { uygulamayiCiz } from "../test/yardimcilar";
+
+const SABLON_9 = [
+  { id: "ss-mat", seviye: 9, ders_id: "d-mat", haftalik_saat: 5 },
+  { id: "ss-fiz", seviye: 9, ders_id: "d-fiz", haftalik_saat: 3 },
+];
+
+const RAPOR = {
+  sube_sayisi: 3,
+  olusturulan: 4,
+  zaten_var: 2,
+  farkli_saatli: [
+    { atama_id: "a-9b-mat", sinif: "9-B", ders: "Matematik", atamadaki_saat: 6, sablondaki_saat: 5 },
+    { atama_id: "a-9c-mat", sinif: "9-C", ders: "Matematik", atamadaki_saat: 6, sablondaki_saat: 5 },
+  ],
+};
+
+describe("seviye şablonu", () => {
+  it("seviyeler şube sayısıyla; şablonun dersleri Türkçe sıralı; toplam ve kapasite", async () => {
+    dagilimApisiKur({ sablon: SABLON_9 });
+    uygulamayiCiz("/seviye-sablonu");
+    const seviye = await screen.findByRole("combobox", { name: "Sınıf seviyesi" });
+    expect(within(seviye).getAllByRole("option").map((o) => o.textContent)).toEqual([
+      "9. sınıflar (3 şube)", "10. sınıflar (1 şube)",
+    ]);
+    const tablo = screen.getByRole("table", { name: "9. sınıf şablonu" });
+    expect(within(tablo).getAllByRole("row").slice(1).map((r) => within(r).getAllByRole("cell")[0]?.textContent))
+      .toEqual(["Fizik", "Matematik"]);
+    expect(screen.getByText(/Haftalık toplam/)).toHaveTextContent("Haftalık toplam 8 saat; okulun haftalık kapasitesi 40 saat.");
+  });
+
+  it("toplam kapasiteyi aşınca uyarır", async () => {
+    dagilimApisiKur({ sablon: [{ id: "ss-mat", seviye: 9, ders_id: "d-mat", haftalik_saat: 41 }] });
+    uygulamayiCiz("/seviye-sablonu?seviye=9");
+    expect(await screen.findByText(/Haftalık toplam/)).toHaveTextContent(
+      "Haftalık toplam 41 saat; okulun haftalık kapasitesi 40 saat. Bu şablonla şubelerin programı üretilemez.",
+    );
+  });
+
+  it("şablona ders eklenir, saati değiştirilir", async () => {
+    const api = dagilimApisiKur({ sablon: SABLON_9 });
+    const { kullanici } = uygulamayiCiz("/seviye-sablonu?seviye=9");
+    const ders = await screen.findByRole("combobox", { name: "Ders" });
+    expect(within(ders).getAllByRole("option").map((o) => o.textContent)).toEqual(["Ders seçin", "Kimya"]);
+    await kullanici.selectOptions(ders, "d-kim");
+    await kullanici.type(screen.getByRole("spinbutton", { name: "Haftalık saat" }), "2");
+    await kullanici.click(screen.getByRole("button", { name: "Ekle" }));
+    expect(await screen.findByText("Kimya 9. sınıf şablonuna eklendi.")).toBeInTheDocument();
+
+    const saat = screen.getByRole("spinbutton", { name: "Matematik haftalık saat" });
+    await kullanici.clear(saat);
+    await kullanici.type(saat, "6{Enter}");
+    await waitFor(() =>
+      expect(api.istekler).toEqual([
+        { yontem: "POST", yol: "seviye-sablonlari", govde: { seviye: 9, ders_id: "d-kim", haftalik_saat: 2 } },
+        { yontem: "PATCH", yol: "seviye-sablonlari/ss-mat", govde: { haftalik_saat: 6 } },
+      ]),
+    );
+  });
+
+  it("uygulama raporu anlaşılır gösterilir; farklı saat tek tıklamayla şablona çekilir", async () => {
+    const api = dagilimApisiKur({ sablon: SABLON_9, uygulamaSonucu: RAPOR });
+    const { kullanici } = uygulamayiCiz("/seviye-sablonu?seviye=9");
+    expect(await screen.findByText(/3 şubeye \(9-A, 9-B, 9-C\) öğretmeni boş olarak eklenir/)).toBeInTheDocument();
+    await kullanici.click(screen.getByRole("button", { name: "9. sınıf şubelerine uygula" }));
+
+    const baslik = await screen.findByRole("heading", { name: "Şablon uygulandı" });
+    expect(baslik).toHaveFocus(); // klavye ve ekran okuyucu kullanıcısı sonucu hemen duyar
+    const rapor = baslik.parentElement!;
+    expect(rapor).toHaveTextContent("3 şubeye toplam 4 ders eklendi (9-A, 9-B, 9-C). Öğretmenleri henüz seçilmedi.");
+    expect(within(rapor).getByRole("link", { name: "Ders dağılımında öğretmen seçin" }))
+      .toHaveAttribute("href", "/ders-dagilimi?gorunum=sube&sinif=s-9a");
+    expect(rapor).toHaveTextContent("2 ders şubelerde zaten vardı; değiştirilmedi.");
+    expect(rapor).toHaveTextContent("2 dersin saati şablondan farklı.");
+
+    const farkli = within(rapor).getByRole("table", { name: "Saati şablondan farklı dersler" });
+    const satir = within(farkli).getByRole("row", { name: /9-B/ });
+    expect(within(satir).getAllByRole("cell").slice(0, 4).map((h) => h.textContent)).toEqual(["9-B", "Matematik", "6 saat", "5 saat"]);
+    await kullanici.click(within(satir).getByRole("button", { name: "9-B Matematik: şablondaki 5 saati kullan" }));
+    expect(await within(satir).findByText("✓ Güncellendi")).toBeInTheDocument();
+    expect(api.istekler.slice(1)).toEqual([{ yontem: "PATCH", yol: "atamalar/a-9b-mat", govde: { haftalik_saat: 5 } }]);
+    expect(api.istekler[0]).toEqual({ yontem: "POST", yol: "seviye-sablonlari/uygula", govde: { seviye: 9 } });
+    // Diğer satır değişmedi.
+    expect(within(farkli).getByRole("button", { name: "9-C Matematik: şablondaki 5 saati kullan" })).toBeInTheDocument();
+  });
+
+  it("eklenecek ders yoksa bunu söyler", async () => {
+    dagilimApisiKur({ sablon: SABLON_9, uygulamaSonucu: { sube_sayisi: 3, olusturulan: 0, zaten_var: 6, farkli_saatli: [] } });
+    const { kullanici } = uygulamayiCiz("/seviye-sablonu?seviye=9");
+    await kullanici.click(await screen.findByRole("button", { name: "9. sınıf şubelerine uygula" }));
+    const rapor = (await screen.findByRole("heading", { name: "Şablon uygulandı" })).parentElement!;
+    expect(rapor).toHaveTextContent("Eklenecek yeni ders yoktu: şablondaki derslerin hepsi şubelerde zaten var.");
+    expect(rapor).toHaveTextContent("6 ders şubelerde zaten vardı; değiştirilmedi.");
+    expect(within(rapor).queryByRole("table")).not.toBeInTheDocument();
+  });
+
+  it("şablon boşken uygulanamaz", async () => {
+    dagilimApisiKur({ sablon: [] });
+    uygulamayiCiz("/seviye-sablonu?seviye=9");
+    expect(await screen.findByText("Bu seviyenin şablonunda henüz ders yok. Aşağıdan ekleyin.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "9. sınıf şubelerine uygula" })).toBeDisabled();
+  });
+});

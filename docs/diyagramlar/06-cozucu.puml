@@ -127,6 +127,31 @@ package "model (düz veri)" {
   }
 }
 
+' @kod cozucu.yuk
+package "yuk (yük ve kapasite: tek kaynak, ADR 0015)" {
+  class YukHesabi {
+    +n : int
+    +m : int
+    +musait_saat(ogretmen_id : str) : list[int]
+    +ogretmen_yukleri() : list[OgretmenYuku]
+    +sinif_yukleri() : list[SinifYuku]
+    +ogretmen_mesaji(yuk : OgretmenYuku) : str [0..1]
+    +sinif_mesaji(yuk : SinifYuku) : str [0..1]
+  }
+  class OgretmenYuku <<dataclass>> {
+    +ders_saati : int
+    +musait_saat : int
+    +kullanilabilir_saat : int
+    +asim : bool
+  }
+  class SinifYuku <<dataclass>> {
+    +ders_saati : int
+    +kapasite : int
+    +ogretmensiz_atama : int
+    +asim : bool
+  }
+}
+
 ' @kod cozucu.on_kontrol
 package "on_kontrol (ön kontroller)" {
   class on_kontrol <<modül>> {
@@ -178,6 +203,9 @@ CpSatCozucu ..> Baglam : Baglam.kur()\nçözüm başına bir tane
 Baglam *-- "1" CpModel : model
 KisitKurali ..> Baglam : kısıt / ceza ekler
 CpSatCozucu ..> on_kontrol : önce
+on_kontrol ..> YukHesabi : kapasite kontrolleri
+YukHesabi ..> OgretmenYuku : üretir
+YukHesabi ..> SinifYuku : üretir
 CpSatCozucu ..> celiski : çözüm yoksa
 CpSatCozucu ..> CozumGirdisi : girdi
 CpSatCozucu ..> CozumSonucu : üretir

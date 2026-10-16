@@ -47,13 +47,17 @@ package "ders_programi (paket)" {
 }
 
 ' @kod okulapi.moduller.ders_programi.servisler
-package "servisler" {
+package "servisler (iş kuralları)" {
   class SeviyeSablonuServisi {
     +uygula(seviye : int) : dict
     #_dogrula(alanlar, nesne)
   }
   class DersAtamaServisi {
+    +toplu_ogretmen_ata(atama_idleri : list[UUID], ogretmen_id : UUID) : list[DersAtama]
     #_dogrula(alanlar, nesne)
+  }
+  class servisler <<modül>> {
+    {static} +dagilim_ozeti(oturum) : dict
   }
   class MusaitlikServisi {
     #_dogrula(alanlar, nesne)
@@ -145,6 +149,10 @@ package "cozucu.kisitlar (ayrıntı: 06)" {
 package "cozucu.model (ayrıntı: 06)" {
   class CozumGirdisi <<harici>>
 }
+' @kod cozucu.yuk
+package "cozucu.yuk (ayrıntı: 06)" {
+  class YukHesabi <<harici>>
+}
 
 ders_programi ..> Modul : <<gerçekler>>
 CrudServisi <|-- SeviyeSablonuServisi
@@ -163,6 +171,8 @@ KisitServisi ..> kisitlar : kural_olustur():\ntür ve parametre doğrulaması
 cozucu_donusturucu ..> DersAtamaDeposu
 cozucu_donusturucu ..> YerlesimDeposu
 cozucu_donusturucu ..> CozumGirdisi : üretir
+servisler ..> cozucu_donusturucu : girdi
+servisler ..> YukHesabi : ön kontrolle\naynı hesap
 
 KurallarServisi ..> kurallar
 ders_programi ..> kancalar : MODUL kancaları

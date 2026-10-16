@@ -2,6 +2,8 @@ import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { Route, Routes } from "react-router";
 import { BildirimSaglayici } from "./bilesenler/Bildirim";
 import { Cerceve, MENU } from "./cerceve/Cerceve";
+import { DersDagilimiSayfasi } from "./dagilim/DersDagilimiSayfasi";
+import { SeviyeSablonuSayfasi } from "./dagilim/SeviyeSablonuSayfasi";
 import { GirisSayfasi } from "./kimlik/GirisSayfasi";
 import { HesabimSayfasi } from "./kimlik/HesabimSayfasi";
 import { KayitSayfasi } from "./kimlik/KayitSayfasi";
@@ -20,7 +22,7 @@ import { TasarimSayfasi } from "./sayfalar/TasarimSayfasi";
  * tarayıcıda gerçek adres çubuğuyla, testte bellekteki bir adresle çalışır.
  */
 /** Kendi sayfası olan menü öğeleri; gerisi "hazırlanıyor" gösterir. */
-const HAZIR_SAYFALAR = new Set(["/", "/okul", "/ogretmenler", "/siniflar", "/dersler"]);
+const HAZIR_SAYFALAR = new Set(["/", "/okul", "/ogretmenler", "/siniflar", "/dersler", "/seviye-sablonu", "/ders-dagilimi"]);
 
 export function Uygulama({ sorguIstemcisi }: { sorguIstemcisi: QueryClient }) {
   return (
@@ -41,6 +43,8 @@ export function Uygulama({ sorguIstemcisi }: { sorguIstemcisi: QueryClient }) {
               <Route path="ogretmenler" element={<OgretmenlerSayfasi />} />
               <Route path="siniflar" element={<SiniflarSayfasi />} />
               <Route path="dersler" element={<DerslerSayfasi />} />
+              <Route path="seviye-sablonu" element={<SeviyeSablonuSayfasi />} />
+              <Route path="ders-dagilimi" element={<DersDagilimiSayfasi />} />
               {MENU.filter((m) => !HAZIR_SAYFALAR.has(m.yol)).map((m) => (
                 <Route key={m.yol} path={m.yol.slice(1)} element={<YapimAsamasinda baslik={m.ad} />} />
               ))}

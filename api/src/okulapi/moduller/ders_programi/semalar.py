@@ -80,6 +80,46 @@ class DersAtamaYanit(_Yanit):
     haftalik_saat: int
 
 
+class TopluOgretmenAta(BaseModel):
+    """Aynı öğretmeni birden fazla atamaya tek seferde verir (ör. 9-A, 9-B, 9-C Matematik).
+    `ogretmen_id: null` hepsinin öğretmenini boşaltır."""
+
+    atama_idleri: list[uuid.UUID] = Field(min_length=1, max_length=500)
+    ogretmen_id: uuid.UUID | None
+
+
+# --- ders dağılımı özeti (öğretmen ve sınıf yükü) -----------------------------------------
+
+
+class OgretmenYukuYanit(BaseModel):
+    ogretmen_id: uuid.UUID
+    ders_saati: int
+    musait_saat: int = Field(description="Haftada gelemez olmadığı saat sayısı")
+    kullanilabilir_saat: int = Field(description="Günlük ders sınırıyla birlikte derse girebileceği en fazla saat")
+    asim: bool
+    mesaj: str | None = Field(description="Aşım varsa ön kontrolün mesajı")
+
+
+class SinifYukuYanit(BaseModel):
+    sinif_id: uuid.UUID
+    ders_saati: int
+    kapasite: int
+    ogretmensiz_atama: int
+    asim: bool
+    mesaj: str | None
+
+
+class DagilimOzeti(BaseModel):
+    """Ders dağılımının erken uyarıları. Hesap, program üretiminin ön kontrolüyle aynıdır
+    (çözücü paketi, `cozucu.yuk`; ADR 0015)."""
+
+    haftalik_kapasite: int
+    ogretmen_gunluk_siniri: int
+    ogretmensiz_atama: int = Field(description="Öğretmeni seçilmemiş atama sayısı (bütün okul)")
+    ogretmenler: list[OgretmenYukuYanit]
+    siniflar: list[SinifYukuYanit]
+
+
 # --- müsaitlik ----------------------------------------------------------------------------
 
 
