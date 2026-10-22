@@ -1,3 +1,4 @@
+import { OgretmenRozeti } from "../bilesenler/OgretmenRozeti";
 import { DersCipi } from "../dersler/DersCipi";
 import { useState } from "react";
 import { Dugme } from "../bilesenler/Dugme";
@@ -49,6 +50,7 @@ export function OgretmenGorunumu({ veri, git }: { veri: DagilimVerisi; git: Git 
           return (
             <li key={ogretmen.id} className={yuk?.asim ? `${stil.ogretmenKarti} ${stil.ogretmenAsim}` : stil.ogretmenKarti}>
               <div className={stil.ogretmenUst}>
+                <OgretmenRozeti id={ogretmen.id} ad={ogretmen.ad} />
                 <h3 className={stil.ogretmenAdi}>
                   {ogretmen.ad}
                   {ogretmen.brans && <span className={stil.ikincil}> · {ogretmen.brans}</span>}

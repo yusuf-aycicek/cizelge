@@ -26,7 +26,16 @@
   --renk-menu-vurgu: #f3e6d6;     /* üzerine gelinen menü öğesi */
   --renk-menu-aktif-zemin: #c2410c;
   --renk-menu-aktif-metin: #ffffff;
-  --renk-cip-metin: #ffffff;      /* ders çipindeki yazı; API paleti bununla denetlenir (CIP_METNI) */
+  --renk-cip-metin: #ffffff;
+  /* öğretmen rozetleri: baş harfler beyaz (--renk-cip-metin); kimlikten kararlı seçilir */
+  --renk-rozet-1: #9a3412;
+  --renk-rozet-2: #9f1239;
+  --renk-rozet-3: #6d28d9;
+  --renk-rozet-4: #0f766e;
+  --renk-rozet-5: #1e40af;
+  --renk-rozet-6: #166534;
+  --renk-rozet-7: #86198f;
+  --renk-rozet-8: #92400e;      /* ders çipindeki yazı; API paleti bununla denetlenir (CIP_METNI) */
   --renk-menu-aktif-cizgi: transparent;
 
   /* --- renkler: anlam --- */

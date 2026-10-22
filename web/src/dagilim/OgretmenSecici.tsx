@@ -1,3 +1,4 @@
+import { BosRozet, OgretmenRozeti } from "../bilesenler/OgretmenRozeti";
 import type { SelectHTMLAttributes } from "react";
 import type { Ders, Ogretmen } from "../listeler/kaynaklar";
 import { bransaGoreGrupla } from "./brans";
@@ -48,23 +49,28 @@ export function OgretmenSecici({ etiket, ders, ogretmenler, yukler, deger, onDeg
     );
   };
 
+  // Seçili öğretmenin rozeti seçicinin solunda (doğal <option> içine resim konamaz).
+  const secili = deger ? ogretmenler.find((o) => o.id === deger) : undefined;
   return (
-    <select
-      aria-label={etiket}
-      className={[stil.secici, deger ? undefined : stil.seciciBos, className].filter(Boolean).join(" ")}
-      value={deger ?? ""}
-      onChange={(o) => onDegis(o.target.value || null)}
-      {...diger}
-    >
-      <option value="">{bosMetin}</option>
-      {uyan.length > 0 ? (
-        <>
-          <optgroup label={`Branşı uyan: ${ders?.ad ?? ""}`}>{uyan.map(secenek)}</optgroup>
-          {digerleri.length > 0 && <optgroup label="Diğer öğretmenler">{digerleri.map(secenek)}</optgroup>}
-        </>
-      ) : (
-        <optgroup label="Öğretmenler">{digerleri.map(secenek)}</optgroup>
-      )}
-    </select>
+    <span className={stil.seciciKutusu}>
+      {secili ? <OgretmenRozeti id={secili.id} ad={secili.ad} boyut="kucuk" /> : <BosRozet boyut="kucuk" />}
+      <select
+        aria-label={etiket}
+        className={[stil.secici, deger ? undefined : stil.seciciBos, className].filter(Boolean).join(" ")}
+        value={deger ?? ""}
+        onChange={(o) => onDegis(o.target.value || null)}
+        {...diger}
+      >
+        <option value="">{bosMetin}</option>
+        {uyan.length > 0 ? (
+          <>
+            <optgroup label={`Branşı uyan: ${ders?.ad ?? ""}`}>{uyan.map(secenek)}</optgroup>
+            {digerleri.length > 0 && <optgroup label="Diğer öğretmenler">{digerleri.map(secenek)}</optgroup>}
+          </>
+        ) : (
+          <optgroup label="Öğretmenler">{digerleri.map(secenek)}</optgroup>
+        )}
+      </select>
+    </span>
   );
 }

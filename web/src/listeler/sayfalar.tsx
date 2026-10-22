@@ -1,4 +1,5 @@
 /** Öğretmen, sınıf ve ders sayfaları: ortak liste bileşeninin üç kullanımı. */
+import { OgretmenAdi } from "../bilesenler/OgretmenRozeti";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { BookOpen, GraduationCap, School } from "lucide-react";
 import { hataMetni } from "../api/hata";
@@ -25,6 +26,7 @@ const DERS_ALANLARI: ListeAlani[] = [
 export function OgretmenlerSayfasi() {
   return (
     <ListeSayfasi<Ogretmen, { ad: string; brans: string }>
+      gorunum={(alan, o) => (alan === "ad" ? <OgretmenAdi id={o.id} ad={o.ad} /> : undefined)}
       ikon={GraduationCap}
       baslik="Öğretmenler"
       aciklama="Okulunuzdaki öğretmenler. Hangi derse kimin gireceğini Ders dağılımı sayfasında seçeceksiniz."

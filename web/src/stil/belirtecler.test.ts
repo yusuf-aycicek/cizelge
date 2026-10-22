@@ -54,6 +54,7 @@ const METIN_CIFTLERI: [string, string][] = [
   ["renk-menu-metin", "renk-menu-zemin"],
   ["renk-menu-metin", "renk-menu-vurgu"],
   ["renk-menu-aktif-metin", "renk-menu-aktif-zemin"],
+  ...[1, 2, 3, 4, 5, 6, 7, 8].map((i): [string, string] => ["renk-cip-metin", `renk-rozet-${i}`]),
 ];
 
 const SINIR_CIFTLERI: [string, string][] = [

@@ -479,8 +479,8 @@ Parça 3'ün alt parçaları (kullanıcı isteği 2026-10-23: "yalnızca renk de
 | 3a | A'yı belirtecler.css'e taşı; B temasını, Inter'i, `?tema` ve ara yapıyı kaldır | Bitti. Ayrıca kararsız testler: bekleme süreleri uzatıldı (`asyncUtilTimeout` 3 sn, `testTimeout` 15 sn) |
 | 3b | İkonlu sayfa başlık alanı; kartlarda üzerine gelince yükselme ve gölge | Bitti (`SayfaBasligi`; `<header>` değil `<div>`: test ikinci bir "banner" yakaladı) |
 | 3c | Ders renkleri: otomatik atanır, değiştirilebilir, API'de saklanır; çip biçiminde (liste, dağılım, şablon, ileride çizelge); metin kontrastı testle | Bitti (aşağıda) |
-| 3d | Öğretmenler için baş harfli renkli rozetler (listeler, seçiciler) | **Sıradaki** |
-| 3e | Ana sayfa panosu: karşılama bandı, kurulum ilerleme halkası (kontrol listesiyle aynı veriden), sayı kartları | |
+| 3d | Öğretmenler için baş harfli renkli rozetler (listeler, seçiciler) | Bitti: `OgretmenRozeti`; renk kimlikten kararlı (8 belirteç, kontrast testli); baş harfler CSS `attr()` ile çizilir, metne karışmaz; seçicide seçili öğretmenin rozeti solda |
+| 3e | Ana sayfa panosu: karşılama bandı, kurulum ilerleme halkası (kontrol listesiyle aynı veriden), sayı kartları | **Sıradaki** |
 | 3f | Boş durumlar için özgün SVG illüstrasyonlar (tema renkleriyle) | |
 | 3g | Masaüstü ve telefon ekran görüntüleri, taşma denetimi, bütün testler; özet ve 5.5'ten önce soru | |
 

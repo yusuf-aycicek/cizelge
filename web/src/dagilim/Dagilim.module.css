@@ -36,6 +36,13 @@
   margin: 0 0 var(--bosluk-3);
 }
 
+.seciciKutusu {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  max-width: 100%;
+}
+
 .secici,
 .saat {
   min-height: 2.25rem;
@@ -255,8 +262,11 @@
 .ogretmenUst {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0 var(--bosluk-4);
+  align-items: center;
+  gap: var(--bosluk-2) var(--bosluk-3);
+}
+.ogretmenUst > :last-child {
+  margin-inline-start: auto;
 }
 .ogretmenAdi {
   font-size: var(--yazi-normal);
