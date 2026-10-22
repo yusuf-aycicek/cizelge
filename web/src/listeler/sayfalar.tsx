@@ -1,4 +1,5 @@
 /** Öğretmen, sınıf ve ders sayfaları: ortak liste bileşeninin üç kullanımı. */
+import { BookOpen, GraduationCap, School } from "lucide-react";
 import { dersKaynagi, ogretmenKaynagi, sinifKaynagi, type Ders, type Ogretmen, type Sinif } from "./kaynaklar";
 import { ListeSayfasi, type ListeAlani } from "./ListeSayfasi";
 
@@ -19,6 +20,7 @@ const DERS_ALANLARI: ListeAlani[] = [
 export function OgretmenlerSayfasi() {
   return (
     <ListeSayfasi<Ogretmen, { ad: string; brans: string }>
+      ikon={GraduationCap}
       baslik="Öğretmenler"
       aciklama="Okulunuzdaki öğretmenler. Hangi derse kimin gireceğini Ders dağılımı sayfasında seçeceksiniz."
       tekil="Öğretmen"
@@ -37,6 +39,7 @@ export function OgretmenlerSayfasi() {
 export function SiniflarSayfasi() {
   return (
     <ListeSayfasi<Sinif, { ad: string; seviye: number }>
+      ikon={School}
       baslik="Sınıflar"
       aciklama="Okulunuzdaki şubeler. Seviye, seviye şablonunu aynı seviyedeki bütün şubelere uygulamak için kullanılır."
       tekil="Sınıf"
@@ -55,6 +58,7 @@ export function SiniflarSayfasi() {
 export function DerslerSayfasi() {
   return (
     <ListeSayfasi<Ders, { ad: string; kisa_ad: string }>
+      ikon={BookOpen}
       baslik="Dersler"
       aciklama="Okulunuzda okutulan dersler. Kısa ad, haftalık çizelgede derse yer açmak için kullanılır."
       tekil="Ders"

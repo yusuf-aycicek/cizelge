@@ -1,3 +1,5 @@
+import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
+import { ClipboardList } from "lucide-react";
 import { ArrowRight, RotateCcw } from "lucide-react";
 import { Iskelet } from "../bilesenler/Iskelet";
 import { useQuery } from "@tanstack/react-query";
@@ -118,11 +120,10 @@ export function DersDagilimiSayfasi() {
 
   return (
     <>
-      <h1>Ders dağılımı</h1>
-      <p className={sayfaStili.giris}>
+      <SayfaBasligi ikon={ClipboardList} baslik="Ders dağılımı">
         Her şubenin her dersine bir öğretmen seçin. Seçtiğiniz anda kaydedilir. Öğretmenlerin ve şubelerin
         yükü, program üretilirken yapılan kontrolle aynı hesapla gösterilir.
-      </p>
+      </SayfaBasligi>
       {icerik}
     </>
   );

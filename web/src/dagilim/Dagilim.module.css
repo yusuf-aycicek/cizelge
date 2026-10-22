@@ -241,6 +241,12 @@
   border-radius: var(--kose);
   padding: var(--bosluk-3) var(--bosluk-4);
   background: var(--renk-zemin);
+  box-shadow: var(--golge-kart);
+  transition: transform var(--sure) var(--egri), box-shadow var(--sure) var(--egri);
+}
+.ogretmenKarti:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--golge-uzerine);
 }
 .ogretmenAsim {
   border: 2px solid var(--renk-tehlike);

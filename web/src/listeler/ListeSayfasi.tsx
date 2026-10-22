@@ -1,3 +1,5 @@
+import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
+import type { LucideIcon } from "lucide-react";
 import { Check, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { cikistanSonra } from "../bilesenler/hareket";
 import { Iskelet } from "../bilesenler/Iskelet";
@@ -30,6 +32,8 @@ export type ListeAlani = {
 type Degerler = Record<string, string>;
 
 type Props<T extends { id: string }, G> = {
+  /** Sayfa başlığındaki ikon (menüdekiyle aynı). */
+  ikon: LucideIcon;
   baslik: string;
   aciklama: string;
   /** Mesajlarda: "Öğretmen" → "Yeni öğretmen", "12 öğretmen". */
@@ -70,7 +74,7 @@ function denetle(alanlar: ListeAlani[], d: Degerler): AlanHatalari {
  * - satırda düzenleme (Enter kaydeder, Esc vazgeçer);
  * - onaylı silme; silinemezse (409) sunucunun kaydın nerede kullanıldığını söyleyen mesajı.
  */
-export function ListeSayfasi<T extends { id: string }, G>({ baslik, aciklama, tekil, bos, kaynak, alanlar, girdi }: Props<T, G>) {
+export function ListeSayfasi<T extends { id: string }, G>({ ikon, baslik, aciklama, tekil, bos, kaynak, alanlar, girdi }: Props<T, G>) {
   const istemci = useQueryClient();
   const bildirim = useBildirim();
   const liste = useQuery({ queryKey: kaynak.anahtar, queryFn: kaynak.listele });
@@ -222,8 +226,9 @@ export function ListeSayfasi<T extends { id: string }, G>({ baslik, aciklama, te
 
   return (
     <>
-      <h1>{baslik}</h1>
-      <p className={sayfaStili.giris}>{aciklama}</p>
+      <SayfaBasligi ikon={ikon} baslik={baslik}>
+        {aciklama}
+      </SayfaBasligi>
 
       {liste.isPending && <Iskelet satir={5} />}
       {liste.isError && (

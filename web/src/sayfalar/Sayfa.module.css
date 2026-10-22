@@ -45,6 +45,12 @@
   padding: var(--bosluk-5) var(--bosluk-6);
   margin-bottom: var(--bosluk-5);
   box-shadow: var(--golge-kart);
+  transition: transform var(--sure) var(--egri), box-shadow var(--sure) var(--egri);
+}
+/* Üzerine gelince hafifçe yükselir. Hareket azaltılmışsa temel.css geçişi kapatır (anında değişir). */
+.kart:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--golge-uzerine);
 }
 .kart > h2:first-child {
   margin-bottom: var(--bosluk-4);

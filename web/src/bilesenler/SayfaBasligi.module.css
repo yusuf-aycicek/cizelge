@@ -1,0 +1,55 @@
+.alan {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-4);
+  padding: var(--bosluk-5) var(--bosluk-5);
+  margin-bottom: var(--bosluk-5);
+  border-radius: var(--kose-buyuk);
+  border: 1px solid var(--renk-kenar);
+  background: linear-gradient(
+    115deg,
+    color-mix(in srgb, var(--renk-birincil) 12%, var(--renk-zemin)) 0%,
+    var(--renk-zemin) 70%
+  );
+  box-shadow: var(--golge-kart);
+}
+
+.ikon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--kose);
+  background: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--renk-birincil) 35%, transparent);
+}
+.ikon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.metin {
+  min-width: 0;
+}
+.baslik {
+  margin: 0;
+  font-size: var(--yazi-sayfa-basligi);
+}
+.aciklama {
+  margin: var(--bosluk-2) 0 0;
+  max-width: 48rem;
+  color: var(--renk-metin-ikincil);
+}
+
+@media (max-width: 48rem) {
+  .alan {
+    padding: var(--bosluk-4);
+    gap: var(--bosluk-3);
+  }
+  .ikon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
