@@ -19,6 +19,8 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test/kurulum.ts"],
+    // Varsayılan 5 sn; yük altında akış testleri (giriş + yönlendirme + birkaç istek) aşabiliyordu.
+    testTimeout: 15_000,
     css: { modules: { classNameStrategy: "non-scoped" } },
   },
 });

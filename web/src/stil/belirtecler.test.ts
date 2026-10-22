@@ -10,20 +10,10 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const css = readFileSync(resolve("src/stil/belirtecler.css"), "utf-8");
-const temaCss = readFileSync(resolve("src/stil/temalar.css"), "utf-8");
-
-/** Temalar (önizleme): her biri belirtecler.css'in üstüne yazar. "varsayılan" = yalnızca belirtecler.css. */
-const TEMALAR = ["varsayilan", ...[...temaCss.matchAll(/\[data-tema="([a-z]+)"\]/g)].map((m) => m[1]!)];
-
-function blokta(metin: string, ad: string): string | undefined {
-  return metin.match(new RegExp(`--${ad}:\\s*(#[0-9a-fA-F]{6})`))?.[1];
-}
-
-function renk(ad: string, tema = "varsayilan"): string {
-  const blok = tema === "varsayilan" ? "" : (temaCss.match(new RegExp(`\\[data-tema="${tema}"\\]\\s*\\{([^}]*)\\}`))?.[1] ?? "");
-  const deger = blokta(blok, ad) ?? blokta(css, ad);
-  if (!deger) throw new Error(`Belirteç bulunamadı ya da #rrggbb değil: --${ad}`);
-  return deger;
+function renk(ad: string): string {
+  const eslesme = css.match(new RegExp(`--${ad}:\\s*(#[0-9a-fA-F]{6})`));
+  if (!eslesme?.[1]) throw new Error(`Belirteç bulunamadı ya da #rrggbb değil: --${ad}`);
+  return eslesme[1];
 }
 
 function goreliParlaklik(hex: string): number {
@@ -72,21 +62,17 @@ const SINIR_CIFTLERI: [string, string][] = [
   ["renk-tehlike", "renk-zemin"], // hatalı alanın kenarı
 ];
 
-describe.each(TEMALAR)("renk kontrastı (%s)", (tema) => {
+describe("renk kontrastı", () => {
   it.each(METIN_CIFTLERI)("metin %s / %s en az 4.5:1", (on, arka) => {
-    expect(kontrast(renk(on, tema), renk(arka, tema))).toBeGreaterThanOrEqual(4.5);
+    expect(kontrast(renk(on), renk(arka))).toBeGreaterThanOrEqual(4.5);
   });
 
   it.each(SINIR_CIFTLERI)("sınır %s / %s en az 3:1", (on, arka) => {
-    expect(kontrast(renk(on, tema), renk(arka, tema))).toBeGreaterThanOrEqual(3);
+    expect(kontrast(renk(on), renk(arka))).toBeGreaterThanOrEqual(3);
   });
 });
 
 describe("kontrast hesabı", () => {
-  it("temalar bulunur", () => {
-    expect(TEMALAR).toEqual(["varsayilan", "sicak", "kurumsal"]);
-  });
-
   it("hesap bilinen değerleri verir", () => {
     expect(kontrast("#000000", "#ffffff")).toBeCloseTo(21, 1);
     expect(kontrast("#777777", "#ffffff")).toBeCloseTo(4.48, 2);

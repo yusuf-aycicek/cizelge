@@ -9,43 +9,43 @@
 :root {
   /* --- renkler: metin ve zemin --- */
   --renk-zemin: #ffffff;
-  --renk-yuzey: #f4f6f9;          /* menü, kart, tablo başlığı zemini */
-  --renk-yuzey-vurgu: #e6ebf2;    /* üzerine gelinen satır, seçili menü */
-  --renk-metin: #1c2733;
-  --renk-metin-ikincil: #4f5d6b;
-  --renk-kenar: #d5dbe3;          /* süs çizgileri (bilgi taşımaz) */
-  --renk-kenar-alan: #75828f;     /* form alanı ve düğme sınırı: zeminde en az 3:1 */
-  --renk-sayfa: #ffffff;          /* içerik alanının zemini; kartlar bunun üstünde durur */
+  --renk-yuzey: #f7efe5;          /* menü, kart, tablo başlığı zemini */
+  --renk-yuzey-vurgu: #f1e4d4;    /* üzerine gelinen satır, seçili menü */
+  --renk-metin: #2d241c;
+  --renk-metin-ikincil: #6b5849;
+  --renk-kenar: #ecdfd0;          /* süs çizgileri (bilgi taşımaz) */
+  --renk-kenar-alan: #8f7a67;     /* form alanı ve düğme sınırı: zeminde en az 3:1 */
+  --renk-sayfa: #fbf6ef;          /* içerik alanının zemini; kartlar bunun üstünde durur */
 
   /* --- renkler: çerçeve (üst çubuk ve menü) --- */
-  --renk-ust-zemin: #1f4fbf;
-  --renk-ust-metin: #ffffff;
-  --renk-ust-vurgu: #173c93;      /* üst çubukta üzerine gelinen düğme */
-  --renk-menu-zemin: #f4f6f9;
-  --renk-menu-metin: #1c2733;
-  --renk-menu-vurgu: #e6ebf2;     /* üzerine gelinen menü öğesi */
-  --renk-menu-aktif-zemin: #e6ebf2;
-  --renk-menu-aktif-metin: #1c2733;
-  --renk-menu-aktif-cizgi: #1f4fbf;
+  --renk-ust-zemin: #fbf6ef;
+  --renk-ust-metin: #2d241c;
+  --renk-ust-vurgu: #f1e4d4;      /* üst çubukta üzerine gelinen düğme */
+  --renk-menu-zemin: #fbf6ef;
+  --renk-menu-metin: #4a3a2c;
+  --renk-menu-vurgu: #f3e6d6;     /* üzerine gelinen menü öğesi */
+  --renk-menu-aktif-zemin: #c2410c;
+  --renk-menu-aktif-metin: #ffffff;
+  --renk-menu-aktif-cizgi: transparent;
 
   /* --- renkler: anlam --- */
-  --renk-birincil: #1f4fbf;
-  --renk-birincil-koyu: #173c93;
+  --renk-birincil: #c2410c;
+  --renk-birincil-koyu: #9a3412;
   --renk-birincil-metin: #ffffff;
   --renk-tehlike: #b42318;
   --renk-tehlike-koyu: #8f1c13;
   --renk-tehlike-metin: #ffffff;
-  --renk-odak: #1f4fbf;
+  --renk-odak: #c2410c;
 
   /* bildirim ve uyarı kutuları: koyu metin, açık zemin */
-  --renk-basari-zemin: #e9f7ef;
-  --renk-basari-metin: #135c35;
-  --renk-hata-zemin: #fdecea;
+  --renk-basari-zemin: #eaf5ec;
+  --renk-basari-metin: #1d5c36;
+  --renk-hata-zemin: #fdebe7;
   --renk-hata-metin: #8f1c13;
-  --renk-uyari-zemin: #fff5e0;
+  --renk-uyari-zemin: #fff1d9;
   --renk-uyari-metin: #7a3d00;
-  --renk-bilgi-zemin: #e8f0fc;
-  --renk-bilgi-metin: #173c93;
+  --renk-bilgi-zemin: #e9f1fb;
+  --renk-bilgi-metin: #1e4a8a;
 
   /* --- boşluklar (4 px ızgarası) --- */
   --bosluk-1: 0.25rem;
@@ -57,27 +57,27 @@
   --bosluk-7: 3rem;
 
   /* --- yazı --- */
-  --yazi-ailesi: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --yazi-ailesi: "Nunito Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
   --yazi-kucuk: 0.875rem;
   --yazi-normal: 1rem;
   --yazi-buyuk: 1.125rem;
   --yazi-baslik: 1.375rem;
   --yazi-sayfa-basligi: 1.75rem;
   --yazi-kalin: 600;
-  --yazi-baslik-agirligi: 700;
+  --yazi-baslik-agirligi: 800;
   --tablo-baslik-donusumu: none;  /* tablo sütun başlıkları: none ya da uppercase */
   --tablo-baslik-aralik: normal;
   --satir-yuksekligi: 1.5;
 
   /* --- köşe, gölge, ölçü --- */
-  --kose-kucuk: 4px;
-  --kose: 6px;
-  --kose-buyuk: 10px;
-  --golge: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.1);
-  --golge-pencere: 0 20px 40px rgb(16 24 40 / 0.2);
-  --golge-kart: 0 1px 2px rgb(16 24 40 / 0.06);
-  --golge-uzerine: 0 4px 12px rgb(16 24 40 / 0.12); /* üzerine gelinen kart ve düğme */
-  --renk-perde: rgb(16 24 40 / 0.45);              /* onay penceresinin arkası */
+  --kose-kucuk: 8px;
+  --kose: 12px;
+  --kose-buyuk: 18px;
+  --golge: 0 1px 2px rgb(120 72 32 / 0.06), 0 4px 12px rgb(120 72 32 / 0.07);
+  --golge-pencere: 0 24px 56px rgb(80 48 20 / 0.24);
+  --golge-kart: 0 2px 4px rgb(120 72 32 / 0.04), 0 10px 28px rgb(120 72 32 / 0.08);
+  --golge-uzerine: 0 6px 18px rgb(120 72 32 / 0.16); /* üzerine gelinen kart ve düğme */
+  --renk-perde: rgb(60 36 16 / 0.4);              /* onay penceresinin arkası */
   --odak-halkasi: 0 0 0 3px var(--renk-zemin), 0 0 0 5px var(--renk-odak);
   --dokunma-hedefi: 2.75rem;      /* 44 px: telefonda parmakla rahat basılır */
   --menu-genisligi: 15rem;

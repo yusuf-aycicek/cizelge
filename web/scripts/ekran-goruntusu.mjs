@@ -286,12 +286,12 @@ AKISLAR["5.4"] = async (tarayici, kaydet) => {
   await baglam.close();
 };
 
-// Tasarım yönleri: örnek okulla (python -m okulapi ornek-okul) iki temanın aynı beş ekranı.
+// Örnek okulla (python -m okulapi ornek-okul) ana ekranlar. İki tasarım yönü karşılaştırılırken
+// kullanıldı (docs/ekranlar/tasarim/); seçimden sonra tek tasarımla.
 // Önce: cd api && OKULAPI_ORTAM=gelistirme .venv/Scripts/python -m okulapi ornek-okul --evet
 AKISLAR["tasarim"] = async (tarayici, kaydet) => {
-  for (const tema of ["sicak", "kurumsal"]) {
+  for (const tema of ["a"]) {
     const baglam = await tarayici.newContext({ viewport: MASAUSTU, locale: "tr-TR" });
-    await baglam.addInitScript((t) => localStorage.setItem("tema", t), tema);
     const s = await baglam.newPage();
     await s.goto(ADRES + "/giris");
     await s.getByRole("heading", { name: "Giriş yap" }).waitFor();
