@@ -1,4 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  BookOpen,
+  CalendarClock,
+  CalendarDays,
+  ClipboardList,
+  GraduationCap,
+  House,
+  Layers,
+  LogOut,
+  Menu,
+  School,
+  Settings,
+  UserCog,
+} from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import { cagir } from "../api/hata";
@@ -10,15 +24,15 @@ import stil from "./Cerceve.module.css";
 
 /** Menüdeki sayfalar. Henüz yapılmamış olanlar "hazırlanıyor" sayfası gösterir. */
 export const MENU = [
-  { yol: "/", ad: "Ana sayfa" },
-  { yol: "/okul", ad: "Okul ayarları" },
-  { yol: "/ogretmenler", ad: "Öğretmenler" },
-  { yol: "/siniflar", ad: "Sınıflar" },
-  { yol: "/dersler", ad: "Dersler" },
-  { yol: "/seviye-sablonu", ad: "Seviye şablonu" },
-  { yol: "/ders-dagilimi", ad: "Ders dağılımı" },
-  { yol: "/musaitlik", ad: "Öğretmen müsaitliği" },
-  { yol: "/kullanicilar", ad: "Kullanıcılar" },
+  { yol: "/", ad: "Ana sayfa", Ikon: House },
+  { yol: "/okul", ad: "Okul ayarları", Ikon: Settings },
+  { yol: "/ogretmenler", ad: "Öğretmenler", Ikon: GraduationCap },
+  { yol: "/siniflar", ad: "Sınıflar", Ikon: School },
+  { yol: "/dersler", ad: "Dersler", Ikon: BookOpen },
+  { yol: "/seviye-sablonu", ad: "Seviye şablonu", Ikon: Layers },
+  { yol: "/ders-dagilimi", ad: "Ders dağılımı", Ikon: ClipboardList },
+  { yol: "/musaitlik", ad: "Öğretmen müsaitliği", Ikon: CalendarClock },
+  { yol: "/kullanicilar", ad: "Kullanıcılar", Ikon: UserCog },
 ] as const;
 
 /**
@@ -70,9 +84,12 @@ export function Cerceve() {
           aria-controls="ana-menu"
           onClick={() => setMenuAcik((acik) => !acik)}
         >
-          ☰ <span>Menü</span>
+          <Menu aria-hidden="true" className={stil.ikon} /> <span>Menü</span>
         </button>
-        <span className={stil.urun}>Ders Programı</span>
+        <span className={stil.urun}>
+          <CalendarDays aria-hidden="true" className={stil.urunIkonu} />
+          Ders Programı
+        </span>
         {ben && (
           <div className={stil.kullanici}>
             <span className={stil.okulAdi}>{ben.okul.ad}</span>
@@ -81,6 +98,7 @@ export function Cerceve() {
               <span className={stil.rol}> · {ROL_ADLARI[ben.kullanici.rol] ?? ben.kullanici.rol}</span>
             </Link>
             <button type="button" className={stil.cikis} onClick={() => cikis.mutate()} disabled={cikis.isPending}>
+              <LogOut aria-hidden="true" className={stil.ikon} />
               Çıkış
             </button>
           </div>
@@ -93,6 +111,7 @@ export function Cerceve() {
               {/* NavLink, o anki sayfanın bağlantısına aria-current="page" ekler: ekran okuyucu
                   "geçerli sayfa" der, stil de buna göre vurgular. */}
               <NavLink to={m.yol} end={m.yol === "/"} className={stil.baglanti}>
+                <m.Ikon aria-hidden="true" className={stil.ikon} />
                 {m.ad}
               </NavLink>
             </li>
@@ -100,7 +119,11 @@ export function Cerceve() {
         </ul>
       </nav>
       <main id="icerik" tabIndex={-1} className={stil.icerik}>
-        <Outlet />
+        {/* key: sayfa (adres yolu) değişince bu kutu yeniden kurulur ve solarak girer (CSS). Aynı
+            sayfada yalnızca sorgu parametresi değişirse (ör. sekme) yeniden kurulmaz. */}
+        <div key={konum.pathname} className={stil.sayfa}>
+          <Outlet />
+        </div>
       </main>
     </div>
   );

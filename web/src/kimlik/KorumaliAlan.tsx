@@ -1,3 +1,4 @@
+import { RotateCcw } from "lucide-react";
 import { Iskelet } from "../bilesenler/Iskelet";
 import { useQueryClient } from "@tanstack/react-query";
 import { Navigate, Outlet, useLocation } from "react-router";
@@ -30,7 +31,7 @@ export function KorumaliAlan() {
     return (
       <div className={stil.bekle} role="alert">
         <p>{hataMetni(ben.error)}</p>
-        <Dugme tur="ikincil" onClick={() => ben.refetch()} yukleniyor={ben.isFetching}>
+        <Dugme ikon={<RotateCcw />} tur="ikincil" onClick={() => ben.refetch()} yukleniyor={ben.isFetching}>
           Yeniden dene
         </Dugme>
       </div>

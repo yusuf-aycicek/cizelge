@@ -1,3 +1,4 @@
+import { CalendarDays } from "lucide-react";
 import { Navigate, Outlet } from "react-router";
 import { useBen } from "./oturum";
 import stil from "./Kimlik.module.css";
@@ -11,7 +12,10 @@ export function KimlikCercevesi() {
   if (ben.data) return <Navigate to="/" replace />;
   return (
     <div className={stil.sayfa}>
-      <header className={stil.ust}>Ders Programı</header>
+      <header className={stil.ust}>
+        <CalendarDays aria-hidden="true" className={stil.urunIkonu} />
+        Ders Programı
+      </header>
       <main className={stil.orta}>
         <Outlet />
       </main>

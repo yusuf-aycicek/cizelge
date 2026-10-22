@@ -1,3 +1,4 @@
+import { Plus, RotateCcw, WandSparkles, X } from "lucide-react";
 import { Iskelet } from "../bilesenler/Iskelet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -35,7 +36,7 @@ export function SeviyeSablonuSayfasi() {
     icerik = (
       <div className={sayfaStili.hataKutusu} role="alert">
         <p>{hataMetni(hatali.error)}</p>
-        <Dugme tur="ikincil" onClick={() => sorgular.forEach((s) => s.refetch())}>
+        <Dugme ikon={<RotateCcw />} tur="ikincil" onClick={() => sorgular.forEach((s) => s.refetch())}>
           Yeniden dene
         </Dugme>
       </div>
@@ -195,7 +196,7 @@ function SeviyeSablonu({ seviye, satirlar, dersler, subeler, haftalikKapasite }:
                 baslikGizli: true,
                 hizala: "sag",
                 hucre: (s) => (
-                  <Dugme tur="metin" onClick={() => cikar.mutate(s)} aria-label={`${dersAdi(s.ders_id)} dersini şablondan çıkar`}>
+                  <Dugme ikon={<X />} tur="metin" onClick={() => cikar.mutate(s)} aria-label={`${dersAdi(s.ders_id)} dersini şablondan çıkar`}>
                     Çıkar
                   </Dugme>
                 ),
@@ -221,7 +222,7 @@ function SeviyeSablonu({ seviye, satirlar, dersler, subeler, haftalikKapasite }:
             </SecimAlani>
             <MetinAlani etiket="Haftalık saat" type="number" inputMode="numeric" min={1} value={yeni.saat}
               onChange={(o) => setYeni({ ...yeni, saat: o.target.value })} />
-            <Dugme type="submit" className={stil.ekleDugmesi} yukleniyor={ekle.isPending} yukleniyorMetni="Ekleniyor...">
+            <Dugme ikon={<Plus />} type="submit" className={stil.ekleDugmesi} yukleniyor={ekle.isPending} yukleniyorMetni="Ekleniyor...">
               Ekle
             </Dugme>
           </div>
@@ -239,7 +240,7 @@ function SeviyeSablonu({ seviye, satirlar, dersler, subeler, haftalikKapasite }:
               dersler değiştirilmez; saati farklı olanlar size gösterilir. Şablonda olmayan dersler şubelerden
               kaldırılmaz.
             </p>
-            <Dugme disabled={sirali.length === 0} yukleniyor={uygula.isPending} yukleniyorMetni="Uygulanıyor..."
+            <Dugme ikon={<WandSparkles />} disabled={sirali.length === 0} yukleniyor={uygula.isPending} yukleniyorMetni="Uygulanıyor..."
               onClick={() => uygula.mutate()}>
               {seviye}. sınıf şubelerine uygula
             </Dugme>

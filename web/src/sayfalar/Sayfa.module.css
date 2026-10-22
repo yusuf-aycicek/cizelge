@@ -9,9 +9,12 @@
   background: var(--renk-zemin);
   border: 1px solid var(--renk-kenar);
   border-radius: var(--kose-buyuk);
-  padding: var(--bosluk-5);
+  padding: var(--bosluk-5) var(--bosluk-6);
   margin-bottom: var(--bosluk-5);
-  box-shadow: var(--golge);
+  box-shadow: var(--golge-kart);
+}
+.kart > h2:first-child {
+  margin-bottom: var(--bosluk-4);
 }
 
 .durumListesi {
@@ -35,6 +38,7 @@
 .hataKutusu {
   background: var(--renk-hata-zemin);
   color: var(--renk-hata-metin);
+  border-inline-start: 4px solid currentColor;
   border-radius: var(--kose);
   padding: var(--bosluk-4);
 }

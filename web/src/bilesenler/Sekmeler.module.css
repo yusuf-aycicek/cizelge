@@ -17,10 +17,22 @@
   min-height: var(--dokunma-hedefi);
   cursor: pointer;
   margin-bottom: -1px;
+  border-radius: var(--kose) var(--kose) 0 0;
+  transition: color var(--sure) var(--egri), border-color var(--sure) var(--egri),
+    background-color var(--sure-kisa) var(--egri);
 }
 .sekme:hover {
   color: var(--renk-metin);
   background: var(--renk-yuzey);
+}
+.icerik {
+  animation: sekmeGir var(--sure) var(--egri);
+}
+@keyframes sekmeGir {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
 }
 .sekme[aria-selected="true"] {
   color: var(--renk-birincil);

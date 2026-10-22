@@ -468,8 +468,8 @@ Yarıda kalırsa sonraki oturum buradan devam eder.
 | # | Parça | Durum |
 |---|---|---|
 | 0 | Örnek okul komutu (`python -m okulapi ornek-okul --evet`, README) | Bitti |
-| 1 | İki tasarım yönü, beşer masaüstü ekran görüntüsü (giriş, ana sayfa, öğretmenler, okul ayarları, ders dağılımı); **kullanıcının seçimi beklenir** | **Sıradaki** |
-| 2 | (1 ile birlikte, iki yönde ortak) animasyonlar, ikonlar, kartlar, yazı tipi | Sürüyor: 2a bitti (aşağıda), 2b sıradaki |
+| 1 | İki tasarım yönü, beşer masaüstü ekran görüntüsü (giriş, ana sayfa, öğretmenler, okul ayarları, ders dağılımı); **kullanıcının seçimi beklenir** | **Sıradaki**: ekran görüntüleri |
+| 2 | (1 ile birlikte, iki yönde ortak) animasyonlar, ikonlar, kartlar, yazı tipi | Bitti (2a, 2b) |
 | 3 | Seçilen yönün bütün ekranlara uygulanması; masaüstü ve telefon görüntüleri, taşma denetimi; 5.5'ten önce kullanıcıya sorulur | |
 
 İstekler (parça 2, iki yönde de):
@@ -504,14 +504,13 @@ Parça 2a (bitti):
   ikonu.
 - Hareketi azaltma kuralı `::backdrop`'u da kapsar.
 
-Parça 2b (sıradaki):
-- çerçeve: menü ikonları, tema renkleri, sayfa geçişinde solma;
-- sekme geçişi;
-- düğmelerde ikonlar;
-- kartlar (Sayfa.module.css);
-- giriş sayfası;
-
-Sonra parça 1'in ekran görüntüleri.
+Parça 2b (bitti):
+- çerçeve: menü ikonları, temaya göre üst çubuk ve menü renkleri, sayfa geçişinde solma
+  (`key={konum.pathname}`);
+- sekme geçişi: çizgi ve renk geçişi, panel solarak gelir;
+- düğmelerde ikonlar (`ikon` prop'u);
+- kartlar daha belirgin;
+- giriş ve kayıt sayfaları: temanın renginden türeyen zemin, ürün işareti, kart girişi.
 
 Parça 0 notları: `api/src/okulapi/ornek_okul.py`.
 - Bütün okulları `TRUNCATE okul, giris_denemesi CASCADE` ile siler; `--evet` olmadan hiçbir şey

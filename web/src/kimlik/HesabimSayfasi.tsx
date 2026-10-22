@@ -1,3 +1,4 @@
+import { KeyRound } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useRef, useState, type FormEvent } from "react";
 import { cagir } from "../api/hata";
@@ -75,7 +76,7 @@ export function HesabimSayfasi() {
             aciklama={parolaAciklamasi(form.degerler.yeni)} {...form.alan("yeni")} />
           <MetinAlani etiket="Yeni parola (tekrar)" type="password" autoComplete="new-password" gerekli hata={hata("yeniTekrar")}
             {...form.alan("yeniTekrar")} />
-          <Dugme type="submit" yukleniyor={degistir.isPending} yukleniyorMetni="Değiştiriliyor...">
+          <Dugme ikon={<KeyRound />} type="submit" yukleniyor={degistir.isPending} yukleniyorMetni="Değiştiriliyor...">
             Parolayı değiştir
           </Dugme>
         </form>

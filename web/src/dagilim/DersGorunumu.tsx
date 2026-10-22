@@ -1,3 +1,4 @@
+import { Check, ListChecks } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { hataMetni } from "../api/hata";
@@ -134,7 +135,7 @@ function DersinSubeleri({ veri, dersId }: { veri: DagilimVerisi; dersId: string 
             onDegis={setTopluOgretmen}
             bosMetin="Öğretmen seçin"
           />
-          <Dugme
+          <Dugme ikon={<Check />}
             disabled={secili.size === 0 || !topluOgretmen}
             yukleniyor={toplu.isPending}
             yukleniyorMetni="Veriliyor..."
@@ -143,7 +144,7 @@ function DersinSubeleri({ veri, dersId }: { veri: DagilimVerisi; dersId: string 
             İşaretli {secili.size} şubeye ver
           </Dugme>
           {ogretmensizler.length > 0 && (
-            <Dugme tur="ikincil" onClick={() => setSecili(new Set(ogretmensizler.map((a) => a.id)))}>
+            <Dugme ikon={<ListChecks />} tur="ikincil" onClick={() => setSecili(new Set(ogretmensizler.map((a) => a.id)))}>
               Öğretmeni seçilmemişleri işaretle
             </Dugme>
           )}

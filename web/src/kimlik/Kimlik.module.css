@@ -1,16 +1,30 @@
+/* Zemin: temanın vurgu renginden türeyen yumuşak bir geçiş (color-mix belirteçten hesaplar). */
 .sayfa {
   min-height: 100vh;
-  background: var(--renk-yuzey);
+  background:
+    radial-gradient(60rem 30rem at 10% -10%, color-mix(in srgb, var(--renk-birincil) 16%, transparent), transparent),
+    radial-gradient(50rem 30rem at 110% 110%, color-mix(in srgb, var(--renk-birincil) 10%, transparent), transparent),
+    var(--renk-sayfa);
   display: flex;
   flex-direction: column;
 }
 
 .ust {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  color: var(--renk-metin);
+  font-weight: var(--yazi-baslik-agirligi);
+  font-size: var(--yazi-buyuk);
+  padding: var(--bosluk-4) var(--bosluk-6);
+}
+.urunIkonu {
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0.4rem;
+  border-radius: var(--kose);
   background: var(--renk-birincil);
   color: var(--renk-birincil-metin);
-  font-weight: var(--yazi-kalin);
-  font-size: var(--yazi-buyuk);
-  padding: var(--bosluk-3) var(--bosluk-5);
 }
 
 .orta {
@@ -26,15 +40,22 @@
   background: var(--renk-zemin);
   border: 1px solid var(--renk-kenar);
   border-radius: var(--kose-buyuk);
-  box-shadow: var(--golge);
+  box-shadow: var(--golge-kart);
   padding: var(--bosluk-6);
+  animation: kartGir var(--sure-uzun) var(--egri);
+}
+@keyframes kartGir {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
 }
 .genis {
   width: min(36rem, 100%);
 }
 
 .kart h1 {
-  font-size: var(--yazi-baslik);
+  font-size: var(--yazi-sayfa-basligi);
 }
 
 .aciklama {

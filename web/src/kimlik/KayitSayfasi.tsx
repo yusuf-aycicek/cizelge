@@ -1,3 +1,4 @@
+import { School } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
@@ -106,7 +107,7 @@ export function KayitSayfasi() {
           <MetinAlani etiket="Parola (tekrar)" type="password" gerekli hata={hata("sifreTekrar")} autoComplete="new-password"
             {...form.alan("sifreTekrar")} />
         </fieldset>
-        <Dugme type="submit" className={stil.tamGenislik} yukleniyor={kayit.isPending} yukleniyorMetni="Kaydediliyor...">
+        <Dugme ikon={<School />} type="submit" className={stil.tamGenislik} yukleniyor={kayit.isPending} yukleniyorMetni="Kaydediliyor...">
           Okulu kaydet
         </Dugme>
       </form>

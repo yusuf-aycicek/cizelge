@@ -1,3 +1,4 @@
+import { LogIn } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
@@ -56,7 +57,7 @@ export function GirisSayfasi() {
       <form ref={formRef} noValidate onSubmit={gonder}>
         <MetinAlani etiket="E-posta" type="email" autoComplete="email" gerekli hata={hata("email")} {...form.alan("email")} />
         <MetinAlani etiket="Parola" type="password" autoComplete="current-password" gerekli hata={hata("sifre")} {...form.alan("sifre")} />
-        <Dugme type="submit" className={stil.tamGenislik} yukleniyor={giris.isPending} yukleniyorMetni="Giriş yapılıyor...">
+        <Dugme ikon={<LogIn />} type="submit" className={stil.tamGenislik} yukleniyor={giris.isPending} yukleniyorMetni="Giriş yapılıyor...">
           Giriş yap
         </Dugme>
       </form>

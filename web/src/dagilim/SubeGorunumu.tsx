@@ -1,3 +1,4 @@
+import { Plus, Trash2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router";
@@ -203,7 +204,7 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
                     aria-label={`${dersAdi(a)} dersini bütün şubelerde göster`}>
                     Bütün şubeler
                   </Dugme>
-                  <Dugme tur="metin" onClick={() => setKaldirilacak(a)} aria-label={`${dersAdi(a)} dersini kaldır`}>
+                  <Dugme ikon={<Trash2 />} tur="metin" onClick={() => setKaldirilacak(a)} aria-label={`${dersAdi(a)} dersini kaldır`}>
                     Kaldır
                   </Dugme>
                 </span>
@@ -243,7 +244,7 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
           </SecimAlani>
           <MetinAlani etiket="Haftalık saat" type="number" inputMode="numeric" min={1} value={yeni.saat}
             onChange={(o) => setYeni({ ...yeni, saat: o.target.value })} />
-          <Dugme type="submit" className={stil.ekleDugmesi} yukleniyor={ekle.isPending} yukleniyorMetni="Ekleniyor...">
+          <Dugme ikon={<Plus />} type="submit" className={stil.ekleDugmesi} yukleniyor={ekle.isPending} yukleniyorMetni="Ekleniyor...">
             Ekle
           </Dugme>
         </div>

@@ -1,3 +1,4 @@
+import { Check, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { cikistanSonra } from "../bilesenler/hareket";
 import { Iskelet } from "../bilesenler/Iskelet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -196,7 +197,7 @@ export function ListeSayfasi<T extends { id: string }, G>({ baslik, aciklama, te
       hucre: (satir) =>
         duzenlenen?.id === satir.id ? (
           <span className={stil.islemler}>
-            <Dugme tur="birincil" onClick={duzenlemeyiKaydet} yukleniyor={guncelle.isPending} yukleniyorMetni="Kaydediliyor...">
+            <Dugme ikon={<Check />} tur="birincil" onClick={duzenlemeyiKaydet} yukleniyor={guncelle.isPending} yukleniyorMetni="Kaydediliyor...">
               Kaydet
             </Dugme>
             <Dugme tur="ikincil" onClick={() => setDuzenlenen(null)}>
@@ -205,10 +206,10 @@ export function ListeSayfasi<T extends { id: string }, G>({ baslik, aciklama, te
           </span>
         ) : (
           <span className={stil.islemler}>
-            <Dugme tur="metin" aria-label={`${deger(satir, "ad")} düzenle`} onClick={() => duzenlemeyeBasla(satir)}>
+            <Dugme ikon={<Pencil />} tur="metin" aria-label={`${deger(satir, "ad")} düzenle`} onClick={() => duzenlemeyeBasla(satir)}>
               Düzenle
             </Dugme>
-            <Dugme tur="metin" aria-label={`${deger(satir, "ad")} sil`} onClick={() => setSilinecek(satir)}>
+            <Dugme ikon={<Trash2 />} tur="metin" aria-label={`${deger(satir, "ad")} sil`} onClick={() => setSilinecek(satir)}>
               Sil
             </Dugme>
           </span>
@@ -228,7 +229,7 @@ export function ListeSayfasi<T extends { id: string }, G>({ baslik, aciklama, te
       {liste.isError && (
         <div className={sayfaStili.hataKutusu} role="alert">
           <p>{hataMetni(liste.error)}</p>
-          <Dugme tur="ikincil" onClick={() => liste.refetch()}>
+          <Dugme ikon={<RotateCcw />} tur="ikincil" onClick={() => liste.refetch()}>
             Yeniden dene
           </Dugme>
         </div>
@@ -238,7 +239,7 @@ export function ListeSayfasi<T extends { id: string }, G>({ baslik, aciklama, te
         <section className={stil.bosDurum} aria-labelledby="bos-baslik">
           <h2 id="bos-baslik">{bos.baslik}</h2>
           <p>{bos.aciklama}</p>
-          <Dugme onClick={ilkAlanaOdaklan}>{bos.dugme}</Dugme>
+          <Dugme ikon={<Plus />} onClick={ilkAlanaOdaklan}>{bos.dugme}</Dugme>
         </section>
       )}
 
@@ -279,7 +280,7 @@ export function ListeSayfasi<T extends { id: string }, G>({ baslik, aciklama, te
                 hata={yeniHata(a.ad)}
               />
             ))}
-            <Dugme type="submit" className={stil.ekleDugmesi} yukleniyor={ekle.isPending} yukleniyorMetni="Ekleniyor...">
+            <Dugme ikon={<Plus />} type="submit" className={stil.ekleDugmesi} yukleniyor={ekle.isPending} yukleniyorMetni="Ekleniyor...">
               Ekle
             </Dugme>
           </form>

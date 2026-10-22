@@ -64,7 +64,10 @@ export function Sekmeler<A extends string>({ etiket, sekmeler, secili, onSec, id
         ))}
       </div>
       <div role="tabpanel" id={`${idOneki}-panel`} aria-labelledby={`${idOneki}-${secili}`} className={stil.panel}>
-        {children}
+        {/* key: sekme değişince içerik yeniden kurulur ve solarak gelir (CSS). */}
+        <div key={secili} className={stil.icerik}>
+          {children}
+        </div>
       </div>
     </>
   );

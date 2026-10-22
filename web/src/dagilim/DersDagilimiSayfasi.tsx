@@ -1,3 +1,4 @@
+import { ArrowRight, RotateCcw } from "lucide-react";
 import { Iskelet } from "../bilesenler/Iskelet";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router";
@@ -81,7 +82,7 @@ export function DersDagilimiSayfasi() {
     icerik = (
       <div className={sayfaStili.hataKutusu} role="alert">
         <p>{hataMetni(hatali.error)}</p>
-        <Dugme tur="ikincil" onClick={() => sorgular.forEach((s) => s.refetch())}>
+        <Dugme ikon={<RotateCcw />} tur="ikincil" onClick={() => sorgular.forEach((s) => s.refetch())}>
           Yeniden dene
         </Dugme>
       </div>
@@ -174,7 +175,7 @@ function DurumOzeti({ veri, git }: { veri: DagilimVerisi; git: Git }) {
           <strong>{eksik} dersin öğretmeni seçilmedi</strong> ({eksikSubeler.length} şubede:{" "}
           {eksikSubeler.map((s) => s.ad).join(", ")}).
         </span>
-        <Dugme tur="metin" onClick={() => git({ gorunum: "sube", sinif: eksikSubeler[0]?.id })}>
+        <Dugme ikon={<ArrowRight />} tur="metin" onClick={() => git({ gorunum: "sube", sinif: eksikSubeler[0]?.id })}>
           İlk eksik şubeyi aç
         </Dugme>
       </li>,
@@ -187,7 +188,7 @@ function DurumOzeti({ veri, git }: { veri: DagilimVerisi; git: Git }) {
           <span aria-hidden="true">⚠ </span>
           <strong>{asanOgretmenler} öğretmenin ders yükü kapasitesini aşıyor.</strong> Program bu haliyle üretilemez.
         </span>
-        <Dugme tur="metin" onClick={() => git({ gorunum: "ogretmen" })}>
+        <Dugme ikon={<ArrowRight />} tur="metin" onClick={() => git({ gorunum: "ogretmen" })}>
           Öğretmenlere göre gör
         </Dugme>
       </li>,
@@ -201,7 +202,7 @@ function DurumOzeti({ veri, git }: { veri: DagilimVerisi; git: Git }) {
           <strong>{asanSubeler.length} şubenin ders saati haftalık kapasiteyi aşıyor</strong> (
           {asanSubeler.map((s) => s.ad).join(", ")}).
         </span>
-        <Dugme tur="metin" onClick={() => git({ gorunum: "sube", sinif: asanSubeler[0]?.id })}>
+        <Dugme ikon={<ArrowRight />} tur="metin" onClick={() => git({ gorunum: "sube", sinif: asanSubeler[0]?.id })}>
           Şubeyi aç
         </Dugme>
       </li>,
