@@ -468,9 +468,23 @@ Yarıda kalırsa sonraki oturum buradan devam eder.
 | # | Parça | Durum |
 |---|---|---|
 | 0 | Örnek okul komutu (`python -m okulapi ornek-okul --evet`, README) | Bitti |
-| 1 | İki tasarım yönü, beşer masaüstü ekran görüntüsü (giriş, ana sayfa, öğretmenler, okul ayarları, ders dağılımı); **kullanıcının seçimi beklenir** | Görüntüler alındı (`docs/ekranlar/tasarim/`); **kullanıcının seçimi bekleniyor** |
+| 1 | İki tasarım yönü, beşer masaüstü ekran görüntüsü (giriş, ana sayfa, öğretmenler, okul ayarları, ders dağılımı); **kullanıcının seçimi beklenir** | Bitti. **Seçim: A (sıcak ve yumuşak)**, kullanıcı 2026-10-23 |
 | 2 | (1 ile birlikte, iki yönde ortak) animasyonlar, ikonlar, kartlar, yazı tipi | Bitti (2a, 2b) |
-| 3 | Seçilen yönün bütün ekranlara uygulanması; masaüstü ve telefon görüntüleri, taşma denetimi; 5.5'ten önce kullanıcıya sorulur | |
+| 3 | A'nın tek tasarım olarak uygulanması ve zenginleştirilmesi (alt parçalar aşağıda); 5.5'ten önce kullanıcıya sorulur | **Sürüyor** |
+
+Parça 3'ün alt parçaları (kullanıcı isteği 2026-10-23: "yalnızca renk değişikliği gibi durmasın"):
+
+| # | Alt parça | Durum |
+|---|---|---|
+| 3a | A'yı belirtecler.css'e taşı; B temasını, Inter'i, `?tema` ve ara yapıyı kaldır | **Sıradaki** |
+| 3b | İkonlu sayfa başlık alanı; kartlarda üzerine gelince yükselme ve gölge | |
+| 3c | Ders renkleri: otomatik atanır, değiştirilebilir, API'de saklanır; çip biçiminde (liste, dağılım, şablon, ileride çizelge); metin kontrastı testle | |
+| 3d | Öğretmenler için baş harfli renkli rozetler (listeler, seçiciler) | |
+| 3e | Ana sayfa panosu: karşılama bandı, kurulum ilerleme halkası (kontrol listesiyle aynı veriden), sayı kartları | |
+| 3f | Boş durumlar için özgün SVG illüstrasyonlar (tema renkleriyle) | |
+| 3g | Masaüstü ve telefon ekran görüntüleri, taşma denetimi, bütün testler; özet ve 5.5'ten önce soru | |
+
+Hepsi tasarım belirteçleri üzerinden yapılır; animasyonlar hareketi azaltma ayarına uyar.
 
 İstekler (parça 2, iki yönde de):
 - **Animasyonlar** (150-250 ms, abartısız):
