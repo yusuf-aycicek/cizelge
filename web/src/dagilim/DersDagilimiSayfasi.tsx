@@ -1,3 +1,4 @@
+import { Iskelet } from "../bilesenler/Iskelet";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router";
 import { hataMetni } from "../api/hata";
@@ -86,7 +87,7 @@ export function DersDagilimiSayfasi() {
       </div>
     );
   } else if (!ogretmenler.data || !siniflar.data || !dersler.data || !atamalar.data || !ozet.data) {
-    icerik = <p>Yükleniyor...</p>;
+    icerik = <Iskelet satir={6} />;
   } else if (!ogretmenler.data.length || !siniflar.data.length || !dersler.data.length) {
     icerik = <OnKosullar ogretmen={ogretmenler.data.length} sinif={siniflar.data.length} ders={dersler.data.length} />;
   } else {

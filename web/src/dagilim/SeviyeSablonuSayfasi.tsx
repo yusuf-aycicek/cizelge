@@ -1,3 +1,4 @@
+import { Iskelet } from "../bilesenler/Iskelet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
@@ -40,7 +41,7 @@ export function SeviyeSablonuSayfasi() {
       </div>
     );
   } else if (!siniflar.data || !dersler.data || !sablon.data || !ozet.data) {
-    icerik = <p>Yükleniyor...</p>;
+    icerik = <Iskelet satir={6} kart />;
   } else if (siniflar.data.length === 0 || dersler.data.length === 0) {
     icerik = (
       <section aria-labelledby="sablon-on-kosul" className={stil.bosDurum}>

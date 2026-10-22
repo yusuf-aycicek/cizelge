@@ -15,6 +15,18 @@
   --renk-metin-ikincil: #4f5d6b;
   --renk-kenar: #d5dbe3;          /* süs çizgileri (bilgi taşımaz) */
   --renk-kenar-alan: #75828f;     /* form alanı ve düğme sınırı: zeminde en az 3:1 */
+  --renk-sayfa: #ffffff;          /* içerik alanının zemini; kartlar bunun üstünde durur */
+
+  /* --- renkler: çerçeve (üst çubuk ve menü) --- */
+  --renk-ust-zemin: #1f4fbf;
+  --renk-ust-metin: #ffffff;
+  --renk-ust-vurgu: #173c93;      /* üst çubukta üzerine gelinen düğme */
+  --renk-menu-zemin: #f4f6f9;
+  --renk-menu-metin: #1c2733;
+  --renk-menu-vurgu: #e6ebf2;     /* üzerine gelinen menü öğesi */
+  --renk-menu-aktif-zemin: #e6ebf2;
+  --renk-menu-aktif-metin: #1c2733;
+  --renk-menu-aktif-cizgi: #1f4fbf;
 
   /* --- renkler: anlam --- */
   --renk-birincil: #1f4fbf;
@@ -52,6 +64,9 @@
   --yazi-baslik: 1.375rem;
   --yazi-sayfa-basligi: 1.75rem;
   --yazi-kalin: 600;
+  --yazi-baslik-agirligi: 700;
+  --tablo-baslik-donusumu: none;  /* tablo sütun başlıkları: none ya da uppercase */
+  --tablo-baslik-aralik: normal;
   --satir-yuksekligi: 1.5;
 
   /* --- köşe, gölge, ölçü --- */
@@ -60,8 +75,17 @@
   --kose-buyuk: 10px;
   --golge: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.1);
   --golge-pencere: 0 20px 40px rgb(16 24 40 / 0.2);
+  --golge-kart: 0 1px 2px rgb(16 24 40 / 0.06);
+  --golge-uzerine: 0 4px 12px rgb(16 24 40 / 0.12); /* üzerine gelinen kart ve düğme */
+  --renk-perde: rgb(16 24 40 / 0.45);              /* onay penceresinin arkası */
   --odak-halkasi: 0 0 0 3px var(--renk-zemin), 0 0 0 5px var(--renk-odak);
   --dokunma-hedefi: 2.75rem;      /* 44 px: telefonda parmakla rahat basılır */
   --menu-genisligi: 15rem;
   --icerik-genisligi: 72rem;
+
+  /* --- hareket: kısa ve sakin. prefers-reduced-motion açıksa temel.css hepsini kapatır. --- */
+  --sure-kisa: 150ms;   /* üzerine gelme, basma */
+  --sure: 200ms;        /* bildirim, pencere, sekme */
+  --sure-uzun: 250ms;   /* sayfa geçişi, satır ekleme ve silme */
+  --egri: cubic-bezier(0.2, 0.8, 0.2, 1); /* hızlı başlar, yumuşak durur */
 }

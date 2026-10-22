@@ -22,6 +22,8 @@ type Props<T> = {
   bosMesaj?: ReactNode;
   /** Satıra CSS sınıfı (ör. öğretmeni seçilmemiş satırı vurgulamak için). */
   satirSinifi?: (satir: T) => string | undefined;
+  /** Silinmekte olan satırların anahtarları: kalkmadan önce çıkış animasyonu oynar. */
+  cikanlar?: ReadonlySet<string>;
 };
 
 /**
@@ -40,6 +42,7 @@ export function Tablo<T>({
   satirAnahtari,
   bosMesaj,
   satirSinifi,
+  cikanlar,
 }: Props<T>) {
   return (
     <div className={stil.kutu}>
@@ -65,7 +68,12 @@ export function Tablo<T>({
             // `key`: React'in her satırı tanıması için. Dizin (index) değil, kalıcı kimlik
             // kullanılır; yoksa satır silinince ya da sıralanınca durum yanlış satıra kayar.
             satirlar.map((satir) => (
-              <tr key={satirAnahtari(satir)} className={satirSinifi?.(satir)}>
+              <tr
+                key={satirAnahtari(satir)}
+                className={[satirSinifi?.(satir), cikanlar?.has(satirAnahtari(satir)) ? stil.cikiyor : ""]
+                  .filter(Boolean)
+                  .join(" ") || undefined}
+              >
                 {sutunlar.map((s) => (
                   <td key={s.baslik} className={s.hizala === "sag" ? stil.sag : undefined}>
                     {s.hucre(satir)}

@@ -7,10 +7,11 @@
 
 html {
   font-family: var(--yazi-ailesi);
+  -webkit-font-smoothing: antialiased;
   font-size: 100%; /* kullanıcının tarayıcıdaki yazı boyutu tercihine saygı */
   line-height: var(--satir-yuksekligi);
   color: var(--renk-metin);
-  background: var(--renk-zemin);
+  background: var(--renk-sayfa);
   -webkit-text-size-adjust: 100%;
 }
 
@@ -23,6 +24,8 @@ h2,
 h3 {
   line-height: 1.25;
   margin: 0 0 var(--bosluk-4);
+  font-weight: var(--yazi-baslik-agirligi);
+  letter-spacing: -0.01em;
 }
 h1 {
   font-size: var(--yazi-sayfa-basligi);
@@ -73,7 +76,10 @@ textarea {
 
 /* Hareketi azaltmak isteyen kullanıcı için geçişler kapanır. */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after,
+  ::backdrop {
     transition: none !important;
     animation: none !important;
   }

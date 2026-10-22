@@ -1,4 +1,5 @@
-import type { ComponentPropsWithRef } from "react";
+import { LoaderCircle } from "lucide-react";
+import type { ComponentPropsWithRef, ReactNode } from "react";
 import stil from "./Dugme.module.css";
 
 type DugmeTuru = "birincil" | "ikincil" | "tehlike" | "metin";
@@ -10,6 +11,8 @@ type Props = ComponentPropsWithRef<"button"> & {
   /** İşlem sürerken düğme kilitlenir ve bu metni gösterir: çift tıklama ikinci isteği göndermez. */
   yukleniyor?: boolean;
   yukleniyorMetni?: string;
+  /** Metnin solundaki ikon (lucide-react). Süstür: ekran okuyucu yalnızca metni okur. */
+  ikon?: ReactNode;
 };
 
 /**
@@ -25,6 +28,7 @@ export function Dugme({
   disabled,
   className,
   children,
+  ikon,
   ...diger
 }: Props) {
   return (
@@ -35,6 +39,7 @@ export function Dugme({
       aria-busy={yukleniyor || undefined}
       {...diger}
     >
+      {yukleniyor ? <LoaderCircle aria-hidden="true" className={stil.donen} /> : ikon}
       {yukleniyor ? yukleniyorMetni : children}
     </button>
   );

@@ -9,7 +9,25 @@
   border-radius: var(--kose);
   font-weight: var(--yazi-kalin);
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s;
+  transition: background-color var(--sure-kisa) var(--egri), border-color var(--sure-kisa) var(--egri),
+    box-shadow var(--sure-kisa) var(--egri), transform var(--sure-kisa) var(--egri);
+}
+.dugme svg {
+  width: 1.1em;
+  height: 1.1em;
+  flex-shrink: 0;
+}
+/* Basınca hafifçe içe göçer: tıklandığını hisseder. */
+.dugme:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.donen {
+  animation: don 0.8s linear infinite;
+}
+@keyframes don {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .dugme:disabled {
   cursor: not-allowed;
@@ -22,6 +40,7 @@
 }
 .birincil:hover:not(:disabled) {
   background: var(--renk-birincil-koyu);
+  box-shadow: var(--golge-uzerine);
 }
 
 .ikincil {
@@ -47,5 +66,5 @@
   padding-inline: var(--bosluk-2);
 }
 .metin:hover:not(:disabled) {
-  text-decoration: underline;
+  background: var(--renk-yuzey);
 }

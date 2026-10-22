@@ -1,3 +1,4 @@
+import { Iskelet } from "../bilesenler/Iskelet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { ApiHatasi, cagir, hataMetni } from "../api/hata";
@@ -46,7 +47,7 @@ export function OkulAyarlariSayfasi() {
     <>
       <h1>Okul ayarları</h1>
       <p className={sayfaStili.giris}>Okulunuzun haftalık düzeni ve program hazırlanırken uyulacak kurallar.</p>
-      {(okul.isPending || kurallar.isPending) && <p>Yükleniyor...</p>}
+      {(okul.isPending || kurallar.isPending) && <Iskelet satir={4} kart />}
       {(okul.isError || kurallar.isError) && (
         <div className={sayfaStili.hataKutusu} role="alert">
           {hataMetni(okul.error ?? kurallar.error)}

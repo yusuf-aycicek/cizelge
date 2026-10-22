@@ -1,8 +1,9 @@
+import { cikistanSonra } from "./hareket";
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import stil from "./Bildirim.module.css";
 
 export type BildirimTuru = "basari" | "hata" | "uyari" | "bilgi";
-type Bildirim = { id: number; tur: BildirimTuru; mesaj: string };
+type Bildirim = { id: number; tur: BildirimTuru; mesaj: string; cikiyor?: boolean };
 type Goster = (tur: BildirimTuru, mesaj: string) => void;
 
 /**
@@ -27,7 +28,12 @@ export function BildirimSaglayici({ children }: { children: ReactNode }) {
   const [bildirimler, setBildirimler] = useState<Bildirim[]>([]);
   const sonraki = useRef(1);
 
-  const kapat = useCallback((id: number) => setBildirimler((b) => b.filter((x) => x.id !== id)), []);
+  // Kapatma iki adımdır: önce "çıkıyor" (kayarak gider, CSS), sonra listeden kalkar. Hareket
+  // azaltılmışsa hemen kalkar (hareket.ts).
+  const kapat = useCallback((id: number) => {
+    setBildirimler((b) => b.map((x) => (x.id === id ? { ...x, cikiyor: true } : x)));
+    cikistanSonra(() => setBildirimler((b) => b.filter((x) => x.id !== id)));
+  }, []);
 
   const goster = useCallback<Goster>(
     (tur, mesaj) => {
@@ -68,7 +74,7 @@ export function BildirimSaglayici({ children }: { children: ReactNode }) {
 
 function Kart({ bildirim, kapat }: { bildirim: Bildirim; kapat: (id: number) => void }) {
   return (
-    <div className={`${stil.kart} ${stil[bildirim.tur]}`}>
+    <div className={[stil.kart, stil[bildirim.tur], bildirim.cikiyor ? stil.cikiyor : ""].join(" ")}>
       <p className={stil.mesaj}>{bildirim.mesaj}</p>
       <button type="button" className={stil.kapat} onClick={() => kapat(bildirim.id)} aria-label="Bildirimi kapat">
         ✕

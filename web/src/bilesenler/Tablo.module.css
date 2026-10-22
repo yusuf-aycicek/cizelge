@@ -7,6 +7,7 @@
   border: 1px solid var(--renk-kenar);
   border-radius: var(--kose-buyuk);
   background: var(--renk-zemin);
+  box-shadow: var(--golge-kart);
 }
 
 .tablo {
@@ -34,6 +35,34 @@
   font-size: var(--yazi-kucuk);
   color: var(--renk-metin-ikincil);
   font-weight: var(--yazi-kalin);
+  text-transform: var(--tablo-baslik-donusumu);
+  letter-spacing: var(--tablo-baslik-aralik);
+}
+
+/* Yeni satır yumuşakça belirir. Satırların anahtarı kalıcı olduğu için liste tazelenince eski
+   satırlar yeniden çizilmez, yalnızca gerçekten eklenen satır oynar. */
+.tablo tbody tr {
+  animation: satirGir var(--sure-uzun) var(--egri);
+}
+.tablo td {
+  transition: background-color var(--sure-kisa) var(--egri);
+}
+/* Silinen satır: kalkmadan önce solar ve kayar (hareket.ts: CIKIS_MS). */
+.tablo tbody tr.cikiyor {
+  animation: satirCik var(--sure-uzun) var(--egri) forwards;
+  pointer-events: none;
+}
+@keyframes satirGir {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
+}
+@keyframes satirCik {
+  to {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
 }
 
 .tablo tbody tr:last-child td {

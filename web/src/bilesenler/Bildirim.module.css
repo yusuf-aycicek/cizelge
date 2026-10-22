@@ -23,6 +23,23 @@
   border-radius: var(--kose);
   box-shadow: var(--golge);
   border-inline-start: 4px solid currentColor;
+  animation: kayarakGir var(--sure) var(--egri);
+}
+.cikiyor {
+  animation: kayarakCik var(--sure) var(--egri) forwards;
+}
+
+@keyframes kayarakGir {
+  from {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
+}
+@keyframes kayarakCik {
+  to {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
 }
 
 .mesaj {
@@ -32,6 +49,8 @@
 
 .kapat {
   border: none;
+  border-radius: var(--kose-kucuk);
+  transition: background-color var(--sure-kisa);
   background: transparent;
   cursor: pointer;
   min-width: 2rem;
@@ -54,4 +73,7 @@
 .bilgi {
   background: var(--renk-bilgi-zemin);
   color: var(--renk-bilgi-metin);
+}
+.kapat:hover {
+  background: rgb(0 0 0 / 0.06);
 }

@@ -1,3 +1,5 @@
+import { cikistanSonra } from "../bilesenler/hareket";
+import { Iskelet } from "../bilesenler/Iskelet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { hataMetni } from "../api/hata";
@@ -140,11 +142,21 @@ export function ListeSayfasi<T extends { id: string }, G>({ baslik, aciklama, te
 
   // --- silme ---------------------------------------------------------------------------------
   const [silinecek, setSilinecek] = useState<T | null>(null);
+  // Silinen satırlar liste tazelenmeden önce kısa bir çıkış animasyonu oynar.
+  const [cikanlar, setCikanlar] = useState<ReadonlySet<string>>(new Set());
   const sil = useMutation({
     mutationFn: (satir: T) => kaynak.sil(satir.id),
     onSuccess: (_, satir) => {
       bildirim("basari", `${deger(satir, "ad")} silindi.`);
-      tazele();
+      setCikanlar((c) => new Set(c).add(satir.id));
+      cikistanSonra(() => {
+        void tazele();
+        setCikanlar((c) => {
+          const yeni = new Set(c);
+          yeni.delete(satir.id);
+          return yeni;
+        });
+      });
     },
     // Silinemezse (ör. ders dağılımında kullanılıyor) sunucunun mesajı nerede kullanıldığını ve
     // ne yapılacağını söyler; kullanıcı kapatana kadar ekranda kalır.
@@ -212,7 +224,7 @@ export function ListeSayfasi<T extends { id: string }, G>({ baslik, aciklama, te
       <h1>{baslik}</h1>
       <p className={sayfaStili.giris}>{aciklama}</p>
 
-      {liste.isPending && <p>Yükleniyor...</p>}
+      {liste.isPending && <Iskelet satir={5} />}
       {liste.isError && (
         <div className={sayfaStili.hataKutusu} role="alert">
           <p>{hataMetni(liste.error)}</p>
@@ -237,6 +249,7 @@ export function ListeSayfasi<T extends { id: string }, G>({ baslik, aciklama, te
               aciklama={`${liste.data.length} ${kucukTekil}`} />
           </div>
           <Tablo<T>
+            cikanlar={cikanlar}
             baslik={baslik}
             sutunlar={sutunlar}
             satirlar={gorunen}

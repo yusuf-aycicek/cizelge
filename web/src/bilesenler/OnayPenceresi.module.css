@@ -5,9 +5,37 @@
   box-shadow: var(--golge-pencere);
   width: min(30rem, calc(100vw - 2 * var(--bosluk-4)));
   color: var(--renk-metin);
+  background: var(--renk-zemin);
+  /* Açılış ve kapanış yalnızca CSS ile: <dialog> açılınca [open] olur. @starting-style açılıştaki
+     ilk kareyi, allow-discrete kapanırken display'in animasyon bitene kadar beklemesini sağlar.
+     Desteklemeyen tarayıcıda pencere animasyonsuz açılır (işlev aynı). */
+  opacity: 0;
+  transform: translateY(0.5rem) scale(0.98);
+  transition: opacity var(--sure) var(--egri), transform var(--sure) var(--egri),
+    overlay var(--sure) allow-discrete, display var(--sure) allow-discrete;
+}
+.pencere[open] {
+  opacity: 1;
+  transform: none;
+}
+@starting-style {
+  .pencere[open] {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.98);
+  }
 }
 .pencere::backdrop {
-  background: rgb(16 24 40 / 0.45);
+  background: transparent;
+  transition: background-color var(--sure) var(--egri), overlay var(--sure) allow-discrete,
+    display var(--sure) allow-discrete;
+}
+.pencere[open]::backdrop {
+  background: var(--renk-perde);
+}
+@starting-style {
+  .pencere[open]::backdrop {
+    background: transparent;
+  }
 }
 
 .baslik {

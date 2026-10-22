@@ -1,3 +1,4 @@
+import { Iskelet } from "../bilesenler/Iskelet";
 import { useQueryClient } from "@tanstack/react-query";
 import { Navigate, Outlet, useLocation } from "react-router";
 import { hataMetni } from "../api/hata";
@@ -23,7 +24,7 @@ export function KorumaliAlan() {
   const istemci = useQueryClient();
 
   if (ben.isPending) {
-    return <p className={stil.bekle}>Yükleniyor...</p>;
+    return <div className={stil.bekle}><Iskelet satir={3} kart /></div>;
   }
   if (ben.isError) {
     return (

@@ -1,0 +1,35 @@
+.iskelet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-2) 0;
+}
+.kart {
+  background: var(--renk-zemin);
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-buyuk);
+  box-shadow: var(--golge-kart);
+  padding: var(--bosluk-5);
+}
+
+.cizgi {
+  height: 0.9rem;
+  border-radius: var(--kose-kucuk);
+  background: linear-gradient(90deg, var(--renk-yuzey) 25%, var(--renk-yuzey-vurgu) 50%, var(--renk-yuzey) 75%);
+  background-size: 200% 100%;
+  animation: parilti 1.2s ease-in-out infinite;
+}
+.baslik {
+  height: 1.4rem;
+  width: 40%;
+  margin-bottom: var(--bosluk-2);
+}
+
+@keyframes parilti {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}

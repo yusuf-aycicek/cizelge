@@ -469,7 +469,7 @@ Yarıda kalırsa sonraki oturum buradan devam eder.
 |---|---|---|
 | 0 | Örnek okul komutu (`python -m okulapi ornek-okul --evet`, README) | Bitti |
 | 1 | İki tasarım yönü, beşer masaüstü ekran görüntüsü (giriş, ana sayfa, öğretmenler, okul ayarları, ders dağılımı); **kullanıcının seçimi beklenir** | **Sıradaki** |
-| 2 | (1 ile birlikte, iki yönde ortak) animasyonlar, ikonlar, kartlar, yazı tipi | |
+| 2 | (1 ile birlikte, iki yönde ortak) animasyonlar, ikonlar, kartlar, yazı tipi | Sürüyor: 2a bitti (aşağıda), 2b sıradaki |
 | 3 | Seçilen yönün bütün ekranlara uygulanması; masaüstü ve telefon görüntüleri, taşma denetimi; 5.5'ten önce kullanıcıya sorulur | |
 
 İstekler (parça 2, iki yönde de):
@@ -489,6 +489,30 @@ Yarıda kalırsa sonraki oturum buradan devam eder.
 - **Yöntem:**
   - mümkün olduğunca CSS ile; kütüphane gerekirse küçük ve yaygın olanı, gerekçesiyle;
   - tasarım belirteçleri üzerinden; kontrast testi ve taşma denetimi geçmeye devam eder.
+
+Parça 2a (bitti):
+- Belirteçler: sayfa zemini, çerçeve renkleri (`--renk-ust-*`, `--renk-menu-*`), kart gölgesi,
+  hareket süreleri (`--sure-kisa/--sure/--sure-uzun`, `--egri`).
+- `stil/temalar.css`: `[data-tema="sicak"]` ve `[data-tema="kurumsal"]`. Seçim `?tema=`
+  parametresiyle ya da localStorage'dan yapılır (main.tsx; geçici).
+- Kontrast testi üç temayı ayrı ayrı denetler.
+- Yazı tipleri (Nunito, Inter; @fontsource-variable) ve ikonlar (lucide-react).
+- `Iskelet` bileşeni "Yükleniyor..." yazısının yerine geçti.
+- `hareket.ts`: çıkış animasyonları; hareket azaltılmışsa ve jsdom'da gecikme yoktur.
+- Animasyonlar: bildirim kayarak girer ve çıkar; onay penceresi `@starting-style` ile açılır;
+  tablo satırı girer, silinen satır çıkar (liste sayfaları); düğmede basma ve dönen yüklenme
+  ikonu.
+- Hareketi azaltma kuralı `::backdrop`'u da kapsar.
+
+Parça 2b (sıradaki):
+- çerçeve: menü ikonları, tema renkleri, sayfa geçişinde solma;
+- sekme geçişi;
+- düğmelerde ikonlar;
+- kartlar (Sayfa.module.css);
+- giriş sayfası;
+- örnek okul komutuna geliştirme ortamı koruması (kullanıcı isteği 2026-10-23).
+
+Sonra parça 1'in ekran görüntüleri.
 
 Parça 0 notları: `api/src/okulapi/ornek_okul.py`.
 - Bütün okulları `TRUNCATE okul, giris_denemesi CASCADE` ile siler; `--evet` olmadan hiçbir şey

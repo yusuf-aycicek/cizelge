@@ -1,0 +1,109 @@
+/*
+ * Tasarım yönleri (önizleme). Bileşenler aynıdır; yalnızca belirteçler değişir. `<html
+ * data-tema="sicak">` ya da `data-tema="kurumsal"` ile seçilir (main.tsx: ?tema= ya da
+ * localStorage). Kullanıcı birini seçince o blok belirtecler.css'e taşınır, bu dosya silinir.
+ *
+ * Kontrast testi (belirtecler.test.ts) her temayı ayrı ayrı denetler.
+ */
+
+/* --- A. Sıcak ve yumuşak: krem zemin, kiremit rengi vurgu, yuvarlak hatlar, Nunito --------- */
+[data-tema="sicak"] {
+  --yazi-ailesi: "Nunito Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --yazi-baslik-agirligi: 800;
+
+  --renk-sayfa: #fbf6ef;
+  --renk-zemin: #ffffff;
+  --renk-yuzey: #f7efe5;
+  --renk-yuzey-vurgu: #f1e4d4;
+  --renk-metin: #2d241c;
+  --renk-metin-ikincil: #6b5849;
+  --renk-kenar: #ecdfd0;
+  --renk-kenar-alan: #8f7a67;
+
+  --renk-birincil: #c2410c;
+  --renk-birincil-koyu: #9a3412;
+  --renk-birincil-metin: #ffffff;
+  --renk-tehlike: #b42318;
+  --renk-tehlike-koyu: #8f1c13;
+  --renk-odak: #c2410c;
+
+  --renk-basari-zemin: #eaf5ec;
+  --renk-basari-metin: #1d5c36;
+  --renk-hata-zemin: #fdebe7;
+  --renk-hata-metin: #8f1c13;
+  --renk-uyari-zemin: #fff1d9;
+  --renk-uyari-metin: #7a3d00;
+  --renk-bilgi-zemin: #e9f1fb;
+  --renk-bilgi-metin: #1e4a8a;
+
+  --renk-ust-zemin: #fbf6ef;
+  --renk-ust-metin: #2d241c;
+  --renk-ust-vurgu: #f1e4d4;
+  --renk-menu-zemin: #fbf6ef;
+  --renk-menu-metin: #4a3a2c;
+  --renk-menu-vurgu: #f3e6d6;
+  --renk-menu-aktif-zemin: #c2410c;
+  --renk-menu-aktif-metin: #ffffff;
+  --renk-menu-aktif-cizgi: transparent;
+
+  --kose-kucuk: 8px;
+  --kose: 12px;
+  --kose-buyuk: 18px;
+  --golge: 0 1px 2px rgb(120 72 32 / 0.06), 0 4px 12px rgb(120 72 32 / 0.07);
+  --golge-kart: 0 2px 4px rgb(120 72 32 / 0.04), 0 10px 28px rgb(120 72 32 / 0.08);
+  --golge-uzerine: 0 6px 18px rgb(120 72 32 / 0.16);
+  --golge-pencere: 0 24px 56px rgb(80 48 20 / 0.24);
+  --renk-perde: rgb(60 36 16 / 0.4);
+}
+
+/* --- B. Net ve kurumsal: lacivert menü, beyaz kartlar, keskin hatlar, Inter ---------------- */
+[data-tema="kurumsal"] {
+  --yazi-ailesi: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --yazi-baslik-agirligi: 650;
+  --tablo-baslik-donusumu: uppercase;
+  --tablo-baslik-aralik: 0.05em;
+
+  --renk-sayfa: #f4f6f9;
+  --renk-zemin: #ffffff;
+  --renk-yuzey: #f1f4f8;
+  --renk-yuzey-vurgu: #e2e8f0;
+  --renk-metin: #0f172a;
+  --renk-metin-ikincil: #475569;
+  --renk-kenar: #dde3ea;
+  --renk-kenar-alan: #7b8794;
+
+  --renk-birincil: #1d4ed8;
+  --renk-birincil-koyu: #1e3a8a;
+  --renk-birincil-metin: #ffffff;
+  --renk-tehlike: #b91c1c;
+  --renk-tehlike-koyu: #7f1d1d;
+  --renk-odak: #1d4ed8;
+
+  --renk-basari-zemin: #ecfdf3;
+  --renk-basari-metin: #166534;
+  --renk-hata-zemin: #fef2f2;
+  --renk-hata-metin: #991b1b;
+  --renk-uyari-zemin: #fffbeb;
+  --renk-uyari-metin: #92400e;
+  --renk-bilgi-zemin: #eff6ff;
+  --renk-bilgi-metin: #1e40af;
+
+  --renk-ust-zemin: #ffffff;
+  --renk-ust-metin: #0f172a;
+  --renk-ust-vurgu: #f1f4f8;
+  --renk-menu-zemin: #0f172a;
+  --renk-menu-metin: #cbd5e1;
+  --renk-menu-vurgu: #1e293b;
+  --renk-menu-aktif-zemin: #1e293b;
+  --renk-menu-aktif-metin: #ffffff;
+  --renk-menu-aktif-cizgi: #60a5fa;
+
+  --kose-kucuk: 3px;
+  --kose: 6px;
+  --kose-buyuk: 8px;
+  --golge: 0 1px 2px rgb(15 23 42 / 0.08);
+  --golge-kart: 0 1px 3px rgb(15 23 42 / 0.08), 0 1px 2px rgb(15 23 42 / 0.04);
+  --golge-uzerine: 0 4px 10px rgb(15 23 42 / 0.12);
+  --golge-pencere: 0 20px 40px rgb(15 23 42 / 0.25);
+  --renk-perde: rgb(15 23 42 / 0.5);
+}
