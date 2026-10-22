@@ -470,7 +470,7 @@ Yarıda kalırsa sonraki oturum buradan devam eder.
 | 0 | Örnek okul komutu (`python -m okulapi ornek-okul --evet`, README) | Bitti |
 | 1 | İki tasarım yönü, beşer masaüstü ekran görüntüsü (giriş, ana sayfa, öğretmenler, okul ayarları, ders dağılımı); **kullanıcının seçimi beklenir** | Bitti. **Seçim: A (sıcak ve yumuşak)**, kullanıcı 2026-10-23 |
 | 2 | (1 ile birlikte, iki yönde ortak) animasyonlar, ikonlar, kartlar, yazı tipi | Bitti (2a, 2b) |
-| 3 | A'nın tek tasarım olarak uygulanması ve zenginleştirilmesi (alt parçalar aşağıda); 5.5'ten önce kullanıcıya sorulur | **Sürüyor** |
+| 3 | A'nın tek tasarım olarak uygulanması ve zenginleştirilmesi (alt parçalar aşağıda); 5.5'ten önce kullanıcıya sorulur | Bitti (2026-10-23); kullanıcının onayı bekleniyor |
 
 Parça 3'ün alt parçaları (kullanıcı isteği 2026-10-23: "yalnızca renk değişikliği gibi durmasın"):
 
@@ -482,7 +482,7 @@ Parça 3'ün alt parçaları (kullanıcı isteği 2026-10-23: "yalnızca renk de
 | 3d | Öğretmenler için baş harfli renkli rozetler (listeler, seçiciler) | Bitti: `OgretmenRozeti`; renk kimlikten kararlı (8 belirteç, kontrast testli); baş harfler CSS `attr()` ile çizilir, metne karışmaz; seçicide seçili öğretmenin rozeti solda |
 | 3e | Ana sayfa panosu: karşılama bandı, kurulum ilerleme halkası (kontrol listesiyle aynı veriden), sayı kartları | Bitti: `kurulumDurumu` (saf, testli) halkayı ve kontrol listesini besler; dağılım adımı sunucu özetinden; sayı kartları (öğretmen, şube, ders, haftalık saat); 5.6'daki kontrol listesi böylece öne alındı |
 | 3f | Boş durumlar için özgün SVG illüstrasyonlar (tema renkleriyle) | Bitti: `Illustrasyon` (öğretmen, şube, ders, takvim); satır içi SVG, renkler CSS sınıflarından; liste boş durumları, şube, dağılım ve şablon ön koşulları; test sabit renk olmadığını denetler |
-| 3g | Masaüstü ve telefon ekran görüntüleri, taşma denetimi, bütün testler; özet ve 5.5'ten önce soru | **Sıradaki** |
+| 3g | Masaüstü ve telefon ekran görüntüleri, taşma denetimi, bütün testler; özet ve 5.5'ten önce soru | Bitti: `docs/ekranlar/tasarim-a/` (12 masaüstü, 4 telefon); taşma 20/20 temiz; web 185, api 481, çözücü 149 |
 
 Hepsi tasarım belirteçleri üzerinden yapılır; animasyonlar hareketi azaltma ayarına uyar.
 

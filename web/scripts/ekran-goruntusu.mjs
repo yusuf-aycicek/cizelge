@@ -315,6 +315,89 @@ AKISLAR["tasarim"] = async (tarayici, kaydet) => {
   }
 };
 
+// Seçilen tasarım (A, sıcak ve yumuşak) bütün ekranlarda, masaüstü ve telefon. Örnek okulla.
+// Önce: cd api && OKULAPI_ORTAM=gelistirme .venv/Scripts/python -m okulapi ornek-okul --evet
+AKISLAR["tasarim-a"] = async (tarayici, kaydet) => {
+  const girisYap = async (s) => {
+    await s.goto(ADRES + "/giris");
+    await s.getByLabel("E-posta").fill("mudur@ornek.test");
+    await s.getByLabel("Parola").fill("ornek-okul-parolasi");
+    await s.getByRole("button", { name: "Giriş yap" }).click();
+    await s.getByRole("img", { name: /Kurulum:/ }).waitFor();
+  };
+  const bekle = (s, ms = 1000) => s.waitForTimeout(ms); // giriş animasyonları otursun
+
+  const baglam = await tarayici.newContext({ viewport: MASAUSTU, locale: "tr-TR" });
+  const s = await baglam.newPage();
+  await s.goto(ADRES + "/giris");
+  await s.getByRole("heading", { name: "Giriş yap" }).waitFor();
+  await kaydet(s, "01-giris.png");
+  await girisYap(s);
+  await bekle(s);
+  await kaydet(s, "02-ana-sayfa.png", true);
+
+  for (const [yol, dosya, hazir] of [
+    ["/ogretmenler", "03-ogretmenler.png", () => s.getByRole("table", { name: "Öğretmenler" })],
+    ["/siniflar", "04-siniflar.png", () => s.getByRole("table", { name: "Sınıflar" })],
+    ["/dersler", "05-dersler.png", () => s.getByRole("table", { name: "Dersler" })],
+  ]) {
+    await s.goto(ADRES + yol);
+    await hazir().waitFor();
+    await bekle(s, 600);
+    await kaydet(s, dosya, true);
+  }
+  await s.getByText("Lacivert").first().click();
+  await s.getByRole("radiogroup").first().waitFor();
+  await kaydet(s, "06-ders-rengi-secici.png");
+  await s.keyboard.press("Escape");
+
+  await s.goto(ADRES + "/okul");
+  await s.getByRole("heading", { name: "Kurallar", exact: true }).waitFor();
+  await bekle(s, 600);
+  await kaydet(s, "07-okul-ayarlari.png");
+  await s.goto(ADRES + "/seviye-sablonu");
+  await s.getByRole("table").first().waitFor();
+  await bekle(s, 600);
+  await kaydet(s, "08-seviye-sablonu.png", true);
+  await s.goto(ADRES + "/ders-dagilimi");
+  await s.getByRole("table").first().waitFor();
+  await bekle(s, 600);
+  await kaydet(s, "09-ders-dagilimi-subeler.png", true);
+  await s.getByRole("tab", { name: "Öğretmenlere göre" }).click();
+  await s.getByRole("button", { name: /Derslerini göster/ }).first().click();
+  await bekle(s, 600);
+  await kaydet(s, "10-ders-dagilimi-ogretmenler.png", true);
+  await s.getByRole("tab", { name: "Derslere göre" }).click();
+  await s.getByRole("table").first().waitFor();
+  await bekle(s, 600);
+  await kaydet(s, "11-ders-dagilimi-dersler.png");
+
+  // Boş durum: yeni, boş bir okul.
+  const bos = await tarayici.newContext({ viewport: MASAUSTU, locale: "tr-TR" });
+  const kayit = await bos.request.post(ADRES + "/api/kayit", {
+    headers: { Origin: ADRES },
+    data: { okul: { ad: "Yeni Ortaokul" }, ad: "Deneme Müdür", email: `bos-${Date.now()}@ornek.test`, sifre: "ekran-goruntusu-parolasi" },
+  });
+  if (!kayit.ok()) throw new Error(`Boş okul kaydı: ${kayit.status()}`);
+  const b = await bos.newPage();
+  await b.goto(ADRES + "/ogretmenler");
+  await b.getByRole("heading", { name: "Henüz öğretmen eklenmedi" }).waitFor();
+  await bekle(b, 600);
+  await kaydet(b, "12-bos-ogretmenler.png");
+  await bos.close();
+
+  const telefon = await baglam.newPage();
+  await telefon.setViewportSize(TELEFON);
+  for (const [yol, dosya] of [["/", "13-telefon-ana-sayfa.png"], ["/ogretmenler", "14-telefon-ogretmenler.png"],
+    ["/dersler", "15-telefon-dersler.png"], ["/ders-dagilimi", "16-telefon-ders-dagilimi.png"]]) {
+    await telefon.goto(ADRES + yol);
+    await telefon.waitForLoadState("networkidle");
+    await bekle(telefon);
+    await kaydet(telefon, dosya, true);
+  }
+  await baglam.close();
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {
