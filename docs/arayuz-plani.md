@@ -510,7 +510,6 @@ Parça 2b (sıradaki):
 - düğmelerde ikonlar;
 - kartlar (Sayfa.module.css);
 - giriş sayfası;
-- örnek okul komutuna geliştirme ortamı koruması (kullanıcı isteği 2026-10-23).
 
 Sonra parça 1'in ekran görüntüleri.
 
@@ -521,6 +520,10 @@ Parça 0 notları: `api/src/okulapi/ornek_okul.py`.
   artık aynı fonksiyonu (`veri_setini_yukle`) kullanır.
 - Her seviyenin şablonu ilk şubesinden üretilir.
 - Giriş: `mudur@ornek.test` / `ornek-okul-parolasi`. Test: `api/tests/test_ornek_okul.py`.
+- **Geliştirme ortamı koruması (2026-10-23, bitti):** `Ayarlar.ortam` alanı eklendi; varsayılanı
+  `yayin`. Komut yalnızca `OKULAPI_ORTAM=gelistirme` ile çalışır (yoksa çıkış 3). Koruma
+  `ornek_okul_kur`'un kendisinde de var. 7 test; iki koruma ayrı ayrı kaldırılarak denendi, ikisi de
+  yakalandı.
 
 ### Yapım sırası 6 (program)
 

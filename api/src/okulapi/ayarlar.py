@@ -5,11 +5,18 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Ayarlar(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="OKULAPI_")
+
+    # Çalışma ortamı. Varsayılan bilerek güvenli olandır ("yayin"): veriyi silen geliştirme araçları
+    # (python -m okulapi ornek-okul) yalnızca OKULAPI_ORTAM=gelistirme açıkça verilince çalışır.
+    # Yayındaki bir sunucu bu değişkeni hiç tanımlamaz.
+    ortam: Literal["gelistirme", "yayin"] = "yayin"
 
     # İki ayrı rol (docs/adr/0009):
     # - uygulama `okul_uygulama` rolüyle bağlanır: tabloların sahibi değildir, yalnızca okuma/yazma

@@ -64,11 +64,16 @@ Geliştirme veritabanını temizleyip mini veri setiyle (`veri/mini.json`) örne
 Sistem `docker compose up` ile çalışırken bilgisayarda çalıştırılır:
 
 ```bash
-cd api && .venv/Scripts/python -m okulapi ornek-okul --evet
+cd api && OKULAPI_ORTAM=gelistirme .venv/Scripts/python -m okulapi ornek-okul --evet
 ```
 
-- **Veritabanındaki bütün okullar, kullanıcılar ve oturumlar silinir.** `--evet` olmadan hiçbir
-  şey yapılmaz. Yalnızca geliştirme veritabanında kullanın.
+PowerShell'de: `cd api; $env:OKULAPI_ORTAM="gelistirme"; .venv\Scripts\python -m okulapi ornek-okul --evet`
+
+- **Veritabanındaki bütün okullar, kullanıcılar ve oturumlar silinir.** Bu yüzden iki koruması
+  vardır:
+  - `OKULAPI_ORTAM=gelistirme` açıkça verilmeden çalışmaz (çıkış kodu 3). Ayarın varsayılanı
+    `yayin`dır; yayındaki bir sunucu bu değişkeni hiç tanımlamamalıdır.
+  - `--evet` olmadan çalışmaz (çıkış kodu 2).
 - Yüklenenler: 5 öğretmen, 3 şube, 7 ders, 18 ders ataması, 15 müsaitlik kaydı. Ayrıca her seviye
   için bir seviye şablonu, o seviyenin ilk şubesinin derslerinden üretilir.
 - Giriş: `mudur@ornek.test` / `ornek-okul-parolasi` (http://localhost:5173).

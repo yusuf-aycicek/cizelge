@@ -1,6 +1,9 @@
 """Geliştirme veritabanını temizleyip örnek bir okul yükler (demo ve ekran görüntüleri için).
 
-    cd api && .venv/Scripts/python -m okulapi ornek-okul --evet
+    cd api && OKULAPI_ORTAM=gelistirme .venv/Scripts/python -m okulapi ornek-okul --evet
+
+- İki koruma: `OKULAPI_ORTAM=gelistirme` açıkça verilmeli (varsayılan "yayin"; yayındaki sunucu
+  bunu hiç tanımlamaz) ve `--evet` onayı. Ortam koruması fonksiyonun kendisindedir.
 
 - Veritabanındaki **bütün** okullar, kullanıcılar ve oturumlar silinir (`TRUNCATE ... CASCADE`,
   tablo sahibi rolüyle). Bu yüzden `--evet` olmadan hiçbir şey yapılmaz.
@@ -89,7 +92,21 @@ def veritabanini_temizle(migrasyon_url: str) -> None:
         motor.dispose()
 
 
+class GelistirmeOrtamiDegil(RuntimeError):
+    """Veriyi silen araç geliştirme ortamı dışında çağrıldı."""
+
+
+ORTAM_UYARISI = (
+    "Bu komut veritabanını sıfırlar ve yalnızca geliştirme ortamında çalışır. Geliştirme "
+    "bilgisayarındaysanız OKULAPI_ORTAM=gelistirme ortam değişkeniyle çalıştırın. Yayındaki bir "
+    "sunucuda bu değişkeni tanımlamayın."
+)
+
+
 def ornek_okul_kur(ayarlar: Ayarlar, veri_yolu: Path = MINI) -> dict[str, int]:
+    # Koruma fonksiyonun kendisinde: komut satırı dışında bir yerden çağrılsa da atlatılamaz.
+    if ayarlar.ortam != "gelistirme":
+        raise GelistirmeOrtamiDegil(ORTAM_UYARISI)
     import warnings
 
     # Starlette'in TestClient'ı httpx için kullanım dışı uyarısı verir; bu komutun çıktısını kirletmesin.

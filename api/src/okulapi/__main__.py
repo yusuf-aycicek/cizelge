@@ -3,7 +3,8 @@
     python -m okulapi parola-sifirla <email>             yeni parola sorulur (iki kez, görünmez)
     python -m okulapi parola-sifirla <email> --rastgele  rastgele parola üretilir, bir kez gösterilir
 
-    python -m okulapi ornek-okul --evet                  geliştirme veritabanını temizler, örnek okulu yükler
+    OKULAPI_ORTAM=gelistirme python -m okulapi ornek-okul --evet
+                                                         geliştirme veritabanını temizler, örnek okulu yükler
                                                          (bilgisayarda çalıştırılır; bkz. okulapi/ornek_okul.py)
 
 Docker'da: docker compose exec api python -m okulapi parola-sifirla <email>
@@ -12,7 +13,8 @@ Okul müdürü parolasını unuttuğunda sistemi işleten kişi içindir (e-post
 ADR 0012). Parola değişir, kullanıcının bütün oturumları kapanır, kaba kuvvet kilidi kalkar.
 Veritabanına uygulamanın rolüyle bağlanır; kullanıcı, giriş fonksiyonuyla e-postadan bulunur.
 
-Çıkış kodları: 0 başarılı, 1 kullanıcı bulunamadı, 2 parola geçersiz ya da eşleşmedi.
+Çıkış kodları: 0 başarılı, 1 kullanıcı bulunamadı, 2 parola geçersiz ya da eşleşmedi (ornek-okul:
+2 onay yok), 3 geliştirme ortamı değil (OKULAPI_ORTAM=gelistirme verilmedi).
 """
 
 from __future__ import annotations
@@ -55,8 +57,12 @@ def parola_sifirla(email: str, rastgele: bool, fabrika: sessionmaker, ayarlar: A
 
 
 def ornek_okul(evet: bool, ayarlar: Ayarlar) -> int:
-    from okulapi.ornek_okul import ORNEK_EMAIL, ORNEK_PAROLA, ornek_okul_kur
+    from okulapi.ornek_okul import ORNEK_EMAIL, ORNEK_PAROLA, ORTAM_UYARISI, ornek_okul_kur
 
+    # İki koruma: açık ortam ayarı (yayında hiç tanımlanmaz) ve onay bayrağı.
+    if ayarlar.ortam != "gelistirme":
+        print(ORTAM_UYARISI, file=sys.stderr)
+        return 3
     if not evet:
         print("Bu komut veritabanındaki BÜTÜN okulları, kullanıcıları ve oturumları siler, sonra örnek "
               "okulu yükler. Yalnızca geliştirme veritabanında kullanın. Devam etmek için: --evet",
