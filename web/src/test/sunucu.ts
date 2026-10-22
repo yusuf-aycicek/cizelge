@@ -40,6 +40,14 @@ function esnek(tur: string, ad: string, agirlik: number): Kural {
     agirlik, seviye: "onemli", varsayilan_seviye: "onemli", varsayilan: true };
 }
 
+/** API'nin paletinin başı (cekirdek/ders_renkleri.py ile aynı sırada). */
+export const ORNEK_DERS_RENKLERI = [
+  { renk: "#1d4ed8", ad: "Lacivert" },
+  { renk: "#c2410c", ad: "Kiremit" },
+  { renk: "#15803d", ad: "Yeşil" },
+  { renk: "#7e22ce", ad: "Mor" },
+];
+
 export const oturumGerekli = () => HttpResponse.json({ detail: "Oturum açmanız gerekiyor" }, { status: 401 });
 
 export const varsayilanIsleyiciler = [
@@ -51,6 +59,7 @@ export const varsayilanIsleyiciler = [
   http.get("/api/ogretmenler", () => HttpResponse.json([])),
   http.get("/api/siniflar", () => HttpResponse.json([])),
   http.get("/api/dersler", () => HttpResponse.json([])),
+  http.get("/api/ders-renkleri", () => HttpResponse.json(ORNEK_DERS_RENKLERI)),
   http.get("/api/ders-programi/atamalar", () => HttpResponse.json([])),
   http.get("/api/ders-programi/seviye-sablonlari", () => HttpResponse.json([])),
   http.get("/api/ders-programi/dagilim-ozeti", () =>

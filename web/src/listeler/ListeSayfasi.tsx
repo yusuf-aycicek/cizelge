@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
 import type { LucideIcon } from "lucide-react";
 import { Check, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
@@ -43,6 +44,10 @@ type Props<T extends { id: string }, G> = {
   alanlar: ListeAlani[];
   /** Form değerlerini (hep metin) API'nin beklediği gövdeye çevirir (ör. seviye → sayı). */
   girdi: (degerler: Degerler) => G;
+  /** Bir alanın tablodaki görünümü (düzenlenmiyorken), ör. ders adı yerine renkli çip. */
+  gorunum?: (alan: string, satir: T) => ReactNode | undefined;
+  /** İşlemler sütunundan önce eklenecek sütunlar, ör. dersin rengi. */
+  ekSutunlar?: Sutun<T>[];
 };
 
 const deger = (satir: object, ad: string) => String((satir as Record<string, unknown>)[ad] ?? "");
@@ -74,7 +79,18 @@ function denetle(alanlar: ListeAlani[], d: Degerler): AlanHatalari {
  * - satırda düzenleme (Enter kaydeder, Esc vazgeçer);
  * - onaylı silme; silinemezse (409) sunucunun kaydın nerede kullanıldığını söyleyen mesajı.
  */
-export function ListeSayfasi<T extends { id: string }, G>({ ikon, baslik, aciklama, tekil, bos, kaynak, alanlar, girdi }: Props<T, G>) {
+export function ListeSayfasi<T extends { id: string }, G>({
+  ikon,
+  baslik,
+  aciklama,
+  tekil,
+  bos,
+  kaynak,
+  alanlar,
+  girdi,
+  gorunum,
+  ekSutunlar = [],
+}: Props<T, G>) {
   const istemci = useQueryClient();
   const bildirim = useBildirim();
   const liste = useQuery({ queryKey: kaynak.anahtar, queryFn: kaynak.listele });
@@ -175,7 +191,7 @@ export function ListeSayfasi<T extends { id: string }, G>({ ikon, baslik, acikla
       baslik: a.etiket,
       hizala: a.tur === "sayi" ? "sag" : undefined,
       hucre: (satir) => {
-        if (duzenlenen?.id !== satir.id) return deger(satir, a.ad);
+        if (duzenlenen?.id !== satir.id) return gorunum?.(a.ad, satir) ?? deger(satir, a.ad);
         const hata = duzenHatalari[a.ad];
         return (
           <span className={stil.duzenAlani}>
@@ -194,6 +210,7 @@ export function ListeSayfasi<T extends { id: string }, G>({ ikon, baslik, acikla
         );
       },
     })),
+    ...ekSutunlar,
     {
       baslik: "İşlemler",
       baslikGizli: true,

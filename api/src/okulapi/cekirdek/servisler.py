@@ -19,6 +19,7 @@ from typing import Any, Generic, TypeVar
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from okulapi.cekirdek.ders_renkleri import RENK_KODLARI, siradaki_renk
 from okulapi.cekirdek.depo import DersDeposu, OgretmenDeposu, OkulaAitDepo, OkulDeposu, SinifDeposu
 from okulapi.cekirdek.kiraci import veritabaninda_okulu_ayarla
 from okulapi.cekirdek.modeller import Okul, OkulaAitMixin
@@ -152,6 +153,16 @@ class DersServisi(CrudServisi):
     depo_sinifi = DersDeposu
     varlik = "Ders"
     cakisma_mesaji = "Bu okulda bu adla bir ders zaten var"
+
+    def olustur(self, alanlar: dict[str, Any]):
+        """Renk verilmezse okulda en az kullanılan palet rengi atanır (ders_renkleri.py)."""
+        if not alanlar.get("renk"):
+            alanlar = {**alanlar, "renk": siradaki_renk(d.renk for d in self.depo.listele())}
+        return super().olustur(alanlar)
+
+    def _dogrula(self, alanlar: dict[str, Any], nesne=None) -> None:
+        if "renk" in alanlar and alanlar["renk"] not in RENK_KODLARI:
+            raise GecersizVeri("Ders rengi paletteki renklerden biri olmalı")
 
 
 class OkulServisi:

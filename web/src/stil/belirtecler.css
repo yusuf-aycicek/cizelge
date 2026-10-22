@@ -26,6 +26,7 @@
   --renk-menu-vurgu: #f3e6d6;     /* üzerine gelinen menü öğesi */
   --renk-menu-aktif-zemin: #c2410c;
   --renk-menu-aktif-metin: #ffffff;
+  --renk-cip-metin: #ffffff;      /* ders çipindeki yazı; API paleti bununla denetlenir (CIP_METNI) */
   --renk-menu-aktif-cizgi: transparent;
 
   /* --- renkler: anlam --- */

@@ -1,3 +1,4 @@
+import { DersCipi } from "../dersler/DersCipi";
 import { useState } from "react";
 import { Dugme } from "../bilesenler/Dugme";
 import { turkceKarsilastir, turkceSirala } from "../metin";
@@ -79,7 +80,8 @@ export function OgretmenGorunumu({ veri, git }: { veri: DagilimVerisi; git: Git 
                         return (
                           <li key={a.id}>
                             <span>
-                              {sinif} {veri.ders.get(a.ders_id)?.ad} · {a.haftalik_saat} saat
+                              {sinif} <DersCipi ad={veri.ders.get(a.ders_id)?.ad ?? ""} renk={veri.ders.get(a.ders_id)?.renk} /> ·{" "}
+                              {a.haftalik_saat} saat
                             </span>
                             <Dugme tur="metin" onClick={() => git({ gorunum: "sube", sinif: a.sinif_id })}>
                               {sinif} şubesine git

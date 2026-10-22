@@ -26,9 +26,9 @@ export const SINIFLAR: Sema["SinifYanit"][] = [
   { id: "s-9b", ad: "9-B", seviye: 9 },
 ];
 export const DERSLER: Sema["DersYanit"][] = [
-  { id: "d-mat", ad: "Matematik", kisa_ad: "MAT" },
-  { id: "d-fiz", ad: "Fizik", kisa_ad: "FİZ" },
-  { id: "d-kim", ad: "Kimya", kisa_ad: "KİM" },
+  { id: "d-mat", ad: "Matematik", kisa_ad: "MAT", renk: "#1d4ed8" },
+  { id: "d-fiz", ad: "Fizik", kisa_ad: "FİZ", renk: "#c2410c" },
+  { id: "d-kim", ad: "Kimya", kisa_ad: "KİM", renk: "#15803d" },
 ];
 
 /** 9-A Matematik (Şule, 6), 9-B ve 9-C Matematik (öğretmensiz, 6), 9-A Fizik (Zeynep, 2). */

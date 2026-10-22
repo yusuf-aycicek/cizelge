@@ -1,3 +1,4 @@
+import { DersCipi } from "../dersler/DersCipi";
 import { Plus, Trash2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
@@ -159,7 +160,7 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
               baslik: "Ders",
               hucre: (a) => (
                 <>
-                  {dersAdi(a)}
+                  <DersCipi ad={dersAdi(a)} renk={veri.ders.get(a.ders_id)?.renk} />
                   {!a.ogretmen_id && (
                     <span className={stil.eksikRozet}>
                       <span aria-hidden="true">⚠ </span>Öğretmen seçilmedi

@@ -49,6 +49,7 @@ package "modeller (tablolar)" {
   class Ders {
     +ad : str
     +kisa_ad : str
+    +renk : str
   }
   class Oturum {
     +kullanici_id : UUID

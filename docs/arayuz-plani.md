@@ -478,13 +478,32 @@ Parça 3'ün alt parçaları (kullanıcı isteği 2026-10-23: "yalnızca renk de
 |---|---|---|
 | 3a | A'yı belirtecler.css'e taşı; B temasını, Inter'i, `?tema` ve ara yapıyı kaldır | Bitti. Ayrıca kararsız testler: bekleme süreleri uzatıldı (`asyncUtilTimeout` 3 sn, `testTimeout` 15 sn) |
 | 3b | İkonlu sayfa başlık alanı; kartlarda üzerine gelince yükselme ve gölge | Bitti (`SayfaBasligi`; `<header>` değil `<div>`: test ikinci bir "banner" yakaladı) |
-| 3c | Ders renkleri: otomatik atanır, değiştirilebilir, API'de saklanır; çip biçiminde (liste, dağılım, şablon, ileride çizelge); metin kontrastı testle | **Sıradaki** |
-| 3d | Öğretmenler için baş harfli renkli rozetler (listeler, seçiciler) | |
+| 3c | Ders renkleri: otomatik atanır, değiştirilebilir, API'de saklanır; çip biçiminde (liste, dağılım, şablon, ileride çizelge); metin kontrastı testle | Bitti (aşağıda) |
+| 3d | Öğretmenler için baş harfli renkli rozetler (listeler, seçiciler) | **Sıradaki** |
 | 3e | Ana sayfa panosu: karşılama bandı, kurulum ilerleme halkası (kontrol listesiyle aynı veriden), sayı kartları | |
 | 3f | Boş durumlar için özgün SVG illüstrasyonlar (tema renkleriyle) | |
 | 3g | Masaüstü ve telefon ekran görüntüleri, taşma denetimi, bütün testler; özet ve 5.5'ten önce soru | |
 
 Hepsi tasarım belirteçleri üzerinden yapılır; animasyonlar hareketi azaltma ayarına uyar.
+
+3c notları (ders renkleri):
+- **API:**
+  - palet `cekirdek/ders_renkleri.py`'de tek yerde: 14 renk, her biri çipteki beyaz yazıyla en az
+    4.92:1;
+  - `ders.renk` sütunu (migration cekirdek_0005; var olan derslere okul başına ada göre sırayla,
+    CHECK `#rrggbb`);
+  - servis yeni derse okulda en az kullanılan rengi verir; paletin dışı 422;
+  - `GET /api/ders-renkleri` (oturum ister).
+- **Arayüz:**
+  - `DersCipi` (zemin `--ders-rengi`, yazı `--renk-cip-metin`) ders listesinde, ders dağılımında,
+    öğretmen görünümünde, şablonda ve şablon raporunda;
+  - `RenkSecici`: `<details>` ile açılan, radyo grubu olarak bir renk paleti; seçince hemen kaydeder.
+- Ortak liste bileşenine iki genişletme noktası: `gorunum` (alanın görünümü) ve `ekSutunlar`.
+- **Testler:**
+  - API'de palet kontrastı, biçim, sıralı atama, okullar arası bağımsızlık, değiştirme, reddetme,
+    oturum ve migration'ın doldurması (ayrı veritabanında);
+  - arayüzde çip, renk seçici, ve belirteçteki çip yazı renginin API'nin `CIP_METNI`'siyle aynı
+    olduğu.
 
 İstekler (parça 2, iki yönde de):
 - **Animasyonlar** (150-250 ms, abartısız):

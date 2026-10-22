@@ -246,6 +246,18 @@
               }
             ],
             "title": "Kisa Ad"
+          },
+          "renk": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Paletteki bir renk (#rrggbb)",
+            "title": "Renk"
           }
         },
         "title": "DersGuncelle",
@@ -264,12 +276,42 @@
             "maxLength": 20,
             "title": "Kisa Ad",
             "type": "string"
+          },
+          "renk": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Paletteki bir renk (#rrggbb)",
+            "title": "Renk"
           }
         },
         "required": [
           "ad"
         ],
         "title": "DersOlustur",
+        "type": "object"
+      },
+      "DersRengi": {
+        "properties": {
+          "ad": {
+            "title": "Ad",
+            "type": "string"
+          },
+          "renk": {
+            "title": "Renk",
+            "type": "string"
+          }
+        },
+        "required": [
+          "renk",
+          "ad"
+        ],
+        "title": "DersRengi",
         "type": "object"
       },
       "DersYanit": {
@@ -286,12 +328,17 @@
           "kisa_ad": {
             "title": "Kisa Ad",
             "type": "string"
+          },
+          "renk": {
+            "title": "Renk",
+            "type": "string"
           }
         },
         "required": [
           "id",
           "ad",
-          "kisa_ad"
+          "kisa_ad",
+          "renk"
         ],
         "title": "DersYanit",
         "type": "object"
@@ -2847,6 +2894,33 @@
         "summary": "Guncelle",
         "tags": [
           "seviye şablonu"
+        ]
+      }
+    },
+    "/api/ders-renkleri": {
+      "get": {
+        "description": "Ders renk paleti. Her renk çipteki beyaz yazıyla en az 4.5:1 kontrastlıdır.",
+        "operationId": "ders_renkleri_api_ders_renkleri_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DersRengi"
+                  },
+                  "title": "Response Ders Renkleri Api Ders Renkleri Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Ders Renkleri",
+        "tags": [
+          "okul",
+          "ders"
         ]
       }
     },

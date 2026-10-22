@@ -1,3 +1,4 @@
+import { DersCipi } from "../dersler/DersCipi";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
 import { Layers } from "lucide-react";
 import { Plus, RotateCcw, WandSparkles, X } from "lucide-react";
@@ -184,7 +185,10 @@ function SeviyeSablonu({ seviye, satirlar, dersler, subeler, haftalikKapasite }:
             satirlar={sirali}
             satirAnahtari={(s) => s.id}
             sutunlar={[
-              { baslik: "Ders", hucre: (s) => dersAdi(s.ders_id) },
+              {
+                baslik: "Ders",
+                hucre: (s) => <DersCipi ad={dersAdi(s.ders_id)} renk={dersler.find((d) => d.id === s.ders_id)?.renk} />,
+              },
               {
                 baslik: "Haftalık saat",
                 hucre: (s) => (
@@ -247,7 +251,7 @@ function SeviyeSablonu({ seviye, satirlar, dersler, subeler, haftalikKapasite }:
             </Dugme>
           </>
         )}
-        {rapor && <UygulamaRaporu rapor={rapor} subeler={subeler} onKapat={() => setRapor(null)} />}
+        {rapor && <UygulamaRaporu rapor={rapor} subeler={subeler} dersler={dersler} onKapat={() => setRapor(null)} />}
       </section>
     </>
   );
@@ -260,7 +264,17 @@ function SeviyeSablonu({ seviye, satirlar, dersler, subeler, haftalikKapasite }:
  * Rapor görününce odak başlığına taşınır: düğmeye basan klavye ve ekran okuyucu kullanıcısı sonucu
  * hemen duyar ve tablonun içinde gezinebilir.
  */
-function UygulamaRaporu({ rapor, subeler, onKapat }: { rapor: SablonRaporu; subeler: Sinif[]; onKapat: () => void }) {
+function UygulamaRaporu({
+  rapor,
+  subeler,
+  dersler,
+  onKapat,
+}: {
+  rapor: SablonRaporu;
+  subeler: Sinif[];
+  dersler: Ders[];
+  onKapat: () => void;
+}) {
   const bildirim = useBildirim();
   const atamalarDegisti = useAtamalarDegisti();
   const baslik = useRef<HTMLHeadingElement>(null);
@@ -314,7 +328,7 @@ function UygulamaRaporu({ rapor, subeler, onKapat }: { rapor: SablonRaporu; sube
             satirAnahtari={(f) => f.atama_id}
             sutunlar={[
               { baslik: "Şube", hucre: (f) => f.sinif },
-              { baslik: "Ders", hucre: (f) => f.ders },
+              { baslik: "Ders", hucre: (f) => <DersCipi ad={f.ders} renk={dersler.find((d) => d.ad === f.ders)?.renk} /> },
               { baslik: "Şubede", hucre: (f) => `${f.atamadaki_saat} saat` },
               { baslik: "Şablonda", hucre: (f) => `${f.sablondaki_saat} saat` },
               {

@@ -84,14 +84,23 @@ class SinifYanit(_Yanit):
 class DersOlustur(BaseModel):
     ad: str = Field(min_length=1, max_length=200)
     kisa_ad: str = Field(default="", max_length=20)
+    # Verilmezse okulda en az kullanılan palet rengi atanır. Palet: GET /api/ders-renkleri.
+    renk: str | None = Field(default=None, description="Paletteki bir renk (#rrggbb)")
 
 
 class DersGuncelle(BaseModel):
     ad: str | None = Field(default=None, min_length=1, max_length=200)
     kisa_ad: str | None = Field(default=None, max_length=20)
+    renk: str | None = Field(default=None, description="Paletteki bir renk (#rrggbb)")
 
 
 class DersYanit(_Yanit):
     id: uuid.UUID
     ad: str
     kisa_ad: str
+    renk: str
+
+
+class DersRengi(BaseModel):
+    renk: str
+    ad: str

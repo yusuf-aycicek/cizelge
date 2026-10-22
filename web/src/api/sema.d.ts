@@ -377,6 +377,26 @@ export interface paths {
         patch: operations["guncelle_api_ders_programi_seviye_sablonlari__kayit_id__patch"];
         trace?: never;
     };
+    "/api/ders-renkleri": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ders Renkleri
+         * @description Ders renk paleti. Her renk çipteki beyaz yazıyla en az 4.5:1 kontrastlıdır.
+         */
+        get: operations["ders_renkleri_api_ders_renkleri_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/dersler": {
         parameters: {
             query?: never;
@@ -762,6 +782,11 @@ export interface components {
             ad?: string | null;
             /** Kisa Ad */
             kisa_ad?: string | null;
+            /**
+             * Renk
+             * @description Paletteki bir renk (#rrggbb)
+             */
+            renk?: string | null;
         };
         /** DersOlustur */
         DersOlustur: {
@@ -772,6 +797,18 @@ export interface components {
              * @default
              */
             kisa_ad: string;
+            /**
+             * Renk
+             * @description Paletteki bir renk (#rrggbb)
+             */
+            renk?: string | null;
+        };
+        /** DersRengi */
+        DersRengi: {
+            /** Ad */
+            ad: string;
+            /** Renk */
+            renk: string;
         };
         /** DersYanit */
         DersYanit: {
@@ -784,6 +821,8 @@ export interface components {
             id: string;
             /** Kisa Ad */
             kisa_ad: string;
+            /** Renk */
+            renk: string;
         };
         /** FarkliSaat */
         FarkliSaat: {
@@ -2251,6 +2290,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ders_renkleri_api_ders_renkleri_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DersRengi"][];
                 };
             };
         };

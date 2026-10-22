@@ -1,5 +1,10 @@
 /** Öğretmen, sınıf ve ders sayfaları: ortak liste bileşeninin üç kullanımı. */
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { BookOpen, GraduationCap, School } from "lucide-react";
+import { hataMetni } from "../api/hata";
+import { useBildirim } from "../bilesenler/Bildirim";
+import { DersCipi } from "../dersler/DersCipi";
+import { RenkSecici } from "../dersler/RenkSecici";
 import { dersKaynagi, ogretmenKaynagi, sinifKaynagi, type Ders, type Ogretmen, type Sinif } from "./kaynaklar";
 import { ListeSayfasi, type ListeAlani } from "./ListeSayfasi";
 
@@ -56,11 +61,38 @@ export function SiniflarSayfasi() {
 }
 
 export function DerslerSayfasi() {
+  const istemci = useQueryClient();
+  const bildirim = useBildirim();
+  // Renk seçilince hemen kaydedilir. Ders listesi tazelenir; aynı önbelleği okuyan ders dağılımı ve
+  // şablon da yeni rengi gösterir.
+  const renkDegistir = useMutation({
+    mutationFn: (d: { ders: Ders; renk: string }) => dersKaynagi.guncelle(d.ders.id, { renk: d.renk }),
+    onSuccess: async (ders) => {
+      await istemci.invalidateQueries({ queryKey: dersKaynagi.anahtar });
+      bildirim("basari", `${ders.ad} dersinin rengi değiştirildi.`);
+    },
+    onError: (hata) => bildirim("hata", hataMetni(hata)),
+  });
+
   return (
     <ListeSayfasi<Ders, { ad: string; kisa_ad: string }>
+      gorunum={(alan, ders) => (alan === "ad" ? <DersCipi ad={ders.ad} renk={ders.renk} /> : undefined)}
+      ekSutunlar={[
+        {
+          baslik: "Renk",
+          hucre: (ders) => (
+            <RenkSecici
+              etiket={`${ders.ad} dersinin rengi`}
+              deger={ders.renk}
+              disabled={renkDegistir.isPending}
+              onDegis={(renk) => renkDegistir.mutate({ ders, renk })}
+            />
+          ),
+        },
+      ]}
       ikon={BookOpen}
       baslik="Dersler"
-      aciklama="Okulunuzda okutulan dersler. Kısa ad, haftalık çizelgede derse yer açmak için kullanılır."
+      aciklama="Okulunuzda okutulan dersler. Her derse otomatik bir renk verilir; dersin her ekranda aynı renkte görünür, isterseniz değiştirebilirsiniz."
       tekil="Ders"
       bos={{
         baslik: "Henüz ders eklenmedi",

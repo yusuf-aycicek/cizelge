@@ -16,6 +16,7 @@ from pydantic import BaseModel
 
 from okulapi.cekirdek import semalar
 from okulapi.cekirdek.bagimliliklar import AktifOkulId, OkulOturumu
+from okulapi.cekirdek.ders_renkleri import DERS_RENKLERI
 from okulapi.cekirdek.servisler import CrudServisi, DersServisi, OgretmenServisi, OkulServisi, SinifServisi
 
 
@@ -56,6 +57,12 @@ def crud_router(
 
 
 okul_router = APIRouter(tags=["okul"])
+
+
+@okul_router.get("/ders-renkleri", response_model=list[semalar.DersRengi], tags=["ders"])
+def ders_renkleri(_okul_id: AktifOkulId) -> Any:
+    """Ders renk paleti. Her renk çipteki beyaz yazıyla en az 4.5:1 kontrastlıdır."""
+    return [{"renk": r, "ad": ad} for r, ad in DERS_RENKLERI]
 
 
 @okul_router.get("/okul", response_model=semalar.OkulYanit)

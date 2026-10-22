@@ -27,6 +27,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
+from okulapi.cekirdek.ders_renkleri import DERS_RENKLERI
 from okulapi.cekirdek.veritabani import Base
 
 
@@ -117,10 +118,16 @@ class Sinif(OkulaAitMixin, Base):
 
 class Ders(OkulaAitMixin, Base):
     __tablename__ = "ders"
-    _tablo_kisitlari = (UniqueConstraint("okul_id", "ad"),)
+    _tablo_kisitlari = (
+        UniqueConstraint("okul_id", "ad"),
+        CheckConstraint("renk ~ '^#[0-9a-f]{6}$'", name="renk_bicimi"),
+    )
 
     ad: Mapped[str] = mapped_column(String(200))
     kisa_ad: Mapped[str] = mapped_column(String(20), default="", server_default="")
+    # Çipin rengi, #rrggbb. Yalnızca paletten (cekirdek/ders_renkleri.py); servis okulda en az
+    # kullanılanı atar ve denetler. Varsayılan, servisi atlayan ORM yolları (ör. testler) içindir.
+    renk: Mapped[str] = mapped_column(String(7), default=DERS_RENKLERI[0][0])
 
 
 class Oturum(OkulaAitMixin, Base):
