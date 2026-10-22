@@ -5,6 +5,39 @@
   font-size: var(--yazi-buyuk);
 }
 
+/* Ana sayfanın karşılama bandı: temanın vurgu renginden türeyen yumuşak bir zemin. */
+.karsilama {
+  display: flex;
+  gap: var(--bosluk-5);
+  align-items: flex-start;
+  padding: var(--bosluk-6);
+  margin-bottom: var(--bosluk-5);
+  border-radius: var(--kose-buyuk);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--renk-birincil) 14%, var(--renk-zemin)), var(--renk-zemin));
+  border: 1px solid var(--renk-kenar);
+  box-shadow: var(--golge-kart);
+}
+.karsilama h1 {
+  margin-bottom: var(--bosluk-1);
+}
+.karsilama .giris {
+  margin: var(--bosluk-3) 0 0;
+}
+.karsilamaIkonu {
+  flex-shrink: 0;
+  width: 3.5rem;
+  height: 3.5rem;
+  padding: 0.8rem;
+  border-radius: var(--kose-buyuk);
+  background: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+}
+.kim {
+  margin: 0;
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-metin-ikincil);
+}
+
 .kart {
   background: var(--renk-zemin);
   border: 1px solid var(--renk-kenar);

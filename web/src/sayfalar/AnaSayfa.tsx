@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import { CalendarDays } from "lucide-react";
 import { cagir, hataMetni } from "../api/hata";
 import { api } from "../api/istemci";
 import { Dugme } from "../bilesenler/Dugme";
+import { useBen } from "../kimlik/oturum";
 import stil from "./Sayfa.module.css";
 
 /**
@@ -17,13 +19,25 @@ export function AnaSayfa() {
     queryFn: () => cagir(api.GET("/api/saglik")),
   });
 
+  const ben = useBen().data;
+
   return (
     <>
-      <h1>Hoş geldiniz</h1>
-      <p className={stil.giris}>
-        Bu sistem okulunuz için öğretmen ve sınıf çakışması olmayan haftalık ders programı hazırlar.
-        Önce okulunuzun bilgilerini girin, sonra programı üretin.
-      </p>
+      <section className={stil.karsilama} aria-labelledby="karsilama-baslik">
+        <CalendarDays aria-hidden="true" className={stil.karsilamaIkonu} />
+        <div>
+          <h1 id="karsilama-baslik">Hoş geldiniz</h1>
+          {ben && (
+            <p className={stil.kim}>
+              {ben.kullanici.ad} · {ben.okul.ad}
+            </p>
+          )}
+          <p className={stil.giris}>
+            Bu sistem okulunuz için öğretmen ve sınıf çakışması olmayan haftalık ders programı hazırlar.
+            Önce okulunuzun bilgilerini girin, sonra programı üretin.
+          </p>
+        </div>
+      </section>
 
       <section aria-labelledby="sistem-durumu" className={stil.kart}>
         <h2 id="sistem-durumu">Sistem durumu</h2>

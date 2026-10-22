@@ -468,7 +468,7 @@ Yarıda kalırsa sonraki oturum buradan devam eder.
 | # | Parça | Durum |
 |---|---|---|
 | 0 | Örnek okul komutu (`python -m okulapi ornek-okul --evet`, README) | Bitti |
-| 1 | İki tasarım yönü, beşer masaüstü ekran görüntüsü (giriş, ana sayfa, öğretmenler, okul ayarları, ders dağılımı); **kullanıcının seçimi beklenir** | **Sıradaki**: ekran görüntüleri |
+| 1 | İki tasarım yönü, beşer masaüstü ekran görüntüsü (giriş, ana sayfa, öğretmenler, okul ayarları, ders dağılımı); **kullanıcının seçimi beklenir** | Görüntüler alındı (`docs/ekranlar/tasarim/`); **kullanıcının seçimi bekleniyor** |
 | 2 | (1 ile birlikte, iki yönde ortak) animasyonlar, ikonlar, kartlar, yazı tipi | Bitti (2a, 2b) |
 | 3 | Seçilen yönün bütün ekranlara uygulanması; masaüstü ve telefon görüntüleri, taşma denetimi; 5.5'ten önce kullanıcıya sorulur | |
 
@@ -511,6 +511,20 @@ Parça 2b (bitti):
 - düğmelerde ikonlar (`ikon` prop'u);
 - kartlar daha belirgin;
 - giriş ve kayıt sayfaları: temanın renginden türeyen zemin, ürün işareti, kart girişi.
+
+Parça 1 notları:
+- Görüntüler: `node scripts/ekran-goruntusu.mjs tasarim`. Örnek okulla alınır; iki tema, beşer
+  ekran.
+- Görüntüler sırasında yapılan düzeltmeler:
+  - ana sayfaya karşılama bandı eklendi;
+  - ders dağılımı tablosu sıkılaştırıldı (Inter'de "Kaldır" kesiliyordu).
+- Taşma denetimi tema seçebiliyor (`TEMA=sicak`); iki temada da temiz.
+- **Seçimden sonra (parça 3):**
+  - seçilen bloğu `belirtecler.css`'e taşı;
+  - `temalar.css`'i, main.tsx'teki tema seçimini ve kullanılmayan yazı tipi paketini kaldır;
+  - kontrast testini tek dosyaya döndür;
+  - bütün ekranların masaüstü ve telefon görüntülerini al, taşma denetimini çalıştır;
+  - 5.5'ten önce kullanıcıya sor.
 
 Parça 0 notları: `api/src/okulapi/ornek_okul.py`.
 - Bütün okulları `TRUNCATE okul, giris_denemesi CASCADE` ile siler; `--evet` olmadan hiçbir şey

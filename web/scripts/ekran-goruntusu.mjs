@@ -286,6 +286,35 @@ AKISLAR["5.4"] = async (tarayici, kaydet) => {
   await baglam.close();
 };
 
+// Tasarım yönleri: örnek okulla (python -m okulapi ornek-okul) iki temanın aynı beş ekranı.
+// Önce: cd api && OKULAPI_ORTAM=gelistirme .venv/Scripts/python -m okulapi ornek-okul --evet
+AKISLAR["tasarim"] = async (tarayici, kaydet) => {
+  for (const tema of ["sicak", "kurumsal"]) {
+    const baglam = await tarayici.newContext({ viewport: MASAUSTU, locale: "tr-TR" });
+    await baglam.addInitScript((t) => localStorage.setItem("tema", t), tema);
+    const s = await baglam.newPage();
+    await s.goto(ADRES + "/giris");
+    await s.getByRole("heading", { name: "Giriş yap" }).waitFor();
+    await kaydet(s, `${tema}-1-giris.png`);
+    await s.getByLabel("E-posta").fill("mudur@ornek.test");
+    await s.getByLabel("Parola").fill("ornek-okul-parolasi");
+    await s.getByRole("button", { name: "Giriş yap" }).click();
+    await s.getByText("✓ Çalışıyor").waitFor();
+    await kaydet(s, `${tema}-2-ana-sayfa.png`);
+    await s.goto(ADRES + "/ogretmenler");
+    await s.getByRole("table", { name: "Öğretmenler" }).waitFor();
+    await kaydet(s, `${tema}-3-ogretmenler.png`);
+    await s.goto(ADRES + "/okul");
+    await s.getByRole("heading", { name: "Kurallar", exact: true }).waitFor();
+    await kaydet(s, `${tema}-4-okul-ayarlari.png`);
+    await s.goto(ADRES + "/ders-dagilimi");
+    await s.getByRole("tab", { name: "Şubelere göre" }).waitFor();
+    await s.getByRole("table").first().waitFor();
+    await kaydet(s, `${tema}-5-ders-dagilimi.png`);
+    await baglam.close();
+  }
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {

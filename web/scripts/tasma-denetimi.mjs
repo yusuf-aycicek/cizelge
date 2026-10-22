@@ -18,6 +18,8 @@ const tarayici = await chromium.launch({ channel: "msedge" });
 let tasan = 0;
 try {
   const baglam = await tarayici.newContext({ locale: "tr-TR" });
+  // Tasarım önizlemesi süresince tema seçilebilir: TEMA=sicak node scripts/tasma-denetimi.mjs
+  if (process.env.TEMA) await baglam.addInitScript((t) => localStorage.setItem("tema", t), process.env.TEMA);
   const istek = async (yontem, yol, data) => {
     const y = await baglam.request.fetch(ADRES + yol, { method: yontem, headers: { Origin: ADRES }, data });
     if (!y.ok()) throw new Error(`${yontem} ${yol}: ${y.status()} ${await y.text()}`);
