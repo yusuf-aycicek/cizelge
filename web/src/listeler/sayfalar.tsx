@@ -35,6 +35,7 @@ export function OgretmenlerSayfasi() {
         baslik: "Henüz öğretmen eklenmedi",
         aciklama: "Ders dağılımı yapabilmek için önce öğretmenlerinizi ekleyin. Aşağıdaki formla ardı ardına hızlıca girebilirsiniz.",
         dugme: "İlk öğretmeni ekle",
+        cizim: "ogretmen",
       }}
       kaynak={ogretmenKaynagi}
       alanlar={OGRETMEN_ALANLARI}
@@ -54,6 +55,7 @@ export function SiniflarSayfasi() {
         baslik: "Henüz sınıf eklenmedi",
         aciklama: "Şubelerinizi (9-A, 9-B, 10-A...) ve seviyelerini ekleyin.",
         dugme: "İlk sınıfı ekle",
+        cizim: "sinif",
       }}
       kaynak={sinifKaynagi}
       alanlar={SINIF_ALANLARI}
@@ -100,6 +102,7 @@ export function DerslerSayfasi() {
         baslik: "Henüz ders eklenmedi",
         aciklama: "Okutulan dersleri ve kısa adlarını (MAT, TDE, FİZ...) ekleyin.",
         dugme: "İlk dersi ekle",
+        cizim: "ders",
       }}
       kaynak={dersKaynagi}
       alanlar={DERS_ALANLARI}

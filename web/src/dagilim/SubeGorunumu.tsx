@@ -1,3 +1,4 @@
+import { Illustrasyon } from "../bilesenler/Illustrasyon";
 import { DersCipi } from "../dersler/DersCipi";
 import { Plus, Trash2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
@@ -139,6 +140,7 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
 
       {atamalar.length === 0 ? (
         <div className={stil.bosDurum}>
+          <Illustrasyon tur="ders" />
           <p>
             <strong>{sinif.ad} şubesine henüz ders eklenmedi.</strong>
           </p>

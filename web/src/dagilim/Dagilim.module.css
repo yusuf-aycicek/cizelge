@@ -20,6 +20,14 @@
 .bosDurum p {
   color: var(--renk-metin-ikincil);
   max-width: 40rem;
+  margin-inline: auto;
+}
+.bosDurum {
+  text-align: center;
+}
+.bosDurum .eksikListesi {
+  display: inline-block;
+  text-align: left;
 }
 
 .eksikListesi {

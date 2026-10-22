@@ -1,3 +1,4 @@
+import { Illustrasyon } from "../bilesenler/Illustrasyon";
 import { DersCipi } from "../dersler/DersCipi";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
 import { Layers } from "lucide-react";
@@ -49,6 +50,7 @@ export function SeviyeSablonuSayfasi() {
   } else if (siniflar.data.length === 0 || dersler.data.length === 0) {
     icerik = (
       <section aria-labelledby="sablon-on-kosul" className={stil.bosDurum}>
+        <Illustrasyon tur="ders" />
         <h2 id="sablon-on-kosul">Önce sınıfları ve dersleri ekleyin</h2>
         <p>Şablon, bir seviyedeki şubelere hangi dersin haftada kaç saat verileceğini söyler.</p>
         <ul className={stil.eksikListesi}>

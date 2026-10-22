@@ -1,3 +1,4 @@
+import { Illustrasyon, type IllustrasyonTuru } from "../bilesenler/Illustrasyon";
 import type { ReactNode } from "react";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
 import type { LucideIcon } from "lucide-react";
@@ -39,7 +40,7 @@ type Props<T extends { id: string }, G> = {
   aciklama: string;
   /** Mesajlarda: "Öğretmen" → "Yeni öğretmen", "12 öğretmen". */
   tekil: string;
-  bos: { baslik: string; aciklama: string; dugme: string };
+  bos: { baslik: string; aciklama: string; dugme: string; cizim: IllustrasyonTuru };
   kaynak: Kaynak<T, G>;
   alanlar: ListeAlani[];
   /** Form değerlerini (hep metin) API'nin beklediği gövdeye çevirir (ör. seviye → sayı). */
@@ -259,6 +260,7 @@ export function ListeSayfasi<T extends { id: string }, G>({
 
       {liste.isSuccess && liste.data.length === 0 && (
         <section className={stil.bosDurum} aria-labelledby="bos-baslik">
+          <Illustrasyon tur={bos.cizim} />
           <h2 id="bos-baslik">{bos.baslik}</h2>
           <p>{bos.aciklama}</p>
           <Dugme ikon={<Plus />} onClick={ilkAlanaOdaklan}>{bos.dugme}</Dugme>

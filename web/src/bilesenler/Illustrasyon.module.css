@@ -1,0 +1,60 @@
+.cizim {
+  display: block;
+  width: min(14rem, 70%);
+  height: auto;
+  margin: 0 auto var(--bosluk-4);
+  animation: cizimGir var(--sure-uzun) var(--egri);
+}
+@keyframes cizimGir {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.98);
+  }
+}
+
+/* Renkler yalnızca belirteçlerden. */
+.zemin {
+  fill: color-mix(in srgb, var(--renk-birincil) 12%, var(--renk-sayfa));
+}
+.zeminKoyu {
+  fill: color-mix(in srgb, var(--renk-birincil) 22%, var(--renk-zemin));
+}
+.vurgu {
+  fill: var(--renk-birincil);
+}
+.koyu {
+  fill: var(--renk-birincil-koyu);
+}
+.ikincil {
+  fill: color-mix(in srgb, var(--renk-birincil) 40%, var(--renk-zemin));
+}
+.acik {
+  fill: var(--renk-zemin);
+  stroke: var(--renk-kenar);
+  stroke-width: 2;
+}
+.acikDolgu {
+  fill: var(--renk-zemin);
+}
+.hucre {
+  fill: var(--renk-yuzey-vurgu);
+}
+.cizgi {
+  fill: none;
+  stroke: var(--renk-kenar-alan);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.satir {
+  fill: none;
+  stroke: var(--renk-kenar);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.tebesir {
+  fill: none;
+  stroke: var(--renk-zemin);
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0.85;
+}

@@ -1,3 +1,4 @@
+import { Illustrasyon } from "../bilesenler/Illustrasyon";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
 import { ClipboardList } from "lucide-react";
 import { ArrowRight, RotateCcw } from "lucide-react";
@@ -141,6 +142,7 @@ function OnKosullar({ ogretmen, sinif, ders }: { ogretmen: number; sinif: number
   ].filter((e): e is { yol: string; metin: string } => Boolean(e));
   return (
     <section aria-labelledby="dagilim-on-kosul" className={stil.bosDurum}>
+      <Illustrasyon tur="takvim" />
       <h2 id="dagilim-on-kosul">Ders dağılımı için önce listeleri doldurun</h2>
       <p>Ders dağılımı şubeleri, dersleri ve öğretmenleri birbirine bağlar. Eksik olanlar:</p>
       <ul className={stil.eksikListesi}>
