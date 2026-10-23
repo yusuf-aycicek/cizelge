@@ -31,6 +31,7 @@ from okulapi.cekirdek.servisler import (
     HizmetKullanilamiyor,
     KayitBulunamadi,
     KayitCakismasi,
+    hafta_metni,
 )
 from okulapi.moduller.ders_programi.cozucu_donusturucu import cozum_girdisi_olustur
 from okulapi.moduller.ders_programi.depo import (
@@ -158,10 +159,9 @@ class MusaitlikServisi(CrudServisi):
         okul = OkulDeposu(self.oturum).getir(oturumun_okulu(self.oturum))
         gun = alanlar.get("gun", nesne.gun if nesne else 0)
         saat = alanlar.get("saat", nesne.saat if nesne else 0)
-        if gun >= okul.gun_sayisi or saat >= okul.gunluk_ders_saati:
+        if not okul.aralikta(gun, saat):
             raise GecersizVeri(
-                f"Gün/saat okulun ayarlarının dışında (okulda {okul.gun_sayisi} gün, günde "
-                f"{okul.gunluk_ders_saati} saat var; gün ve saat 0'dan başlar)"
+                f"Gün/saat okulun ayarlarının dışında (okulda {hafta_metni(okul)} var; gün ve saat 0'dan başlar)"
             )
 
 
@@ -323,10 +323,10 @@ class MusaitlikCizelgesiServisi:
         gorulen: set[tuple[int, int]] = set()
         for d in degisiklikler:  # önce hepsi denetlenir: biri hatalıysa hiçbiri yazılmaz
             hucre = (d["gun"], d["saat"])
-            if d["gun"] >= okul.gun_sayisi or d["saat"] >= okul.gunluk_ders_saati:
+            if not okul.aralikta(d["gun"], d["saat"]):
                 raise GecersizVeri(
                     f"Gün/saat okulun ayarlarının dışında: {d['gun'] + 1}. gün {d['saat'] + 1}. saat (okulda "
-                    f"{okul.gun_sayisi} gün, günde {okul.gunluk_ders_saati} saat var). Hiçbir hücre değiştirilmedi."
+                    f"{hafta_metni(okul)} var). Hiçbir hücre değiştirilmedi."
                 )
             if hucre in gorulen:
                 raise GecersizVeri(f"Aynı hücre iki kez verildi: {d['gun'] + 1}. gün {d['saat'] + 1}. saat")

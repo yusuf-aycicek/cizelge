@@ -8,8 +8,10 @@ aynıdır; API daha erken ve daha anlaşılır hata verir (422), veritabanı yin
 from __future__ import annotations
 
 import uuid
+from datetime import time
+from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 
 class _Yanit(BaseModel):
@@ -22,10 +24,24 @@ class OkulOlustur(BaseModel):
     gunluk_ders_saati: int = Field(default=8, ge=1, le=16)
 
 
+# Bir günün ders saati sayısı (günlük ders saatiyle aynı sınırlar).
+GunSaati = Annotated[int, Field(ge=1, le=16)]
+
+
 class OkulGuncelle(BaseModel):
+    """Kısmi güncelleme: gönderilmeyen alan değişmez; `null` gönderilen alan boşaltılır."""
+
     ad: str | None = Field(default=None, min_length=1, max_length=200)
     gun_sayisi: int | None = Field(default=None, ge=1, le=7)
     gunluk_ders_saati: int | None = Field(default=None, ge=1, le=16)
+    # Günlere göre ders saati (her gün için bir sayı); null = her gün `gunluk_ders_saati`.
+    gun_saatleri: list[GunSaati] | None = Field(default=None, min_length=1, max_length=7)
+    ogle_arasi_sonra: int | None = Field(default=None, ge=1, le=15)  # null = öğle arası yok
+    # Zil saatleri (yalnızca gösterim); başlangıç null = tanımsız.
+    ilk_ders_baslangic: time | None = None
+    ders_suresi_dk: int = Field(default=40, ge=10, le=120)
+    teneffus_dk: int = Field(default=10, ge=0, le=60)
+    ogle_arasi_dk: int = Field(default=40, ge=0, le=180)
     # Gün/saat azaltılınca mevcut kayıtlar etkilenebilir; etkiler bu alanla açıkça onaylanmadıkça
     # değişiklik yapılmaz (409, etkiler listesiyle). Önizleme: POST /api/okul/ayar-etkisi.
     etkileri_onayla: bool = False
@@ -34,6 +50,8 @@ class OkulGuncelle(BaseModel):
 class AyarEtkisiIstegi(BaseModel):
     gun_sayisi: int | None = Field(default=None, ge=1, le=7)
     gunluk_ders_saati: int | None = Field(default=None, ge=1, le=16)
+    gun_saatleri: list[GunSaati] | None = Field(default=None, min_length=1, max_length=7)
+    ogle_arasi_sonra: int | None = Field(default=None, ge=1, le=15)
 
 
 class AyarEtkisiYanit(BaseModel):
@@ -46,7 +64,14 @@ class OkulYanit(_Yanit):
     id: uuid.UUID
     ad: str
     gun_sayisi: int
-    gunluk_ders_saati: int
+    gunluk_ders_saati: int  # en uzun gün
+    # Her gün için ders saati sayısı; günler aynıysa da tam liste (ORM'deki `gunluk_saatler`).
+    gun_saatleri: list[int] = Field(validation_alias=AliasChoices("gunluk_saatler", "gun_saatleri"))
+    ogle_arasi_sonra: int | None
+    ilk_ders_baslangic: time | None
+    ders_suresi_dk: int
+    teneffus_dk: int
+    ogle_arasi_dk: int
 
 
 class OgretmenOlustur(BaseModel):

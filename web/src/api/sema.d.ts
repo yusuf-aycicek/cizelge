@@ -760,10 +760,14 @@ export interface components {
     schemas: {
         /** AyarEtkisiIstegi */
         AyarEtkisiIstegi: {
+            /** Gun Saatleri */
+            gun_saatleri?: number[] | null;
             /** Gun Sayisi */
             gun_sayisi?: number | null;
             /** Gunluk Ders Saati */
             gunluk_ders_saati?: number | null;
+            /** Ogle Arasi Sonra */
+            ogle_arasi_sonra?: number | null;
         };
         /**
          * AyarEtkisiYanit
@@ -1247,19 +1251,43 @@ export interface components {
              */
             ogretmen_id: string;
         };
-        /** OkulGuncelle */
+        /**
+         * OkulGuncelle
+         * @description Kısmi güncelleme: gönderilmeyen alan değişmez; `null` gönderilen alan boşaltılır.
+         */
         OkulGuncelle: {
             /** Ad */
             ad?: string | null;
+            /**
+             * Ders Suresi Dk
+             * @default 40
+             */
+            ders_suresi_dk: number;
             /**
              * Etkileri Onayla
              * @default false
              */
             etkileri_onayla: boolean;
+            /** Gun Saatleri */
+            gun_saatleri?: number[] | null;
             /** Gun Sayisi */
             gun_sayisi?: number | null;
             /** Gunluk Ders Saati */
             gunluk_ders_saati?: number | null;
+            /** Ilk Ders Baslangic */
+            ilk_ders_baslangic?: string | null;
+            /**
+             * Ogle Arasi Dk
+             * @default 40
+             */
+            ogle_arasi_dk: number;
+            /** Ogle Arasi Sonra */
+            ogle_arasi_sonra?: number | null;
+            /**
+             * Teneffus Dk
+             * @default 10
+             */
+            teneffus_dk: number;
         };
         /** OkulOlustur */
         OkulOlustur: {
@@ -1280,6 +1308,10 @@ export interface components {
         OkulYanit: {
             /** Ad */
             ad: string;
+            /** Ders Suresi Dk */
+            ders_suresi_dk: number;
+            /** Gun Saatleri */
+            gun_saatleri: number[];
             /** Gun Sayisi */
             gun_sayisi: number;
             /** Gunluk Ders Saati */
@@ -1289,6 +1321,14 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Ilk Ders Baslangic */
+            ilk_ders_baslangic: string | null;
+            /** Ogle Arasi Dk */
+            ogle_arasi_dk: number;
+            /** Ogle Arasi Sonra */
+            ogle_arasi_sonra: number | null;
+            /** Teneffus Dk */
+            teneffus_dk: number;
         };
         /** OnKontrolYanit */
         OnKontrolYanit: {

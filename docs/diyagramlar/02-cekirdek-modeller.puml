@@ -26,6 +26,14 @@ package "modeller (tablolar)" {
     +ad : str
     +gun_sayisi : int
     +gunluk_ders_saati : int
+    +gun_saatleri : list[int] [0..1]
+    +ogle_arasi_sonra : int [0..1]
+    +ilk_ders_baslangic : time [0..1]
+    +ders_suresi_dk : int
+    +teneffus_dk : int
+    +ogle_arasi_dk : int
+    +gunluk_saatler() : list[int]
+    +aralikta(gun : int, saat : int) : bool
   }
   abstract class OkulaAitMixin <<mixin>> {
     +id : UUID

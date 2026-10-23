@@ -82,7 +82,7 @@ def okul_guncelle(veri: semalar.OkulGuncelle, okul_id: AktifOkulId, oturum: Okul
 @okul_router.post("/okul/ayar-etkisi", response_model=semalar.AyarEtkisiYanit)
 def okul_ayar_etkisi(veri: semalar.AyarEtkisiIstegi, okul_id: AktifOkulId, oturum: OkulOturumu, istek: Request) -> Any:
     """Önizleme: gün/saat bu değerlere getirilirse mevcut kayıtlara ne olur? Hiçbir şeyi değiştirmez."""
-    etkiler = OkulServisi(oturum).ayar_etkileri(okul_id, veri.gun_sayisi, veri.gunluk_ders_saati, istek.app.state.moduller)
+    etkiler = OkulServisi(oturum).ayar_etkileri(okul_id, veri.model_dump(exclude_unset=True), istek.app.state.moduller)
     return {"etkiler": etkiler}
 
 

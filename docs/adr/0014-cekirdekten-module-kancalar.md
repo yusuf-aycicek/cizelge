@@ -21,8 +21,11 @@ Durum: Kabul edildi (2026-10-16).
 listesini (uygulamanın durumunda) dolaşır ve kancası olana sorar. Modülü içe aktarmaz; bağımlılık
 yönü değişmez: modül → çekirdek. Kancası olmayan modül etkilenmez.
 
-- `okul_ayari_etkisi(oturum, gun_sayisi, gunluk_ders_saati, uygula) -> list[str]`: bu ayara
-  geçilirse modül verisine ne olur, kullanıcının diliyle. `uygula=True` ise yapar.
+- `okul_ayari_etkisi(oturum, gun_saatleri, uygula) -> list[str]`: bu ayara geçilirse modül
+  verisine ne olur, kullanıcının diliyle. `uygula=True` ise yapar. `gun_saatleri` her gün için
+  yeni ders saati sayısıdır (K3'te günlere göre ders saati gelince `gun_sayisi,
+  gunluk_ders_saati` çiftinin yerini aldı; uzunluğu gün sayısıdır). Bir günü kısaltmak da (ör.
+  cuma 8 → 5) aynı akıştan geçer.
 - `kullanim_aciklamasi(oturum, tablo, kayit_id) -> list[str]`: bu çekirdek kaydı modülde
   nerede kullanılıyor ve ne yapılmalı, kullanıcının diliyle.
 

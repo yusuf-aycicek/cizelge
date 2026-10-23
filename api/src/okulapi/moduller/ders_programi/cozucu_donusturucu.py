@@ -57,7 +57,8 @@ def cozum_girdisi_olustur(
         if temel_program_id else []
     )
     return cm.CozumGirdisi(
-        ayar=cm.OkulAyari(gun_sayisi=okul.gun_sayisi, gunluk_ders_saati=okul.gunluk_ders_saati),
+        ayar=cm.OkulAyari(gun_sayisi=okul.gun_sayisi, gunluk_ders_saati=okul.gunluk_ders_saati,
+                          gun_saatleri=tuple(okul.gun_saatleri or ()), ogle_arasi_sonra=okul.ogle_arasi_sonra),
         ogretmenler=[cm.Ogretmen(id=str(o.id), ad=o.ad, brans=o.brans) for o in OgretmenDeposu(oturum).listele()],
         siniflar=[cm.Sinif(id=str(s.id), ad=s.ad, seviye=s.seviye) for s in SinifDeposu(oturum).listele()],
         dersler=[cm.Ders(id=str(d.id), ad=d.ad, kisa_ad=d.kisa_ad) for d in DersDeposu(oturum).listele()],

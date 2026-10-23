@@ -67,7 +67,7 @@ package "servisler (iş kuralları, işlem sınırı)" {
     +olustur(alanlar : dict) : Okul
     +getir(okul_id : UUID) : Okul
     +guncelle(okul_id : UUID, degisiklikler : dict, moduller, etkileri_onayla : bool) : Okul
-    +ayar_etkileri(okul_id : UUID, gun_sayisi, gunluk_ders_saati, moduller, uygula : bool) : list[str]
+    +ayar_etkileri(okul_id : UUID, degisiklikler : dict, moduller, uygula : bool) : list[str]
   }
   class KayitBulunamadi <<istisna>>
   class KayitCakismasi <<istisna>>

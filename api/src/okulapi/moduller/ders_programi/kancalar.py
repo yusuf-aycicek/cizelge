@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 import uuid
 
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import and_, delete, func, or_, select
 from sqlalchemy.orm import Session
 
 from okulapi.cekirdek.modeller import Ders, Ogretmen, Sinif
@@ -34,8 +34,16 @@ def _liste(adlar: list[str]) -> str:
 
 # --- okul ayarı değişikliği ---------------------------------------------------------------------
 
-def okul_ayari_etkisi(oturum: Session, gun_sayisi: int, gunluk_ders_saati: int, uygula: bool) -> list[str]:
-    """Gün ya da günlük ders saati azalırsa:
+def _disarida(gun_sutunu, saat_sutunu, gun_saatleri: list[int]):
+    """Yeni haftada var olmayan hücreler: fazla günler ve her günün yeni uzunluğundan sonraki saatler."""
+    return or_(
+        gun_sutunu >= len(gun_saatleri),
+        *(and_(gun_sutunu == g, saat_sutunu >= s) for g, s in enumerate(gun_saatleri)),
+    )
+
+
+def okul_ayari_etkisi(oturum: Session, gun_saatleri: list[int], uygula: bool) -> list[str]:
+    """Gün sayısı ya da bir günün ders saati azalırsa (`gun_saatleri`: her gün için yeni sayı):
 
     - aralığın dışında kalan **müsaitlik kayıtları silinir** (artık var olmayan bir saat için
       "gelemez" anlamsızdır; bırakılsaydı sonraki program üretimi ön kontrolde hata verirdi);
@@ -43,7 +51,7 @@ def okul_ayari_etkisi(oturum: Session, gun_sayisi: int, gunluk_ders_saati: int, 
       programların aralık dışında ders saati içerdiği ve yeniden üretilmesi gerektiği söylenir.
     """
     etkiler: list[str] = []
-    disarida = or_(Musaitlik.gun >= gun_sayisi, Musaitlik.saat >= gunluk_ders_saati)
+    disarida = _disarida(Musaitlik.gun, Musaitlik.saat, gun_saatleri)
     musaitlikler = oturum.execute(
         select(Musaitlik.id, Ogretmen.ad, Musaitlik.gun, Musaitlik.saat)
         .join(Ogretmen, Ogretmen.id == Musaitlik.ogretmen_id)
@@ -55,12 +63,13 @@ def okul_ayari_etkisi(oturum: Session, gun_sayisi: int, gunluk_ders_saati: int, 
         ogretmenler = {m.ad for m in musaitlikler}
         etkiler.append(
             f"{len(musaitlikler)} müsaitlik kaydı yeni ayarların dışında kalıyor ve silinecek "
-            f"({len(ogretmenler)} öğretmen; ör. {ornek.ad}, {GUNLER[ornek.gun]} {ornek.saat + 1}. saat)."
+            f"({len(ogretmenler)} öğretmen: {_liste(list(ogretmenler))}; ör. {ornek.ad}, "
+            f"{GUNLER[ornek.gun]} {ornek.saat + 1}. saat)."
         )
         if uygula:
             oturum.execute(delete(Musaitlik).where(Musaitlik.id.in_([m.id for m in musaitlikler])))
 
-    hucre_disarida = or_(Yerlesim.gun >= gun_sayisi, Yerlesim.saat >= gunluk_ders_saati)
+    hucre_disarida = _disarida(Yerlesim.gun, Yerlesim.saat, gun_saatleri)
     programlar = oturum.execute(
         select(Program.ad, func.count(Yerlesim.id))
         .join(Yerlesim, Yerlesim.program_id == Program.id)

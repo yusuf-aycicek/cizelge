@@ -80,7 +80,8 @@ def test_onizleme_etkileri_kullanicinin_diliyle_soyler_ve_hicbir_seyi_degistirme
     yanit = istemci.post("/api/okul/ayar-etkisi", json={"gun_sayisi": 4, "gunluk_ders_saati": 7}, headers=okul["b"])
 
     assert yanit.json()["etkiler"] == [
-        "2 müsaitlik kaydı yeni ayarların dışında kalıyor ve silinecek (2 öğretmen; ör. Ayşe Yılmaz, Cuma 1. saat).",
+        "2 müsaitlik kaydı yeni ayarların dışında kalıyor ve silinecek (2 öğretmen: Ayşe Yılmaz, Zeynep Demir; ör. Ayşe Yılmaz, "
+        "Cuma 1. saat).",
         "1 programda (Güz dönemi) yeni ayarların dışında kalan 1 ders saati var. Programlar silinmez, eski "
         "ayarlarla üretilmiş olarak kalır; yeni ayarlarla programı yeniden üretmeniz gerekir.",
     ]

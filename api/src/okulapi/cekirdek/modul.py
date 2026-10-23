@@ -6,8 +6,9 @@ modülden çekirdeğe doğrudur. Bir modül, `okulapi.moduller.<ad>` paketinde `
 
 Kancalar (ADR 0014): çekirdeğin bir işi modül verisini etkilediğinde çekirdek modülü bilmeden ona
 sorar. Modül, sözleşmeye isteğe bağlı fonksiyonlar koyarak kendini bildirir:
-- `okul_ayari_etkisi(oturum, gun_sayisi, gunluk_ders_saati, uygula)`: okulun gün/saat ayarı
-  değişirse modül verisine ne olacağını kullanıcının diliyle döner; `uygula=True` ise yapar.
+- `okul_ayari_etkisi(oturum, gun_saatleri, uygula)`: okulun haftası değişirse (gün sayısı ya da
+  günlere göre ders saati; `gun_saatleri` her gün için yeni ders saati sayısıdır) modül verisine ne
+  olacağını kullanıcının diliyle döner; `uygula=True` ise yapar.
 - `kullanim_aciklamasi(oturum, tablo, kayit_id)`: çekirdekteki bir kayıt (öğretmen, sınıf,
   ders) silinemediğinde modülde nerede kullanıldığını kullanıcının diliyle döner.
 """
@@ -24,7 +25,7 @@ from types import ModuleType
 from fastapi import APIRouter
 from sqlalchemy.orm import Session
 
-OkulAyariEtkisi = Callable[[Session, int, int, bool], list[str]]
+OkulAyariEtkisi = Callable[[Session, list[int], bool], list[str]]
 KullanimAciklamasi = Callable[[Session, str, uuid.UUID], list[str]]
 
 

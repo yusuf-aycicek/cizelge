@@ -112,7 +112,7 @@ package "kurallar (önem seviyeleri tek yerde)" {
 ' @kod okulapi.moduller.ders_programi.kancalar
 package "kancalar (çekirdeğe, ADR 0014)" {
   class kancalar <<modül>> {
-    {static} +okul_ayari_etkisi(oturum, gun_sayisi, gunluk_ders_saati, uygula) : list[str]
+    {static} +okul_ayari_etkisi(oturum, gun_saatleri, uygula) : list[str]
     {static} +kullanim_aciklamasi(oturum, tablo, kayit_id) : list[str]
   }
 }

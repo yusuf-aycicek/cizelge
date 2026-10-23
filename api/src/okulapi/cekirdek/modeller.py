@@ -11,7 +11,7 @@ Okula ait her model `OkulaAitMixin`'den türer. Bu mixin şunları sağlar:
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 
 from sqlalchemy import (
     CheckConstraint,
@@ -19,12 +19,14 @@ from sqlalchemy import (
     ForeignKeyConstraint,
     ForeignKey,
     Index,
+    Integer,
     Interval,
     String,
     UniqueConstraint,
     column,
     func,
 )
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from okulapi.cekirdek.ders_renkleri import DERS_RENKLERI
@@ -40,18 +42,53 @@ class ZamanDamgasi:
 
 
 class Okul(ZamanDamgasi, Base):
-    """Kök kayıt. Okul tablosunun kendisinde okul_id yoktur."""
+    """Kök kayıt. Okul tablosunun kendisinde okul_id yoktur.
+
+    Zaman (K3, migration cekirdek_0006):
+    - `gun_saatleri`: günlere göre ders saati sayısı; boşsa her gün `gunluk_ders_saati`. Doluysa
+      en az bir gün farklıdır ve `gunluk_ders_saati` en uzun gündür (servis böyle yazar, CHECK
+      denetler).
+    - `ogle_arasi_sonra`: öğle arası kaçıncı dersten sonra (boş = yok).
+    - Zil saatleri (yalnızca gösterim): `ilk_ders_baslangic` boşsa tanımsız.
+    """
 
     __tablename__ = "okul"
     __table_args__ = (
         CheckConstraint("gun_sayisi BETWEEN 1 AND 7", name="gun_sayisi"),
         CheckConstraint("gunluk_ders_saati BETWEEN 1 AND 16", name="gunluk_ders_saati"),
+        CheckConstraint(
+            "gun_saatleri IS NULL OR (cardinality(gun_saatleri) = gun_sayisi AND 1 <= ALL(gun_saatleri)"
+            " AND gunluk_ders_saati >= ALL(gun_saatleri) AND gunluk_ders_saati = ANY(gun_saatleri))",
+            name="gun_saatleri",
+        ),
+        CheckConstraint(
+            "ogle_arasi_sonra IS NULL OR ogle_arasi_sonra BETWEEN 1 AND gunluk_ders_saati - 1",
+            name="ogle_arasi_sonra",
+        ),
+        CheckConstraint("ders_suresi_dk BETWEEN 10 AND 120", name="ders_suresi_dk"),
+        CheckConstraint("teneffus_dk BETWEEN 0 AND 60", name="teneffus_dk"),
+        CheckConstraint("ogle_arasi_dk BETWEEN 0 AND 180", name="ogle_arasi_dk"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     ad: Mapped[str] = mapped_column(String(200))
     gun_sayisi: Mapped[int] = mapped_column(default=5, server_default="5")
     gunluk_ders_saati: Mapped[int] = mapped_column(default=8, server_default="8")
+    gun_saatleri: Mapped[list[int] | None] = mapped_column(ARRAY(Integer))
+    ogle_arasi_sonra: Mapped[int | None]
+    ilk_ders_baslangic: Mapped[time | None]
+    ders_suresi_dk: Mapped[int] = mapped_column(default=40, server_default="40")
+    teneffus_dk: Mapped[int] = mapped_column(default=10, server_default="10")
+    ogle_arasi_dk: Mapped[int] = mapped_column(default=40, server_default="40")
+
+    @property
+    def gunluk_saatler(self) -> list[int]:
+        """Her gün için ders saati sayısı (günler aynıysa da tam liste)."""
+        return list(self.gun_saatleri) if self.gun_saatleri else [self.gunluk_ders_saati] * self.gun_sayisi
+
+    def aralikta(self, gun: int, saat: int) -> bool:
+        """Bu hücre okulun haftasında var mı (kısa günün sonundaki saatler yoktur)."""
+        return 0 <= gun < self.gun_sayisi and 0 <= saat < self.gunluk_saatler[gun]
 
 
 class OkulaAitMixin(ZamanDamgasi):

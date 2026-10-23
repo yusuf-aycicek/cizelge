@@ -53,6 +53,49 @@ class AyarEtkisiOnayGerekli(KayitCakismasi):
         self.etkiler = etkiler
 
 
+# Haftanın biçimini belirleyen okul alanları: değişirlerse modül verisi etkilenebilir (ADR 0014).
+HAFTA_ALANLARI = frozenset({"gun_sayisi", "gunluk_ders_saati", "gun_saatleri", "ogle_arasi_sonra"})
+
+
+def yeni_hafta(okul: Okul, degisiklikler: dict[str, Any]) -> dict[str, Any]:
+    """Değişikliklerden sonraki haftanın biçimi, tek gösterime getirilmiş (normalleştirilmiş).
+
+    - `gun_saatleri` liste olarak verilirse `gunluk_ders_saati` en uzun gün olur; bütün günler
+      aynıysa liste boşaltılır (NULL): "her gün aynı"nın tek gösterimi vardır.
+    - `gun_saatleri: null` ya da yalnızca `gunluk_ders_saati` verilirse her gün o kadar olur.
+    - Yalnızca `gun_sayisi` değişirse günlere göre saatler korunur; yeni günler en uzun gün kadar.
+    - Öğle arası günün içinde kalmalıdır (en uzun günün son dersinden önce).
+    """
+    gun = degisiklikler.get("gun_sayisi", okul.gun_sayisi)
+    if degisiklikler.get("gun_saatleri") is not None:
+        saatler = list(degisiklikler["gun_saatleri"])
+        if len(saatler) != gun:
+            raise GecersizVeri(f"Günlere göre ders saati {gun} gün için verilmeli ({len(saatler)} gün verildi)")
+    elif "gun_saatleri" in degisiklikler or "gunluk_ders_saati" in degisiklikler:
+        saatler = [degisiklikler.get("gunluk_ders_saati", okul.gunluk_ders_saati)] * gun
+    else:
+        saatler = (okul.gunluk_saatler + [okul.gunluk_ders_saati] * gun)[:gun]
+    uzun = max(saatler)
+    ogle = degisiklikler.get("ogle_arasi_sonra", okul.ogle_arasi_sonra)
+    if ogle is not None and ogle >= uzun:
+        raise GecersizVeri(
+            f"Öğle arası {ogle}. dersten sonra olamaz: en uzun gün {uzun} saat. Öğle arasını değiştirin ya da kaldırın"
+        )
+    return {
+        "gun_sayisi": gun,
+        "gunluk_ders_saati": uzun,
+        "gun_saatleri": saatler if len(set(saatler)) > 1 else None,
+        "ogle_arasi_sonra": ogle,
+    }
+
+
+def hafta_metni(okul: Okul) -> str:
+    """"5 gün, günde 8 saat" ya da günler farklıysa "5 gün, günlere göre 8, 8, 8, 8, 7 saat"."""
+    if okul.gun_saatleri:
+        return f"{okul.gun_sayisi} gün, günlere göre {', '.join(map(str, okul.gun_saatleri))} saat"
+    return f"{okul.gun_sayisi} gün, günde {okul.gunluk_ders_saati} saat"
+
+
 class HizmetKullanilamiyor(Exception):
     """Bağımlı bir altyapı parçasına (ör. iş kuyruğu) ulaşılamadı; istek sonra yeniden denenebilir."""
 
@@ -186,14 +229,14 @@ class OkulServisi:
             raise KayitBulunamadi("Okul")
         return okul
 
-    def ayar_etkileri(self, okul_id: uuid.UUID, gun_sayisi: int | None, gunluk_ders_saati: int | None,
-                      moduller: Sequence[Modul], uygula: bool = False) -> list[str]:
-        """Gün/saat ayarı değişirse modül verisine ne olur (kullanıcının diliyle). Çekirdek modül
-        tablolarını bilmez; her modüle kancasıyla sorar (ADR 0014)."""
-        okul = self.getir(okul_id)
-        gun = gun_sayisi if gun_sayisi is not None else okul.gun_sayisi
-        saat = gunluk_ders_saati if gunluk_ders_saati is not None else okul.gunluk_ders_saati
-        return [e for m in moduller if m.okul_ayari_etkisi for e in m.okul_ayari_etkisi(self.oturum, gun, saat, uygula)]
+    def ayar_etkileri(self, okul_id: uuid.UUID, degisiklikler: dict[str, Any], moduller: Sequence[Modul],
+                      uygula: bool = False) -> list[str]:
+        """Haftanın biçimi (gün sayısı, günlere göre ders saati) değişirse modül verisine ne olur
+        (kullanıcının diliyle). Çekirdek modül tablolarını bilmez; her modüle kancasıyla sorar
+        (ADR 0014). Kancaya her günün yeni ders saati sayısı verilir."""
+        hafta = yeni_hafta(self.getir(okul_id), degisiklikler)
+        saatler = hafta["gun_saatleri"] or [hafta["gunluk_ders_saati"]] * hafta["gun_sayisi"]
+        return [e for m in moduller if m.okul_ayari_etkisi for e in m.okul_ayari_etkisi(self.oturum, saatler, uygula)]
 
     def guncelle(self, okul_id: uuid.UUID, degisiklikler: dict[str, Any], moduller: Sequence[Modul] = (),
                  etkileri_onayla: bool = False) -> Okul:
@@ -201,14 +244,17 @@ class OkulServisi:
         açık onay olmadan yapılmaz: `AyarEtkisiOnayGerekli` (409) etkileri listeler. Onaylanırsa
         ayar ve etkiler (modüllerin uyguladığı) tek işlemde kaydedilir."""
         okul = self.getir(okul_id)
-        gun, saat = degisiklikler.get("gun_sayisi"), degisiklikler.get("gunluk_ders_saati")
-        etkiler = self.ayar_etkileri(okul_id, gun, saat, moduller) if (gun or saat) else []
+        hafta_degisiyor = bool(HAFTA_ALANLARI & degisiklikler.keys())
+        if hafta_degisiyor:
+            degisiklikler = {**degisiklikler, **yeni_hafta(okul, degisiklikler)}
+        etkiler = self.ayar_etkileri(okul_id, degisiklikler, moduller) if hafta_degisiyor else []
         if etkiler and not etkileri_onayla:
             raise AyarEtkisiOnayGerekli(etkiler)
+        if etkiler:
+            # Etkiler eski ayarla değil yeni haftayla hesaplanır; ayar yazılmadan önce uygulanır.
+            self.ayar_etkileri(okul_id, degisiklikler, moduller, uygula=True)
         for alan, deger in degisiklikler.items():
             setattr(okul, alan, deger)
-        if etkiler:
-            self.ayar_etkileri(okul_id, gun, saat, moduller, uygula=True)
         try:
             self.oturum.commit()
         except IntegrityError as hata:

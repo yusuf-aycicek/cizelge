@@ -3,6 +3,24 @@
     "schemas": {
       "AyarEtkisiIstegi": {
         "properties": {
+          "gun_saatleri": {
+            "anyOf": [
+              {
+                "items": {
+                  "maximum": 16.0,
+                  "minimum": 1.0,
+                  "type": "integer"
+                },
+                "maxItems": 7,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gun Saatleri"
+          },
           "gun_sayisi": {
             "anyOf": [
               {
@@ -28,6 +46,19 @@
               }
             ],
             "title": "Gunluk Ders Saati"
+          },
+          "ogle_arasi_sonra": {
+            "anyOf": [
+              {
+                "maximum": 15.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ogle Arasi Sonra"
           }
         },
         "title": "AyarEtkisiIstegi",
@@ -1223,6 +1254,7 @@
         "type": "object"
       },
       "OkulGuncelle": {
+        "description": "Kısmi güncelleme: gönderilmeyen alan değişmez; `null` gönderilen alan boşaltılır.",
         "properties": {
           "ad": {
             "anyOf": [
@@ -1237,10 +1269,35 @@
             ],
             "title": "Ad"
           },
+          "ders_suresi_dk": {
+            "default": 40,
+            "maximum": 120.0,
+            "minimum": 10.0,
+            "title": "Ders Suresi Dk",
+            "type": "integer"
+          },
           "etkileri_onayla": {
             "default": false,
             "title": "Etkileri Onayla",
             "type": "boolean"
+          },
+          "gun_saatleri": {
+            "anyOf": [
+              {
+                "items": {
+                  "maximum": 16.0,
+                  "minimum": 1.0,
+                  "type": "integer"
+                },
+                "maxItems": 7,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gun Saatleri"
           },
           "gun_sayisi": {
             "anyOf": [
@@ -1267,6 +1324,45 @@
               }
             ],
             "title": "Gunluk Ders Saati"
+          },
+          "ilk_ders_baslangic": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ilk Ders Baslangic"
+          },
+          "ogle_arasi_dk": {
+            "default": 40,
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Ogle Arasi Dk",
+            "type": "integer"
+          },
+          "ogle_arasi_sonra": {
+            "anyOf": [
+              {
+                "maximum": 15.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ogle Arasi Sonra"
+          },
+          "teneffus_dk": {
+            "default": 10,
+            "maximum": 60.0,
+            "minimum": 0.0,
+            "title": "Teneffus Dk",
+            "type": "integer"
           }
         },
         "title": "OkulGuncelle",
@@ -1307,6 +1403,17 @@
             "title": "Ad",
             "type": "string"
           },
+          "ders_suresi_dk": {
+            "title": "Ders Suresi Dk",
+            "type": "integer"
+          },
+          "gun_saatleri": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Gun Saatleri",
+            "type": "array"
+          },
           "gun_sayisi": {
             "title": "Gun Sayisi",
             "type": "integer"
@@ -1319,13 +1426,50 @@
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "ilk_ders_baslangic": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ilk Ders Baslangic"
+          },
+          "ogle_arasi_dk": {
+            "title": "Ogle Arasi Dk",
+            "type": "integer"
+          },
+          "ogle_arasi_sonra": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ogle Arasi Sonra"
+          },
+          "teneffus_dk": {
+            "title": "Teneffus Dk",
+            "type": "integer"
           }
         },
         "required": [
           "id",
           "ad",
           "gun_sayisi",
-          "gunluk_ders_saati"
+          "gunluk_ders_saati",
+          "gun_saatleri",
+          "ogle_arasi_sonra",
+          "ilk_ders_baslangic",
+          "ders_suresi_dk",
+          "teneffus_dk",
+          "ogle_arasi_dk"
         ],
         "title": "OkulYanit",
         "type": "object"
