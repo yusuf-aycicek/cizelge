@@ -162,7 +162,7 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
               baslik: "Ders",
               hucre: (a) => (
                 <>
-                  <DersCipi ad={dersAdi(a)} renk={veri.ders.get(a.ders_id)?.renk} />
+                  <DersCipi ad={dersAdi(a)} renk={veri.ders.get(a.ders_id)?.renk} isaret={veri.dersIsareti.get(a.ders_id)} />
                   {!a.ogretmen_id && (
                     <span className={stil.eksikRozet}>
                       <span aria-hidden="true">⚠ </span>Öğretmen seçilmedi

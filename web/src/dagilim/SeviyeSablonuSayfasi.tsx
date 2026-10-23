@@ -1,3 +1,4 @@
+import { dersIsaretleri } from "../dersler/isaret";
 import { Illustrasyon } from "../bilesenler/Illustrasyon";
 import { DersCipi } from "../dersler/DersCipi";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
@@ -189,7 +190,10 @@ function SeviyeSablonu({ seviye, satirlar, dersler, subeler, haftalikKapasite }:
             sutunlar={[
               {
                 baslik: "Ders",
-                hucre: (s) => <DersCipi ad={dersAdi(s.ders_id)} renk={dersler.find((d) => d.id === s.ders_id)?.renk} />,
+                hucre: (s) => (
+                  <DersCipi ad={dersAdi(s.ders_id)} renk={dersler.find((d) => d.id === s.ders_id)?.renk}
+                    isaret={dersIsaretleri(dersler).get(s.ders_id)} />
+                ),
               },
               {
                 baslik: "Haftalık saat",
@@ -330,7 +334,13 @@ function UygulamaRaporu({
             satirAnahtari={(f) => f.atama_id}
             sutunlar={[
               { baslik: "Şube", hucre: (f) => f.sinif },
-              { baslik: "Ders", hucre: (f) => <DersCipi ad={f.ders} renk={dersler.find((d) => d.ad === f.ders)?.renk} /> },
+              {
+                baslik: "Ders",
+                hucre: (f) => {
+                  const d = dersler.find((x) => x.ad === f.ders);
+                  return <DersCipi ad={f.ders} renk={d?.renk} isaret={d ? dersIsaretleri(dersler).get(d.id) : 0} />;
+                },
+              },
               { baslik: "Şubede", hucre: (f) => `${f.atamadaki_saat} saat` },
               { baslik: "Şablonda", hucre: (f) => `${f.sablondaki_saat} saat` },
               {

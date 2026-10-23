@@ -42,8 +42,40 @@ def test_cip_yazisi_her_renkte_okunakli(renk, ad):
     assert kontrast(CIP_METNI, renk) >= 4.5, f"{ad} ({renk})"
 
 
+def lab(h: str) -> tuple[float, float, float]:
+    """sRGB -> CIELAB (D65): algısal renk uzaklığı için."""
+
+    def dogrusal(c: float) -> float:
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+    r, g, b = (dogrusal(int(h[i:i + 2], 16) / 255) for i in (1, 3, 5))
+    x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047
+    y = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883
+
+    def f(t: float) -> float:
+        return t ** (1 / 3) if t > 0.008856 else 7.787 * t + 16 / 116
+
+    return 116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))
+
+
+def test_renkler_birbirinden_ayirt_edilebilir():
+    """Her iki palet rengi arasında CIELAB uzaklığı (ΔE) en az 15: yan yana çiplerde karışmaz."""
+    import itertools
+    import math
+
+    en_yakin = min((math.dist(lab(a), lab(b)), a, b) for a, b in itertools.combinations(PALET, 2))
+    assert en_yakin[0] >= 15, en_yakin
+
+
+def test_ilk_14_renk_yerinde():
+    """Var olan derslerin rengi değişmesin: ilk sürümün 14 rengi aynı sırada kalır."""
+    assert PALET[:14] == ["#1d4ed8", "#c2410c", "#15803d", "#7e22ce", "#0e7490", "#be123c", "#a16207",
+                          "#0369a1", "#a21caf", "#4d7c0f", "#7c2d12", "#0f766e", "#be185d", "#475569"]
+
+
 def test_palet_bicimi():
-    assert len(PALET) == 14
+    assert len(PALET) >= 20
     assert len(set(PALET)) == len(PALET)
     assert all(re.fullmatch(r"#[0-9a-f]{6}", r) for r in PALET)
     assert len({ad for _, ad in DERS_RENKLERI}) == len(DERS_RENKLERI)

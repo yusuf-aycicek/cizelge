@@ -75,3 +75,30 @@ describe("dersler sayfasında renk", () => {
     expect(govdeler).toEqual([]);
   });
 });
+
+describe("renk tekrar edince işaret", () => {
+  it("aynı rengi paylaşan derslerden ilki işaretsiz, sonrakiler sırayla", async () => {
+    const { dersIsaretleri, isaretKarakteri } = await import("./isaret");
+    const isaretler = dersIsaretleri([
+      { id: "d1", renk: "#1d4ed8" },
+      { id: "d2", renk: "#c2410c" },
+      { id: "d3", renk: "#1d4ed8" },
+      { id: "d4", renk: "#1d4ed8" },
+    ]);
+    expect([...isaretler.entries()]).toEqual([["d1", 0], ["d2", 0], ["d3", 1], ["d4", 2]]);
+    expect([1, 2, 3, 5, 6].map(isaretKarakteri)).toEqual(["◆", "▲", "●", "★", "7"]);
+  });
+
+  it("çipte işaret görünür; ekran okuyucudan gizlidir (aria-hidden)", () => {
+    render(<DersCipi ad="Fizik" renk="#1d4ed8" isaret={1} />);
+    const cip = screen.getByText("Fizik");
+    const isaret = cip.querySelector("[aria-hidden='true']");
+    expect(isaret).toHaveTextContent("◆");
+    expect(cip).toHaveTextContent("◆Fizik");
+  });
+
+  it("işaretsiz çipte işaret yok", () => {
+    render(<DersCipi ad="Kimya" renk="#15803d" />);
+    expect(screen.getByText("Kimya").querySelector("[aria-hidden='true']")).toBeNull();
+  });
+});

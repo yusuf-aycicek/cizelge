@@ -1,6 +1,7 @@
 /** Öğretmen, sınıf ve ders sayfaları: ortak liste bileşeninin üç kullanımı. */
+import { dersIsaretleri } from "../dersler/isaret";
 import { OgretmenAdi } from "../bilesenler/OgretmenRozeti";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookOpen, GraduationCap, School } from "lucide-react";
 import { hataMetni } from "../api/hata";
 import { useBildirim } from "../bilesenler/Bildirim";
@@ -67,6 +68,9 @@ export function SiniflarSayfasi() {
 export function DerslerSayfasi() {
   const istemci = useQueryClient();
   const bildirim = useBildirim();
+  // Aynı önbellek (dersler) ListeSayfasi'yle paylaşılır: ek istek gitmez.
+  const dersler = useQuery({ queryKey: dersKaynagi.anahtar, queryFn: dersKaynagi.listele });
+  const isaretler = dersIsaretleri(dersler.data ?? []);
   // Renk seçilince hemen kaydedilir. Ders listesi tazelenir; aynı önbelleği okuyan ders dağılımı ve
   // şablon da yeni rengi gösterir.
   const renkDegistir = useMutation({
@@ -80,7 +84,9 @@ export function DerslerSayfasi() {
 
   return (
     <ListeSayfasi<Ders, { ad: string; kisa_ad: string }>
-      gorunum={(alan, ders) => (alan === "ad" ? <DersCipi ad={ders.ad} renk={ders.renk} /> : undefined)}
+      gorunum={(alan, ders) =>
+        alan === "ad" ? <DersCipi ad={ders.ad} renk={ders.renk} isaret={isaretler.get(ders.id)} /> : undefined
+      }
       ekSutunlar={[
         {
           baslik: "Renk",

@@ -1,3 +1,4 @@
+import { dersIsaretleri } from "../dersler/isaret";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, CalendarRange } from "lucide-react";
 import type { CSSProperties } from "react";
@@ -128,6 +129,7 @@ export function CizelgeSayfasi() {
             hucreler={hucreler}
             gorunum={gorunum}
             ders={new Map(dersler.data.map((d) => [d.id, d]))}
+            dersIsareti={dersIsaretleri(dersler.data)}
             sinif={new Map(siniflar.data.map((s) => [s.id, s]))}
             ogretmen={new Map(ogretmenler.data.map((o) => [o.id, o]))}
           />
@@ -147,6 +149,7 @@ type CizelgeProps = {
   hucreler: Map<string, Atama>;
   gorunum: CizelgeTuru;
   ders: Map<string, Ders>;
+  dersIsareti: Map<string, number>;
   sinif: Map<string, Sinif>;
   ogretmen: Map<string, Ogretmen>;
 };
@@ -156,7 +159,7 @@ type CizelgeProps = {
  * diye okur (sütun ve satır başlıkları `scope` ile bağlı). Dolu hücreler kısa bir sırayla yerleşir
  * (CSS animasyonu, hücre başına gecikme); hareket azaltılmışsa hepsi hemen görünür.
  */
-function Cizelge({ baslik, gunSayisi, saatSayisi, hucreler, gorunum, ders, sinif, ogretmen }: CizelgeProps) {
+function Cizelge({ baslik, gunSayisi, saatSayisi, hucreler, gorunum, ders, dersIsareti, sinif, ogretmen }: CizelgeProps) {
   const gunler = Array.from({ length: gunSayisi }, (_, g) => GUN_ADLARI[g] ?? `${g + 1}. gün`);
   return (
     <div className={stil.kutu}>
@@ -194,7 +197,7 @@ function Cizelge({ baslik, gunSayisi, saatSayisi, hucreler, gorunum, ders, sinif
                 const gecikme = { animationDelay: `${yerlesmeGecikmesiMs(g, s, saatSayisi)}ms` } as CSSProperties;
                 return (
                   <td key={g} className={stil.dolu} style={gecikme}>
-                    <DersCipi ad={d?.ad ?? "?"} renk={d?.renk} />
+                    <DersCipi ad={d?.ad ?? "?"} renk={d?.renk} isaret={dersIsareti.get(a.ders_id)} />
                     <span className={stil.ikinci}>
                       {gorunum === "sube" ? (
                         o && (

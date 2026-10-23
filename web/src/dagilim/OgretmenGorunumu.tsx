@@ -82,7 +82,7 @@ export function OgretmenGorunumu({ veri, git }: { veri: DagilimVerisi; git: Git 
                         return (
                           <li key={a.id}>
                             <span>
-                              {sinif} <DersCipi ad={veri.ders.get(a.ders_id)?.ad ?? ""} renk={veri.ders.get(a.ders_id)?.renk} /> ·{" "}
+                              {sinif} <DersCipi ad={veri.ders.get(a.ders_id)?.ad ?? ""} renk={veri.ders.get(a.ders_id)?.renk} isaret={veri.dersIsareti.get(a.ders_id)} /> ·{" "}
                               {a.haftalik_saat} saat
                             </span>
                             <Dugme tur="metin" onClick={() => git({ gorunum: "sube", sinif: a.sinif_id })}>

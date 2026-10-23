@@ -102,3 +102,10 @@
     grid-template-columns: repeat(5, 2rem);
   }
 }
+
+/* Renk tekrar edince çipin başındaki ayırt edici işaret (◆ ▲ ●). Zemin yok: beyaz işaret doğrudan
+   ders renginin üzerinde, yani yazıyla aynı kontrastta (her palet renginde en az 4.5:1). */
+.isaret {
+  font-size: 0.75em;
+  line-height: 1;
+}

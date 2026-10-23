@@ -1,3 +1,4 @@
+import { dersIsaretleri } from "../dersler/isaret";
 import { Illustrasyon } from "../bilesenler/Illustrasyon";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
 import { ClipboardList } from "lucide-react";
@@ -45,6 +46,8 @@ export type DagilimVerisi = {
   ogretmen: Map<string, Ogretmen>;
   sinif: Map<string, Sinif>;
   ders: Map<string, Ders>;
+  /** Aynı renkli dersleri ayıran işaret sırası (dersIsaretleri). */
+  dersIsareti: Map<string, number>;
 };
 
 /** Görünümlerin "başka bir yere git" isteği: sekme, şube, ders. */
@@ -106,6 +109,7 @@ export function DersDagilimiSayfasi() {
       ogretmen: new Map(ogretmenler.data.map((o) => [o.id, o])),
       sinif: new Map(siniflar.data.map((s) => [s.id, s])),
       ders: new Map(dersler.data.map((d) => [d.id, d])),
+      dersIsareti: dersIsaretleri(dersler.data),
     };
     icerik = (
       <>

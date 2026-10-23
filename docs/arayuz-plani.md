@@ -322,8 +322,8 @@ Uygulama sırası (kullanıcı kararı; her alt adımın sonunda kullanıcıya s
 
 | # | Alt adım | Durum |
 |---|---|---|
-| R | Ders paleti en az 20 renk; renkler tükenirse tekrar eden derslerin çipinde ayırt edici işaret | **Sıradaki** |
-| K1 | Kapsam temeli (öğretmen kapsamının ders ve şube kapsamıyla çakışmaması kodda zorlanır) | |
+| R | Ders paleti en az 20 renk; renkler tükenirse tekrar eden derslerin çipinde ayırt edici işaret | Bitti: 20 renk (ilk 14 yerinde; 6 yeni, CIELAB ΔE ile seçildi; en yakın çift 18,8); testler: her renk beyaz yazıyla ≥ 4.5:1, her çift ΔE ≥ 15; tekrar eden renkte çipin başında ◆ ▲ ● (eklenme sırasıyla, aria-hidden) |
+| K1 | Kapsam temeli (öğretmen kapsamının ders ve şube kapsamıyla çakışmaması kodda zorlanır) | **Sıradaki** |
 | K2 + 5.5 | Öğretmene özel boş gün ve müsaitlik çizelgesi: öğretmen detay sayfası | |
 | K3 | Günlere göre ders saati ve öğle arası | |
 | K4 | Blok dersler | |
