@@ -9,6 +9,10 @@ import { hataMetni } from "../api/hata";
 import { useBildirim } from "../bilesenler/Bildirim";
 import { DersCipi } from "../dersler/DersCipi";
 import { RenkSecici } from "../dersler/RenkSecici";
+import { DagilimSekliHucresi, useDagilimSekilleri } from "../dersler/DagilimSekli";
+import { cagir } from "../api/hata";
+import { api } from "../api/istemci";
+import { KURALLAR_ANAHTARI } from "../okul/OkulAyarlariSayfasi";
 import { dersKaynagi, ogretmenKaynagi, sinifKaynagi, type Ders, type Ogretmen, type Sinif } from "./kaynaklar";
 import { ListeSayfasi, type ListeAlani } from "./ListeSayfasi";
 
@@ -80,6 +84,8 @@ export function DerslerSayfasi() {
   // Aynı önbellek (dersler) ListeSayfasi'yle paylaşılır: ek istek gitmez.
   const dersler = useQuery({ queryKey: dersKaynagi.anahtar, queryFn: dersKaynagi.listele });
   const isaretler = dersIsaretleri(dersler.data ?? []);
+  const sekiller = useDagilimSekilleri();
+  const kurallar = useQuery({ queryKey: KURALLAR_ANAHTARI, queryFn: () => cagir(api.GET("/api/ders-programi/kurallar")) });
   // Renk seçilince hemen kaydedilir. Ders listesi tazelenir; aynı önbelleği okuyan ders dağılımı ve
   // şablon da yeni rengi gösterir.
   const renkDegistir = useMutation({
@@ -108,10 +114,17 @@ export function DerslerSayfasi() {
             />
           ),
         },
+        {
+          baslik: "Dağılım şekli",
+          hucre: (ders) =>
+            sekiller.data && kurallar.data ? (
+              <DagilimSekliHucresi ders={ders} sekiller={sekiller.data} kurallar={kurallar.data} />
+            ) : null,
+        },
       ]}
       ikon={BookOpen}
       baslik="Dersler"
-      aciklama="Okulunuzda okutulan dersler. Her derse otomatik bir renk verilir; dersin her ekranda aynı renkte görünür, isterseniz değiştirebilirsiniz."
+      aciklama="Okulunuzda okutulan dersler. Her derse otomatik bir renk verilir; dersin her ekranda aynı renkte görünür, isterseniz değiştirebilirsiniz. Dağılım şekli dersin haftalık saatlerinin nasıl bloklara bölüneceğini söyler (ör. 5 saat: 2+2+1, her blok ayrı bir günde art arda); okulun önerisi Okul ayarlarındadır."
       tekil="Ders"
       bos={{
         baslik: "Henüz ders eklenmedi",

@@ -198,6 +198,38 @@ describe("günlere göre ders saati, öğle arası, zil saatleri (K3)", () => {
   });
 });
 
+describe("dağılım şekli (K4)", () => {
+  it("okul önerisi açık; saate göre şekil değiştirilir, yalnızca öneriden farklı olan gönderilir", async () => {
+    const govdeler: unknown[] = [];
+    sunucu.use(http.put("/api/ders-programi/kurallar/:tur", async ({ request, params }) => {
+      govdeler.push({ tur: params.tur, govde: await request.json() });
+      return HttpResponse.json(ORNEK_KURALLAR[0]);
+    }));
+    const { kullanici } = await ac();
+    const bolum = within(await screen.findByRole("region", { name: "Dağılım şekli (blok dersler)" }));
+    expect(bolum.getByRole("checkbox", { name: /Dersleri bloklara böl/ })).toBeChecked();
+    expect(bolum.getByRole("combobox", { name: "5 saatlik ders" })).toHaveDisplayValue("2+2+1 (önerilen)");
+    await kullanici.selectOptions(bolum.getByRole("combobox", { name: "4 saatlik ders" }), "2+1+1");
+    await kullanici.click(bolum.getByRole("button", { name: "Dağılım şeklini kaydet" }));
+    await waitFor(() => expect(govdeler).toEqual([
+      { tur: "blok_deseni", govde: { parametreler: { otomatik: true, varsayilanlar: { "4": [2, 1, 1] } } } }]));
+  });
+
+  it("bloklar kapatılabilir; tablo gizlenir", async () => {
+    const govdeler: unknown[] = [];
+    sunucu.use(http.put("/api/ders-programi/kurallar/:tur", async ({ request }) => {
+      govdeler.push(await request.json());
+      return HttpResponse.json(ORNEK_KURALLAR[0]);
+    }));
+    const { kullanici } = await ac();
+    const bolum = within(await screen.findByRole("region", { name: "Dağılım şekli (blok dersler)" }));
+    await kullanici.click(bolum.getByRole("checkbox", { name: /Dersleri bloklara böl/ }));
+    expect(bolum.queryByRole("combobox")).not.toBeInTheDocument();
+    await kullanici.click(bolum.getByRole("button", { name: "Dağılım şeklini kaydet" }));
+    await waitFor(() => expect(govdeler).toEqual([{ parametreler: { otomatik: false, varsayilanlar: {} } }]));
+  });
+});
+
 describe("kurallar", () => {
   it("değişen kural kaydedilir; aralık dışı değer sunucuya gitmez", async () => {
     const govdeler: { tur: string; govde: unknown }[] = [];

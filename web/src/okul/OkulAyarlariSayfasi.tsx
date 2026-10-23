@@ -15,6 +15,7 @@ import { BEN_ANAHTARI, type Ben } from "../kimlik/oturum";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
 import stil from "./Okul.module.css";
 import { GUN_ADLARI } from "../program/aciklama";
+import { BlokBolumu } from "./BlokBolumu";
 import { OzelAyarlarOzeti } from "./OzelAyarlarOzeti";
 import { kisaliyor, ogleArasiSonrasi, ogleArasiZili, zilMetni, zilSaatleri } from "./zaman";
 
@@ -66,6 +67,8 @@ export function OkulAyarlariSayfasi() {
       {okul.data && kurallar.data && (
         <>
           <KurallarBolumu key={JSON.stringify(kurallar.data)} okul={okul.data} kurallar={kurallar.data} />
+          <BlokBolumu key={`blok-${JSON.stringify(kurallar.data)}`} kurallar={kurallar.data} okul={okul.data}
+            onKaydet={() => kurallar.refetch()} />
           <OzelAyarlarOzeti kurallar={kurallar.data} />
           <OnemBolumu key={`onem-${JSON.stringify(kurallar.data)}`} kurallar={kurallar.data} />
         </>

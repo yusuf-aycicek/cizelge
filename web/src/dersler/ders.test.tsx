@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
-import { sunucu } from "../test/sunucu";
+import { ORNEK_KURALLAR, sunucu } from "../test/sunucu";
 import { uygulamayiCiz } from "../test/yardimcilar";
 import { DersCipi } from "./DersCipi";
 
@@ -100,5 +100,93 @@ describe("renk tekrar edince işaret", () => {
   it("işaretsiz çipte işaret yok", () => {
     render(<DersCipi ad="Kimya" renk="#15803d" />);
     expect(screen.getByText("Kimya").querySelector("[aria-hidden='true']")).toBeNull();
+  });
+});
+
+describe("dersler sayfasında dağılım şekli (K4)", () => {
+  type Sekil = { atama_id: string; ders_id: string; sinif_id: string; sinif_adi: string; haftalik_saat: number;
+    desen: number[] | null; metin: string; kaynak: string; dusen_oneri: string | null; nedenler: string[]; sorunlar: string[] };
+  const sekil = (s: Partial<Sekil>): Sekil => ({
+    atama_id: "a1", ders_id: "d1", sinif_id: "s1", sinif_adi: "9-A", haftalik_saat: 5, desen: [2, 2, 1], metin: "2+2+1",
+    kaynak: "okul", dusen_oneri: null, nedenler: [], sorunlar: [], ...s,
+  });
+
+  function kur(sekiller: Sekil[], ozel: number[] | null = null) {
+    const istekler: { yontem: string; govde?: unknown; adres: string }[] = [];
+    sunucu.use(
+      http.get("/api/dersler", () => HttpResponse.json([{ id: "d1", ad: "Matematik", kisa_ad: "MAT", renk: "#1d4ed8" }])),
+      http.get("/api/ders-programi/dagilim-sekilleri", () => HttpResponse.json(sekiller)),
+      http.get("/api/ders-programi/kurallar", () => HttpResponse.json(ORNEK_KURALLAR.map((k) =>
+        k.tur === "blok_deseni" && ozel
+          ? { ...k, ozel_ayarlar: [{ kapsam: { ders_id: "d1", sinif_id: null, ogretmen_id: null }, ad: "Matematik", parametreler: { desen: ozel } }] }
+          : k))),
+      http.put("/api/ders-programi/kurallar/:tur/ozel", async ({ request }) => {
+        istekler.push({ yontem: "PUT", govde: await request.json(), adres: request.url });
+        return HttpResponse.json(ORNEK_KURALLAR[0]);
+      }),
+      http.delete("/api/ders-programi/kurallar/:tur/ozel", ({ request }) => {
+        istekler.push({ yontem: "DELETE", adres: request.url });
+        return HttpResponse.json(ORNEK_KURALLAR[0]);
+      }),
+    );
+    return istekler;
+  }
+
+  it("okul önerisi görünür; hazır şekil seçilince derse özel kaydedilir", async () => {
+    const istekler = kur([sekil({})]);
+    const { kullanici } = uygulamayiCiz("/dersler");
+    const secim = await screen.findByRole("combobox", { name: "Matematik dersinin dağılım şekli" });
+    expect(secim).toHaveDisplayValue("Okul önerisi (2+2+1)");
+    // 5 saat, günlük sınır 2: hazır seçenekler 2'lik bloklarla.
+    expect(within(secim).getAllByRole("option").map((o) => o.textContent)).toEqual([
+      "Okul önerisi (2+2+1)", "Blok yok", "2+2+1", "2+1+1+1", "1+1+1+1+1", "Başka bir şekil…"]);
+    await kullanici.selectOptions(secim, "2+1+1+1");
+    await waitFor(() => expect(istekler).toHaveLength(1));
+    expect(istekler[0]!.govde).toEqual({ kapsam: { ders_id: "d1" }, parametreler: { desen: [2, 1, 1, 1] } });
+    expect(await screen.findByText("Matematik: dağılım şekli 2+1+1+1.")).toBeInTheDocument();
+  });
+
+  it("özel şekil 'özel' rozetiyle; okul önerisine dönmek özel ayarı siler", async () => {
+    const istekler = kur([sekil({ desen: [2, 1, 1, 1], metin: "2+1+1+1", kaynak: "ders" })], [2, 1, 1, 1]);
+    const { kullanici } = uygulamayiCiz("/dersler");
+    const secim = await screen.findByRole("combobox", { name: "Matematik dersinin dağılım şekli" });
+    await waitFor(() => expect(secim).toHaveDisplayValue("2+1+1+1"));
+    expect(screen.getByText("özel")).toBeInTheDocument();
+    await kullanici.selectOptions(secim, "");
+    await waitFor(() => expect(istekler.map((i) => i.yontem)).toEqual(["DELETE"]));
+    expect(istekler[0]!.adres).toContain("ders_id=d1");
+  });
+
+  it("başka bir şekil elle yazılır; geçersiz yazım sunucuya gitmez", async () => {
+    const istekler = kur([sekil({})]);
+    const { kullanici } = uygulamayiCiz("/dersler");
+    await kullanici.selectOptions(await screen.findByRole("combobox", { name: "Matematik dersinin dağılım şekli" }), "baska");
+    const kutu = screen.getByRole("textbox", { name: /dağılım şekli \(ör\. 2\+2\+1\)/ });
+    await kullanici.type(kutu, "2,2");
+    await kullanici.click(screen.getByRole("button", { name: "Kaydet" }));
+    expect(screen.getByText("Şekli 2+2+1 gibi yazın; her blok 1-8 saat.")).toHaveAttribute("role", "alert");
+    expect(istekler).toEqual([]);
+    await kullanici.clear(kutu);
+    await kullanici.type(kutu, "1+2+2");
+    await kullanici.click(screen.getByRole("button", { name: "Kaydet" }));
+    await waitFor(() => expect(istekler).toHaveLength(1));
+    expect(istekler[0]!.govde).toEqual({ kapsam: { ders_id: "d1" }, parametreler: { desen: [2, 2, 1] } });
+  });
+
+  it("uygulanamayan özel şekil ve düşen öneri nedeniyle görünür", async () => {
+    kur([
+      sekil({ kaynak: "ders", sorunlar: ["öğretmenin müsaitliğine sığmıyor"] }),
+      sekil({ atama_id: "a2", sinif_id: "s2", sinif_adi: "9-B", desen: null, metin: "blok yok", kaynak: "yok",
+        dusen_oneri: "2+2+1", nedenler: ["blok sayısı gün sayısından fazla"] }),
+    ], [2, 2, 1]);
+    uygulamayiCiz("/dersler");
+    expect(await screen.findByText("9-A: öğretmenin müsaitliğine sığmıyor")).toBeInTheDocument();
+    expect(screen.getByText("Öneri uygulanamadı, blok yok: 9-B (blok sayısı gün sayısından fazla).")).toBeInTheDocument();
+  });
+
+  it("henüz atanmamış ders", async () => {
+    kur([]);
+    uygulamayiCiz("/dersler");
+    expect(await screen.findByText("Henüz bir şubeye atanmadı.")).toBeInTheDocument();
   });
 });

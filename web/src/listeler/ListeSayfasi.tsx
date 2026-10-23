@@ -229,10 +229,10 @@ export function ListeSayfasi<T extends { id: string }, G>({
         ) : (
           <span className={stil.islemler}>
             <Dugme ikon={<Pencil />} tur="metin" aria-label={`${deger(satir, "ad")} düzenle`} onClick={() => duzenlemeyeBasla(satir)}>
-              Düzenle
+              <span className={stil.islemMetni}>Düzenle</span>
             </Dugme>
             <Dugme ikon={<Trash2 />} tur="metin" aria-label={`${deger(satir, "ad")} sil`} onClick={() => setSilinecek(satir)}>
-              Sil
+              <span className={stil.islemMetni}>Sil</span>
             </Dugme>
           </span>
         ),

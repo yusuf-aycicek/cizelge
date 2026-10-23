@@ -157,3 +157,28 @@
   color: var(--renk-metin-ikincil);
   font-style: italic;
 }
+
+/* Dağılım şekli tablosu (K4): haftalık saat → şekil. */
+.sekilTablosu {
+  border-collapse: collapse;
+  margin: var(--bosluk-2) 0 var(--bosluk-4);
+}
+.sekilTablosu th,
+.sekilTablosu td {
+  text-align: left;
+  padding: var(--bosluk-1) var(--bosluk-4) var(--bosluk-1) 0;
+  border-bottom: 1px solid var(--renk-kenar);
+}
+.sekilTablosu thead th {
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
+}
+.sekilTablosu select {
+  min-height: 2.25rem;
+  padding: 0 var(--bosluk-2);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose);
+  background: var(--renk-zemin);
+  color: inherit;
+  font: inherit;
+}

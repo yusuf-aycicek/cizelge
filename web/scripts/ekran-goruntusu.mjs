@@ -656,6 +656,56 @@ AKISLAR["k3"] = async (tarayici, kaydet) => {
   await baglam.close();
 };
 
+// K4: blok dersler. K4_PROGRAM okul önerisiyle üretilmiş bir program. Akış derse özel şekilleri API ile
+// geçici olarak kurar ve sonunda kaldırır (özel ayar sayısı başlangıçtakine döndüğü denetlenir).
+AKISLAR["k4"] = async (tarayici, kaydet) => {
+  const program = process.env.K4_PROGRAM;
+  if (!program) throw new Error("K4_PROGRAM verilmeli");
+  const { baglam, s } = await ornekGiris(tarayici, MASAUSTU);
+  const api = (yol) => `${ADRES}/api/ders-programi${yol}`;
+  const basla = (await (await s.request.get(api("/kurallar"))).json()).find((k) => k.tur === "blok_deseni");
+  const dersler = await (await s.request.get(`${ADRES}/api/dersler`)).json();
+  const ders = (ad) => dersler.find((d) => d.ad === ad).id;
+  const ozel = (ad, desen) =>
+    s.request.put(api("/kurallar/blok_deseni/ozel"), {
+      headers: { Origin: ADRES }, data: { kapsam: { ders_id: ders(ad) }, parametreler: { desen } },
+    });
+  const kaldir = (ad) => s.request.delete(api(`/kurallar/blok_deseni/ozel?ders_id=${ders(ad)}`), { headers: { Origin: ADRES } });
+  try {
+    await s.goto(`${ADRES}/program/${program}`);
+    await s.getByRole("table", { name: /haftalık programı/ }).waitFor();
+    await s.waitForTimeout(1500);
+    await kaydet(s, "01-cizelge-bloklar.png", true);
+    await s.getByRole("tab", { name: "Öğretmene göre" }).click();
+    await s.waitForTimeout(1500);
+    await kaydet(s, "02-cizelge-ogretmen.png", true);
+    await s.goto(ADRES + "/okul");
+    const bolum = s.getByRole("region", { name: "Dağılım şekli (blok dersler)" });
+    await bolum.waitFor();
+    await bolum.scrollIntoViewIfNeeded();
+    await s.waitForTimeout(500);
+    await kaydet(s, "03-okul-ayari.png");
+    await ozel("Türk Dili ve Edebiyatı", [2, 1, 1, 1]);
+    await ozel("Matematik", []);
+    await s.goto(ADRES + "/dersler");
+    await s.getByRole("combobox", { name: "Matematik dersinin dağılım şekli" }).waitFor();
+    await s.waitForTimeout(800);
+    await kaydet(s, "04-ders-listesi.png", true);
+    await ozel("Türk Dili ve Edebiyatı", [3, 2]);
+    await s.goto(ADRES + "/program");
+    await s.getByText(/3 saatlik blok istiyor/).first().waitFor();
+    await s.waitForTimeout(600);
+    await kaydet(s, "05-on-kontrol.png", true);
+  } finally {
+    await kaldir("Türk Dili ve Edebiyatı");
+    await kaldir("Matematik");
+    const son = (await (await s.request.get(api("/kurallar"))).json()).find((k) => k.tur === "blok_deseni");
+    if (son.ozel_ayarlar.length !== basla.ozel_ayarlar.length) throw new Error("Özel ayarlar geri alınamadı");
+    console.log("Deneme özel ayarları geri alındı.");
+    await baglam.close();
+  }
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {

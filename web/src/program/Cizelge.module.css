@@ -148,3 +148,18 @@
   flex: 1;
   border-top: 1px dashed var(--renk-kenar);
 }
+
+/* Blok: bir dersin art arda saatleri tek hücre (rowSpan); süre köşede küçük yazıyla (K4). */
+.blok {
+  position: relative;
+  vertical-align: top;
+  padding-top: var(--bosluk-2);
+}
+.blokSuresi {
+  position: absolute;
+  inset-block-end: var(--bosluk-1);
+  inset-inline-end: var(--bosluk-2);
+  font-size: 0.7rem;
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-metin-ikincil);
+}

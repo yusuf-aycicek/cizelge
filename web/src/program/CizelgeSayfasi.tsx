@@ -19,7 +19,7 @@ import { dersKaynagi, ogretmenKaynagi, sinifKaynagi, type Ders, type Ogretmen, t
 import { turkceSirala } from "../metin";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
 import { GUN_ADLARI } from "./aciklama";
-import { cizelgeBoyutu, cizelgeHucreleri, hucreAnahtari, yerlesmeGecikmesiMs, type Atama, type CizelgeTuru } from "./cizelge";
+import { birlesikHucreler, cizelgeBoyutu, cizelgeHucreleri, hucreAnahtari, yerlesmeGecikmesiMs, type Atama, type CizelgeTuru } from "./cizelge";
 import stil from "./Cizelge.module.css";
 import { KaliteOzeti } from "./KaliteOzeti";
 import { useProgram, useYerlesimler } from "./veri";
@@ -176,6 +176,7 @@ function Cizelge({
   ogretmen,
 }: CizelgeProps) {
   const gunler = Array.from({ length: gunSayisi }, (_, g) => GUN_ADLARI[g] ?? `${g + 1}. gün`);
+  const birlesik = birlesikHucreler(hucreler, gunSayisi, saatSayisi, ogleArasiSonra);
   return (
     // Haftalık çizelge dar ekranda bilerek yana kayar (en az 44rem); taşma denetimi bunu bilir.
     <div className={stil.kutu} data-kaydirilabilir>
@@ -203,6 +204,8 @@ function Cizelge({
                 </th>
                 {gunler.map((_, g) => {
                   const a = hucreler.get(hucreAnahtari(g, s));
+                  // Bloğun ikinci ve sonraki saatleri: üstteki hücre rowSpan ile kapsar.
+                  if (birlesik.ortulen.has(hucreAnahtari(g, s))) return null;
                   if (!a && !saatVar(gunSaatleri, g, s)) {
                     // Kısa gün (ör. cuma 7 saat): bu saat o gün yok. Eski bir programın hücresi varsa yine gösterilir.
                     return (
@@ -221,8 +224,17 @@ function Cizelge({
                   const d = ders.get(a.ders_id);
                   const o = a.ogretmen_id ? ogretmen.get(a.ogretmen_id) : undefined;
                   const gecikme = { animationDelay: `${yerlesmeGecikmesiMs(g, s, saatSayisi)}ms` } as CSSProperties;
+                  const uzunluk = birlesik.uzunluk.get(hucreAnahtari(g, s)) ?? 1;
                   return (
-                    <td key={g} className={stil.dolu} style={gecikme}>
+                    <td key={g} className={uzunluk > 1 ? `${stil.dolu} ${stil.blok}` : stil.dolu} style={gecikme}
+                      rowSpan={uzunluk > 1 ? uzunluk : undefined}>
+                      {uzunluk > 1 && (
+                        // Ekran okuyucu satır başlığı olarak yalnızca ilk saati okur: kaç saat sürdüğü burada.
+                        <span className={stil.blokSuresi}>
+                          <span aria-hidden="true">{uzunluk} saat</span>
+                          <span className="gorunmez">{`${s + 1}.-${s + uzunluk}. saat, ${uzunluk} saat art arda: `}</span>
+                        </span>
+                      )}
                       <DersCipi ad={d?.ad ?? "?"} kisaAd={d?.kisa_ad} renk={d?.renk} isaret={dersIsareti.get(a.ders_id)} />
                       <span className={stil.ikinci}>
                         {gorunum === "sube" ? (

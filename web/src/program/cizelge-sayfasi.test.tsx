@@ -123,3 +123,21 @@ describe("haftalık çizelge: kısa gün, öğle arası, zil saatleri (K3)", () 
       Array.from({ length: 8 }, (_, s) => `${s + 1}. saat`));
   });
 });
+
+describe("haftalık çizelge: blok dersler (K4)", () => {
+  it("bir dersin art arda saatleri tek hücre: rowSpan, süre ve ekran okuyucu için saat aralığı", async () => {
+    kur();
+    uygulamayiCiz("/program/p1?gorunum=sube&sinif=s-9a");
+    const tablo = await screen.findByRole("table", { name: "9-A haftalık programı" });
+    // 9-A Matematik pazartesi 1. ve 2. saat: tek hücre.
+    const blok = hucre(tablo, "Pazartesi", "1. saat");
+    expect(blok).toHaveAttribute("rowspan", "2");
+    expect(blok).toHaveTextContent("1.-2. saat, 2 saat art arda:");
+    expect(blok).toHaveTextContent("MatematikŞule Kaya");
+    // 2. saat satırında pazartesi hücresi yok: satırda 4 hücre (salı-cuma).
+    const ikinci = within(tablo).getAllByRole("row").find((r) => within(r).queryByRole("rowheader")?.textContent === "2. saat")!;
+    expect(within(ikinci).getAllByRole("cell")).toHaveLength(4);
+    // Tek saatlik ders birleşmez.
+    expect(hucre(tablo, "Salı", "3. saat")).not.toHaveAttribute("rowspan");
+  });
+});

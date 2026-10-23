@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cizelgeBoyutu, cizelgeHucreleri, hucreAnahtari, yerlesmeGecikmesiMs, type Atama, type Yerlesim } from "./cizelge";
+import { birlesikHucreler, cizelgeBoyutu, cizelgeHucreleri, hucreAnahtari, yerlesmeGecikmesiMs, type Atama, type Yerlesim } from "./cizelge";
 
 const ATAMALAR: Atama[] = [
   { id: "a1", sinif_id: "s-9a", ders_id: "d-mat", ogretmen_id: "o-sule", haftalik_saat: 2 },
@@ -40,5 +40,25 @@ describe("yerleşme sırası", () => {
     expect(yerlesmeGecikmesiMs(0, 0, 8)).toBe(0);
     expect(yerlesmeGecikmesiMs(0, 1, 8)).toBeLessThan(yerlesmeGecikmesiMs(1, 0, 8));
     expect(yerlesmeGecikmesiMs(6, 15, 16)).toBe(600);
+  });
+});
+
+describe("blok: aynı dersin art arda saatleri tek hücre", () => {
+  const atama = (id: string) => ({ id, sinif_id: "s1", ders_id: id, ogretmen_id: "o1", haftalik_saat: 2 }) as Atama;
+  const harita = (liste: [number, number, string][]) => new Map(liste.map(([g, s, a]) => [hucreAnahtari(g, s), atama(a)]));
+
+  it("art arda aynı atama birleşir; farklı atama ya da öğle arası böler", () => {
+    const h = harita([[0, 0, "mat"], [0, 1, "mat"], [0, 2, "fiz"], [0, 3, "mat"], [0, 4, "mat"], [1, 1, "mat"], [1, 2, "mat"], [1, 3, "mat"]]);
+    const { uzunluk, ortulen } = birlesikHucreler(h, 2, 6, 4);
+    // Pazartesi: 1.-2. saat matematik (blok), 3. fizik, 4. ve 5. matematik ama arada öğle arası.
+    expect(Object.fromEntries(uzunluk)).toEqual({ "0-0": 2, "1-1": 3 });
+    expect([...ortulen].sort()).toEqual(["0-1", "1-2", "1-3"]);
+  });
+
+  it("öğle arası 4. dersten sonra: 4. ve 5. saat birleşmez", () => {
+    const h = harita([[0, 3, "mat"], [0, 4, "mat"]]);
+    const { uzunluk, ortulen } = birlesikHucreler(h, 1, 6, 4);
+    expect(uzunluk.size).toBe(0);
+    expect(ortulen.size).toBe(0);
   });
 });
