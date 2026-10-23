@@ -143,6 +143,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ders-programi/dagilim-sekilleri": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dagilim Sekillerini Getir
+         * @description Her ders atamasının dağılım şekli (blok dersler), nereden geldiği ve okul önerisi
+         *     uygulanamadıysa nedeni. Hesap çözücüdekiyle aynı (`cozucu.blok`).
+         */
+        get: operations["dagilim_sekillerini_getir_api_ders_programi_dagilim_sekilleri_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ders-programi/kisitlar": {
         parameters: {
             query?: never;
@@ -818,6 +839,53 @@ export interface components {
             siniflar: components["schemas"]["SinifYukuYanit"][];
         };
         /**
+         * DagilimSekli
+         * @description Bir ders atamasının dağılım şekli (blok dersler) ve nereden geldiği (`cozucu.blok`).
+         */
+        DagilimSekli: {
+            /**
+             * Atama Id
+             * Format: uuid
+             */
+            atama_id: string;
+            /**
+             * Ders Id
+             * Format: uuid
+             */
+            ders_id: string;
+            /**
+             * Desen
+             * @description Uygulanacak bloklar, büyükten küçüğe; None: blok yok
+             */
+            desen: number[] | null;
+            /** Dusen Oneri */
+            dusen_oneri: string | null;
+            /** Haftalik Saat */
+            haftalik_saat: number;
+            /**
+             * Kaynak
+             * @description ders_sube / ders: özel ayar; okul: okulun önerisi; yok: blok yok
+             * @enum {string}
+             */
+            kaynak: "ders_sube" | "ders" | "okul" | "yok";
+            /**
+             * Metin
+             * @description "2+2+1" ya da "blok yok"
+             */
+            metin: string;
+            /** Nedenler */
+            nedenler: string[];
+            /** Sinif Adi */
+            sinif_adi: string;
+            /**
+             * Sinif Id
+             * Format: uuid
+             */
+            sinif_id: string;
+            /** Sorunlar */
+            sorunlar: string[];
+        };
+        /**
          * DersAtamaGuncelle
          * @description Sınıf ve ders değiştirilemez: (sınıf, ders) atamanın kimliğidir. Başka bir sınıf/ders için
          *     yeni atama oluşturulur. `ogretmen_id: null` göndermek öğretmeni boşaltır.
@@ -1032,7 +1100,9 @@ export interface components {
         KuralAyari: {
             /** Parametreler */
             parametreler?: {
-                [key: string]: number;
+                [key: string]: boolean | number | number[] | {
+                    [key: string]: number[];
+                };
             } | null;
             /** Seviye */
             seviye?: ("onemsiz" | "onemli" | "cok_onemli") | null;
@@ -1063,7 +1133,9 @@ export interface components {
             ozel_ayarlar: components["schemas"]["OzelAyarYanit"][];
             /** Parametreler */
             parametreler: {
-                [key: string]: number;
+                [key: string]: boolean | number | number[] | {
+                    [key: string]: number[];
+                };
             };
             /** Seviye */
             seviye: ("onemsiz" | "onemli" | "cok_onemli" | "ozel") | null;
@@ -1073,7 +1145,9 @@ export interface components {
             varsayilan: boolean;
             /** Varsayilan Parametreler */
             varsayilan_parametreler: {
-                [key: string]: number;
+                [key: string]: boolean | number | number[] | {
+                    [key: string]: number[];
+                };
             };
             /** Varsayilan Seviye */
             varsayilan_seviye: ("onemsiz" | "onemli" | "cok_onemli") | null;
@@ -1340,7 +1414,9 @@ export interface components {
             kapsam: components["schemas"]["KuralKapsami"];
             /** Parametreler */
             parametreler: {
-                [key: string]: number;
+                [key: string]: boolean | number | number[] | {
+                    [key: string]: number[];
+                };
             };
         };
         /** OzelAyarYanit */
@@ -1353,7 +1429,9 @@ export interface components {
             kapsam: components["schemas"]["KuralKapsami"];
             /** Parametreler */
             parametreler: {
-                [key: string]: number;
+                [key: string]: boolean | number | number[] | {
+                    [key: string]: number[];
+                };
             };
         };
         /** ProgramUret */
@@ -1853,6 +1931,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DagilimOzeti"];
+                };
+            };
+        };
+    };
+    dagilim_sekillerini_getir_api_ders_programi_dagilim_sekilleri_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DagilimSekli"][];
                 };
             };
         };

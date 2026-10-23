@@ -165,6 +165,105 @@
         "title": "DagilimOzeti",
         "type": "object"
       },
+      "DagilimSekli": {
+        "description": "Bir ders atamasının dağılım şekli (blok dersler) ve nereden geldiği (`cozucu.blok`).",
+        "properties": {
+          "atama_id": {
+            "format": "uuid",
+            "title": "Atama Id",
+            "type": "string"
+          },
+          "ders_id": {
+            "format": "uuid",
+            "title": "Ders Id",
+            "type": "string"
+          },
+          "desen": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Uygulanacak bloklar, büyükten küçüğe; None: blok yok",
+            "title": "Desen"
+          },
+          "dusen_oneri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dusen Oneri"
+          },
+          "haftalik_saat": {
+            "title": "Haftalik Saat",
+            "type": "integer"
+          },
+          "kaynak": {
+            "description": "ders_sube / ders: özel ayar; okul: okulun önerisi; yok: blok yok",
+            "enum": [
+              "ders_sube",
+              "ders",
+              "okul",
+              "yok"
+            ],
+            "title": "Kaynak",
+            "type": "string"
+          },
+          "metin": {
+            "description": "\"2+2+1\" ya da \"blok yok\"",
+            "title": "Metin",
+            "type": "string"
+          },
+          "nedenler": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Nedenler",
+            "type": "array"
+          },
+          "sinif_adi": {
+            "title": "Sinif Adi",
+            "type": "string"
+          },
+          "sinif_id": {
+            "format": "uuid",
+            "title": "Sinif Id",
+            "type": "string"
+          },
+          "sorunlar": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sorunlar",
+            "type": "array"
+          }
+        },
+        "required": [
+          "atama_id",
+          "ders_id",
+          "sinif_id",
+          "sinif_adi",
+          "haftalik_saat",
+          "desen",
+          "metin",
+          "kaynak",
+          "dusen_oneri",
+          "nedenler",
+          "sorunlar"
+        ],
+        "title": "DagilimSekli",
+        "type": "object"
+      },
       "DersAtamaGuncelle": {
         "description": "Sınıf ve ders değiştirilemez: (sınıf, ders) atamanın kimliğidir. Başka bir sınıf/ders için\nyeni atama oluşturulur. `ogretmen_id: null` göndermek öğretmeni boşaltır.",
         "properties": {
@@ -691,7 +790,29 @@
             "anyOf": [
               {
                 "additionalProperties": {
-                  "type": "integer"
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "items": {
+                        "type": "integer"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "additionalProperties": {
+                        "items": {
+                          "type": "integer"
+                        },
+                        "type": "array"
+                      },
+                      "type": "object"
+                    }
+                  ]
                 },
                 "type": "object"
               },
@@ -806,7 +927,29 @@
           },
           "parametreler": {
             "additionalProperties": {
-              "type": "integer"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                {
+                  "additionalProperties": {
+                    "items": {
+                      "type": "integer"
+                    },
+                    "type": "array"
+                  },
+                  "type": "object"
+                }
+              ]
             },
             "title": "Parametreler",
             "type": "object"
@@ -838,7 +981,29 @@
           },
           "varsayilan_parametreler": {
             "additionalProperties": {
-              "type": "integer"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                {
+                  "additionalProperties": {
+                    "items": {
+                      "type": "integer"
+                    },
+                    "type": "array"
+                  },
+                  "type": "object"
+                }
+              ]
             },
             "title": "Varsayilan Parametreler",
             "type": "object"
@@ -1497,7 +1662,29 @@
           },
           "parametreler": {
             "additionalProperties": {
-              "type": "integer"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                {
+                  "additionalProperties": {
+                    "items": {
+                      "type": "integer"
+                    },
+                    "type": "array"
+                  },
+                  "type": "object"
+                }
+              ]
             },
             "title": "Parametreler",
             "type": "object"
@@ -1522,7 +1709,29 @@
           },
           "parametreler": {
             "additionalProperties": {
-              "type": "integer"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                {
+                  "additionalProperties": {
+                    "items": {
+                      "type": "integer"
+                    },
+                    "type": "array"
+                  },
+                  "type": "object"
+                }
+              ]
             },
             "title": "Parametreler",
             "type": "object"
@@ -2483,6 +2692,32 @@
           }
         },
         "summary": "Dagilim Ozetini Getir",
+        "tags": [
+          "ders atama"
+        ]
+      }
+    },
+    "/api/ders-programi/dagilim-sekilleri": {
+      "get": {
+        "description": "Her ders atamasının dağılım şekli (blok dersler), nereden geldiği ve okul önerisi\nuygulanamadıysa nedeni. Hesap çözücüdekiyle aynı (`cozucu.blok`).",
+        "operationId": "dagilim_sekillerini_getir_api_ders_programi_dagilim_sekilleri_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DagilimSekli"
+                  },
+                  "title": "Response Dagilim Sekillerini Getir Api Ders Programi Dagilim Sekilleri Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Dagilim Sekillerini Getir",
         "tags": [
           "ders atama"
         ]

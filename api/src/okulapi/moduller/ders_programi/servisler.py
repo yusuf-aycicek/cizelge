@@ -15,6 +15,8 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
+from cozucu.blok import BlokHesabi
+from cozucu.kapsam import cozumle
 from cozucu.kisitlar import GirdiHatasi, kural_olustur
 from cozucu.model import KisitTanimi
 from cozucu.on_kontrol import on_kontrol
@@ -124,6 +126,46 @@ def on_kontrol_sonucu(oturum) -> list[dict[str, Any]]:
     aynıdır: burada geçen bir okul üretimde ön kontrolde takılmaz, takılan da burada görünür.
     Özel ayarlar, müsaitlik, kurallar dahil (dağılım özeti yalnızca yük hesabını içerir)."""
     return [{"tur": c.tur, "mesaj": c.mesaj, "ilgili": list(c.ilgili)} for c in on_kontrol(cozum_girdisi_olustur(oturum))]
+
+
+# Okul önerisinin bir atamada neden uygulanmadığı, kısaca (ders listesinde gösterilir).
+BLOK_SORUN_METINLERI = {
+    "toplam": "şeklin toplamı haftalık saate eşit değil",
+    "gunluk_sinir": "en büyük blok günlük sınırı aşıyor",
+    "gun_sayisi": "blok sayısı gün sayısından fazla",
+    "gune_sigmaz": "blok hiçbir güne sığmıyor (gün uzunluğu ya da öğle arası)",
+    "musaitlik": "öğretmenin müsaitliğine sığmıyor",
+    "kilit": "kilitli hücreler şekle uymuyor",
+}
+
+
+def dagilim_sekilleri(oturum) -> list[dict[str, Any]]:
+    """Her atamanın dağılım şekli ve kaynağı. Hesap çözücüdeki kuralla aynı (`cozucu.blok`)."""
+    girdi = cozum_girdisi_olustur(oturum)
+    hesap = BlokHesabi(girdi)
+    sinif_adi = {s.id: s.ad for s in girdi.siniflar}
+    satirlar = []
+    for a in girdi.atamalar:
+        istenen, desen = hesap.istenen(a), hesap.desen(a)
+        ozel = cozumle(hesap._ozeller, girdi.varlik(sinif_id=a.sinif_id, ders_id=a.ders_id))
+        if ozel is not None:
+            kaynak = "ders_sube" if ozel.kapsam.sinif_id else "ders"
+        else:
+            kaynak = "okul" if desen is not None else "yok"
+        dusen = istenen is not None and not istenen.ozel and desen is None
+        nedenler = hesap.sorunlar(a, istenen) if dusen else []
+        sorunlar = hesap.sorunlar(a, istenen) if istenen is not None and istenen.ozel else []
+        satirlar.append({
+            "atama_id": a.id, "ders_id": a.ders_id, "sinif_id": a.sinif_id, "sinif_adi": sinif_adi[a.sinif_id],
+            "haftalik_saat": a.haftalik_saat,
+            "desen": list(desen.bloklar) if desen else None,
+            "metin": desen.metin if desen else "blok yok",
+            "kaynak": kaynak,
+            "dusen_oneri": istenen.metin if dusen else None,
+            "nedenler": [BLOK_SORUN_METINLERI[n] for n in nedenler],
+            "sorunlar": [BLOK_SORUN_METINLERI[n] for n in sorunlar],
+        })
+    return satirlar
 
 
 def dagilim_ozeti(oturum) -> dict[str, Any]:

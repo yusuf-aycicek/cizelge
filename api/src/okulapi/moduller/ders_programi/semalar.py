@@ -207,13 +207,18 @@ class KisitYanit(_Yanit):
 OnemSeviyesi = Literal["onemsiz", "onemli", "cok_onemli"]
 
 
+# Kural parametresinin değeri: sayı (n, m, hedef boş gün), açık/kapalı (otomatik blok), dağılım
+# şekli ([2, 2, 1]) ya da saate göre şekiller ({"4": [2, 1, 1]}).
+ParametreDegeri = bool | int | list[int] | dict[str, list[int]]
+
+
 class KuralYanit(BaseModel):
     tur: str
     ad: str
     aciklama: str
     zorunlu: bool
-    parametreler: dict[str, int]
-    varsayilan_parametreler: dict[str, int]
+    parametreler: dict[str, ParametreDegeri]
+    varsayilan_parametreler: dict[str, ParametreDegeri]
     # Yalnızca esnek kurallarda: sayısal ağırlık ve karşılık gelen önem seviyesi ("ozel": hiçbir
     # seviyeye denk gelmeyen, elle girilmiş ağırlık).
     agirlik: int | None
@@ -226,7 +231,7 @@ class KuralYanit(BaseModel):
 
 
 class KuralAyari(BaseModel):
-    parametreler: dict[str, int] | None = None
+    parametreler: dict[str, ParametreDegeri] | None = None
     seviye: OnemSeviyesi | None = None
 
 
@@ -240,13 +245,32 @@ class KuralKapsami(BaseModel):
 
 class OzelAyar(BaseModel):
     kapsam: KuralKapsami
-    parametreler: dict[str, int]
+    parametreler: dict[str, ParametreDegeri]
 
 
 class OzelAyarYanit(BaseModel):
     kapsam: KuralKapsami
     ad: str = Field(description="Kapsamın adı: \"Ayşe Yılmaz\", \"9-A · Matematik\"")
-    parametreler: dict[str, int]
+    parametreler: dict[str, ParametreDegeri]
+
+
+class DagilimSekli(BaseModel):
+    """Bir ders atamasının dağılım şekli (blok dersler) ve nereden geldiği (`cozucu.blok`)."""
+
+    atama_id: uuid.UUID
+    ders_id: uuid.UUID
+    sinif_id: uuid.UUID
+    sinif_adi: str
+    haftalik_saat: int
+    desen: list[int] | None = Field(description="Uygulanacak bloklar, büyükten küçüğe; None: blok yok")
+    metin: str = Field(description="\"2+2+1\" ya da \"blok yok\"")
+    kaynak: Literal["ders_sube", "ders", "okul", "yok"] = Field(
+        description="ders_sube / ders: özel ayar; okul: okulun önerisi; yok: blok yok")
+    # Okul önerisi bu atamada uygulanamadıysa önerilen şekil ve neden(ler) (kaynak "yok" olur).
+    dusen_oneri: str | None
+    nedenler: list[str]
+    # Açıkça seçilmiş şekil uygulanamıyorsa ön kontrolün göreceği sorunlar (kısa metin).
+    sorunlar: list[str]
 
 
 # --- program -----------------------------------------------------------------------------

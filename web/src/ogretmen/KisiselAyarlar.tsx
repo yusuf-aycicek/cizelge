@@ -81,7 +81,7 @@ export function KisiselAyarlar({ ogretmenId, kurallar, okul }: {
         {OGRETMEN_AYARLARI.map((tanim) => {
           const kural = kurallar.find((k) => k.tur === tanim.tur);
           if (!kural || !kural.kapsamlar.includes("ogretmen")) return null;
-          const okulDegeri = kural.parametreler[tanim.parametre]!;
+          const okulDegeri = Number(kural.parametreler[tanim.parametre]); // bu kurallarda sayı
           const ozel = kural.ozel_ayarlar.find((o) => o.kapsam.ogretmen_id === ogretmenId);
           const deger = ozel?.parametreler[tanim.parametre];
           const id = `ayar-${tanim.tur}`;

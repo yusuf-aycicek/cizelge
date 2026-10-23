@@ -19,6 +19,7 @@ import uuid
 from collections import defaultdict
 from typing import Any
 
+from cozucu.blok import BLOK_DESENI_TURU, desen_dogrula
 from cozucu.kapsam import Kapsam
 from cozucu.kisitlar import KAYIT_DEFTERI, VARSAYILAN_KISITLAR, GirdiHatasi, kural_olustur
 from cozucu.model import KisitTanimi
@@ -51,7 +52,7 @@ KURAL_METINLERI: dict[str, tuple[str, str]] = {
         "Öğretmenin günlük ders sınırı",
         "Bir öğretmen günde en fazla bu kadar saat derse girer.",
     ),
-    "blok_deseni": (
+    BLOK_DESENI_TURU: (
         "Dağılım şekli (blok dersler)",
         "Bir dersin haftalık saatleri art arda bloklara bölünür (ör. 5 saat: 2+2+1); her blok ayrı "
         "bir günde. Okul önerisi uygulanamayan derste kendiliğinden kalkar.",
@@ -87,6 +88,17 @@ VARSAYILANLAR: dict[str, KisitTanimi] = {t.tur: t for t in VARSAYILAN_KISITLAR}
 
 # Parametrelerin en küçük değerleri: kullanıcının diliyle hata için (çözücü de ayrıca denetler).
 PARAMETRE_ALT_SINIRLARI = {"n": 1, "m": 1, "hedef_bos_gun": 0}
+# Okul tanımında verilmesi gerekmeyen parametreler ve özel ayarın okul tanımından farklı adları.
+ISTEGE_BAGLI_PARAMETRELER: dict[str, set[str]] = {BLOK_DESENI_TURU: {"varsayilanlar"}}
+OZEL_PARAMETRELER: dict[str, set[str]] = {BLOK_DESENI_TURU: {"desen"}}
+DESEN_ORNEGI = "Dağılım şekli \"2+2+1\" gibi olmalı; her blok 1-8 saat"
+
+
+def _desen(deger: Any) -> list[int]:
+    try:
+        return list(desen_dogrula(deger))
+    except ValueError as hata:
+        raise GecersizVeri(DESEN_ORNEGI) from hata
 
 # API'nin bugün desteklediği kapsam eksenleri (çözücüdeki adlarıyla). Şube grubu K5'te gelir.
 API_EKSENLERI = ("ogretmen", "ders", "sube")
@@ -175,14 +187,38 @@ class KurallarServisi:
                 ozel[k.tur].append(k)
         return [self._kural(tur, okul.get(tur), ozel.get(tur, [])) for tur in KURAL_METINLERI]
 
-    def _parametreleri_dogrula(self, tur: str, parametreler: dict[str, int]) -> None:
+    def _parametreleri_dogrula(self, tur: str, parametreler: dict[str, Any], ozel: bool = False) -> dict[str, Any]:
+        """Parametre adlarını ve değerlerini denetler; tek gösterime getirilmiş parametreleri döner."""
         v = VARSAYILANLAR[tur]
-        if set(parametreler) != set(v.parametreler):
-            raise GecersizVeri(f"Bu kuralın ayarları: {', '.join(v.parametreler) or 'yok'}")
+        gereken = OZEL_PARAMETRELER.get(tur, set(v.parametreler)) if ozel else set(v.parametreler)
+        olabilen = gereken | (set() if ozel else ISTEGE_BAGLI_PARAMETRELER.get(tur, set()))
+        if not gereken <= set(parametreler) <= olabilen:
+            raise GecersizVeri(f"Bu kuralın ayarları: {', '.join(sorted(olabilen)) or 'yok'}")
+        sonuc = dict(parametreler)
         for ad, deger in parametreler.items():
-            alt = PARAMETRE_ALT_SINIRLARI.get(ad, 0)
-            if deger < alt:
-                raise GecersizVeri(f"{KURAL_METINLERI[tur][0]}: en az {alt} olmalı")
+            if ad == "desen":
+                sonuc[ad] = _desen(deger)
+            elif ad == "otomatik":
+                if not isinstance(deger, bool):
+                    raise GecersizVeri("otomatik açık ya da kapalı (true/false) olmalı")
+            elif ad == "varsayilanlar":
+                if not isinstance(deger, dict):
+                    raise GecersizVeri("Saate göre dağılım şekilleri {\"4\": [2, 1, 1]} biçiminde olmalı")
+                sonuc[ad] = {}
+                for saat, desen in deger.items():
+                    if not str(saat).isdigit() or not 1 <= int(saat) <= 40:
+                        raise GecersizVeri(f"Haftalık saat 1-40 arasında olmalı: {saat}")
+                    bloklar = _desen(desen)
+                    if bloklar and sum(bloklar) != int(saat):
+                        raise GecersizVeri(
+                            f"{saat} saatlik dersin dağılım şekli {'+'.join(map(str, bloklar))} olamaz: "
+                            f"toplamı {sum(bloklar)} saat")
+                    sonuc[ad][str(int(saat))] = bloklar
+            elif isinstance(deger, bool) or not isinstance(deger, int):
+                raise GecersizVeri(f"{KURAL_METINLERI[tur][0]}: bir sayı olmalı")
+            elif deger < PARAMETRE_ALT_SINIRLARI.get(ad, 0):
+                raise GecersizVeri(f"{KURAL_METINLERI[tur][0]}: en az {PARAMETRE_ALT_SINIRLARI.get(ad, 0)} olmalı")
+        return sonuc
 
     def ayarla(self, tur: str, parametreler: dict[str, int] | None, onem: str | None) -> dict[str, Any]:
         if tur not in VARSAYILANLAR:
@@ -192,7 +228,7 @@ class KurallarServisi:
             raise GecersizVeri("Zorunlu kuralların önem seviyesi yoktur")
         kayit = self._kayit(tur)
         yeni_parametreler = {**(kayit.parametreler if kayit else v.parametreler), **(parametreler or {})}
-        self._parametreleri_dogrula(tur, yeni_parametreler)
+        yeni_parametreler = self._parametreleri_dogrula(tur, yeni_parametreler)
         agirlik = ONEM_KARSILIKLARI[tur][onem] if onem else (kayit.agirlik if kayit else v.agirlik)
         try:
             kural_olustur(KisitTanimi(tur, yeni_parametreler, zorunlu=v.zorunlu, agirlik=agirlik))
@@ -238,7 +274,7 @@ class KurallarServisi:
             # Otomatik okul filtresi yüzünden başka okulun kaydı da "bulunamaz" (bileşik FK da reddeder).
             if kimlik is not None and depo(self.oturum).getir(kimlik) is None:
                 raise GecersizVeri(f"{varlik} bu okulda bulunamadı")
-        self._parametreleri_dogrula(tur, parametreler)
+        parametreler = self._parametreleri_dogrula(tur, parametreler, ozel=True)
         okul = self._kayit(tur)
         v = VARSAYILANLAR[tur]
         zorunlu, agirlik = v.zorunlu, okul.agirlik if okul else v.agirlik

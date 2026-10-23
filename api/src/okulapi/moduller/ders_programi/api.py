@@ -20,6 +20,7 @@ from okulapi.moduller.ders_programi.servisler import (
     ProgramServisi,
     SeviyeSablonuServisi,
     dagilim_ozeti,
+    dagilim_sekilleri,
     on_kontrol_sonucu,
 )
 
@@ -42,6 +43,13 @@ def toplu_ogretmen_ata(veri: semalar.TopluOgretmenAta, oturum: OkulOturumu) -> A
     """Aynı öğretmeni birden fazla atamaya tek işlemde verir. Atamalardan biri bulunamazsa
     hiçbiri değişmez (404)."""
     return DersAtamaServisi(oturum).toplu_ogretmen_ata(veri.atama_idleri, veri.ogretmen_id)
+
+
+@router.get("/dagilim-sekilleri", response_model=list[semalar.DagilimSekli], tags=["ders atama"])
+def dagilim_sekillerini_getir(oturum: OkulOturumu) -> Any:
+    """Her ders atamasının dağılım şekli (blok dersler), nereden geldiği ve okul önerisi
+    uygulanamadıysa nedeni. Hesap çözücüdekiyle aynı (`cozucu.blok`)."""
+    return dagilim_sekilleri(oturum)
 
 
 @router.get("/dagilim-ozeti", response_model=semalar.DagilimOzeti, tags=["ders atama"])
