@@ -151,7 +151,7 @@ Tüm tablolarda `id` (uuid) ve `okul_id` (FK) bulunur. Aşağıda yalnızca diğ
 
 | Tablo | Alanlar | Açıklama |
 |---|---|---|
-| `okul` | ad, gun_sayisi, gunluk_ders_saati | Kök kayıt (okul_id yok) |
+| `okul` | ad, gun_sayisi, gunluk_ders_saati, gun_saatleri, ogle_arasi_sonra, ilk_ders_baslangic, ders_suresi_dk, teneffus_dk, ogle_arasi_dk | Kök kayıt (okul_id yok). `gun_saatleri` günlere göre ders saati (boş = her gün aynı; doluysa `gunluk_ders_saati` en uzun gün). Zil saatleri yalnızca gösterim |
 | `kullanici` | email, sifre_hash, ad, rol | Yönetici hesapları (rol: mudur / mudur_yardimcisi). E-posta bütün sistemde, büyük/küçük harf ayrımsız tektir. Her okulda en az bir müdür bulunur |
 | `oturum` | kullanici_id, jeton_ozeti, son_kullanim, hareketsizlik_siniri, bitis_mutlak | Giriş oturumları. Kullanıcı silinince silinir |
 | `ogretmen` | ad, brans | |
@@ -303,9 +303,9 @@ ne yapıldığını söyler. Öğretmen, ders ve şube bazında istisnalar için
 |---|---|---|
 | Haftadaki gün sayısı | 5 | Var (okul ayarı) |
 | Günlük ders saati | 8 (ortaokulda çoğunlukla 7) | Var (okul ayarı) |
-| Günlere göre farklı ders saati (ör. cuma 7) | Her gün aynı | Tasarımda (c) |
-| Öğle arasının yeri | Tanımsız (blokların bölünmesi denetlenmez) | Tasarımda (c) |
-| Ders saatlerinin başlangıç ve bitiş saatleri (yalnızca gösterim) | 08.30'da başlar, 40 dk ders, 10 dk teneffüs | Tasarımda (j) |
+| Günlere göre farklı ders saati (ör. cuma 7) | Her gün aynı | Var (okul ayarı, K3) |
+| Öğle arasının yeri | Tanımsız (blokların bölünmesi denetlenmez) | Var (okul ayarı, K3): çizelgede ayraç; öğle arasıyla bölünen ders "bölünmüş" sayılır |
+| Ders saatlerinin başlangıç ve bitiş saatleri (yalnızca gösterim) | 08.30'da başlar, 40 dk ders, 10 dk teneffüs | Var (okul ayarı, K3; isteğe bağlı, açılınca bu değerlerle başlar) |
 | Aynı dersin bir şubeye günlük sınırı (N) | 2 | Okul geneli var; derse, şubeye özel çözücüde ve API'de var (K1), arayüzü K4'te (e) |
 | Öğretmenin günlük ders sınırı (M) | 8 | Var: okul geneli ve öğretmene özel (öğretmen sayfası, K2) |
 | Öğretmene boş gün hedefi | Okul geneli 1; öğretmene özel 0, 1 ya da 2 | Var: okul geneli ve öğretmene özel (öğretmen sayfası, K2) |

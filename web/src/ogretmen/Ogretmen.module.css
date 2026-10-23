@@ -284,14 +284,15 @@
   font-size: 0.7rem;
   font-variant-numeric: tabular-nums;
 }
+/* Burada çizgili desen "gelemez"in deseniyle karışırdı: sade, soluk alan ve ortada uzun çizgi. */
 .yok {
   border-radius: var(--kose);
-  background: repeating-linear-gradient(
-    135deg,
-    transparent 0 0.4rem,
-    color-mix(in srgb, var(--renk-kenar) 55%, transparent) 0.4rem 0.5rem
-  );
-  opacity: 0.7;
+  background: color-mix(in srgb, var(--renk-kenar) 25%, transparent);
+  text-align: center;
+  color: var(--renk-metin-ikincil);
+}
+.yok::before {
+  content: "—" / ""; /* boş alternatif metin: ekran okuyucu çizgiyi okumaz, hücredeki metni okur */
 }
 .ogleArasi th {
   padding: 0;

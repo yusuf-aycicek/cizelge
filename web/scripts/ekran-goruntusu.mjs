@@ -620,6 +620,42 @@ AKISLAR["k2"] = async (tarayici, kaydet) => {
   await baglam.close();
 };
 
+// K3: günlere göre ders saati, öğle arası, zil saatleri. Örnek okul önceden deneme ayarına getirilmiş
+// olmalı (cuma kısa, öğle arası, zil) ve K3_PROGRAM o ayarla üretilmiş programın kimliği olmalı.
+// Akış hiçbir şeyi kaydetmez: kısaltma penceresinde "Vazgeç" seçilir.
+AKISLAR["k3"] = async (tarayici, kaydet) => {
+  const program = process.env.K3_PROGRAM;
+  if (!program) throw new Error("K3_PROGRAM verilmeli");
+  const { baglam, s } = await ornekGiris(tarayici, MASAUSTU);
+  await s.goto(ADRES + "/okul");
+  await s.getByRole("group", { name: "Her gün kaç ders saati var" }).waitFor();
+  await s.waitForTimeout(600);
+  await kaydet(s, "01-okul-ayarlari.png", true);
+  // Bir günü daha kısaltmak: kaydetmeden önce etkiler (ADR 0014). Vazgeçilir.
+  const persembe = s.getByRole("group", { name: "Her gün kaç ders saati var" }).getByLabel("Perşembe");
+  await persembe.fill("4");
+  await s.getByRole("button", { name: "Kaydet", exact: true }).click();
+  await s.getByRole("dialog", { name: "Bu değişiklik mevcut kayıtları etkileyecek" }).waitFor();
+  await s.waitForTimeout(500);
+  await kaydet(s, "02-kisaltma-onayi.png");
+  await s.getByRole("button", { name: "Vazgeç" }).click();
+  for (const [ad, viewport] of [["1366", MASAUSTU], ["800", { width: 800, height: 900 }]]) {
+    const sayfa = ad === "1366" ? s : await baglam.newPage();
+    if (ad !== "1366") await sayfa.setViewportSize(viewport);
+    await sayfa.goto(`${ADRES}/program/${program}`);
+    await sayfa.getByRole("table", { name: /haftalık programı/ }).waitFor();
+    await sayfa.waitForTimeout(1500);
+    await kaydet(sayfa, `03-cizelge-${ad}.png`, true);
+  }
+  await s.goto(ADRES + "/ogretmenler");
+  await s.getByRole("table", { name: "Öğretmenler" }).getByRole("link", { name: /Fatma Şahin/ }).click();
+  await s.getByRole("table", { name: /müsaitlik çizelgesi/ }).waitFor();
+  await s.getByRole("table", { name: /müsaitlik çizelgesi/ }).scrollIntoViewIfNeeded();
+  await s.waitForTimeout(800);
+  await kaydet(s, "04-musaitlik.png");
+  await baglam.close();
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {
