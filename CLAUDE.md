@@ -9,7 +9,8 @@ Okul yöneticisi öğretmenleri, sınıfları, dersleri ve kimin hangi sınıfa 
 verdiğini girer. Kısıtları tanımlar. Sistem arka planda, hiçbir öğretmenin ve sınıfın aynı saatte iki
 yerde olmadığı bir haftalık program üretir. Yönetici sonucu görür, elle düzeltir, çıktı alır.
 
-- İlk gerçek kullanıcı: bir okul müdürü (test verisi onun okulundan gelecek).
+- Belirli bir okul için değil, bütün okullar için genel bir sistemdir (dönem projesi). Okuldan
+  okula değişen her şey ayarlanabilir olmalı; makul varsayılanlarla çalışmalıdır (bkz. bölüm 10).
 - Hedef: birden fazla okulun birbirinden bağımsız kullanabilmesi.
 - Hedef kademe: lise ve ortaokul.
 - Proje aynı zamanda bir yazılım tasarımı ve mimarisi dersinde sunulacak. Mimari kararların
@@ -57,7 +58,7 @@ yerde olmadığı bir haftalık program üretir. Yönetici sonucu görür, elle 
 - İkili öğretim
 - Öğretmen hesapları
 
-Bu listedeki maddelerin önceliği, okul müdüründen gelecek cevaplara göre değişebilir (bkz. bölüm 10).
+Bu listedeki maddelerin önceliği değişebilir; okullar arasında değişen konular bölüm 10'dadır.
 
 ## 4. Mimari
 
@@ -229,7 +230,7 @@ ve öncelik sırası:
 - **Gerçekçi:** yaklaşık 24 şube, 45 öğretmen, 5 gün, günde 8 saat, öğretmen müsaitlik kısıtlarıyla.
 - **Büyük:** yaklaşık 40 şube, 80 öğretmen. Süre ölçümü için.
 
-Gerçek okul verisi geldiğinde gerçekçi setin yerini alır. Veriler uydurma üretilirken her sınıfın
+Gerçek bir okulun verisi elde edilirse gerçekçi setin yanına eklenir. Veriler uydurma üretilirken her sınıfın
 ve öğretmenin toplam saati kapasiteyi aşmayacak şekilde, çözümü olan setler üretilir.
 
 Her çözüm için otomatik doğrulama testi yazılır: çakışma yok, tüm saatler yerleşmiş, zorunlu
@@ -266,6 +267,11 @@ Her adımın sonunda çalışan ve test edilen bir şey olmalı. Bir adım bitme
    veri değişse de aynı kalır, veri değiştiğinde "eski veriyle üretildi" uyarısı gösterilir
    (bkz. docs/api-plani.md bölüm 15).
 
+**Sıra değişikliği (kullanıcı kararı):** 5. adımın son iki alt adımı (müsaitlik çizelgesi;
+kullanıcılar ve uçtan uca) ertelendi. Sistemin ekranda uçtan uca kullanılabilmesi için önce 6.
+adımın ilk iki alt adımı (program üretme, haftalık çizelge) yapılır. Örnek okulda müsaitlik verisi
+olduğu için bu sıra çözücüyü eksik veriyle çalıştırmaz. Ayrıntı ve durum: docs/arayuz-plani.md.
+
 ## 9. Çalışma kuralları
 
 - Küçük adımlarla ilerle. Her adımda ne yapılacağını önce kısaca söyle, sonra yap.
@@ -283,20 +289,38 @@ Her adımın sonunda çalışan ve test edilen bir şey olmalı. Bir adım bitme
 - Kapsam dışı bir özelliği sormadan ekleme.
 - Bu dosyadaki bir kararın yanlış olduğunu düşünürsen uygulamadan önce söyle.
 
-## 10. Açık sorular
+## 10. Okuldan okula değişen konular (ayarlanabilir olmalı)
 
-Okul müdüründen beklenen bilgiler. Cevaplar geldikçe ilgili bölümler güncellenir.
+Sistem genel olduğu için aşağıdakiler bir okulun kararıdır, kodun değil. Her biri ayarlanabilir
+olmalı ve okul hiçbir şey girmese de makul bir varsayılanla çalışmalıdır. "Durum" sütunu bugün
+ne yapıldığını söyler. Öğretmen, ders ve şube bazında istisnalar için tasarım:
+`docs/kisisellestirme-plani.md` (harfler oradaki ihtiyaç listesidir).
 
-- Şube ve öğretmen sayısı, günlük ders saati, ikili öğretim durumu
-- Bu yılın ders dağıtım çizelgesi ve mevcut haftalık programı (test verisi)
-- Programı şu an nasıl hazırladıkları ve en çok neyin uğraştırdığı
-- Hangi kuralların gerçekten gerekli olduğu (boş gün talepleri, başka okulda da görevli öğretmen,
-  blok dersler)
-- Öğretmene boş gün ne kadar önemli? Gerçekçi test setinde öğretmenlerin yaklaşık yarısı hedef
-  boş gününe ulaşamıyor. Bu bir hata değil, ağırlık tercihi: boş gün (4) sınıf boşluğundan (30),
-  tercih etmezden (5) ve değişiklikten (8) hafif. Müdürün boş güne verdiği öneme göre ağırlık
-  ayarlanacak.
-- Arayüzde esnek kurallar "Önemsiz / Önemli / Çok önemli" olarak seçilir. Her kuralın bu
-  seviyelere karşılık gelen ağırlıkları API'de tek yerde tanımlıdır; "Önemli" bugünkü
-  varsayılandır (docs/arayuz-plani.md bölüm 2.3). Müdürün cevaplarına göre bu karşılıklar
-  (özellikle "Önemsiz" ve "Çok önemli" değerleri) ayarlanacak.
+| Konu | Önerilen varsayılan | Durum |
+|---|---|---|
+| Haftadaki gün sayısı | 5 | Var (okul ayarı) |
+| Günlük ders saati | 8 (ortaokulda çoğunlukla 7) | Var (okul ayarı) |
+| Günlere göre farklı ders saati (ör. cuma 7) | Her gün aynı | Tasarımda (c) |
+| Öğle arasının yeri | Tanımsız (blokların bölünmesi denetlenmez) | Tasarımda (c) |
+| Ders saatlerinin başlangıç ve bitiş saatleri (yalnızca gösterim) | 08.30'da başlar, 40 dk ders, 10 dk teneffüs | Tasarımda (j) |
+| Aynı dersin bir şubeye günlük sınırı (N) | 2 | Okul geneli var; derse özel tasarımda (e) |
+| Öğretmenin günlük ders sınırı (M) | 8 | Var (kural) |
+| Öğretmene boş gün hedefi | Okul geneli 1; öğretmene özel 0, 1 ya da 2 | Okul geneli var; öğretmene özel tasarımda (d) |
+| Dersin bloklara bölünmesi | 1 saat: 1; 2: 2; 3: 2+1; 4: 2+2; 5: 2+2+1; 6: 2+2+2 | Tasarımda (b) |
+| Şube grupları (alanlar: sayısal, sözel, eşit ağırlık, dil) | Grup = seviye | Tasarımda (a) |
+| Şubeye özel "bu dersi almaz / ek alır" | Yok | Tasarımda (a) |
+| Dersin saat tercihi (ör. Matematik sabah) | Yok | Tasarımda (f) |
+| Öğretmenin geldiği günde en az ders | 2, esnek ("bir saat için gelmem") | Tasarımda (g) |
+| Aynı dersin günlere yayılması | Açık, "Önemli" | Tasarımda (h) |
+| Öğretmenin haftalık yük eşikleri (maaş karşılığı, ek ders üst sınırı) | Kapalı; okul girerse uyarı | Tasarımda (i) |
+| Esnek kuralların önemi | "Önemli" = bölüm 7'deki ağırlıklar | Var ("Önemsiz / Önemli / Çok önemli") |
+| Program üretme süre sınırı | 120 sn | Var |
+| Başka okulda da görevli öğretmen | Müsaitlik çizelgesiyle ("gelemez" günler) | Var |
+| İkili öğretim | Tekli | İlk sürümde yok (bölüm 3) |
+
+Notlar:
+- Gerçekçi test setinde öğretmenlerin yaklaşık yarısı hedef boş gününe ulaşamıyor. Bu bir hata
+  değil, varsayılan ağırlık tercihi: boş gün (4) sınıf boşluğundan (30), tercih etmezden (5) ve
+  değişiklikten (8) hafif. Okul önemini "Çok önemli" yaparak değiştirebilir.
+- Önem seviyelerinin sayısal karşılıkları API'de tek yerde tanımlıdır (docs/arayuz-plani.md
+  2.3); ölçümlerle ayarlanabilir.

@@ -301,8 +301,14 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 | 5.2 | Kimlik | Bitti (2026-10-16) |
 | 5.3 | Okul ayarları ve listeler | Bitti (2026-10-16) |
 | 5.4 | Seviye şablonu ve ders dağılımı | Bitti (2026-10-16) |
-| 5.5 | Müsaitlik çizelgesi | **Sıradaki** |
-| 5.6 | Kullanıcılar, kontrol listesi, uçtan uca | |
+| 5.5 | Müsaitlik çizelgesi | Ertelendi (6.1 ve 6.2'den sonra) |
+| 5.6 | Kullanıcılar, kontrol listesi, uçtan uca | Ertelendi (kontrol listesi tasarım 3e'de yapıldı) |
+| 6.1 | Program üretme ekranı ve durum takibi | **Sıradaki** |
+| 6.2 | Haftalık çizelge görünümü ve kalite özeti | |
+| K | Kişiselleştirme katmanı: yalnızca tasarım (`docs/kisisellestirme-plani.md`), onaydan sonra uygulanır | |
+
+Sıra değişikliği (kullanıcı kararı): sistemin ekranda uçtan uca kullanılabilmesi için 5.5 ve 5.6
+ertelendi, önce yapım sırası 6'nın ilk iki alt adımı yapılır. Örnek okulda müsaitlik verisi var.
 
 5.1'den notlar:
 - **Backend:**
@@ -470,7 +476,7 @@ Yarıda kalırsa sonraki oturum buradan devam eder.
 | 0 | Örnek okul komutu (`python -m okulapi ornek-okul --evet`, README) | Bitti |
 | 1 | İki tasarım yönü, beşer masaüstü ekran görüntüsü (giriş, ana sayfa, öğretmenler, okul ayarları, ders dağılımı); **kullanıcının seçimi beklenir** | Bitti. **Seçim: A (sıcak ve yumuşak)**, kullanıcı 2026-10-23 |
 | 2 | (1 ile birlikte, iki yönde ortak) animasyonlar, ikonlar, kartlar, yazı tipi | Bitti (2a, 2b) |
-| 3 | A'nın tek tasarım olarak uygulanması ve zenginleştirilmesi (alt parçalar aşağıda); 5.5'ten önce kullanıcıya sorulur | Bitti (2026-10-23); kullanıcının onayı bekleniyor |
+| 3 | A'nın tek tasarım olarak uygulanması ve zenginleştirilmesi (alt parçalar aşağıda); 5.5'ten önce kullanıcıya sorulur | Bitti (2026-10-23), kullanıcı onayladı |
 
 Parça 3'ün alt parçaları (kullanıcı isteği 2026-10-23: "yalnızca renk değişikliği gibi durmasın"):
 
@@ -578,12 +584,19 @@ Parça 0 notları: `api/src/okulapi/ornek_okul.py`.
 - ilerleme göstergesi;
 - çizelgenin yerleşmesi (hücrelerin sırayla yerine oturması).
 
-1. **Program üretme ve durum:**
-   - "Program üret" (ad, süre; temel program seçimi);
-   - durum göstergesi (`refetchInterval` ile sorgulama; bekliyor → üretiliyor → hazır);
-   - başarısızlıkta çelişkilerin anlaşılır gösterimi, ilgili öğretmen ya da şubeye bağlantıyla.
-2. **Haftalık çizelge görünümü:** şube ve öğretmen bazında çizelge bileşeni (gün × saat), program
-   seçimi, yazdırmaya uygun sade görünüm.
+1. **Program üretme ve durum (6.1):**
+   - "Programı oluştur" düğmesi; öncesinde dağılım özetindeki uyarılar (öğretmensiz ders,
+     kapasite aşımı) gösterilir;
+   - durum takibi (`refetchInterval` ile sorgulama; bekliyor → üretiliyor → hazır);
+   - bekleme ekranı: canlı ama sakin ilerleme göstergesi ve aşamaların görünmesi;
+   - başarısızlıkta ön kontrol ve çelişki mesajları anlaşılır biçimde;
+   - ana sayfa panosuna "Programı oluştur" adımı ve son programa bağlantı.
+2. **Haftalık çizelge görünümü (6.2):**
+   - şube ya da öğretmen seçilir, o haftalık program gösterilir;
+   - hücrede ders çipi ve ders adı; şube görünümünde öğretmen rozeti, öğretmen görünümünde şube
+     adı; boş saatler sade;
+   - program hazır olunca hücreler kısa ve yumuşak bir sırayla yerleşir (hareket azaltmaya uyar);
+   - altında kalite özeti sade Türkçe (boş gün, pencere saati, sınıf boşluğu).
 3. **Programlar ve yeniden üretme:**
    - program listesi;
    - kalite ölçümlerinin sade dille gösterimi ("2 öğretmenin penceresi var, sınıflarda boş saat
