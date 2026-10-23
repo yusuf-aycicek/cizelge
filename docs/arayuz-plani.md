@@ -327,8 +327,8 @@ Uygulama sırası (kullanıcı kararı; her alt adımın sonunda kullanıcıya s
 | D1 | Program sayfasındaki ön kontrol üretimdekiyle aynı (özel ayarlar dahil); hata varsa düğme pasif | Bitti: `GET /on-kontrol` worker'ın girdisi ve `cozucu.on_kontrol` ile; engeller ondan; test: özet temizken özel ayar hatası iki yerde aynı. K1 deneme özel ayarları geliştirme veritabanından silindi |
 | D2 | Çizelge hücrelerinde dar alanda kısa ders adı ve kısaltılmış öğretmen adı | Bitti: `useDarAlan` adın doğal genişliğini ölçer (ResizeObserver), sığmazsa kısa biçim ("TDE", "Z. Demir"); tam ad `title` ve ekran okuyucuda. Ekran: docs/ekranlar/duzeltmeler/ |
 | D3 | Sol menü masaüstünde yapışkan (sticky) | Bitti: menü listesi `position: sticky`, üst çubuğun altında; ekrandan uzunsa kendi içinde kayar; telefonda değişmedi |
-| D4 | Programlar tablosu 800 px'te sığar; taşma denetimine 800 px | **Sıradaki** |
-| D5 | Uygulamanın adı "Çizelge" | |
+| D4 | Programlar tablosu 800 px'te sığar; taşma denetimine 800 px | Bitti: oluşturma ve süre tek sütunda, uzun ad kırılır. Taşma denetimi 800 px'i de dener ve artık **kutu içi yana kaymayı** da yakalar (eski sürüm yalnızca sayfa taşmasına bakıyordu, bu hatayı göremezdi). Yeni denetim 800 px'te öğretmenler, dersler, şablon ve ders dağılımı tablolarında da kayma buldu; düzeltildi: tablo kutusu container query ile dar alanda sıkışır, tablo hücresindeki çip satır kırar, ders dağılımında 64rem altında şube listesi üste alınır. Bilerek kayan haftalık çizelge `data-kaydirilabilir` ile işaretli. Denetime hazır bir program ve çizelgesi de eklendi |
+| D5 | Uygulamanın adı "Çizelge" | **Sıradaki** |
 | D6 | Program sayfası: hazır program öne, son başarısız deneme sade ve açılabilir | |
 | K2 + 5.5 | Öğretmene özel boş gün ve müsaitlik çizelgesi: öğretmen detay sayfası | |
 | K3 | Günlere göre ders saati ve öğle arası | |

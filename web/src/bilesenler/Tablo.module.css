@@ -4,6 +4,9 @@
      kaçıp bütün sayfayı yatayda genişletir (5.4 ekran görüntüsünde yakalandı). */
   position: relative;
   overflow-x: auto;
+  /* Kutu bir "container": içindeki hücreler pencereye değil kutunun genişliğine göre sıkışır
+     (aşağıdaki @container). Menü yanda dururken 800 px'lik pencerede içerik alanı ~500 px'tir. */
+  container-type: inline-size;
   border: 1px solid var(--renk-kenar);
   border-radius: var(--kose-buyuk);
   background: var(--renk-zemin);
@@ -27,7 +30,14 @@
   padding: var(--bosluk-3) var(--bosluk-4);
   text-align: left;
   border-bottom: 1px solid var(--renk-kenar);
+}
+/* Başlıklar tek satır; hücre metni dar alanda kırılır (uzun ad, branş). Hepsi nowrap iken tablo
+   800 px'te kendi kutusunda yana kayıyordu (taşma denetimi, D4). Kelimenin ortasından kırılmaz. */
+.tablo th {
   white-space: nowrap;
+}
+.tablo td {
+  overflow-wrap: break-word;
 }
 
 .tablo th {
@@ -81,4 +91,12 @@
   color: var(--renk-metin-ikincil);
   padding: var(--bosluk-6) var(--bosluk-4) !important;
   white-space: normal !important;
+}
+
+/* Dar kutuda hücre iç boşlukları azalır: tablo yana kaymadan sığar. */
+@container (max-width: 36rem) {
+  .tablo th,
+  .tablo td {
+    padding-inline: var(--bosluk-2);
+  }
 }

@@ -22,7 +22,7 @@
 
 .hazirNotu {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--bosluk-2);
   color: var(--renk-basari-metin);
   font-weight: var(--yazi-kalin);
@@ -30,6 +30,8 @@
 .hazirNotu svg {
   width: 1.2rem;
   height: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
 }
 
 .olusturFormu {
@@ -414,4 +416,18 @@ ul.celiskiGrubu {
   .cizelgeBaglantisi {
     margin-inline-start: 0;
   }
+}
+
+/* Programlar tablosu: uzun ad kırılır; süre zamanın altında. */
+.sarar {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.ikincilSatir {
+  display: block;
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
+}
+.tekSatir {
+  white-space: nowrap;
 }

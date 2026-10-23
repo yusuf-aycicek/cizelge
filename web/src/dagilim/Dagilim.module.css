@@ -360,6 +360,21 @@
   padding-inline-start: var(--bosluk-5);
 }
 
+/* Menü yanda dururken içerik alanı 64rem'lik pencerenin altında ~45rem'den dar kalır: şube listesi
+   ile tablo yan yana sığmaz (800 px'te tablo kendi kutusunda kayıyordu, D4). Liste üste alınır. */
+@media (max-width: 64rem) {
+  .ikiSutun {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .subeListesi {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .subeListesi li {
+    flex: 0 1 9rem;
+  }
+}
+
 @media (max-width: 48rem) {
   .ikiSutun {
     /* minmax(0, ...): 1fr'nin alt sınırı içeriktir; geniş tablo sütunu sayfadan taşırırdı. */
@@ -374,5 +389,19 @@
   }
   .ekleDugmesi {
     margin-top: 0;
+  }
+}
+
+/* Tablo kutusu dar olunca (container query, Tablo.module.css) seçici ve saat kutusu küçülür. */
+@container (max-width: 36rem) {
+  .secici {
+    min-width: 7rem;
+  }
+  .saat {
+    width: 3.5rem;
+  }
+  .islemler {
+    flex-direction: column;
+    align-items: flex-end;
   }
 }

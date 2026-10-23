@@ -125,3 +125,12 @@
   display: inline-block;
   max-width: 100%;
 }
+
+/* Tablo hücresindeki çip (ders listesi, dağılım, şablon) dar alanda satır kırar; tablo hücresi
+   içeriğe göre genişlediği için tek satırlık çip tabloyu kendi kutusunda yana kaydırıyordu (D4).
+   Çizelge hücresindeki çip hariç: o kısa ada geçer (cipKutusu). */
+td .cip:not(.cipKutusu .cip) {
+  white-space: normal;
+  text-overflow: clip;
+  border-radius: var(--kose);
+}

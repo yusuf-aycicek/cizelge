@@ -164,7 +164,8 @@ type CizelgeProps = {
 function Cizelge({ baslik, gunSayisi, saatSayisi, hucreler, gorunum, ders, dersIsareti, sinif, ogretmen }: CizelgeProps) {
   const gunler = Array.from({ length: gunSayisi }, (_, g) => GUN_ADLARI[g] ?? `${g + 1}. gün`);
   return (
-    <div className={stil.kutu}>
+    // Haftalık çizelge dar ekranda bilerek yana kayar (en az 44rem); taşma denetimi bunu bilir.
+    <div className={stil.kutu} data-kaydirilabilir>
       <table className={stil.cizelge}>
         <caption className="gorunmez">{baslik}</caption>
         <thead>

@@ -338,18 +338,27 @@ function OncekiProgramlar({ programlar }: { programlar: Program[] }) {
         satirlar={sirali}
         satirAnahtari={(p) => p.id}
         sutunlar={[
-          { baslik: "Ad", hucre: (p) => p.ad },
+          // Uzun ad satır kırar; tablo dar alanda (800 px) yana kaymasın.
+          { baslik: "Ad", hucre: (p) => <span className={stil.sarar}>{p.ad}</span> },
           {
             baslik: "Durum",
             hucre: (p) => <span className={`${stil.durumRozeti} ${stil[`durum_${p.durum}`] ?? ""}`}>{DURUM_ADLARI[p.durum] ?? p.durum}</span>,
           },
-          { baslik: "Oluşturma", hucre: (p) => tarih(p.olusturma) },
-          { baslik: "Süre", hucre: (p) => (p.sure_sn != null ? sureMetni(p.sure_sn) : "") },
+          {
+            // Oluşturma zamanı ve süre tek sütunda, alt alta: ayrı sütun dar ekranda tabloyu taşırıyordu.
+            baslik: "Oluşturma",
+            hucre: (p) => (
+              <>
+                {tarih(p.olusturma)}
+                {p.sure_sn != null && <span className={stil.ikincilSatir}>{sureMetni(p.sure_sn)} sürdü</span>}
+              </>
+            ),
+          },
           {
             baslik: "Çizelge",
             baslikGizli: true,
             hizala: "sag",
-            hucre: (p) => (p.durum === "hazir" ? <Link to={`/program/${p.id}`}>Çizelgeyi aç</Link> : null),
+            hucre: (p) => (p.durum === "hazir" ? <Link to={`/program/${p.id}`} className={stil.tekSatir}>Çizelgeyi aç</Link> : null),
           },
         ]}
       />
