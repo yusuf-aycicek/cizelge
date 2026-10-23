@@ -1,4 +1,4 @@
-# Okul Ders Programı Sistemi
+# Çizelge – Okul Ders Programı Oluşturma Sistemi
 
 Okullar için çakışmasız haftalık ders programı üreten, çok okullu (multi-tenant) web uygulaması.
 Kararların ve kapsamın tek doğruluk kaynağı [CLAUDE.md](CLAUDE.md).

@@ -1,4 +1,4 @@
-# Okul Ders Programı Sistemi
+# Çizelge – Okul Ders Programı Oluşturma Sistemi
 
 Okullar için çakışmasız haftalık ders programı üreten çok okullu (multi-tenant) web uygulaması.
 Bu dosya projenin tek doğruluk kaynağıdır. Bir karar değişirse önce burası güncellenir.

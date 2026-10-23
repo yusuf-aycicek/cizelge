@@ -114,3 +114,15 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Giriş ve kayıt sayfasında ürün adı ve altında açıklaması. */
+.urunAdi {
+  display: block;
+  line-height: 1.2;
+}
+.urunAciklamasi {
+  display: block;
+  font-size: var(--yazi-kucuk);
+  font-weight: 400;
+  color: var(--renk-metin-ikincil);
+}

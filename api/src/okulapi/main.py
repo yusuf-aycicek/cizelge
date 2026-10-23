@@ -53,7 +53,7 @@ def _ayar_etkisi_isleyici(_istek: Request, hata: Exception) -> JSONResponse:
 
 def uygulama_olustur(ayarlar: Ayarlar | None = None) -> FastAPI:
     ayarlar = ayarlar or Ayarlar()
-    uygulama = FastAPI(title="Okul Ders Programı API", version="0.1.0")
+    uygulama = FastAPI(title="Çizelge API", version="0.1.0")
     uygulama.state.ayarlar = ayarlar
     uygulama.state.motor = motor_olustur(ayarlar.veritabani_url)
     uygulama.state.oturum_fabrikasi = oturum_fabrikasi(uygulama.state.motor)

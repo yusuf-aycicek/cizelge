@@ -21,6 +21,7 @@ import { useBildirimleriTemizle } from "../bilesenler/Bildirim";
 import { api } from "../api/istemci";
 import { BEN_ANAHTARI, ROL_ADLARI, useBen } from "../kimlik/oturum";
 import type { GirisDurumu } from "../kimlik/KorumaliAlan";
+import { UYGULAMA_ADI } from "../urun";
 import stil from "./Cerceve.module.css";
 
 /** Menüdeki sayfalar. Henüz yapılmamış olanlar "hazırlanıyor" sayfası gösterir. */
@@ -90,7 +91,7 @@ export function Cerceve() {
         </button>
         <span className={stil.urun}>
           <CalendarDays aria-hidden="true" className={stil.urunIkonu} />
-          Ders Programı
+          {UYGULAMA_ADI}
         </span>
         {ben && (
           <div className={stil.kullanici}>

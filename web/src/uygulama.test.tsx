@@ -4,8 +4,29 @@ import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import { BAGLANTI_HATASI } from "./api/hata";
 import { MENU } from "./cerceve/Cerceve";
-import { sunucu } from "./test/sunucu";
+import { oturumYok, sunucu } from "./test/sunucu";
 import { uygulamayiCiz } from "./test/yardimcilar";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { SEKME_BASLIGI, UYGULAMA_ACIKLAMASI, UYGULAMA_ADI } from "./urun";
+
+describe("uygulamanın adı", () => {
+  it("adı Çizelge: üst çubukta, giriş sayfasında ve sekme başlığında", async () => {
+    expect(UYGULAMA_ADI).toBe("Çizelge");
+    expect(SEKME_BASLIGI).toBe("Çizelge – Okul Ders Programı Oluşturma Sistemi");
+    expect(readFileSync(resolve("index.html"), "utf-8")).toContain(`<title>${SEKME_BASLIGI}</title>`);
+
+    uygulamayiCiz("/");
+    expect(await screen.findByRole("banner")).toHaveTextContent(UYGULAMA_ADI);
+  });
+
+  it("giriş sayfasında ad ve açıklaması", async () => {
+    oturumYok();
+    uygulamayiCiz("/giris");
+    expect(await screen.findByText(UYGULAMA_ADI)).toBeInTheDocument();
+    expect(screen.getByText(UYGULAMA_ACIKLAMASI)).toBeInTheDocument();
+  });
+});
 
 describe("ana sayfa ve sistem durumu", () => {
   it("API çalışıyorsa durum iyi görünür", async () => {
