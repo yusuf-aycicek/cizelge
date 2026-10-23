@@ -1,6 +1,6 @@
 # ADR 0016: Kural kapsamı: en özel kapsam kazanır
 
-Durum: **Önerildi** (kullanıcının onayı bekleniyor). Ayrıntılı tasarım:
+Durum: **Kabul edildi** (kullanıcı onayladı). Ayrıntılı tasarım:
 `docs/kisisellestirme-plani.md`.
 
 ## Bağlam
@@ -17,8 +17,12 @@ Sistem bütün okullar için genel olduğundan bu istisnalar kodla değil, ayarl
 
 - **Kapsam:** bir kural tanımı, eksenlerin birleşimi olan bir kapsam taşır: `(ders?, şube? |
   şube grubu?, öğretmen?)`. Boş eksen her şeye uyar; dört eksen de boşsa kapsam okul genelidir.
-- **En özel kapsam kazanır.** Özgüllük puanı: ders 4, şube 2, şube grubu 1, öğretmen 2. Öğretmen
-  ekseni öteki eksenlerle aynı tanımda kullanılmaz; böylece eşitlik oluşmaz.
+- **En özel kapsam kazanır.** Özgüllük puanı: ders 4, şube 2, şube grubu 1, öğretmen 1.
+- **Öğretmen kapsamı ders ve şube kapsamıyla çakışamaz.** Kurallar iki ayrık aileye ayrılır:
+  öğretmenin kendisiyle ilgili olanlar (M, boş gün, günde en az ders) yalnızca öğretmen ekseni;
+  yerleşimle ilgili olanlar (N, blok, saat tercihi, yayılım) yalnızca ders, şube ve şube grubu
+  eksenleri. İkisini birden bildiren kural sınıfı kayıt anında reddedilir (testle denetlenir).
+  İki ekseni birlikte isteyen bir kural gerekirse öncelik yeni bir ADR ile tanımlanır.
 - **Çözümleme tek bir saf fonksiyondur** (`cozucu/kapsam.py: cozumle`). Çözücü, ön kontrol, API
   (değerin nereden geldiği) ve arayüz aynı fonksiyonu kullanır (ADR 0015'teki tek kaynak ilkesi).
 - **Strategy deseni korunur:**

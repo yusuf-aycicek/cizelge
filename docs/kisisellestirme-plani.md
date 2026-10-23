@@ -1,7 +1,7 @@
 # Kişiselleştirme katmanı: tasarım
 
-Durum: **Tasarım, onay bekliyor.** Kod yazılmadı. Karar kaydı: `docs/adr/0016-kural-kapsami.md`
-(önerildi).
+Durum: **Onaylandı**, uygulanıyor (sıra bölüm 10'da). Karar kaydı:
+`docs/adr/0016-kural-kapsami.md` (kabul edildi).
 
 ## 1. Sorun
 
@@ -44,14 +44,28 @@ bulunur:
 1. Kuralın bu varlığa uyan bütün tanımları alınır. Bir tanım, belirttiği her eksende varlıkla
    eşleşiyorsa uyar. Boş eksen her şeye uyar.
 2. **Özgüllük puanı** en yüksek olan kazanır. Puan: `ders` 4, `sube` 2, `sube_grubu` 1,
-   `ogretmen` 2; doldurulmuş eksenlerin toplamı.
-   - Sonuç: (ders + şube) 6 > (ders + şube grubu) 5 > ders 4 > şube 2 > şube grubu 1 > okul 0.
+   `ogretmen` 1; doldurulmuş eksenlerin toplamı.
+   - Ders ve şube ailesi: (ders + şube) 6 > (ders + şube grubu) 5 > ders 4 > şube 2 > şube
+     grubu 1 > okul 0.
+   - Öğretmen ailesi: öğretmen 1 > okul 0.
    - Ders, şubeden önce gelir: dersin doğası (Beden Eğitimi bloğu) şubenin genel ayarından daha
      özeldir.
-3. **Eşitlik olmaz:** aynı kapsamda bir kural için tek tanım vardır (benzersiz indeks).
-   Öğretmen ekseni şube ve ders eksenleriyle aynı kuralda birlikte kullanılmaz; kural bunu
-   reddeder. Böylece "öğretmen 2" ile "şube 2" eşit puanla çarpışamaz.
-4. Hiç tanım yoksa kuralın kod içindeki varsayılanı kullanılır (bugünkü davranış).
+3. **Öğretmen kapsamı, ders ve şube kapsamıyla hiçbir kuralda çakışamaz.** Kurallar iki ayrık
+   aileye ayrılır:
+   - öğretmenin kendisiyle ilgili kurallar (M, boş gün hedefi, günde en az ders): yalnızca
+     `ogretmen` ekseni;
+   - dersin ve şubenin yerleşimiyle ilgili kurallar (N, blok deseni, saat tercihi, yayılım):
+     yalnızca `ders`, `sube`, `sube_grubu` eksenleri.
+
+   Bir kural sınıfı ikisini birden bildirirse `kaydet` onu **kayıt anında reddeder** (testle
+   denetlenir). Öğretmen eksenli bir tanım ders ya da şube ekseni de taşırsa veritabanı CHECK'i ve
+   `kural_olustur` reddeder. Böylece "Ayşe Yılmaz'a özel" bir değerle "Matematik'e özel" bir değer
+   aynı kuralda karşılaşamaz; hangisinin kazanacağı sorusu doğmaz. İleride iki ekseni birlikte
+   isteyen bir kural gerekirse (ör. "Ayşe Yılmaz'ın Matematik dersleri sabah"), öncelik yeni bir
+   ADR kararıyla tanımlanır.
+4. **Eşitlik olmaz:** aynı kapsamda bir kural için tek tanım vardır (benzersiz indeks); kalan
+   puanlar ailelerin içinde farklıdır.
+5. Hiç tanım yoksa kuralın kod içindeki varsayılanı kullanılır (bugünkü davranış).
 
 Örnek, aynı dersin günlük sınırı (N), "11-A Matematik" için:
 
@@ -282,17 +296,18 @@ seçeneği "Okul varsayılanı (2)"dır. Özel değer verilmiş alanın yanında
 - **Arayüz:** "Okul varsayılanı" seçeneği, özel rozeti, özet listesi, istisna penceresi.
 - **Ölçüm:** gerçekçi ve büyük sette blok desenleriyle 10/30/60/120 sn kalite, `docs/olcumler.md`'ye.
 
-## 10. Uygulama sırası (önerilen)
+## 10. Uygulama sırası (kullanıcının belirlediği)
 
 Her alt adım kendi başına çalışır ve test edilir; öncelikli ihtiyaçlar önce gelir.
 
 | # | Alt adım | Karşıladığı |
 |---|---|---|
 | K1 | Kapsam temeli: `kisit` kapsam sütunları, `KisitTanimi.kapsam`, `cozumle`, taban sınıfta `deger()`; N ve M kapsamlı; API özel ayar uçları; okul ayarlarında "özel ayarların özeti" | e, temel |
-| K2 | Öğretmene özel boş gün hedefi, iki yönlü ceza; öğretmen "Özel ayarlar" çekmecesi | d |
+| K2 | Öğretmene özel boş gün hedefi, iki yönlü ceza **ve 5.5 müsaitlik çizelgesi birlikte**: tek bir öğretmen detay sayfası (üstte kişisel ayarlar, altta müsaitlik çizelgesi) | d |
 | K3 | Günlere göre ders saati, öğle arası, zil saatleri; `gun_uzunlugu`; `yuk.py`; çizelgede saat başlıkları | c, j |
 | K4 | Blok deseni: kural, varsayılan desen işlevi, ön kontrol ve çelişki mesajları, ders "dağılım şekli" seçimi; ölçüm | b |
 | K5 | Şube grupları, gruba bağlı şablon, şube istisnaları ve kaldırma penceresi | a |
+| 5.6 | Kullanıcılar sayfası, telefon kontrolü (çizelgenin telefonda gün gün görünümü dahil), Playwright ile uçtan uca test | — |
 | K6 | İkincil esnek kurallar: saat tercihi, günde en az ders, yayılım; yük uyarısı | f, g, h, i |
 | — | Çarşaf liste | k: yapım sırası 7'de (çıktı) |
 

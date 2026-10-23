@@ -301,8 +301,8 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 | 5.2 | Kimlik | Bitti (2026-10-16) |
 | 5.3 | Okul ayarları ve listeler | Bitti (2026-10-16) |
 | 5.4 | Seviye şablonu ve ders dağılımı | Bitti (2026-10-16) |
-| 5.5 | Müsaitlik çizelgesi | Ertelendi (6.1 ve 6.2'den sonra) |
-| 5.6 | Kullanıcılar, kontrol listesi, uçtan uca | Ertelendi (kontrol listesi tasarım 3e'de yapıldı) |
+| 5.5 | Müsaitlik çizelgesi | K2 ile birlikte yapılacak (öğretmen detay sayfası) |
+| 5.6 | Kullanıcılar, telefon kontrolü, uçtan uca | K5'ten sonra (kontrol listesi tasarım 3e'de yapıldı) |
 | 6.1 | Program üretme ekranı ve durum takibi | Bitti: `/program`; engeller (öğretmensiz, aşım) düğmeyi pasif yapar; süre seçimi; sorgulama `refetchInterval` fonksiyonuyla (etkin program yoksa durur); bekleme paneli (mini çizelge animasyonu, süre çubuğu, aşamalar); başarısızlıkta çelişkiler türüne göre ve ilgili şube/öğretmene bağlantıyla; panoda program adımı ve son programa bağlantı; API şemasında `CeliskiYanit` tipli |
 | 6.2 | Haftalık çizelge görünümü ve kalite özeti | Bitti: `/program/:id`; şube ve öğretmen sekmeleri, seçim adres çubuğunda; hücrede ders çipi ve öğretmen rozeti ya da şube adı; boş saat sade; hücreler gün gün sırayla yerleşir (en çok 0,6 sn); çizelge boyutu okul ayarı ile programın büyüğü; kalite özeti sade Türkçe |
 
@@ -316,7 +316,20 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 - Telefonda çizelge kendi kutusunda yatay kayıyor; gün gün görünüm 5.6'daki telefon kontrolüne.
 - Testler: web 218, api 482, çözücü 149.
 - Yük altında kararsız testler için Vitest işçileri çekirdeklerin yarısıyla sınırlandı.
-| K | Kişiselleştirme katmanı: yalnızca tasarım (`docs/kisisellestirme-plani.md`), onaydan sonra uygulanır | Tasarım yazıldı (ADR 0016 önerildi); **kullanıcının onayı bekleniyor**. Uygulama sırası K1–K6 belgede |
+| K | Kişiselleştirme katmanı (`docs/kisisellestirme-plani.md`, ADR 0016 kabul edildi) | Onaylandı, uygulanıyor |
+
+Uygulama sırası (kullanıcı kararı; her alt adımın sonunda kullanıcıya sorulur):
+
+| # | Alt adım | Durum |
+|---|---|---|
+| R | Ders paleti en az 20 renk; renkler tükenirse tekrar eden derslerin çipinde ayırt edici işaret | **Sıradaki** |
+| K1 | Kapsam temeli (öğretmen kapsamının ders ve şube kapsamıyla çakışmaması kodda zorlanır) | |
+| K2 + 5.5 | Öğretmene özel boş gün ve müsaitlik çizelgesi: öğretmen detay sayfası | |
+| K3 | Günlere göre ders saati ve öğle arası | |
+| K4 | Blok dersler | |
+| K5 | Şube grupları ve istisnalar | |
+| 5.6 | Kullanıcılar, telefon kontrolü (çizelgede gün gün görünüm), Playwright uçtan uca | |
+| K6 | İkincil kurallar | |
 
 Sıra değişikliği (kullanıcı kararı): sistemin ekranda uçtan uca kullanılabilmesi için 5.5 ve 5.6
 ertelendi, önce yapım sırası 6'nın ilk iki alt adımı yapılır. Örnek okulda müsaitlik verisi var.
