@@ -26,6 +26,10 @@ export type KurulumGirdisi = {
   atama: number;
   /** Öğretmeni seçilmemiş atama sayısı (sunucunun dağılım özetinden). */
   ogretmensizAtama: number;
+  /** En son program: yoksa null. */
+  sonProgram?: { id: string; ad: string; durum: string } | null;
+  /** En son hazır program: panodan bağlantı verilir. */
+  sonHazirProgram?: { id: string; ad: string } | null;
 };
 
 export type KurulumDurumu = {
@@ -37,6 +41,20 @@ export type KurulumDurumu = {
 };
 
 const sayili = (n: number, ad: string, yoksa: string) => (n > 0 ? `${n} ${ad}` : yoksa);
+
+/** Son adım: program. Hazır bir program varsa tamamdır; yoksa önceki adımlar bitince sıradadır. */
+function programAdimi(g: KurulumGirdisi, oncekilerTamam: boolean): KurulumAdimi {
+  const temel = { anahtar: "program", ad: "Programı oluştur", yol: "/program" };
+  const son = g.sonProgram;
+  if (son && (son.durum === "bekliyor" || son.durum === "uretiliyor")) {
+    return { ...temel, durum: "bekliyor", ayrinti: "Program hazırlanıyor..." };
+  }
+  if (g.sonHazirProgram) {
+    return { ...temel, yol: `/program/${g.sonHazirProgram.id}`, durum: "tamam", ayrinti: `Son program: ${g.sonHazirProgram.ad}` };
+  }
+  if (son?.durum === "basarisiz") return { ...temel, durum: "eksik", ayrinti: "Son deneme başarısız oldu; nedenini görün" };
+  return { ...temel, durum: "bekliyor", ayrinti: oncekilerTamam ? "Hazırsınız: programı oluşturun" : "Önceki adımlar bitince" };
+}
 
 export function kurulumDurumu(g: KurulumGirdisi): KurulumDurumu {
   const dagilim: Pick<KurulumAdimi, "ayrinti" | "durum"> =
@@ -59,6 +77,7 @@ export function kurulumDurumu(g: KurulumGirdisi): KurulumDurumu {
     { anahtar: "musaitlik", ad: "Öğretmen müsaitliği", yol: "/musaitlik", durum: "istege-bagli",
       ayrinti: "İsteğe bağlı" },
   ];
+  adimlar.push(programAdimi(g, adimlar.every((a) => a.durum === "tamam" || a.durum === "istege-bagli")));
   const gerekenler = adimlar.filter((a) => a.durum !== "istege-bagli");
   const tamamlanan = gerekenler.filter((a) => a.durum === "tamam").length;
   return {

@@ -1,3 +1,5 @@
+import { TableProperties } from "lucide-react";
+import { sonHazirProgram, sonProgram, useProgramlar } from "../program/veri";
 import { useQuery } from "@tanstack/react-query";
 import {
   BookOpen,
@@ -50,8 +52,10 @@ export function AnaSayfa() {
   const dersler = useQuery({ queryKey: dersKaynagi.anahtar, queryFn: dersKaynagi.listele });
   const atamalar = useAtamalar();
   const ozet = useDagilimOzeti();
+  const programlar = useProgramlar();
+  const sonHazir = sonHazirProgram(programlar.data);
 
-  const hazir = ben && ogretmenler.data && siniflar.data && dersler.data && atamalar.data && ozet.data;
+  const hazir = ben && ogretmenler.data && siniflar.data && dersler.data && atamalar.data && ozet.data && programlar.data;
   const kurulum = hazir
     ? kurulumDurumu({
         gunSayisi: ben.okul.gun_sayisi,
@@ -61,6 +65,8 @@ export function AnaSayfa() {
         ders: dersler.data.length,
         atama: atamalar.data.length,
         ogretmensizAtama: ozet.data.ogretmensiz_atama,
+        sonProgram: sonProgram(programlar.data),
+        sonHazirProgram: sonHazir,
       })
     : null;
   const toplamSaat = atamalar.data?.reduce((t, a) => t + a.haftalik_saat, 0) ?? 0;
@@ -78,8 +84,13 @@ export function AnaSayfa() {
           <p className={pano.karsilamaAciklama}>
             Bu sistem okulunuz için öğretmen ve sınıf çakışması olmayan haftalık ders programı hazırlar.
             {kurulum && kurulum.yuzde < 100 && " Aşağıdaki adımları tamamlayınca programı üretebilirsiniz."}
-            {kurulum && kurulum.yuzde === 100 && " Kurulum tamam: program üretmeye hazırsınız."}
+            {kurulum && kurulum.yuzde === 100 && " Kurulum tamam ve programınız hazır."}
           </p>
+          {sonHazir && (
+            <Link to={`/program/${sonHazir.id}`} className={pano.sonProgram}>
+              <TableProperties aria-hidden="true" /> Son programı aç: {sonHazir.ad}
+            </Link>
+          )}
         </div>
         {kurulum && <IlerlemeHalkasi yuzde={kurulum.yuzde} tamamlanan={kurulum.tamamlanan} gereken={kurulum.gereken} />}
       </section>

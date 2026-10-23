@@ -203,6 +203,14 @@ class ProgramUret(BaseModel):
     sure_siniri_sn: int = Field(default=120, ge=5, le=3600)
 
 
+class CeliskiYanit(BaseModel):
+    """Programın üretilmesini engelleyen bir sorun (ön kontrol ya da çelişki analizi)."""
+
+    tur: str
+    mesaj: str
+    ilgili: list[str] = Field(default_factory=list, description="İlgili öğretmen, şube ya da atama kimlikleri")
+
+
 class ProgramYanit(_Yanit):
     id: uuid.UUID
     ad: str
@@ -217,7 +225,7 @@ class ProgramYanit(_Yanit):
     cozum_durumu: str | None
     toplam_ceza: int | None
     olcumler: dict[str, int] | None
-    celiskiler: list[dict[str, Any]] | None
+    celiskiler: list[CeliskiYanit] | None
     sure_sn: float | None
 
 

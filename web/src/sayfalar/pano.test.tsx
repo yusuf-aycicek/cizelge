@@ -11,8 +11,8 @@ describe("ana sayfa panosu", () => {
     dagilimApisiKur(); // 4 öğretmen, 4 şube, 3 ders, 4 atama (2'si öğretmensiz, toplam 20 saat)
     uygulamayiCiz("/");
 
-    const halka = await screen.findByRole("img", { name: "Kurulum: 5 adımdan 4 tanesi tamam" });
-    expect(halka).toHaveTextContent("%80");
+    const halka = await screen.findByRole("img", { name: "Kurulum: 6 adımdan 4 tanesi tamam" });
+    expect(halka).toHaveTextContent("%67");
 
     const sayilar = screen.getByRole("list", { name: "Okulunuz sayılarla" });
     expect(within(sayilar).getAllByRole("link").map((k) => k.textContent)).toEqual([
@@ -27,9 +27,9 @@ describe("ana sayfa panosu", () => {
     expect(adimlar().getByRole("link", { name: /Öğretmen müsaitliği/ })).toHaveTextContent("(İsteğe bağlı)");
   });
 
-  it("boş okulda halka %20, adımlar ne yapılacağını söyler", async () => {
+  it("boş okulda halka %17, adımlar ne yapılacağını söyler", async () => {
     uygulamayiCiz("/");
-    expect(await screen.findByRole("img", { name: "Kurulum: 5 adımdan 1 tanesi tamam" })).toHaveTextContent("%20");
+    expect(await screen.findByRole("img", { name: "Kurulum: 6 adımdan 1 tanesi tamam" })).toHaveTextContent("%17");
     expect(adimlar().getByRole("link", { name: /Öğretmenler/ })).toHaveTextContent("Henüz öğretmen yok(Bekliyor)");
     expect(screen.getByText(/Aşağıdaki adımları tamamlayınca programı üretebilirsiniz/)).toBeInTheDocument();
   });

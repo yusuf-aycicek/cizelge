@@ -66,6 +66,33 @@
         "title": "BenYanit",
         "type": "object"
       },
+      "CeliskiYanit": {
+        "description": "Programın üretilmesini engelleyen bir sorun (ön kontrol ya da çelişki analizi).",
+        "properties": {
+          "ilgili": {
+            "description": "İlgili öğretmen, şube ya da atama kimlikleri",
+            "items": {
+              "type": "string"
+            },
+            "title": "Ilgili",
+            "type": "array"
+          },
+          "mesaj": {
+            "title": "Mesaj",
+            "type": "string"
+          },
+          "tur": {
+            "title": "Tur",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tur",
+          "mesaj"
+        ],
+        "title": "CeliskiYanit",
+        "type": "object"
+      },
       "DagilimOzeti": {
         "description": "Ders dağılımının erken uyarıları. Hesap, program üretiminin ön kontrolüyle aynıdır\n(çözücü paketi, `cozucu.yuk`; ADR 0015).",
         "properties": {
@@ -1119,8 +1146,7 @@
             "anyOf": [
               {
                 "items": {
-                  "additionalProperties": true,
-                  "type": "object"
+                  "$ref": "#/components/schemas/CeliskiYanit"
                 },
                 "type": "array"
               },

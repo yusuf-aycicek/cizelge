@@ -707,6 +707,21 @@ export interface components {
             okul: components["schemas"]["OkulYanit"];
         };
         /**
+         * CeliskiYanit
+         * @description Programın üretilmesini engelleyen bir sorun (ön kontrol ya da çelişki analizi).
+         */
+        CeliskiYanit: {
+            /**
+             * Ilgili
+             * @description İlgili öğretmen, şube ya da atama kimlikleri
+             */
+            ilgili?: string[];
+            /** Mesaj */
+            mesaj: string;
+            /** Tur */
+            tur: string;
+        };
+        /**
          * DagilimOzeti
          * @description Ders dağılımının erken uyarıları. Hesap, program üretiminin ön kontrolüyle aynıdır
          *     (çözücü paketi, `cozucu.yuk`; ADR 0015).
@@ -1134,9 +1149,7 @@ export interface components {
             /** Bitis */
             bitis: string | null;
             /** Celiskiler */
-            celiskiler: {
-                [key: string]: unknown;
-            }[] | null;
+            celiskiler: components["schemas"]["CeliskiYanit"][] | null;
             /** Cozum Durumu */
             cozum_durumu: string | null;
             /** Durum */

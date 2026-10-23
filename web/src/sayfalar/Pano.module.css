@@ -28,6 +28,29 @@
   font-size: var(--yazi-buyuk);
 }
 
+.sonProgram {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  margin-top: var(--bosluk-4);
+  min-height: var(--dokunma-hedefi);
+  padding: var(--bosluk-2) var(--bosluk-4);
+  border-radius: var(--kose);
+  background: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+  font-weight: var(--yazi-kalin);
+  text-decoration: none;
+  transition: background-color var(--sure-kisa) var(--egri), box-shadow var(--sure-kisa) var(--egri);
+}
+.sonProgram:hover {
+  background: var(--renk-birincil-koyu);
+  box-shadow: var(--golge-uzerine);
+}
+.sonProgram svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
 .halka {
   position: relative;
   flex-shrink: 0;
