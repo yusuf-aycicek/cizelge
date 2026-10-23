@@ -15,6 +15,7 @@ from okulapi.moduller.ders_programi.kurallar import KurallarServisi
 from okulapi.moduller.ders_programi.servisler import (
     DersAtamaServisi,
     KisitServisi,
+    MusaitlikCizelgesiServisi,
     MusaitlikServisi,
     ProgramServisi,
     SeviyeSablonuServisi,
@@ -55,6 +56,18 @@ def on_kontrolu_getir(oturum: OkulOturumu) -> Any:
     """Program üretilmeden önce, üretimdeki ön kontrolün tamamı (özel ayarlar dahil). `celiskiler`
     boş değilse üretim ön kontrolde başarısız olur; arayüz bu durumda oluşturma düğmesini kapatır."""
     return {"celiskiler": on_kontrol_sonucu(oturum)}
+
+
+@router.get("/ogretmenler/{ogretmen_id}/musaitlik", response_model=semalar.MusaitlikCizelgesi, tags=["müsaitlik"])
+def musaitlik_cizelgesini_getir(ogretmen_id: uuid.UUID, oturum: OkulOturumu) -> Any:
+    """Öğretmenin müsait olmadığı hücreler ve yükü (kapasite uyarısı ön kontrolle aynı hesap)."""
+    return MusaitlikCizelgesiServisi(oturum).getir(ogretmen_id)
+
+
+@router.put("/ogretmenler/{ogretmen_id}/musaitlik", response_model=semalar.MusaitlikCizelgesi, tags=["müsaitlik"])
+def musaitlik_cizelgesini_degistir(ogretmen_id: uuid.UUID, veri: semalar.MusaitlikToplu, oturum: OkulOturumu) -> Any:
+    """Bir ya da birçok hücreyi tek istekte değiştirir; biri geçersizse hiçbiri değişmez (422)."""
+    return MusaitlikCizelgesiServisi(oturum).degistir(ogretmen_id, [d.model_dump() for d in veri.degisiklikler])
 
 
 kural_router = APIRouter(prefix="/kurallar", tags=["kural"])

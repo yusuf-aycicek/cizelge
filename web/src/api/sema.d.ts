@@ -285,6 +285,30 @@ export interface paths {
         patch: operations["guncelle_api_ders_programi_musaitlikler__kayit_id__patch"];
         trace?: never;
     };
+    "/api/ders-programi/ogretmenler/{ogretmen_id}/musaitlik": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Musaitlik Cizelgesini Getir
+         * @description Öğretmenin müsait olmadığı hücreler ve yükü (kapasite uyarısı ön kontrolle aynı hesap).
+         */
+        get: operations["musaitlik_cizelgesini_getir_api_ders_programi_ogretmenler__ogretmen_id__musaitlik_get"];
+        /**
+         * Musaitlik Cizelgesini Degistir
+         * @description Bir ya da birçok hücreyi tek istekte değiştirir; biri geçersizse hiçbiri değişmez (422).
+         */
+        put: operations["musaitlik_cizelgesini_degistir_api_ders_programi_ogretmenler__ogretmen_id__musaitlik_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ders-programi/on-kontrol": {
         parameters: {
             query?: never;
@@ -1052,10 +1076,54 @@ export interface components {
             /** Zorunlu */
             zorunlu: boolean;
         };
+        /** MusaitlikCizelgesi */
+        MusaitlikCizelgesi: {
+            /**
+             * Hucreler
+             * @description Yalnızca müsait olmayan hücreler
+             */
+            hucreler: components["schemas"]["MusaitlikHucresi"][];
+            /**
+             * Ogretmen Id
+             * Format: uuid
+             */
+            ogretmen_id: string;
+            yuk: components["schemas"]["OgretmenYukYanit"];
+        };
+        /** MusaitlikDegisikligi */
+        MusaitlikDegisikligi: {
+            /**
+             * Durum
+             * @enum {string}
+             */
+            durum: "musait" | "gelemez" | "tercih_etmez";
+            /** Gun */
+            gun: number;
+            /** Saat */
+            saat: number;
+        };
         /** MusaitlikGuncelle */
         MusaitlikGuncelle: {
             /** Durum */
             durum?: ("gelemez" | "tercih_etmez") | null;
+        };
+        /** MusaitlikHucresi */
+        MusaitlikHucresi: {
+            /**
+             * Durum
+             * @enum {string}
+             */
+            durum: "gelemez" | "tercih_etmez";
+            /**
+             * Gun
+             * @description 0 = pazartesi
+             */
+            gun: number;
+            /**
+             * Saat
+             * @description 0 = ilk ders
+             */
+            saat: number;
         };
         /** MusaitlikOlustur */
         MusaitlikOlustur: {
@@ -1079,6 +1147,11 @@ export interface components {
              * @description 0 = ilk ders
              */
             saat: number;
+        };
+        /** MusaitlikToplu */
+        MusaitlikToplu: {
+            /** Degisiklikler */
+            degisiklikler: components["schemas"]["MusaitlikDegisikligi"][];
         };
         /** MusaitlikYanit */
         MusaitlikYanit: {
@@ -1127,6 +1200,25 @@ export interface components {
              * Format: uuid
              */
             id: string;
+        };
+        /** OgretmenYukYanit */
+        OgretmenYukYanit: {
+            /** Asim */
+            asim: boolean;
+            /** Ders Saati */
+            ders_saati: number;
+            /**
+             * Kullanilabilir Saat
+             * @description Günlük ders sınırıyla birlikte derse girebileceği en fazla saat
+             */
+            kullanilabilir_saat: number;
+            /**
+             * Mesaj
+             * @description Aşım varsa ön kontrolün mesajıyla aynı açıklama
+             */
+            mesaj: string | null;
+            /** Musait Saat */
+            musait_saat: number;
         };
         /** OgretmenYukuYanit */
         OgretmenYukuYanit: {
@@ -2164,6 +2256,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MusaitlikYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    musaitlik_cizelgesini_getir_api_ders_programi_ogretmenler__ogretmen_id__musaitlik_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ogretmen_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MusaitlikCizelgesi"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    musaitlik_cizelgesini_degistir_api_ders_programi_ogretmenler__ogretmen_id__musaitlik_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ogretmen_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MusaitlikToplu"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MusaitlikCizelgesi"];
                 };
             };
             /** @description Validation Error */

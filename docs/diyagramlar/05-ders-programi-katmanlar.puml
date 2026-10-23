@@ -66,6 +66,10 @@ package "servisler (iş kuralları)" {
   class KisitServisi {
     #_dogrula(alanlar, nesne)
   }
+  class MusaitlikCizelgesiServisi {
+    +getir(ogretmen_id) : dict
+    +degistir(ogretmen_id, degisiklikler) : dict
+  }
   class ProgramServisi {
     +kuyruk : IsKuyrugu [0..1]
     +uret(ad : str, temel_program_id : UUID, sure_siniri_sn : int) : Program

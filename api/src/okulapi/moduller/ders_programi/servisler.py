@@ -41,7 +41,7 @@ from okulapi.moduller.ders_programi.depo import (
     SeviyeSablonuDeposu,
     YerlesimDeposu,
 )
-from okulapi.moduller.ders_programi.modeller import ETKIN_DURUMLAR, DersAtama, Program, Yerlesim
+from okulapi.moduller.ders_programi.modeller import ETKIN_DURUMLAR, DersAtama, Musaitlik, Program, Yerlesim
 from okulapi.moduller.ders_programi.uretim import (
     URETIM_BASARISIZ,
     URETIM_ISI,
@@ -272,3 +272,74 @@ class ProgramServisi:
             raise HizmetKullanilamiyor(KUYRUGA_ULASILAMADI) from hata
         self.oturum.commit()
         return program
+
+
+class MusaitlikCizelgesiServisi:
+    """Bir öğretmenin müsaitlik çizelgesi (5.5): hücreler ve yükü, toplu değişiklik.
+
+    - Çizelgede yalnızca müsait **olmayan** hücreler kayıtlıdır (`gelemez`, `tercih_etmez`);
+      "müsait" kaydın silinmesidir.
+    - Toplu değişiklik tek istektir ve **ya hep ya hiç**: önce hepsi denetlenir, biri geçersizse
+      hiçbiri yazılmaz (sürükleyerek işaretlenen 12 hücreden biri okulun saatleri dışındaysa yarım
+      bir değişiklik kalmaz). Yazım tek işlemdir (commit sonda).
+    - Cevapta öğretmenin yükü de vardır; hesap ön kontrol ve dağılım özetiyle aynıdır
+      (`cozucu.yuk.YukHesabi`, ADR 0015). Arayüz kapasite uyarısını buradan gösterir.
+    """
+
+    def __init__(self, oturum) -> None:
+        self.oturum = oturum
+
+    def _ogretmen(self, ogretmen_id: uuid.UUID):
+        ogretmen = OgretmenDeposu(self.oturum).getir(ogretmen_id)
+        if ogretmen is None:
+            raise KayitBulunamadi("Öğretmen")
+        return ogretmen
+
+    def _kayitlar(self, ogretmen_id: uuid.UUID) -> dict[tuple[int, int], Musaitlik]:
+        satirlar = self.oturum.scalars(select(Musaitlik).where(Musaitlik.ogretmen_id == ogretmen_id))
+        return {(m.gun, m.saat): m for m in satirlar}
+
+    def getir(self, ogretmen_id: uuid.UUID) -> dict[str, Any]:
+        self._ogretmen(ogretmen_id)
+        hucreler = sorted(self._kayitlar(ogretmen_id).values(), key=lambda m: (m.gun, m.saat))
+        girdi = cozum_girdisi_olustur(self.oturum)
+        hesap = YukHesabi(girdi)
+        yuk = next(y for y in hesap.ogretmen_yukleri() if y.ogretmen_id == str(ogretmen_id))
+        return {
+            "ogretmen_id": ogretmen_id,
+            "hucreler": [{"gun": m.gun, "saat": m.saat, "durum": m.durum} for m in hucreler],
+            "yuk": {
+                "ders_saati": yuk.ders_saati,
+                "musait_saat": yuk.musait_saat,
+                "kullanilabilir_saat": yuk.kullanilabilir_saat,
+                "asim": yuk.asim,
+                "mesaj": hesap.ogretmen_mesaji(yuk),
+            },
+        }
+
+    def degistir(self, ogretmen_id: uuid.UUID, degisiklikler: list[dict[str, Any]]) -> dict[str, Any]:
+        self._ogretmen(ogretmen_id)
+        okul = OkulDeposu(self.oturum).getir(oturumun_okulu(self.oturum))
+        gorulen: set[tuple[int, int]] = set()
+        for d in degisiklikler:  # önce hepsi denetlenir: biri hatalıysa hiçbiri yazılmaz
+            hucre = (d["gun"], d["saat"])
+            if d["gun"] >= okul.gun_sayisi or d["saat"] >= okul.gunluk_ders_saati:
+                raise GecersizVeri(
+                    f"Gün/saat okulun ayarlarının dışında: {d['gun'] + 1}. gün {d['saat'] + 1}. saat (okulda "
+                    f"{okul.gun_sayisi} gün, günde {okul.gunluk_ders_saati} saat var). Hiçbir hücre değiştirilmedi."
+                )
+            if hucre in gorulen:
+                raise GecersizVeri(f"Aynı hücre iki kez verildi: {d['gun'] + 1}. gün {d['saat'] + 1}. saat")
+            gorulen.add(hucre)
+        kayitlar = self._kayitlar(ogretmen_id)
+        for d in degisiklikler:
+            mevcut = kayitlar.get((d["gun"], d["saat"]))
+            if d["durum"] == "musait":
+                if mevcut is not None:
+                    self.oturum.delete(mevcut)
+            elif mevcut is None:
+                self.oturum.add(Musaitlik(ogretmen_id=ogretmen_id, gun=d["gun"], saat=d["saat"], durum=d["durum"]))
+            else:
+                mevcut.durum = d["durum"]
+        self.oturum.commit()
+        return self.getir(ogretmen_id)

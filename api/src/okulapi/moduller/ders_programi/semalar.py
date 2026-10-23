@@ -142,6 +142,37 @@ class MusaitlikYanit(_Yanit):
     durum: str
 
 
+class MusaitlikHucresi(BaseModel):
+    gun: int = Field(ge=0, le=6, description="0 = pazartesi")
+    saat: int = Field(ge=0, le=15, description="0 = ilk ders")
+    durum: Literal["gelemez", "tercih_etmez"]
+
+
+class MusaitlikDegisikligi(BaseModel):
+    gun: int = Field(ge=0, le=6)
+    saat: int = Field(ge=0, le=15)
+    # "musait": o hücrenin kaydı silinir.
+    durum: Literal["musait", "gelemez", "tercih_etmez"]
+
+
+class MusaitlikToplu(BaseModel):
+    degisiklikler: list[MusaitlikDegisikligi] = Field(min_length=1, max_length=7 * 16)
+
+
+class OgretmenYukYanit(BaseModel):
+    ders_saati: int
+    musait_saat: int
+    kullanilabilir_saat: int = Field(description="Günlük ders sınırıyla birlikte derse girebileceği en fazla saat")
+    asim: bool
+    mesaj: str | None = Field(description="Aşım varsa ön kontrolün mesajıyla aynı açıklama")
+
+
+class MusaitlikCizelgesi(BaseModel):
+    ogretmen_id: uuid.UUID
+    hucreler: list[MusaitlikHucresi] = Field(description="Yalnızca müsait olmayan hücreler")
+    yuk: OgretmenYukYanit
+
+
 # --- kısıt --------------------------------------------------------------------------------
 
 

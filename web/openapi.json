@@ -850,6 +850,65 @@
         "title": "KuralYanit",
         "type": "object"
       },
+      "MusaitlikCizelgesi": {
+        "properties": {
+          "hucreler": {
+            "description": "Yalnızca müsait olmayan hücreler",
+            "items": {
+              "$ref": "#/components/schemas/MusaitlikHucresi"
+            },
+            "title": "Hucreler",
+            "type": "array"
+          },
+          "ogretmen_id": {
+            "format": "uuid",
+            "title": "Ogretmen Id",
+            "type": "string"
+          },
+          "yuk": {
+            "$ref": "#/components/schemas/OgretmenYukYanit"
+          }
+        },
+        "required": [
+          "ogretmen_id",
+          "hucreler",
+          "yuk"
+        ],
+        "title": "MusaitlikCizelgesi",
+        "type": "object"
+      },
+      "MusaitlikDegisikligi": {
+        "properties": {
+          "durum": {
+            "enum": [
+              "musait",
+              "gelemez",
+              "tercih_etmez"
+            ],
+            "title": "Durum",
+            "type": "string"
+          },
+          "gun": {
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Gun",
+            "type": "integer"
+          },
+          "saat": {
+            "maximum": 15.0,
+            "minimum": 0.0,
+            "title": "Saat",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "gun",
+          "saat",
+          "durum"
+        ],
+        "title": "MusaitlikDegisikligi",
+        "type": "object"
+      },
       "MusaitlikGuncelle": {
         "properties": {
           "durum": {
@@ -869,6 +928,39 @@
           }
         },
         "title": "MusaitlikGuncelle",
+        "type": "object"
+      },
+      "MusaitlikHucresi": {
+        "properties": {
+          "durum": {
+            "enum": [
+              "gelemez",
+              "tercih_etmez"
+            ],
+            "title": "Durum",
+            "type": "string"
+          },
+          "gun": {
+            "description": "0 = pazartesi",
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Gun",
+            "type": "integer"
+          },
+          "saat": {
+            "description": "0 = ilk ders",
+            "maximum": 15.0,
+            "minimum": 0.0,
+            "title": "Saat",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "gun",
+          "saat",
+          "durum"
+        ],
+        "title": "MusaitlikHucresi",
         "type": "object"
       },
       "MusaitlikOlustur": {
@@ -908,6 +1000,24 @@
           "durum"
         ],
         "title": "MusaitlikOlustur",
+        "type": "object"
+      },
+      "MusaitlikToplu": {
+        "properties": {
+          "degisiklikler": {
+            "items": {
+              "$ref": "#/components/schemas/MusaitlikDegisikligi"
+            },
+            "maxItems": 112,
+            "minItems": 1,
+            "title": "Degisiklikler",
+            "type": "array"
+          }
+        },
+        "required": [
+          "degisiklikler"
+        ],
+        "title": "MusaitlikToplu",
         "type": "object"
       },
       "MusaitlikYanit": {
@@ -1019,6 +1129,48 @@
           "brans"
         ],
         "title": "OgretmenYanit",
+        "type": "object"
+      },
+      "OgretmenYukYanit": {
+        "properties": {
+          "asim": {
+            "title": "Asim",
+            "type": "boolean"
+          },
+          "ders_saati": {
+            "title": "Ders Saati",
+            "type": "integer"
+          },
+          "kullanilabilir_saat": {
+            "description": "Günlük ders sınırıyla birlikte derse girebileceği en fazla saat",
+            "title": "Kullanilabilir Saat",
+            "type": "integer"
+          },
+          "mesaj": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Aşım varsa ön kontrolün mesajıyla aynı açıklama",
+            "title": "Mesaj"
+          },
+          "musait_saat": {
+            "title": "Musait Saat",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ders_saati",
+          "musait_saat",
+          "kullanilabilir_saat",
+          "asim",
+          "mesaj"
+        ],
+        "title": "OgretmenYukYanit",
         "type": "object"
       },
       "OgretmenYukuYanit": {
@@ -2835,6 +2987,102 @@
           }
         },
         "summary": "Guncelle",
+        "tags": [
+          "müsaitlik"
+        ]
+      }
+    },
+    "/api/ders-programi/ogretmenler/{ogretmen_id}/musaitlik": {
+      "get": {
+        "description": "Öğretmenin müsait olmadığı hücreler ve yükü (kapasite uyarısı ön kontrolle aynı hesap).",
+        "operationId": "musaitlik_cizelgesini_getir_api_ders_programi_ogretmenler__ogretmen_id__musaitlik_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ogretmen_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Ogretmen Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MusaitlikCizelgesi"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Musaitlik Cizelgesini Getir",
+        "tags": [
+          "müsaitlik"
+        ]
+      },
+      "put": {
+        "description": "Bir ya da birçok hücreyi tek istekte değiştirir; biri geçersizse hiçbiri değişmez (422).",
+        "operationId": "musaitlik_cizelgesini_degistir_api_ders_programi_ogretmenler__ogretmen_id__musaitlik_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ogretmen_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Ogretmen Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MusaitlikToplu"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MusaitlikCizelgesi"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Musaitlik Cizelgesini Degistir",
         "tags": [
           "müsaitlik"
         ]
