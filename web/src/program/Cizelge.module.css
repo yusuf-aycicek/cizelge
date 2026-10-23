@@ -56,6 +56,9 @@
   width: 4.5rem;
 }
 .saatBasligi {
+  /* Her saat satırı kendi yüksekliğini korur: bir satırın bütün hücreleri bloklarla (rowSpan)
+     birleşse de satır çökmez, blok hücresi kapsadığı saatler kadar uzun olur. */
+  height: 3.75rem;
   font-size: var(--yazi-kucuk);
   font-weight: var(--yazi-kalin);
   color: var(--renk-metin-ikincil);
