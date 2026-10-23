@@ -305,7 +305,7 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 | 5.6 | Kullanıcılar, kontrol listesi, uçtan uca | Ertelendi (kontrol listesi tasarım 3e'de yapıldı) |
 | 6.1 | Program üretme ekranı ve durum takibi | Bitti: `/program`; engeller (öğretmensiz, aşım) düğmeyi pasif yapar; süre seçimi; sorgulama `refetchInterval` fonksiyonuyla (etkin program yoksa durur); bekleme paneli (mini çizelge animasyonu, süre çubuğu, aşamalar); başarısızlıkta çelişkiler türüne göre ve ilgili şube/öğretmene bağlantıyla; panoda program adımı ve son programa bağlantı; API şemasında `CeliskiYanit` tipli |
 | 6.2 | Haftalık çizelge görünümü ve kalite özeti | Bitti: `/program/:id`; şube ve öğretmen sekmeleri, seçim adres çubuğunda; hücrede ders çipi ve öğretmen rozeti ya da şube adı; boş saat sade; hücreler gün gün sırayla yerleşir (en çok 0,6 sn); çizelge boyutu okul ayarı ile programın büyüğü; kalite özeti sade Türkçe |
-| K | Kişiselleştirme katmanı: yalnızca tasarım (`docs/kisisellestirme-plani.md`), onaydan sonra uygulanır | |
+| K | Kişiselleştirme katmanı: yalnızca tasarım (`docs/kisisellestirme-plani.md`), onaydan sonra uygulanır | Tasarım yazıldı (ADR 0016 önerildi); **kullanıcının onayı bekleniyor**. Uygulama sırası K1–K6 belgede |
 
 Sıra değişikliği (kullanıcı kararı): sistemin ekranda uçtan uca kullanılabilmesi için 5.5 ve 5.6
 ertelendi, önce yapım sırası 6'nın ilk iki alt adımı yapılır. Örnek okulda müsaitlik verisi var.
