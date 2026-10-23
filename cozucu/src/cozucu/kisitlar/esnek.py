@@ -21,12 +21,11 @@ from cozucu.kisitlar.temel import Baglam, CezaTerimi, KisitKurali, kaydet
 from cozucu.kisitlar.zorunlu import sinif_ders_gruplari
 from cozucu.model import (
     BOS_GUN_TURU,
-    OGRETMEN_GUNLUK_SINIRI_TURU,
     VARSAYILAN_HEDEF_BOS_GUN,
-    VARSAYILAN_OGRETMEN_GUNLUK_SINIRI,
     MusaitlikDurumu,
     TemelYerlesim,
 )
+from cozucu.yuk import bos_gun_hedefi
 
 
 class EsnekKural(KisitKurali):
@@ -135,15 +134,19 @@ class ArdisikDers(EsnekKural):
 class BosGun(EsnekKural):
     """Her öğretmene hedeflenen sayıda boş gün kazandırmak.
 
-    Amaç en fazla sıkıştırma değil, hedefe ulaşmaktır:
-        günlük sınır = min(öğretmen günlük sınırı M, okulun günlük ders saati)
-        hedef gün    = max(⌈toplam saat / günlük sınır⌉, gün sayısı − hedef boş gün)
-        ceza         = max(0, ders verilen gün − hedef gün)
+    Amaç en fazla sıkıştırma değil, hedefe ulaşmaktır. Hedef gün `yuk.bos_gun_hedefi`nden gelir
+    (kalite ölçümüyle aynı hesap):
+        hedef gün = max(⌈toplam saat / günlük sınır⌉, gün sayısı − hedef boş gün), yük ve gün
+                    sayısıyla sınırlı
+        ceza      = max(0, ders verilen gün − hedef gün)
+                    + (hedef öğretmene özelse) max(0, hedef gün − ders verilen gün)
     Hedefe ulaşan öğretmen daha fazla sıkıştırılmaz. Yükü yüzünden boş günü mümkün olmayan
-    öğretmenin hedefi zaten bütün günlerdir, ona ceza yazılmaz.
+    öğretmenin hedefi zaten bütün günlerdir, ona ceza yazılmaz. Hedef öğretmene özel
+    ayarlanabilir (ör. 0: "boş günüm olmasın", 2: "iki boş gün"); o zaman ceza iki yönlüdür.
     """
 
     tur = BOS_GUN_TURU
+    kapsamlar = frozenset({"ogretmen"})
 
     def __init__(self, hedef_bos_gun: int = VARSAYILAN_HEDEF_BOS_GUN) -> None:
         if hedef_bos_gun < 0:
@@ -154,24 +157,28 @@ class BosGun(EsnekKural):
         gun_sayisi = len(baglam.gunler)
         cezalar: list[CezaTerimi] = []
         for ogretmen_id, atamalar in baglam.ogretmen_atamalari.items():
-            # M öğretmene özel olabilir: günlük sınırı düşük öğretmenin hedef günü de yüksektir.
-            m = baglam.girdi.zorunlu_parametre(
-                OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI, ogretmen_id=ogretmen_id
-            )
-            gunluk_sinir = min(m or len(baglam.saatler), len(baglam.saatler))
             yuk = sum(a.haftalik_saat for a in atamalar)
-            hedef_gun = max(-(-yuk // gunluk_sinir), gun_sayisi - self.hedef_bos_gun)
-            if hedef_gun >= gun_sayisi:
+            hedef = bos_gun_hedefi(baglam.girdi, ogretmen_id, yuk)
+            if hedef.gun >= gun_sayisi and not hedef.iki_yonlu:
                 continue  # her gün çalışması serbest: ceza hiç doğmaz
             gun_var = []
             for g in baglam.gunler:
                 var = baglam.model.new_bool_var("")
                 for s in baglam.saatler:
                     baglam.model.add(var >= baglam.dolu(atamalar, g, s))
+                if hedef.iki_yonlu:
+                    # Eksik gün cezası varsa gün değişkeni yalnızca o gün dersi varken 1 olabilir;
+                    # yoksa çözücü dersi olmayan günü "geldi" sayıp cezadan kaçardı. Tek yönlüde
+                    # gerekmez (değişkeni büyütmenin çıkarı yok): model ve ölçümler değişmesin.
+                    baglam.model.add(var <= sum(baglam.dolu(atamalar, g, s) for s in baglam.saatler))
                 gun_var.append(var)
             fazla = baglam.model.new_int_var(0, gun_sayisi, "")
-            baglam.model.add(fazla >= sum(gun_var) - hedef_gun)
+            baglam.model.add(fazla >= sum(gun_var) - hedef.gun)
             cezalar.append((fazla, self.agirlik))
+            if hedef.iki_yonlu:
+                eksik = baglam.model.new_int_var(0, gun_sayisi, "")
+                baglam.model.add(eksik >= hedef.gun - sum(gun_var))
+                cezalar.append((eksik, self.agirlik))
         return cezalar
 
 

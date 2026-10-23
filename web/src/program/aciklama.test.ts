@@ -78,3 +78,12 @@ describe("kalite maddeleri", () => {
     expect(cozumAciklamasi(null)).toBe("");
   });
 });
+
+describe("öğretmene özel boş gün ölçüsü", () => {
+  it("yalnızca sıfırdan büyükse listelenir", () => {
+    const temel = { sinif_boslugu: 0, ogretmen_penceresi: 0, eksik_bos_gun: 0, tercih_etmez: 0, bolunmus_ders: 0, degisen_yerlesim: 0 };
+    expect(kaliteMaddeleri(temel).some((m) => m.anahtar === "fazla_bos_gun")).toBe(false);
+    const madde = kaliteMaddeleri({ ...temel, fazla_bos_gun: 2 }).find((m) => m.anahtar === "fazla_bos_gun");
+    expect(madde).toEqual({ anahtar: "fazla_bos_gun", iyi: false, metin: "Kendine özel boş gün hedefi olan öğretmenler hedeften toplam 2 gün az geldi." });
+  });
+});

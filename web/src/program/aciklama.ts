@@ -93,6 +93,11 @@ export function kaliteMaddeleri(o: Record<string, number> | null | undefined, te
     m("bolunmus_ders", o.bolunmus_ders, "Aynı gündeki ders saatleri hep arka arkaya.",
       (n) => `Aynı gündeki ders saatleri ${n} yerde arka arkaya değil.`),
   ];
+  // Yalnızca öğretmene özel boş gün hedefi olan okulda anlamlı (hedef 0: "boş günüm olmasın").
+  if (o.fazla_bos_gun) {
+    maddeler.push(m("fazla_bos_gun", o.fazla_bos_gun, "",
+      (n) => `Kendine özel boş gün hedefi olan öğretmenler hedeften toplam ${n} gün az geldi.`));
+  }
   if (temelVar) {
     maddeler.push(m("degisen_yerlesim", o.degisen_yerlesim, "Temel programdan hiçbir hücre değişmedi.",
       (n) => `Temel programa göre ${n} hücre değişti.`));

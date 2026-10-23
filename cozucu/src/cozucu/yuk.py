@@ -19,10 +19,13 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 
 from cozucu.anlatim import Anlatim, iyelik
+from cozucu.kapsam import cozumle
 from cozucu.model import (
+    BOS_GUN_TURU,
     GUNLUK_DERS_SINIRI_TURU,
     OGRETMEN_GUNLUK_SINIRI_TURU,
     VARSAYILAN_GUNLUK_DERS_SINIRI,
+    VARSAYILAN_HEDEF_BOS_GUN,
     VARSAYILAN_OGRETMEN_GUNLUK_SINIRI,
     CozumGirdisi,
     DersAtama,
@@ -173,3 +176,32 @@ def _grupla(atamalar: list[DersAtama], anahtar) -> dict:
     for a in atamalar:
         gruplar[anahtar(a)].append(a)
     return gruplar
+
+
+@dataclass(frozen=True)
+class BosGunHedefi:
+    """Bir öğretmenin haftada kaç gün gelmesi hedefleniyor (CLAUDE.md bölüm 7, ADR 0016).
+
+    `gun`: max(⌈yük / günlük sınır⌉, gün sayısı − hedef boş gün), sonra yük ve gün sayısıyla
+    sınırlı (3 saat dersi olan öğretmen 4 gün gelemez). Günlük sınır = min(M, günlük ders saati);
+    M öğretmene özel olabilir.
+    `iki_yonlu`: hedef bu öğretmene özel tanımlıysa, hedeften **az** gün gelmek de cezalıdır
+    ("boş günüm olmasın" ancak öğretmenin açık isteğiyse anlamlıdır; okul geneli hedefte
+    öğretmeni daha çok güne yaymak pencereyi artırırdı).
+    """
+
+    gun: int
+    iki_yonlu: bool
+
+
+def bos_gun_hedefi(girdi: CozumGirdisi, ogretmen_id: str, yuk: int) -> BosGunHedefi:
+    """Tek kaynak: çözücüdeki boş gün kuralı ve kalite ölçümü bunu kullanır."""
+    gun_sayisi, saat_sayisi = girdi.ayar.gun_sayisi, girdi.ayar.gunluk_ders_saati
+    m = girdi.parametre(OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI, ogretmen_id=ogretmen_id)
+    gunluk_sinir = max(1, min(m, saat_sayisi))
+    hedef_bos = girdi.parametre(BOS_GUN_TURU, "hedef_bos_gun", VARSAYILAN_HEDEF_BOS_GUN, ogretmen_id=ogretmen_id)
+    gun = max(-(-yuk // gunluk_sinir), gun_sayisi - hedef_bos)
+    gun = max(0, min(gun, yuk, gun_sayisi))
+    ozeller = [t for t in girdi.kisitlar if t.tur == BOS_GUN_TURU and not t.kapsam.okul_mu]
+    ozel = cozumle(ozeller, girdi.varlik(ogretmen_id=ogretmen_id)) is not None
+    return BosGunHedefi(gun=gun, iki_yonlu=ozel)

@@ -13,13 +13,11 @@ from dataclasses import dataclass
 
 from cozucu.model import (
     BOS_GUN_TURU,
-    OGRETMEN_GUNLUK_SINIRI_TURU,
-    VARSAYILAN_HEDEF_BOS_GUN,
-    VARSAYILAN_OGRETMEN_GUNLUK_SINIRI,
     CozumGirdisi,
     MusaitlikDurumu,
     Yerlesim,
 )
+from cozucu.yuk import bos_gun_hedefi
 
 
 # Her ölçünün karşılığı olan esnek kuralın türü. Ağırlıklarla çarpılınca model cezası elde edilir.
@@ -29,6 +27,7 @@ OLCU_KURAL_TURU = {
     "bolunmus_ders": "ardisik_ders",
     "tercih_etmez": "tercih_etmez",
     "eksik_bos_gun": BOS_GUN_TURU,
+    "fazla_bos_gun": BOS_GUN_TURU,
     "degisen_yerlesim": "degisiklik",
 }
 
@@ -45,6 +44,8 @@ class KaliteOlcumu:
     bolunmus_ders: int  # bir dersin aynı gündeki saatleri: blok sayısı - 1 (çift ders: bitişik değilse 1)
     tercih_etmez: int  # "tercih etmez" saatine konan ders sayısı
     eksik_bos_gun: int  # öğretmenlerin hedefe göre eksik kalan boş günleri (toplam)
+    # Hedefi kendisine özel olan öğretmenlerin hedeften fazla boş günleri (ör. hedef 0, bir gün boş).
+    fazla_bos_gun: int
     degisen_yerlesim: int  # temel programdaki hücrelerden yeni programda olmayanlar (temel yoksa 0)
 
 
@@ -72,12 +73,14 @@ def olc(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> KaliteOlcumu:
     degisen = sum(
         1 for t in set(girdi.temel_yerlesimler) if (t.sinif_id, t.ders_id, t.gun, t.saat) not in yeni_hucreler
     )
+    eksik, fazla = _bos_gun_sapmasi(girdi, ogretmen_gun)
     return KaliteOlcumu(
         sinif_boslugu=sum(max(s) + 1 - len(s) for s in sinif_gun.values()),
         ogretmen_penceresi=sum(max(s) - min(s) + 1 - len(s) for s in ogretmen_gun.values()),
         bolunmus_ders=sum(_blok_sayisi(s) - 1 for s in ders_gun.values()),
         tercih_etmez=tercih_etmez,
-        eksik_bos_gun=_eksik_bos_gun(girdi, ogretmen_gun),
+        eksik_bos_gun=eksik,
+        fazla_bos_gun=fazla,
         degisen_yerlesim=degisen,
     )
 
@@ -93,10 +96,12 @@ def ders_gunleri(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> dict[str, 
     return {o: len(g) for o, g in gunler.items()}
 
 
-def _eksik_bos_gun(girdi: CozumGirdisi, ogretmen_gun: dict[tuple[str, int], set[int]]) -> int:
-    """Σ öğretmen max(0, ders verilen gün − hedef gün); formül CLAUDE.md bölüm 7'de."""
-    gun_sayisi, saat_sayisi = girdi.ayar.gun_sayisi, girdi.ayar.gunluk_ders_saati
-    hedef_bos = girdi.parametre(BOS_GUN_TURU, "hedef_bos_gun", VARSAYILAN_HEDEF_BOS_GUN)
+def _bos_gun_sapmasi(girdi: CozumGirdisi, ogretmen_gun: dict[tuple[str, int], set[int]]) -> tuple[int, int]:
+    """(eksik boş gün, fazla boş gün) toplamları; hedef `yuk.bos_gun_hedefi`nden (kuralla aynı).
+
+    Eksik: ders verilen gün − hedef gün (fazla gelmek). Fazla: hedef gün − ders verilen gün, yalnızca
+    hedefi kendisine özel öğretmenlerde (iki yönlü ceza).
+    """
     yuk: dict[str, int] = defaultdict(int)
     for a in girdi.atamalar:
         if a.ogretmen_id is not None:
@@ -104,13 +109,13 @@ def _eksik_bos_gun(girdi: CozumGirdisi, ogretmen_gun: dict[tuple[str, int], set[
     calisilan: dict[str, int] = defaultdict(int)
     for o, _g in ogretmen_gun:
         calisilan[o] += 1
-    toplam = 0
+    eksik = fazla = 0
     for o, saat in yuk.items():
-        m = girdi.parametre(OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI, ogretmen_id=o)
-        gunluk_sinir = min(m, saat_sayisi)
-        hedef_gun = max(-(-saat // gunluk_sinir), gun_sayisi - hedef_bos)
-        toplam += max(0, calisilan[o] - hedef_gun)
-    return toplam
+        hedef = bos_gun_hedefi(girdi, o, saat)
+        eksik += max(0, calisilan[o] - hedef.gun)
+        if hedef.iki_yonlu:
+            fazla += max(0, hedef.gun - calisilan[o])
+    return eksik, fazla
 
 
 def _blok_sayisi(saatler: set[int]) -> int:
