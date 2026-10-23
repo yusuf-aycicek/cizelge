@@ -74,6 +74,17 @@ def ornek_okul(evet: bool, ayarlar: Ayarlar, veri_seti: str = "mini") -> int:
     return 0
 
 
+def deneme_temizle(ayarlar: Ayarlar) -> int:
+    from okulapi.ornek_okul import ORTAM_UYARISI, deneme_okullarini_sil
+
+    if ayarlar.ortam != "gelistirme":
+        print(ORTAM_UYARISI, file=sys.stderr)
+        return 3
+    silinen = deneme_okullarini_sil(ayarlar)
+    print(f"{len(silinen)} deneme okulu silindi" + (f": {', '.join(sorted(set(silinen)))}" if silinen else "."))
+    return 0
+
+
 def main(argv: list[str] | None = None, fabrika: sessionmaker | None = None, ayarlar: Ayarlar | None = None) -> int:
     ayristirici = argparse.ArgumentParser(prog="python -m okulapi", description="Sunucu yönetim komutları")
     komutlar = ayristirici.add_subparsers(dest="komut", required=True)
@@ -84,11 +95,14 @@ def main(argv: list[str] | None = None, fabrika: sessionmaker | None = None, aya
     ornek.add_argument("--evet", action="store_true", help="Bütün verinin silineceğini onaylıyorum")
     ornek.add_argument("--set", dest="veri_seti", choices=["mini", "gercekci"], default="mini",
                        help="Veri seti: mini (varsayılan, hızlı) ya da gercekci (24 şube)")
+    komutlar.add_parser("deneme-temizle", help="Betiklerin açtığı deneme okullarını siler (örnek okula dokunmaz)")
     secim = ayristirici.parse_args(argv)
 
     ayarlar = ayarlar or Ayarlar()
     if secim.komut == "ornek-okul":
         return ornek_okul(secim.evet, ayarlar, secim.veri_seti)
+    if secim.komut == "deneme-temizle":
+        return deneme_temizle(ayarlar)
     motor = None
     if fabrika is None:
         motor = motor_olustur(ayarlar.veritabani_url)

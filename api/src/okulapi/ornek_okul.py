@@ -137,3 +137,51 @@ def ornek_okul_kur(ayarlar: Ayarlar, veri_yolu: Path = MINI) -> dict[str, int]:
         uygulama.state.motor.dispose()
     return {"ogretmen": len(veri["ogretmenler"]), "sinif": len(veri["siniflar"]), "ders": len(veri["dersler"]),
             "atama": len(veri["atamalar"]), "musaitlik": len(veri["musaitlikler"]), "sablon": sablon}
+
+
+# --- deneme okullarının temizliği ------------------------------------------------------------
+
+# Ekran görüntüsü ve taşma denetimi betiklerinin (web/scripts) her çalışmada kaydettiği okulların
+# müdür e-postaları: "tasma-1729...@ornek.test". Örnek okul (mudur@ornek.test) bu kalıba uymaz.
+DENEME_EPOSTA_KALIBI = r"^(tasma|ekran|bos)-[0-9]+@ornek\.test$"
+
+# Okula ait tablolar, silinme sırasıyla (yabancı anahtarlar RESTRICT: önce gösterenler silinir).
+# Listede olmayan okula ait bir tablo varsa silme başlamadan durulur (yeni tablo eklenince buraya
+# da eklenmeli; test denetler).
+SILME_SIRASI = ("yerlesim", "program", "kisit", "musaitlik", "ders_atama", "seviye_sablonu",
+                "oturum", "kullanici", "ogretmen", "sinif", "ders")
+
+
+def okula_ait_tablolar(baglanti) -> set[str]:
+    return set(baglanti.scalars(text(
+        "SELECT table_name FROM information_schema.columns "
+        "WHERE table_schema = 'public' AND column_name = 'okul_id'")))
+
+
+def deneme_okullarini_sil(ayarlar: Ayarlar) -> list[str]:
+    """Betiklerin açtığı deneme okullarını bütün verileriyle siler; silinen okulların adlarını döner.
+
+    Yalnızca bütün kullanıcıları deneme kalıbına uyan okullar silinir. Geliştirme ortamı koruması
+    burada da var. Tablo sahibi rolüyle (RLS dışında) tek işlemde çalışır: yarıda kalırsa hiçbir şey
+    silinmez.
+    """
+    if ayarlar.ortam != "gelistirme":
+        raise GelistirmeOrtamiDegil(ORTAM_UYARISI)
+    motor = create_engine(ayarlar.migrasyon_url)
+    try:
+        with motor.begin() as b:
+            bilinmeyen = okula_ait_tablolar(b) - set(SILME_SIRASI)
+            if bilinmeyen:
+                raise RuntimeError(f"Silme sırasında olmayan okula ait tablo: {sorted(bilinmeyen)}")
+            okullar = list(b.execute(text(
+                "SELECT o.id, o.ad FROM okul o WHERE EXISTS (SELECT 1 FROM kullanici k WHERE k.okul_id = o.id) "
+                "AND NOT EXISTS (SELECT 1 FROM kullanici k WHERE k.okul_id = o.id AND k.email !~ :kalip)"),
+                {"kalip": DENEME_EPOSTA_KALIBI}))
+            kimlikler = [o.id for o in okullar]
+            if kimlikler:
+                for tablo in SILME_SIRASI:
+                    b.execute(text(f"DELETE FROM {tablo} WHERE okul_id = ANY(:k)"), {"k": kimlikler})
+                b.execute(text("DELETE FROM okul WHERE id = ANY(:k)"), {"k": kimlikler})
+            return [o.ad for o in okullar]
+    finally:
+        motor.dispose()

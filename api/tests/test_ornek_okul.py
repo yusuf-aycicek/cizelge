@@ -13,7 +13,16 @@ from sqlalchemy import create_engine, text
 from okulapi.__main__ import main
 from okulapi.ayarlar import Ayarlar
 from okulapi.main import uygulama_olustur
-from okulapi.ornek_okul import ORNEK_EMAIL, ORNEK_OKUL, ORNEK_PAROLA, GelistirmeOrtamiDegil, ornek_okul_kur
+from okulapi.ornek_okul import (
+    ORNEK_EMAIL,
+    ORNEK_OKUL,
+    ORNEK_PAROLA,
+    SILME_SIRASI,
+    GelistirmeOrtamiDegil,
+    deneme_okullarini_sil,
+    okula_ait_tablolar,
+    ornek_okul_kur,
+)
 
 
 def okul_sayisi(ayarlar) -> int:
@@ -100,3 +109,65 @@ def test_gercekci_set_secilebilir(gelistirme, capsys):
     assert main(["ornek-okul", "--evet", "--set", "gercekci"], ayarlar=gelistirme) == 0
     assert "42 ogretmen, 24 sinif" in capsys.readouterr().out
     assert okul_sayisi(gelistirme) == 1
+
+
+# --- deneme-temizle ---------------------------------------------------------------------------
+
+
+def _deneme_okulu(ayarlar, email: str) -> None:
+    """Betiğin yaptığı gibi: kayıt, öğretmen, ders, şube, atama, şablon, müsaitlik, özel ayar."""
+    uygulama = uygulama_olustur(ayarlar.model_copy(update={"cerez_secure": False, "ortam": "gelistirme"}))
+    try:
+        with TestClient(uygulama) as i:
+            assert i.post("/api/kayit", json={"okul": {"ad": f"Deneme {email}"}, "ad": "Denetim", "email": email,
+                                              "sifre": "ekran-goruntusu-parolasi"}).status_code == 201
+            o = i.post("/api/ogretmenler", json={"ad": "Ayşe", "brans": ""}).json()["id"]
+            d = i.post("/api/dersler", json={"ad": "Matematik", "kisa_ad": "MAT"}).json()["id"]
+            s = i.post("/api/siniflar", json={"ad": "9-A", "seviye": 9}).json()["id"]
+            i.post("/api/ders-programi/atamalar", json={"sinif_id": s, "ders_id": d, "ogretmen_id": o, "haftalik_saat": 2})
+            i.post("/api/ders-programi/seviye-sablonlari", json={"seviye": 9, "ders_id": d, "haftalik_saat": 2})
+            i.post("/api/ders-programi/musaitlikler", json={"ogretmen_id": o, "gun": 0, "saat": 0, "durum": "gelemez"})
+            i.put("/api/ders-programi/kurallar/ogretmen_gunluk_siniri/ozel",
+                  json={"kapsam": {"ogretmen_id": o}, "parametreler": {"m": 6}})
+    finally:
+        uygulama.state.motor.dispose()
+
+
+def _epostalar(ayarlar) -> set[str]:
+    motor = create_engine(ayarlar.migrasyon_url)
+    try:
+        with motor.connect() as b:
+            return set(b.scalars(text("SELECT email FROM kullanici")))
+    finally:
+        motor.dispose()
+
+
+def test_deneme_okullari_silinir_ornek_okul_kalir(yuklu, gelistirme, capsys):
+    _deneme_okulu(gelistirme, "tasma-1729000000000@ornek.test")
+    _deneme_okulu(gelistirme, "ekran-1729000000001@ornek.test")
+    _deneme_okulu(gelistirme, "bos-1729000000002@ornek.test")
+    _deneme_okulu(gelistirme, "tasma-gercek@okul.k12.tr")  # kalıba uymaz: kalır
+    assert okul_sayisi(gelistirme) == 5
+
+    assert main(["deneme-temizle"], ayarlar=gelistirme) == 0
+    assert "3 deneme okulu silindi" in capsys.readouterr().out
+    assert _epostalar(gelistirme) == {ORNEK_EMAIL, "tasma-gercek@okul.k12.tr"}
+    assert main(["deneme-temizle"], ayarlar=gelistirme) == 0  # ikinci kez: silinecek bir şey yok
+    assert "0 deneme okulu silindi." in capsys.readouterr().out
+
+
+def test_deneme_temizle_yayinda_calismaz(yuklu, ayarlar, capsys):
+    _deneme_okulu(ayarlar, "tasma-1@ornek.test")
+    assert main(["deneme-temizle"], ayarlar=ayarlar) == 3
+    with pytest.raises(GelistirmeOrtamiDegil):
+        deneme_okullarini_sil(ayarlar)
+    assert okul_sayisi(ayarlar) == 2
+
+
+def test_silme_sirasi_okula_ait_butun_tablolari_kapsar(gelistirme):
+    motor = create_engine(gelistirme.migrasyon_url)
+    try:
+        with motor.connect() as b:
+            assert okula_ait_tablolar(b) == set(SILME_SIRASI)
+    finally:
+        motor.dispose()

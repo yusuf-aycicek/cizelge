@@ -330,8 +330,8 @@ Uygulama sırası (kullanıcı kararı; her alt adımın sonunda kullanıcıya s
 | D4 | Programlar tablosu 800 px'te sığar; taşma denetimine 800 px | Bitti: oluşturma ve süre tek sütunda, uzun ad kırılır. Taşma denetimi 800 px'i de dener ve artık **kutu içi yana kaymayı** da yakalar (eski sürüm yalnızca sayfa taşmasına bakıyordu, bu hatayı göremezdi). Yeni denetim 800 px'te öğretmenler, dersler, şablon ve ders dağılımı tablolarında da kayma buldu; düzeltildi: tablo kutusu container query ile dar alanda sıkışır, tablo hücresindeki çip satır kırar, ders dağılımında 64rem altında şube listesi üste alınır. Bilerek kayan haftalık çizelge `data-kaydirilabilir` ile işaretli. Denetime hazır bir program ve çizelgesi de eklendi |
 | D5 | Uygulamanın adı "Çizelge" | Bitti: ad tek yerde (`web/src/urun.ts`); üst çubuk, giriş/kayıt sayfası (altında "Okul Ders Programı Oluşturma Sistemi"), sekme başlığı, API başlığı, README ve CLAUDE.md |
 | D6 | Program sayfası: hazır program öne, son başarısız deneme sade ve açılabilir | Bitti: en yeni hazır program önde; ondan sonraki başarısız deneme sade uyarı, nedeni `<details>` ile açılır; hiç hazır program yoksa büyük panel |
-| D7 | Deneme verisi temizliği: betiklerin (taşma, ekran görüntüsü) açtığı deneme okulları silinir | **Sıradaki** |
-| K2 + 5.5 | Öğretmene özel boş gün ve müsaitlik çizelgesi: öğretmen detay sayfası | |
+| D7 | Deneme verisi temizliği: betiklerin (taşma, ekran görüntüsü) açtığı deneme okulları silinir | Bitti: `python -m okulapi deneme-temizle` (geliştirme ortamı koruması; yalnızca bütün kullanıcıları `tasma-/ekran-/bos-…@ornek.test` olan okullar; örnek okul kalır); iki betik iş bitince kendiliğinden çağırır. Geliştirme veritabanından 11 deneme okulu silindi |
+| K2 + 5.5 | Öğretmene özel boş gün ve müsaitlik çizelgesi: öğretmen detay sayfası | **Sıradaki** |
 | K3 | Günlere göre ders saati ve öğle arası | |
 | K4 | Blok dersler | |
 | K5 | Şube grupları ve istisnalar | |
@@ -353,6 +353,17 @@ K1'den notlar (kapsam temeli; tasarım: docs/kisisellestirme-plani.md, ADR 0016)
 - Ekran görüntüleri: docs/ekranlar/k1/. Testler: çözücü 189, API 510, web 224. Mutasyon denemesi
   7/7 (biri ilk denemede kaçtı: boş gün kuralının öğretmene özel M'yi okuması; ceza toplamını
   denetleyen test eklendi).
+
+### Sonraya: tasarım rötuşu
+
+Şimdi uygulanmayacak (kullanıcı notu, K1 sonrası). Zemin ve kartlar çok açık olduğu için arayüz sade
+görünüyor. Sona doğru denenecekler:
+- koyu ve sıcak tonda yan menü;
+- sayfa başlıklarında kiremitten turuncuya hafif degrade bant;
+- zeminin bir ton koyulaştırılması;
+- panodaki sayı kartlarına farklı yumuşak renk tonları.
+
+Uygulamadan önce iki seçenek ekran görüntüsüyle gösterilecek.
 
 Sıra değişikliği (kullanıcı kararı): sistemin ekranda uçtan uca kullanılabilmesi için 5.5 ve 5.6
 ertelendi, önce yapım sırası 6'nın ilk iki alt adımı yapılır. Örnek okulda müsaitlik verisi var.

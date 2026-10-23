@@ -8,6 +8,7 @@
 //
 //   node scripts/tasma-denetimi.mjs
 import { chromium } from "playwright-core";
+import { denemeOkullariniTemizle } from "./deneme-temizle.mjs";
 
 const ADRES = process.env.WEB_ADRES ?? "http://localhost:5173";
 // 800 px: küçük dizüstü ya da yarım ekran pencere; menü hâlâ yanda, içerik alanı en dar halinde
@@ -81,5 +82,6 @@ try {
   }
 } finally {
   await tarayici.close();
+  denemeOkullariniTemizle();
 }
 process.exit(tasan ? 1 : 0);

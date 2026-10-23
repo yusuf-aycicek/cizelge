@@ -6,6 +6,7 @@
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium } from "playwright-core";
+import { denemeOkullariniTemizle } from "./deneme-temizle.mjs";
 
 const ADRES = process.env.WEB_ADRES ?? "http://localhost:5173";
 const adim = process.argv[2] ?? "taslak";
@@ -574,6 +575,7 @@ if (akis) {
     });
   } finally {
     await tarayici.close();
+    denemeOkullariniTemizle();
   }
   process.exit(0);
 }
@@ -599,4 +601,5 @@ try {
   }
 } finally {
   await tarayici.close();
+  denemeOkullariniTemizle();
 }
