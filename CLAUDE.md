@@ -184,6 +184,14 @@ Her ders ataması, gün ve saat üçlüsü için bir boolean değişken: "bu ata
 - Kilitli hücreler yerinde kalır.
 - Aynı ders bir sınıfa günde en fazla N saat konur (varsayılan 2, kısıt parametresi).
 - Bir öğretmen günde en fazla M saat derse girer (varsayılan 8, kısıt parametresi).
+- Blok dersler: bir dersin haftalık saatleri dağılım şeklindeki bloklara bölünür (ör. 5 saat
+  "2+2+1"); her blok ayrı bir günde, art arda, günün içinde ve öğle arasını kesmeden. Okul geneli
+  öneri haftalık saatten gelir (1: 1, 2: 2, 3: 2+1, 4: 2+2, 5: 2+2+1, 6: 2+2+2), okul değiştirebilir
+  ya da kapatabilir; derse ve ders + şubeye özel şekil verilebilir ("blok yok" dahil). Okul
+  önerisi uygulanamayan atamada (gün sayısı, N, gün uzunluğu, öğle arası, öğretmen müsaitliği ya
+  da kilitler izin vermiyorsa) düşer; açıkça seçilen şekil düşmez, ön kontrol nedenini söyler.
+  Kilitli hücre bir bloğun parçası sayılır, bloğun geri kalanı yanına yerleşir. Tek kaynak
+  `cozucu/blok.py`.
 
 ### Esnek kısıtlar (ihlali ceza puanı getirir, toplam ceza en aza indirilir)
 - Öğretmenin "tercih etmez" saatlerinden kaçınma.
@@ -309,7 +317,7 @@ ne yapıldığını söyler. Öğretmen, ders ve şube bazında istisnalar için
 | Aynı dersin bir şubeye günlük sınırı (N) | 2 | Okul geneli var; derse, şubeye özel çözücüde ve API'de var (K1), arayüzü K4'te (e) |
 | Öğretmenin günlük ders sınırı (M) | 8 | Var: okul geneli ve öğretmene özel (öğretmen sayfası, K2) |
 | Öğretmene boş gün hedefi | Okul geneli 1; öğretmene özel 0, 1 ya da 2 | Var: okul geneli ve öğretmene özel (öğretmen sayfası, K2) |
-| Dersin bloklara bölünmesi | 1 saat: 1; 2: 2; 3: 2+1; 4: 2+2; 5: 2+2+1; 6: 2+2+2 | Tasarımda (b) |
+| Dersin bloklara bölünmesi | 1 saat: 1; 2: 2; 3: 2+1; 4: 2+2; 5: 2+2+1; 6: 2+2+2 | Çözücüde var (K4a); API ve arayüz K4'te |
 | Şube grupları (alanlar: sayısal, sözel, eşit ağırlık, dil) | Grup = seviye | Tasarımda (a) |
 | Şubeye özel "bu dersi almaz / ek alır" | Yok | Tasarımda (a) |
 | Dersin saat tercihi (ör. Matematik sabah) | Yok | Tasarımda (f) |

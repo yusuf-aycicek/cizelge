@@ -51,6 +51,11 @@ KURAL_METINLERI: dict[str, tuple[str, str]] = {
         "Öğretmenin günlük ders sınırı",
         "Bir öğretmen günde en fazla bu kadar saat derse girer.",
     ),
+    "blok_deseni": (
+        "Dağılım şekli (blok dersler)",
+        "Bir dersin haftalık saatleri art arda bloklara bölünür (ör. 5 saat: 2+2+1); her blok ayrı "
+        "bir günde. Okul önerisi uygulanamayan derste kendiliğinden kalkar.",
+    ),
     "sinif_boslugu": (
         "Sınıfların boş saati olmasın",
         "Dersler günün başından başlar; sınıfın gün ortasında boş saati kalmaz.",

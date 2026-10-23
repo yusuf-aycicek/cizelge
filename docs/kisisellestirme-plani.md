@@ -190,6 +190,26 @@ Kısıtlar:
 N ile ilişkisi: desen N'den büyük blok içeriyorsa ön kontrol uyarır. Dersin günlük ders sayısı
 zaten bloğun boyudur.
 
+**K4'te verilen kararlar:**
+- Parametreler: okul geneli `{"otomatik": true, "varsayilanlar": {"4": [2, 1, 1]}}` (`otomatik:
+  false` = okulda blok yok); derse ya da ders + şubeye özel `{"desen": [2, 2, 1]}`, `[]` = blok
+  yok. Özel ayarda ders ekseni zorunludur (kurala `zorunlu_eksenler` eklendi: şubenin bütün
+  derslerine tek desen anlamsız). Desen büyükten küçüğe sıralanır: "1+2" ile "2+1" aynıdır.
+- Okul geneli desen bir **öneridir**: o atamada uygulanamıyorsa (blok sayısı > gün sayısı, en
+  büyük blok > N, blok hiçbir güne sığmıyor, öğretmenin müsaitliğine sığmıyor, kilitli hücreler
+  uymuyor) atama bloksuz kalır. Böylece varsayılan ayar tek başına programı çözümsüz yapmaz.
+  Açıkça seçilen şekil düşmez; ön kontrol nedenini söyler. Okul önerisinin yine de başka
+  atamalarla birlikte çözümsüzlüğe yol açtığı durumda çelişki analizi "9-A Matematik'in 2+2+1
+  dağılımı" grubunu gösterir.
+- **Kilitli hücre:** bir bloğun parçası sayılır; bloğun geri kalanını çözücü yanına yerleştirir.
+  Uyması için aynı gündeki kilitli saatler tek bir bloğa sığmalı (öğle arasını kesmeden,
+  öğretmenin gelemez saatlerine taşmadan) ve her kilitli güne ayrı bir blok düşmeli.
+- **Temel program:** değişiklik cezası ve ipucu aynen çalışır; bloklara uyan temel program
+  korunur, uymayan temel programda blok kuralı (zorunlu) kazanır.
+- `ardisik_ders` bütün atamaları bloklu (sınıf, ders) çiftinde modele eklenmez (ceza hep 0).
+- Doğrulayıcı (`dogrulama.py`) blokları bağımsız denetler: her gün tek kesintisiz parça, öğle
+  arasını kesmeden, parça boyları desene eşit.
+
 Performans: değişken sayısı kabaca atama × gün × saat × (farklı blok boyu ≤ 2) kadar artar.
 CLAUDE.md bölüm 7'deki gibi gerçekçi ve büyük sette 10/30/60/120 sn kalite ölçümüyle doğrulanır.
 Blok kısıtı arama uzayını daraltır; daha hızlı çözüm beklenir, ama bu ölçülecek.

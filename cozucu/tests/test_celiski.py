@@ -10,6 +10,7 @@ from cozucu import (
     CpSatCozucu,
     Ders,
     DersAtama,
+    KisitTanimi,
     Musaitlik,
     MusaitlikDurumu,
     OkulAyari,
@@ -36,8 +37,14 @@ DERSLER = [
 ]
 
 
-def girdi(atamalar, musaitlikler=(), kilitler=(), ayar=OkulAyari(5, 6), siniflar=None):
+# Bu dosyadaki senaryolar blok kuralından önce yazıldı ve başka kuralların çelişkisini sınar:
+# blok deseni kapalı. Blokla ilgili çelişkiler test_blok.py'de.
+BLOKSUZ = KisitTanimi("blok_deseni", {"otomatik": False})
+
+
+def girdi(atamalar, musaitlikler=(), kilitler=(), ayar=OkulAyari(5, 6), siniflar=None, kisitlar=(BLOKSUZ,)):
     g = CozumGirdisi(
+        kisitlar=list(kisitlar),
         ayar=ayar,
         ogretmenler=OGRETMENLER,
         siniflar=siniflar or [Sinif("s-9a", "9-A", 9)],
@@ -184,6 +191,7 @@ def test_mini_set_sayma_celiskisi_en_kucuk_kume_ve_hizli():
         musaitlikler=[m for m in mini.musaitlikler if m.ogretmen_id != "o-mehmet"]
         + yalnizca_musait("o-mehmet", musait),
         kilitli_yerlesimler=mini.kilitli_yerlesimler + [Yerlesim("a-9b-fiz", 1, 0), Yerlesim("a-10a-ing", 1, 0)],
+        kisitlar=mini.kisitlar + [BLOKSUZ],
     )
     assert on_kontrol(g) == []
     baslangic = time.perf_counter()

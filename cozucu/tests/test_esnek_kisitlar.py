@@ -27,6 +27,9 @@ ESNEK_TURLER = [t.tur for t in VARSAYILAN_KISITLAR if not t.zorunlu]
 AGIRLIK = {t.tur: t.agirlik for t in VARSAYILAN_KISITLAR if not t.zorunlu}
 
 
+BLOKSUZ = KisitTanimi("blok_deseni", {"otomatik": False})
+
+
 def yalniz(tur, agirlik=None):
     """`tur` dışındaki esnek kuralları kapatan kisit listesi."""
     tanimlar = []
@@ -340,8 +343,9 @@ def test_uygun_temel_program_aynen_korunur():
     atamalar = [atama("a", ogretmen="o1", saat=2), atama("b", ogretmen="o2", saat=2)]
     temel = [TemelYerlesim("s1", "a", 0, 3), TemelYerlesim("s1", "a", 1, 0),
              TemelYerlesim("s1", "b", 0, 1), TemelYerlesim("s1", "b", 1, 5)]
+    # Temel program 1+1 dağılımlı: blok kuralı açık olsa onu bozmak zorunda kalırdı (test_blok.py).
     girdi = girdi_kur(ayar=OkulAyari(2, 6), atamalar=atamalar, temel_yerlesimler=temel,
-                      kisitlar=yalniz("degisiklik"))
+                      kisitlar=yalniz("degisiklik") + [BLOKSUZ])
     sonuc = coz(girdi)
     assert sonuc.toplam_ceza == 0
     assert set(temel_program(girdi.atamalar, sonuc.yerlesimler)) == set(temel)

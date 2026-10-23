@@ -79,6 +79,7 @@ package "kisitlar.zorunlu (modele kısıt ekler)" {
   class OgretmenCakismasi
   class Gelemez
   class GunUzunlugu
+  class BlokDeseni
   class KilitliHucre
   class GunlukDersSiniri {
     +n : int
@@ -207,6 +208,7 @@ KisitKurali <|-- SinifCakismasi
 KisitKurali <|-- OgretmenCakismasi
 KisitKurali <|-- Gelemez
 KisitKurali <|-- GunUzunlugu
+KisitKurali <|-- BlokDeseni
 KisitKurali <|-- KilitliHucre
 KisitKurali <|-- GunlukDersSiniri
 KisitKurali <|-- OgretmenGunlukSiniri

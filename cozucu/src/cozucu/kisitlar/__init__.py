@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 
+from cozucu.blok import BLOK_DESENI_TURU
 from cozucu.kisitlar import esnek, zorunlu  # noqa: F401  (kayıt için)
 from cozucu.kisitlar.temel import KAYIT_DEFTERI, Baglam, GirdiHatasi, KisitKurali, kural_olustur
 from cozucu.kisitlar.zorunlu import TEMEL_KURALLAR
@@ -22,6 +23,8 @@ from cozucu.model import (
 VARSAYILAN_KISITLAR: tuple[KisitTanimi, ...] = (
     KisitTanimi(GUNLUK_DERS_SINIRI_TURU, {"n": VARSAYILAN_GUNLUK_DERS_SINIRI}, zorunlu=True),
     KisitTanimi(OGRETMEN_GUNLUK_SINIRI_TURU, {"m": VARSAYILAN_OGRETMEN_GUNLUK_SINIRI}, zorunlu=True),
+    # Dersler haftalık saate göre önerilen bloklara bölünür (2+2+1...); uygulanamayan atamada öneri düşer.
+    KisitTanimi(BLOK_DESENI_TURU, {"otomatik": True}, zorunlu=True),
     KisitTanimi("tercih_etmez", zorunlu=False, agirlik=5),
     KisitTanimi("ogretmen_penceresi", zorunlu=False, agirlik=3),
     KisitTanimi("sinif_boslugu", zorunlu=False, agirlik=30),  # diğer bütün esnek kurallardan baskın

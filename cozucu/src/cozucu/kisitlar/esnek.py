@@ -17,6 +17,7 @@ bağlanır: `bosluk >= okulda - dolu`.
 
 from __future__ import annotations
 
+from cozucu.blok import BlokHesabi
 from cozucu.kisitlar.temel import Baglam, CezaTerimi, KisitKurali, kaydet
 from cozucu.kisitlar.zorunlu import sinif_ders_gruplari
 from cozucu.model import (
@@ -116,7 +117,10 @@ class ArdisikDers(EsnekKural):
     def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
         cezalar: list[CezaTerimi] = []
         saatler = list(baglam.saatler)
+        bloklar = BlokHesabi(baglam.girdi)
         for atamalar in sinif_ders_gruplari(baglam).values():
+            if all(bloklar.desen(a) is not None for a in atamalar):
+                continue  # blok deseni olan derste her gün tek, bitişik blok vardır: ceza hep 0
             for g in baglam.gunler:
                 dolu = [baglam.dolu(atamalar, g, s) for s in saatler]
                 bitisik = []

@@ -13,6 +13,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 
 from cozucu.anlatim import Anlatim, iyelik
+from cozucu.blok import BlokHesabi, Desen
 from cozucu.kisitlar import VARSAYILAN_KISITLAR, GirdiHatasi, kural_olustur
 from cozucu.model import Celiski, CozumGirdisi, DersAtama, MusaitlikDurumu
 from cozucu.yuk import YukHesabi
@@ -30,6 +31,7 @@ def on_kontrol(girdi: CozumGirdisi) -> list[Celiski]:
         + kontrol.ogretmen_kapasitesi()
         + kontrol.ders_gun_kapasitesi()
         + kontrol.kilitler()
+        + kontrol.bloklar()
     )
     return sorunlar + kontrol.sinif_musaitligi(sorunlar)
 
@@ -344,6 +346,57 @@ class _Kontrol:
                     ogretmen_id,
                 )
         return sorunlar
+
+    # --- blok dersler (dağılım şekli) ---------------------------------------------------
+
+    def bloklar(self) -> list[Celiski]:
+        """Derse ya da ders + şubeye özel seçilmiş dağılım şekli bu atamada uygulanabiliyor mu?
+
+        Okul geneli öneri (otomatik desen) burada denetlenmez: uygulanamadığı atamada kendiliğinden
+        düşer (`cozucu.blok`). Açıkça seçilen şekil düşmez; neden uygulanamadığı söylenir.
+        """
+        hesap = BlokHesabi(self.girdi)
+        sorunlar: list[Celiski] = []
+        for a in self.girdi.atamalar:
+            d = hesap.istenen(a)
+            if d is None or not d.ozel:
+                continue
+            for tur in hesap.sorunlar(a, d):
+                sorunlar.append(Celiski("blok_deseni", self._blok_mesaji(hesap, a, d, tur),
+                                        (a.sinif_id, a.id, *([a.ogretmen_id] if a.ogretmen_id else []))))
+                if tur == "toplam":
+                    break  # toplam tutmuyorsa öteki denetimler yanıltıcı olur
+        return sorunlar
+
+    def _blok_mesaji(self, hesap: BlokHesabi, a: DersAtama, d: Desen, tur: str) -> str:
+        ad = self.ad.atama(a)
+        sekil = f"dağılım şekli {d.metin}"
+        if tur == "toplam":
+            return (f"{ad} haftada {a.haftalik_saat} saat, ama {sekil} ({sum(d.bloklar)} saat). "
+                    f"Şekli ya da haftalık saati düzeltin.")
+        if tur == "gunluk_sinir":
+            n = self.yuk.ders_siniri(a.sinif_id, a.ders_id)
+            return (f"{ad} {max(d.bloklar)} saatlik blok istiyor ({sekil}), ama bu ders bu şubeye günde en "
+                    f"fazla {n} saat konabiliyor.")
+        if tur == "gun_sayisi":
+            return (f"{ad} {len(d.bloklar)} blok istiyor ({sekil}), ama haftada {self.gun_sayisi} gün var; "
+                    f"her blok ayrı bir güne konur.")
+        if tur == "gune_sigmaz":
+            boy = max(b for b in d.bloklar if not hesap.uygun_gunler(a, b, ogretmensiz=True))
+            neden = f"hiçbir günde art arda {boy} ders saati yok"
+            if self.girdi.ayar.ogle_arasi_sonra is not None:
+                neden += f" (öğle arası {self.girdi.ayar.ogle_arasi_sonra}. dersten sonra günü bölüyor)"
+            return f"{ad} {boy} saatlik blok istiyor ({sekil}), ama {neden}."
+        if tur == "musaitlik":
+            kim = self.ad.ogretmen(a.ogretmen_id)
+            parcalar = [
+                f"art arda {b} saat müsait olduğu {len(hesap.uygun_gunler(a, b))} gün var"
+                for b in sorted(set(d.bloklar), reverse=True)
+            ]
+            return (f"{ad} {len(d.bloklar)} blok istiyor ({sekil}) ve her blok ayrı bir güne konur, ama "
+                    f"{iyelik(kim)} {', '.join(parcalar)}.")
+        return (f"{iyelik(ad)} kilitli hücreleri {sekil} ile uyuşmuyor: aynı gündeki kilitli saatler tek bir "
+                f"bloğa sığmalı ve her kilitli güne ayrı bir blok düşmeli.")
 
     # --- yardımcılar -------------------------------------------------------------------
 

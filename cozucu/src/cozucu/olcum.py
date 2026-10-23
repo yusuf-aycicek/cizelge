@@ -120,6 +120,11 @@ def main(argv: list[str] | None = None) -> None:
     import argparse
     import sys
 
+    from collections import Counter
+    from dataclasses import replace
+
+    from cozucu.blok import BLOK_DESENI_TURU, BlokHesabi
+    from cozucu.model import KisitTanimi
     from cozucu.veri_io import girdi_oku
 
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -127,10 +132,16 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("veri")
     p.add_argument("--tohum", type=int, nargs="+", default=[0, 1, 2])
     p.add_argument("--noktalar", type=float, nargs="+", default=list(VARSAYILAN_NOKTALAR))
+    p.add_argument("--bloksuz", action="store_true", help="blok dersleri kapat (K4 öncesiyle karşılaştırmak için)")
     a = p.parse_args(argv)
     girdi = girdi_oku(a.veri)
+    if a.bloksuz:
+        girdi = replace(girdi, kisitlar=[*girdi.kisitlar, KisitTanimi(BLOK_DESENI_TURU, {"otomatik": False})])
+    hesap = BlokHesabi(girdi)
+    desenler = Counter(d.metin for d in map(hesap.desen, girdi.atamalar) if d is not None)
     baslangic = time.perf_counter()
-    print(f"## {a.veri}\n", flush=True)
+    print(f"## {a.veri}{' (bloksuz)' if a.bloksuz else ''}\n", flush=True)
+    print(f"Bloklu atama: {sum(desenler.values())} / {len(girdi.atamalar)} {dict(desenler.most_common())}\n", flush=True)
     calistirmalar = []
     for t in a.tohum:  # her çalıştırma bitince yazılır: ölçüm yarıda kalırsa sonuçlar kaybolmaz
         calistirmalar.append(olc_zamana_gore(girdi, t, a.noktalar))

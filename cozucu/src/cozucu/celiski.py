@@ -29,6 +29,7 @@ import time
 from ortools.sat.python import cp_model
 
 from cozucu.anlatim import Anlatim, iyelik
+from cozucu.blok import BlokHesabi
 from cozucu.kisitlar import Baglam, kurallari_hazirla
 from cozucu.kisitlar.temel import GrupAnahtari
 from cozucu.model import (
@@ -41,7 +42,7 @@ from cozucu.model import (
 )
 
 # Maddelerin mesajdaki sırası: önce kişiye/zamana bağlı kurallar, en son ders saatleri.
-_SIRA = ("gun_uzunlugu", "gelemez", "ogretmen_gunluk", "kilit", "gunluk_ders", "haftalik_saat")
+_SIRA = ("gun_uzunlugu", "gelemez", "ogretmen_gunluk", "kilit", "gunluk_ders", "blok", "haftalik_saat")
 
 
 def celiskileri_bul(
@@ -155,6 +156,12 @@ def _anlat(girdi: CozumGirdisi, cekirdek: list[GrupAnahtari]) -> Celiski:
             )
             maddeler.append((sira, (), f"{ad.sinif_ders(p[0], p[1])} bir günde en fazla {n} saat olabilir"))
             ilgili.append(p[0])
+        elif tur == "blok":
+            a = atama[p[0]]
+            desen = BlokHesabi(girdi).desen(a)
+            metin = desen.metin if desen else "blok"
+            maddeler.append((sira, (), f"{iyelik(ad.atama(a))} {metin} dağılımı (her blok ayrı bir günde, art arda)"))
+            ilgili.append(a.id)
         elif tur == "haftalik_saat":
             a = atama[p[0]]
             metin = f"{ad.atama(a)} haftada {a.haftalik_saat} saat ({ad.ogretmen(a.ogretmen_id)})"

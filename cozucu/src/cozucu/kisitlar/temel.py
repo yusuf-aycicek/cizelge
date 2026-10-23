@@ -110,6 +110,8 @@ class KisitKurali(ABC):
     zorunlu_olabilir: ClassVar[bool] = True
     esnek_olabilir: ClassVar[bool] = False
     kapsamlar: ClassVar[frozenset[str]] = frozenset()
+    # Özel ayarın kapsamında bulunması gereken eksenler (ör. blok deseni yalnızca bir ders için).
+    zorunlu_eksenler: ClassVar[frozenset[str]] = frozenset()
 
     zorunlu: bool = True
     agirlik: int = 1
@@ -155,6 +157,7 @@ def kaydet(sinif: type[KisitKurali]) -> type[KisitKurali]:
 
 
 _EKSEN_ADI = {"ders": "derse", "sube": "şubeye", "sube_grubu": "şube grubuna", "ogretmen": "öğretmene"}
+_EKSEN_YALIN = {"ders": "ders", "sube": "şube", "sube_grubu": "şube grubu", "ogretmen": "öğretmen"}
 
 
 def kural_olustur(tanim: KisitTanimi, ozeller: tuple[KisitTanimi, ...] | list[KisitTanimi] = ()) -> KisitKurali:
@@ -174,6 +177,10 @@ def kural_olustur(tanim: KisitTanimi, ozeller: tuple[KisitTanimi, ...] | list[Ki
         if desteklenmeyen:
             ad = ", ".join(_EKSEN_ADI[e] for e in sorted(desteklenmeyen))
             raise GirdiHatasi(f"'{o.tur}' {ad} özel ayarlanamaz")
+        eksik = sinif.zorunlu_eksenler - o.kapsam.eksenler
+        if eksik:
+            ad = ", ".join(_EKSEN_YALIN[e] for e in sorted(eksik))
+            raise GirdiHatasi(f"'{o.tur}' özel ayarında {ad} belirtilmeli")
         if o.kapsam in gorulen:
             raise GirdiHatasi(f"'{o.tur}' için aynı kapsamda iki özel ayar var")
         gorulen.add(o.kapsam)

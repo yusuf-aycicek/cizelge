@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 
+from cozucu.blok import BlokHesabi
 from cozucu.model import (
     GUNLUK_DERS_SINIRI_TURU,
     OGRETMEN_GUNLUK_SINIRI_TURU,
@@ -93,5 +94,28 @@ def dogrula(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> list[str]:
         )
         if m is not None and adet > m:
             hatalar.append(f"Öğretmen günlük sınırı aşıldı: {ogretmen} gün {g}: {adet} > {m}")
+
+    # Blok deseni: her gün en çok bir kesintisiz parça, öğle arasını kesmeden; parça boyları desen.
+    # Hangi desenin geçerli olduğu tek kaynaktan (cozucu.blok), yerleşimin ona uyması burada denetlenir.
+    bloklar = BlokHesabi(girdi)
+    gun_saatleri: dict[tuple[str, int], list[int]] = defaultdict(list)
+    for y in gecerli:
+        gun_saatleri[y.ders_atama_id, y.gun].append(y.saat)
+    for a in girdi.atamalar:
+        desen = bloklar.desen(a)
+        if desen is None:
+            continue
+        parcalar = []
+        for g in range(girdi.ayar.gun_sayisi):
+            saatler = sorted(gun_saatleri.get((a.id, g), []))
+            if not saatler:
+                continue
+            kesintisiz = saatler[-1] - saatler[0] + 1 == len(saatler)
+            ogle = any(girdi.ayar.ogle_arasiyla_ayrilir(g, s) for s in saatler[:-1])
+            if not kesintisiz or ogle:
+                hatalar.append(f"Blok bölünmüş: {a.id} gün {g}: {saatler}")
+            parcalar.append(len(saatler))
+        if sorted(parcalar, reverse=True) != list(desen.bloklar):
+            hatalar.append(f"Blok deseni tutmuyor: {a.id}: {sorted(parcalar, reverse=True)} != {list(desen.bloklar)}")
 
     return hatalar

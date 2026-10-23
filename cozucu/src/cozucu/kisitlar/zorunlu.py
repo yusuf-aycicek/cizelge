@@ -10,8 +10,9 @@ Her zorunlu kısıt `baglam.grupla` ile anlamlı bir gruba bağlanır; çelişki
 
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 
+from cozucu.blok import BLOK_DESENI_TURU, BlokHesabi, baslangiclar, desen_dogrula
 from cozucu.kisitlar.temel import Baglam, CezaTerimi, KisitKurali, kaydet
 from cozucu.model import (
     GUNLUK_DERS_SINIRI_TURU,
@@ -174,6 +175,64 @@ class OgretmenGunlukSiniri(KisitKurali):
                     sum(baglam.dolu(atamalar, g, s) for s in baglam.saatler) <= m
                 )
                 baglam.grupla(kisit, "ogretmen_gunluk", ogretmen_id)
+        return []
+
+
+@kaydet
+class BlokDeseni(KisitKurali):
+    """Bir dersin haftalık saatleri desendeki bloklara bölünür ("2+2+1"); her blok ayrı bir günde,
+    art arda, günün içinde ve öğle arasını kesmeden (docs/kisisellestirme-plani.md 4.1).
+
+    Parametreler: okul geneli `otomatik` (haftalık saate göre önerilen desen) ve `varsayilanlar`
+    (saat → desen, öneriyi değiştirir); derse ya da ders + şubeye özel `desen` (`[]` = blok yok).
+    Hangi atamaya hangi desenin uygulanacağı `cozucu.blok.BlokHesabi`'dan gelir (tek kaynak).
+
+    Model: `bas[g, s, b]` = "b saatlik blok g günü s saatinde başlıyor". Yalnızca bloğun sığdığı
+    başlangıçlar için değişken üretilir; öğle arası ve gün uzunluğu böylece ayrı kısıt gerekmeden
+    uygulanır. Kısıtlar: her ders saati tam bir bloğa ait (x = kapsayan başlangıçların toplamı),
+    günde en çok bir blok, her boydan desendeki kadar blok.
+    """
+
+    tur = BLOK_DESENI_TURU
+    kapsamlar = frozenset({"ders", "sube"})
+    zorunlu_eksenler = frozenset({"ders"})
+
+    def __init__(self, otomatik: bool = True, varsayilanlar: dict | None = None, desen: list | None = None) -> None:
+        if not isinstance(otomatik, bool):
+            raise ValueError(f"otomatik true ya da false olmalı: {otomatik!r}")
+        for saat, d in (varsayilanlar or {}).items():
+            bloklar = desen_dogrula(d)
+            if bloklar and sum(bloklar) != int(saat):
+                raise ValueError(f"{saat} saat için desen toplamı {sum(bloklar)}")
+        if desen is not None:
+            desen_dogrula(desen)
+        self.otomatik = otomatik
+        self.varsayilanlar = varsayilanlar or {}
+        self.desen = desen
+
+    def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
+        hesap = BlokHesabi(baglam.girdi)
+        ayar = baglam.girdi.ayar
+        for a in baglam.girdi.atamalar:
+            d = hesap.desen(a)
+            if d is None:
+                continue
+            m = baglam.model
+            sayilar = Counter(d.bloklar)
+            bas = {
+                (g, s, b): m.new_bool_var(f"bas[{a.id},{g},{s},{b}]")
+                for g in baglam.gunler for b in sayilar for s in baslangiclar(ayar, g, b)
+            }
+            kisitlar = []
+            for g in baglam.gunler:
+                for s in baglam.saatler:
+                    kapsayan = [v for (gg, s0, b), v in bas.items() if gg == g and s0 <= s < s0 + b]
+                    kisitlar.append(m.add(baglam.x[a.id, g, s] == sum(kapsayan)))
+                kisitlar.append(m.add(sum(v for (gg, _s, _b), v in bas.items() if gg == g) <= 1))
+            for b, adet in sayilar.items():
+                kisitlar.append(m.add(sum(v for (_g, _s, bb), v in bas.items() if bb == b) == adet))
+            for k in kisitlar:
+                baglam.grupla(k, "blok", a.id)
         return []
 
 
