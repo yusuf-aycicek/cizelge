@@ -100,6 +100,16 @@ export function kaliteMaddeleri(o: Record<string, number> | null | undefined, te
   return maddeler;
 }
 
+/** "1 saniyeden kısa", "12 saniye", "2 dakika 5 saniye". */
+export function sureMetni(sn: number): string {
+  if (sn < 1) return "1 saniyeden kısa";
+  const yuvarlak = Math.round(sn);
+  if (yuvarlak < 60) return `${yuvarlak} saniye`;
+  const dk = Math.floor(yuvarlak / 60);
+  const kalan = yuvarlak % 60;
+  return kalan ? `${dk} dakika ${kalan} saniye` : `${dk} dakika`;
+}
+
 /** Çözücünün sonucunu sade dille söyler. */
 export function cozumAciklamasi(cozumDurumu: string | null | undefined): string {
   if (cozumDurumu === "optimal") return "Bu kurallarla bulunabilecek en iyi program (kanıtlandı).";

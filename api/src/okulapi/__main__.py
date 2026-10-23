@@ -56,8 +56,8 @@ def parola_sifirla(email: str, rastgele: bool, fabrika: sessionmaker, ayarlar: A
     return 0
 
 
-def ornek_okul(evet: bool, ayarlar: Ayarlar) -> int:
-    from okulapi.ornek_okul import ORNEK_EMAIL, ORNEK_PAROLA, ORTAM_UYARISI, ornek_okul_kur
+def ornek_okul(evet: bool, ayarlar: Ayarlar, veri_seti: str = "mini") -> int:
+    from okulapi.ornek_okul import ORNEK_EMAIL, ORNEK_PAROLA, ORTAM_UYARISI, SETLER, ornek_okul_kur
 
     # İki koruma: açık ortam ayarı (yayında hiç tanımlanmaz) ve onay bayrağı.
     if ayarlar.ortam != "gelistirme":
@@ -68,7 +68,7 @@ def ornek_okul(evet: bool, ayarlar: Ayarlar) -> int:
               "okulu yükler. Yalnızca geliştirme veritabanında kullanın. Devam etmek için: --evet",
               file=sys.stderr)
         return 2
-    sayilar = ornek_okul_kur(ayarlar)
+    sayilar = ornek_okul_kur(ayarlar, SETLER[veri_seti])
     print("Örnek okul yüklendi: " + ", ".join(f"{v} {k}" for k, v in sayilar.items()))
     print(f"Giriş: {ORNEK_EMAIL} / {ORNEK_PAROLA}")
     return 0
@@ -82,11 +82,13 @@ def main(argv: list[str] | None = None, fabrika: sessionmaker | None = None, aya
     sifirla.add_argument("--rastgele", action="store_true", help="Rastgele parola üret ve göster")
     ornek = komutlar.add_parser("ornek-okul", help="Geliştirme veritabanını temizler, örnek okulu yükler")
     ornek.add_argument("--evet", action="store_true", help="Bütün verinin silineceğini onaylıyorum")
+    ornek.add_argument("--set", dest="veri_seti", choices=["mini", "gercekci"], default="mini",
+                       help="Veri seti: mini (varsayılan, hızlı) ya da gercekci (24 şube)")
     secim = ayristirici.parse_args(argv)
 
     ayarlar = ayarlar or Ayarlar()
     if secim.komut == "ornek-okul":
-        return ornek_okul(secim.evet, ayarlar)
+        return ornek_okul(secim.evet, ayarlar, secim.veri_seti)
     motor = None
     if fabrika is None:
         motor = motor_olustur(ayarlar.veritabani_url)

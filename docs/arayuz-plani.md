@@ -305,6 +305,17 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 | 5.6 | Kullanıcılar, kontrol listesi, uçtan uca | Ertelendi (kontrol listesi tasarım 3e'de yapıldı) |
 | 6.1 | Program üretme ekranı ve durum takibi | Bitti: `/program`; engeller (öğretmensiz, aşım) düğmeyi pasif yapar; süre seçimi; sorgulama `refetchInterval` fonksiyonuyla (etkin program yoksa durur); bekleme paneli (mini çizelge animasyonu, süre çubuğu, aşamalar); başarısızlıkta çelişkiler türüne göre ve ilgili şube/öğretmene bağlantıyla; panoda program adımı ve son programa bağlantı; API şemasında `CeliskiYanit` tipli |
 | 6.2 | Haftalık çizelge görünümü ve kalite özeti | Bitti: `/program/:id`; şube ve öğretmen sekmeleri, seçim adres çubuğunda; hücrede ders çipi ve öğretmen rozeti ya da şube adı; boş saat sade; hücreler gün gün sırayla yerleşir (en çok 0,6 sn); çizelge boyutu okul ayarı ile programın büyüğü; kalite özeti sade Türkçe |
+
+6.1-6.2 uçtan uca denemesi (örnek okulda gerçek üretim):
+- Mini set: program 1 saniyeden kısa sürede hazır (en iyisi kanıtlandı); bütün kalite ölçüleri sıfır.
+- Gerçekçi set (`ornek-okul --set gercekci`, 24 şube): 2 dk 1 sn; 59 pencere saati, 26 eksik boş gün,
+  26 bölünmüş ders; sınıf boşluğu 0. Bekleme ekranı burada görüntülendi.
+- Hata örneği: günlük ders sınırı 1 iken ön kontrol "Günlere sığmayan dersler" olarak, şubeye bağlantıyla.
+- Görüntüler: `docs/ekranlar/6/`, `docs/ekranlar/6-bekleme/`. Taşma denetimi 22/22 temiz.
+- Gözlem: gerçekçi sette 17 ders var, palet 14 renk; üç renk iki derste tekrar ediyor.
+- Telefonda çizelge kendi kutusunda yatay kayıyor; gün gün görünüm 5.6'daki telefon kontrolüne.
+- Testler: web 218, api 482, çözücü 149.
+- Yük altında kararsız testler için Vitest işçileri çekirdeklerin yarısıyla sınırlandı.
 | K | Kişiselleştirme katmanı: yalnızca tasarım (`docs/kisisellestirme-plani.md`), onaydan sonra uygulanır | Tasarım yazıldı (ADR 0016 önerildi); **kullanıcının onayı bekleniyor**. Uygulama sırası K1–K6 belgede |
 
 Sıra değişikliği (kullanıcı kararı): sistemin ekranda uçtan uca kullanılabilmesi için 5.5 ve 5.6

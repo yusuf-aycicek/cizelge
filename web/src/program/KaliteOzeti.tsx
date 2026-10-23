@@ -1,5 +1,5 @@
 import { CircleAlert, CircleCheck } from "lucide-react";
-import { cozumAciklamasi, kaliteMaddeleri, type Program } from "./aciklama";
+import { cozumAciklamasi, kaliteMaddeleri, sureMetni, type Program } from "./aciklama";
 import stil from "./Program.module.css";
 
 /** Programın kalite özeti, sade Türkçe: iyi olanlar yeşil onaylı, iyileştirilebilecekler sarı. */
@@ -14,7 +14,7 @@ export function KaliteOzeti({ program, baslikDuzeyi = 2 }: { program: Program; b
       {aciklama && (
         <p className={stil.kaliteAciklama}>
           {aciklama}
-          {program.sure_sn != null && ` Üretim ${Math.round(program.sure_sn)} saniye sürdü.`}
+          {program.sure_sn != null && ` Üretim ${sureMetni(program.sure_sn)} sürdü.`}
         </p>
       )}
       <ul className={stil.kaliteListesi}>

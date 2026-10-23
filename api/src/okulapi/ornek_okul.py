@@ -29,7 +29,11 @@ ORNEK_EMAIL = "mudur@ornek.test"
 ORNEK_PAROLA = "ornek-okul-parolasi"
 ORNEK_OKUL = "Atatürk Anadolu Lisesi"
 ORNEK_MUDUR = "Hatice Yıldız"
-MINI = Path(__file__).resolve().parents[3] / "veri" / "mini.json"
+VERI = Path(__file__).resolve().parents[3] / "veri"
+MINI = VERI / "mini.json"
+# Seçilebilir setler: mini (5 öğretmen, 3 şube; hızlı) ve gerçekçi (42 öğretmen, 24 şube; çözücü
+# süre sınırını kullanır, bekleme ekranını görmek için).
+SETLER = {"mini": MINI, "gercekci": VERI / "gercekci.json"}
 DP = "/api/ders-programi"
 
 

@@ -94,3 +94,9 @@ def test_ornek_okul_yuklenir_ve_bilinen_bilgiyle_girilir(gelistirme, capsys):
             assert ozet["ogretmensiz_atama"] == 0
     finally:
         uygulama.state.motor.dispose()
+
+
+def test_gercekci_set_secilebilir(gelistirme, capsys):
+    assert main(["ornek-okul", "--evet", "--set", "gercekci"], ayarlar=gelistirme) == 0
+    assert "42 ogretmen, 24 sinif" in capsys.readouterr().out
+    assert okul_sayisi(gelistirme) == 1

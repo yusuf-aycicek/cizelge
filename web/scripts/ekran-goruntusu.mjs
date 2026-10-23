@@ -398,6 +398,106 @@ AKISLAR["tasarim-a"] = async (tarayici, kaydet) => {
   await baglam.close();
 };
 
+// Yapım sırası 6.1-6.2: örnek okulda gerçek bir program üretimi, bekleme ekranı, çizelge, hata örneği.
+// Önce: cd api && OKULAPI_ORTAM=gelistirme .venv/Scripts/python -m okulapi ornek-okul --evet
+AKISLAR["6"] = async (tarayici, kaydet) => {
+  const baglam = await tarayici.newContext({ viewport: MASAUSTU, locale: "tr-TR" });
+  const s = await baglam.newPage();
+  await s.goto(ADRES + "/giris");
+  await s.getByLabel("E-posta").fill("mudur@ornek.test");
+  await s.getByLabel("Parola").fill("ornek-okul-parolasi");
+  await s.getByRole("button", { name: "Giriş yap" }).click();
+  await s.getByRole("img", { name: /Kurulum:/ }).waitFor();
+  await s.waitForTimeout(1200);
+  await kaydet(s, "01-ana-sayfa-program-oncesi.png", true);
+
+  await s.goto(ADRES + "/program");
+  await s.getByRole("button", { name: "Programı oluştur" }).waitFor();
+  await s.waitForTimeout(600);
+  await kaydet(s, "02-program-olustur.png");
+  await s.getByRole("textbox", { name: "Programın adı" }).fill("Güz dönemi programı");
+  await s.getByRole("button", { name: "Programı oluştur" }).click();
+  // Mini sette çözücü en iyi sonucu bir saniyeden kısa sürede kanıtlar; bekleme ekranı için "6-bekleme".
+  await s.getByRole("heading", { name: "“Güz dönemi programı” hazır" }).waitFor({ timeout: 240_000 });
+  await s.waitForTimeout(800);
+  await kaydet(s, "05-program-hazir.png", true);
+
+  await s.getByRole("link", { name: "Haftalık çizelgeyi aç" }).click();
+  await s.getByRole("table", { name: /haftalık programı/ }).waitFor();
+  await s.waitForTimeout(400);
+  await kaydet(s, "06-cizelge-yerlesiyor.png"); // hücreler sırayla yerleşirken
+  await s.waitForTimeout(1200);
+  await kaydet(s, "07-cizelge-sube.png", true);
+  await s.getByRole("tab", { name: "Öğretmene göre" }).click();
+  await s.getByRole("table", { name: /haftalık programı/ }).waitFor();
+  await s.waitForTimeout(1200);
+  await kaydet(s, "08-cizelge-ogretmen.png", true);
+
+  await s.goto(ADRES + "/");
+  await s.getByRole("img", { name: /Kurulum:/ }).waitFor();
+  await s.waitForTimeout(1200);
+  await kaydet(s, "09-ana-sayfa-program-sonrasi.png");
+
+  const telefon = await baglam.newPage();
+  await telefon.setViewportSize(TELEFON);
+  await telefon.goto(ADRES + "/program");
+  await telefon.getByRole("link", { name: "Haftalık çizelgeyi aç" }).click();
+  await telefon.getByRole("table", { name: /haftalık programı/ }).waitFor();
+  await telefon.waitForTimeout(1500);
+  await kaydet(telefon, "10-telefon-cizelge.png", true);
+  await telefon.close();
+
+  // Hata örneği: günlük ders sınırı geçici olarak 1 (6 saatlik Matematik 5 güne sığmaz).
+  const istek = async (yontem, yol, data) => {
+    const y = await baglam.request.fetch(ADRES + yol, { method: yontem, headers: { Origin: ADRES }, data });
+    if (!y.ok()) throw new Error(`${yontem} ${yol}: ${y.status()} ${await y.text()}`);
+  };
+  await istek("PUT", "/api/ders-programi/kurallar/gunluk_ders_siniri", { parametreler: { n: 1 } });
+  try {
+    await s.goto(ADRES + "/program");
+    await s.getByRole("radio", { name: /Hızlı/ }).check();
+    await s.getByRole("textbox", { name: "Programın adı" }).fill("Deneme");
+    await s.getByRole("button", { name: "Programı oluştur" }).click();
+    await s.getByRole("heading", { name: "“Deneme” oluşturulamadı" }).waitFor({ timeout: 120_000 });
+    await s.waitForTimeout(800);
+    await kaydet(s, "11-program-olusturulamadi.png", true);
+  } finally {
+    await istek("DELETE", "/api/ders-programi/kurallar/gunluk_ders_siniri");
+  }
+  await baglam.close();
+};
+
+// Bekleme ekranı: gerçekçi sette (24 şube) çözücü süre sınırını kullanır.
+// Önce: cd api && OKULAPI_ORTAM=gelistirme .venv/Scripts/python -m okulapi ornek-okul --evet --set gercekci
+AKISLAR["6-bekleme"] = async (tarayici, kaydet) => {
+  const baglam = await tarayici.newContext({ viewport: MASAUSTU, locale: "tr-TR" });
+  const s = await baglam.newPage();
+  await s.goto(ADRES + "/giris");
+  await s.getByLabel("E-posta").fill("mudur@ornek.test");
+  await s.getByLabel("Parola").fill("ornek-okul-parolasi");
+  await s.getByRole("button", { name: "Giriş yap" }).click();
+  await s.getByRole("img", { name: /Kurulum:/ }).waitFor();
+  await s.goto(ADRES + "/program");
+  await s.getByRole("button", { name: "Programı oluştur" }).waitFor();
+  await s.getByRole("textbox", { name: "Programın adı" }).fill("Güz dönemi programı");
+  await s.getByRole("button", { name: "Programı oluştur" }).click();
+  await s.getByRole("heading", { name: "Program hazırlanıyor" }).waitFor();
+  await s.waitForTimeout(3000);
+  await kaydet(s, "12-bekleme-yerlestirme.png");
+  await s.waitForTimeout(30_000);
+  await kaydet(s, "13-bekleme-iyilestirme.png");
+  const basla = Date.now();
+  await s.getByRole("heading", { name: "“Güz dönemi programı” hazır" }).waitFor({ timeout: 300_000 });
+  console.log(`program hazır (${Math.round((Date.now() - basla) / 1000) + 33} sn civarı)`);
+  await s.waitForTimeout(800);
+  await kaydet(s, "14-buyuk-okul-program-hazir.png");
+  await s.getByRole("link", { name: "Haftalık çizelgeyi aç" }).click();
+  await s.getByRole("table", { name: /haftalık programı/ }).waitFor();
+  await s.waitForTimeout(1500);
+  await kaydet(s, "15-buyuk-okul-cizelge.png", true);
+  await baglam.close();
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {
@@ -410,6 +510,8 @@ if (akis) {
   try {
     await akis(tarayici, async (sayfa, dosya, tamSayfa = false) => {
       await sayfa.waitForTimeout(300);
+      // Tam sayfa görüntüsünde yapışkan üst çubuk o anki kaydırma yerinde çizilir: önce başa dön.
+      if (tamSayfa) await sayfa.evaluate(() => window.scrollTo(0, 0));
       await sayfa.screenshot({ path: resolve(hedef, dosya), fullPage: tamSayfa });
       console.log(`docs/ekranlar/${adim}/${dosya}`);
     });

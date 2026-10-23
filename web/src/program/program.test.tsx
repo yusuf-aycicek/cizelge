@@ -91,7 +91,7 @@ describe("program oluşturma", () => {
     expect(screen.getByRole("link", { name: "Haftalık çizelgeyi aç" })).toHaveAttribute("href", "/program/p1");
     expect(screen.getByText("Şubelerde gün ortasında boş saat yok.")).toBeInTheDocument();
     expect(screen.getByText("Öğretmenlerin toplam 3 pencere saati var (iki dersi arasında boş bekledikleri saat).")).toBeInTheDocument();
-    expect(screen.getByText(/Süre sınırı dolduğunda bulunan en iyi program/)).toHaveTextContent("Üretim 120 saniye sürdü.");
+    expect(screen.getByText(/Süre sınırı dolduğunda bulunan en iyi program/)).toHaveTextContent("Üretim 2 dakika sürdü.");
     // Yeniden oluşturmak mümkün; liste programı gösterir.
     expect(screen.getByRole("heading", { name: "Yeni program oluştur" })).toBeInTheDocument();
     expect(within(screen.getByRole("table", { name: "Programlar" })).getByText("Hazır")).toBeInTheDocument();

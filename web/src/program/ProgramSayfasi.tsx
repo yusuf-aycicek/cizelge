@@ -12,7 +12,7 @@ import { Tablo } from "../bilesenler/Tablo";
 import { useAtamalar, useDagilimOzeti } from "../dagilim/veri";
 import { ogretmenKaynagi, sinifKaynagi } from "../listeler/kaynaklar";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
-import { ASAMALAR, asamaBul, celiskileriGrupla, etkinMi, type Program } from "./aciklama";
+import { ASAMALAR, asamaBul, celiskileriGrupla, etkinMi, sureMetni, type Program } from "./aciklama";
 import { KaliteOzeti } from "./KaliteOzeti";
 import stil from "./Program.module.css";
 import { sonProgram, useProgramlar, useProgramUret } from "./veri";
@@ -336,7 +336,7 @@ function OncekiProgramlar({ programlar }: { programlar: Program[] }) {
             hucre: (p) => <span className={`${stil.durumRozeti} ${stil[`durum_${p.durum}`] ?? ""}`}>{DURUM_ADLARI[p.durum] ?? p.durum}</span>,
           },
           { baslik: "Oluşturma", hucre: (p) => tarih(p.olusturma) },
-          { baslik: "Süre", hucre: (p) => (p.sure_sn != null ? `${Math.round(p.sure_sn)} sn` : "") },
+          { baslik: "Süre", hucre: (p) => (p.sure_sn != null ? sureMetni(p.sure_sn) : "") },
           {
             baslik: "Çizelge",
             baslikGizli: true,

@@ -77,6 +77,8 @@ PowerShell'de: `cd api; $env:OKULAPI_ORTAM="gelistirme"; .venv\Scripts\python -m
 - Yüklenenler: 5 öğretmen, 3 şube, 7 ders, 18 ders ataması, 15 müsaitlik kaydı. Ayrıca her seviye
   için bir seviye şablonu, o seviyenin ilk şubesinin derslerinden üretilir.
 - Giriş: `mudur@ornek.test` / `ornek-okul-parolasi` (http://localhost:5173).
+- `--set gercekci`: mini set yerine gerçekçi set (42 öğretmen, 24 şube, 330 ders ataması). Program
+  üretimi süre sınırını kullanır; bekleme ekranını görmek için.
 - Veri, API'nin kendisinden geçerek yüklenir (süreç içinde, sunucuya istek atmadan); bütün
   doğrulamalar uygulanır. Kod: `api/src/okulapi/ornek_okul.py`.
 

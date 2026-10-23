@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { asamaBul, celiskileriGrupla, cozumAciklamasi, kaliteMaddeleri } from "./aciklama";
+import { asamaBul, celiskileriGrupla, cozumAciklamasi, kaliteMaddeleri, sureMetni } from "./aciklama";
 
 const BASLAMA = "2026-10-24T10:00:00Z";
 const t = (sn: number) => Date.parse(BASLAMA) + sn * 1000;
@@ -37,6 +37,17 @@ describe("çelişki grupları", () => {
       ["Haftalık kapasiteyi aşan şubeler", 1],
       ["Diğer sorunlar", 1],
     ]);
+  });
+});
+
+describe("süre metni", () => {
+  it.each([
+    [0.4, "1 saniyeden kısa"],
+    [12.4, "12 saniye"],
+    [120.4, "2 dakika"],
+    [125, "2 dakika 5 saniye"],
+  ])("%s sn → %s", (sn, metin) => {
+    expect(sureMetni(sn)).toBe(metin);
   });
 });
 

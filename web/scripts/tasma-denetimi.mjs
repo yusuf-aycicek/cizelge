@@ -12,7 +12,7 @@ import { chromium } from "playwright-core";
 const ADRES = process.env.WEB_ADRES ?? "http://localhost:5173";
 const BOYUTLAR = [["masaüstü", { width: 1366, height: 820 }], ["telefon", { width: 390, height: 844 }]];
 const SAYFALAR = ["/", "/hesabim", "/okul", "/ogretmenler", "/siniflar", "/dersler", "/seviye-sablonu",
-  "/ders-dagilimi", "/ders-dagilimi?gorunum=ogretmen", "/ders-dagilimi?gorunum=ders"];
+  "/ders-dagilimi", "/ders-dagilimi?gorunum=ogretmen", "/ders-dagilimi?gorunum=ders", "/program"];
 
 const tarayici = await chromium.launch({ channel: "msedge" });
 let tasan = 0;
