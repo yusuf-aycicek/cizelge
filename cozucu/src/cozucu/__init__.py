@@ -8,6 +8,7 @@ from cozucu.arayuz import ProgramCozucu
 from cozucu.cpsat import CpSatCozucu
 from cozucu.dogrulama import dogrula
 from cozucu.kalite import KaliteOlcumu, olc
+from cozucu.kapsam import OKUL, Kapsam
 from cozucu.model import (
     Celiski,
     CozumDurumu,
@@ -34,9 +35,11 @@ __all__ = [
     "CpSatCozucu",
     "Ders",
     "DersAtama",
+    "Kapsam",
     "KaliteOlcumu",
     "KisitTanimi",
     "Musaitlik",
+    "OKUL",
     "MusaitlikDurumu",
     "OkulAyari",
     "Ogretmen",

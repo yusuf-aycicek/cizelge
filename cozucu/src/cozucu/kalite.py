@@ -97,8 +97,6 @@ def _eksik_bos_gun(girdi: CozumGirdisi, ogretmen_gun: dict[tuple[str, int], set[
     """Σ öğretmen max(0, ders verilen gün − hedef gün); formül CLAUDE.md bölüm 7'de."""
     gun_sayisi, saat_sayisi = girdi.ayar.gun_sayisi, girdi.ayar.gunluk_ders_saati
     hedef_bos = girdi.parametre(BOS_GUN_TURU, "hedef_bos_gun", VARSAYILAN_HEDEF_BOS_GUN)
-    m = girdi.parametre(OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI)
-    gunluk_sinir = min(m, saat_sayisi)
     yuk: dict[str, int] = defaultdict(int)
     for a in girdi.atamalar:
         if a.ogretmen_id is not None:
@@ -108,6 +106,8 @@ def _eksik_bos_gun(girdi: CozumGirdisi, ogretmen_gun: dict[tuple[str, int], set[
         calisilan[o] += 1
     toplam = 0
     for o, saat in yuk.items():
+        m = girdi.parametre(OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI, ogretmen_id=o)
+        gunluk_sinir = min(m, saat_sayisi)
         hedef_gun = max(-(-saat // gunluk_sinir), gun_sayisi - hedef_bos)
         toplam += max(0, calisilan[o] - hedef_gun)
     return toplam

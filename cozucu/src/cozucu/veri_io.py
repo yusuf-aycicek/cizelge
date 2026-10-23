@@ -11,6 +11,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
+from cozucu.kapsam import Kapsam
 from cozucu.model import (
     Celiski,
     CozumDurumu,
@@ -44,10 +45,16 @@ def girdi_from_dict(veri: dict[str, Any]) -> CozumGirdisi:
             Musaitlik(**{**m, "durum": MusaitlikDurumu(m["durum"])})
             for m in veri.get("musaitlikler", [])
         ],
-        kisitlar=[KisitTanimi(**k) for k in veri.get("kisitlar", [])],
+        kisitlar=[_kisit(k) for k in veri.get("kisitlar", [])],
         kilitli_yerlesimler=[Yerlesim(**y) for y in veri.get("kilitli_yerlesimler", [])],
         temel_yerlesimler=[TemelYerlesim(**t) for t in veri.get("temel_yerlesimler", [])],
     )
+
+
+def _kisit(veri: dict[str, Any]) -> KisitTanimi:
+    """Kapsam alanı yoksa okul geneli (eski veri setleri)."""
+    kapsam = veri.get("kapsam") or {}
+    return KisitTanimi(**{**veri, "kapsam": Kapsam(**kapsam)})
 
 
 def sonuc_to_dict(sonuc: CozumSonucu) -> dict[str, Any]:

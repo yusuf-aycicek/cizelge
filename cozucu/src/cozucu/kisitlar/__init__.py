@@ -1,5 +1,7 @@
 """Kısıt kuralları. Alt modüllerin içe aktarılması kayıt defterini doldurur."""
 
+from collections import defaultdict
+
 from cozucu.kisitlar import esnek, zorunlu  # noqa: F401  (kayıt için)
 from cozucu.kisitlar.temel import KAYIT_DEFTERI, Baglam, GirdiHatasi, KisitKurali, kural_olustur
 from cozucu.kisitlar.zorunlu import TEMEL_KURALLAR
@@ -33,20 +35,31 @@ VARSAYILAN_KISITLAR: tuple[KisitTanimi, ...] = (
 def etkin_agirliklar(girdi: CozumGirdisi) -> dict[str, int]:
     """Esnek kural türü -> bu okulda geçerli ağırlık (okul tanımı varsayılanı ezer)."""
     tanimlar = {t.tur: t for t in VARSAYILAN_KISITLAR}
-    tanimlar.update({t.tur: t for t in girdi.kisitlar})
+    tanimlar.update({t.tur: t for t in girdi.kisitlar if t.kapsam.okul_mu})
     return {tur: t.agirlik for tur, t in tanimlar.items() if not t.zorunlu}
 
 
 def kurallari_hazirla(girdi: CozumGirdisi) -> list[KisitKurali]:
     """Temel kurallar + varsayılanlar; okulun tanımı aynı `tur`'daki varsayılanın yerini alır.
 
+    Her `tur` için **tek** kural örneği kurulur: parametreleri okul geneli tanımdan gelir, aynı
+    türün kapsamlı tanımları (özel ayarlar) örneğe verilir. "En özel kazanır" kuralın içinde
+    `deger()` ile çözülür; iki örnek aynı kısıtı iki kez eklemez (ADR 0016).
+
     Ağırlığı 0 olan esnek kural modele hiç eklenmez (kapatılmış sayılır).
     """
     tanimlar = {t.tur: t for t in VARSAYILAN_KISITLAR}
-    tanimlar.update({t.tur: t for t in girdi.kisitlar})
+    ozeller: dict[str, list[KisitTanimi]] = defaultdict(list)
+    for t in girdi.kisitlar:
+        if t.kapsam.okul_mu:
+            tanimlar[t.tur] = t
+        else:
+            ozeller[t.tur].append(t)
+    for tur in ozeller.keys() - tanimlar.keys():
+        raise GirdiHatasi(f"'{tur}' için özel ayar var ama okul geneli tanımı yok")
     kurallar: list[KisitKurali] = [k() for k in TEMEL_KURALLAR]
     for tanim in tanimlar.values():
-        kural = kural_olustur(tanim)
+        kural = kural_olustur(tanim, ozeller.get(tanim.tur, ()))
         if kural.zorunlu or kural.agirlik > 0:
             kurallar.append(kural)
     return kurallar

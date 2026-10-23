@@ -100,10 +100,13 @@ class GunlukDersSiniri(KisitKurali):
     Atama bazında değil (sınıf, ders) çifti bazında sayılır: ileride aynı derse birden
     fazla atama girildiğinde de kural doğru çalışır. Varsayılan olarak zorunludur; okul
     esnek tanımlarsa n'i aşan her saat ceza puanı getirir.
+
+    Derse, şubeye ya da şube grubuna özel ayarlanabilir ("11-A'da Matematik günde 3 saat").
     """
 
     tur = GUNLUK_DERS_SINIRI_TURU
     esnek_olabilir = True
+    kapsamlar = frozenset({"ders", "sube", "sube_grubu"})
 
     def __init__(self, n: int = VARSAYILAN_GUNLUK_DERS_SINIRI) -> None:
         if n < 1:
@@ -113,23 +116,28 @@ class GunlukDersSiniri(KisitKurali):
     def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
         cezalar: list[CezaTerimi] = []
         for (sinif_id, ders_id), atamalar in sinif_ders_gruplari(baglam).items():
+            n = self.deger(baglam, "n", sinif_id=sinif_id, ders_id=ders_id)
             for g in baglam.gunler:
                 toplam = sum(baglam.dolu(atamalar, g, s) for s in baglam.saatler)
                 if self.zorunlu:
-                    kisit = baglam.model.add(toplam <= self.n)
+                    kisit = baglam.model.add(toplam <= n)
                     baglam.grupla(kisit, "gunluk_ders", sinif_id, ders_id)
                 else:
                     fazla = baglam.model.new_int_var(0, len(baglam.saatler), "")
-                    baglam.model.add(fazla >= toplam - self.n)
+                    baglam.model.add(fazla >= toplam - n)
                     cezalar.append((fazla, self.agirlik))
         return cezalar
 
 
 @kaydet
 class OgretmenGunlukSiniri(KisitKurali):
-    """Bir öğretmen günde en fazla m saat derse girer (okuldan gelen kural, varsayılan 8)."""
+    """Bir öğretmen günde en fazla m saat derse girer (okuldan gelen kural, varsayılan 8).
+
+    Öğretmene özel ayarlanabilir ("Ayşe Yılmaz günde en fazla 6 saat").
+    """
 
     tur = OGRETMEN_GUNLUK_SINIRI_TURU
+    kapsamlar = frozenset({"ogretmen"})
 
     def __init__(self, m: int = VARSAYILAN_OGRETMEN_GUNLUK_SINIRI) -> None:
         if m < 1:
@@ -137,12 +145,13 @@ class OgretmenGunlukSiniri(KisitKurali):
         self.m = m
 
     def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
-        if self.m >= len(baglam.saatler):
-            return []  # okulun günü zaten m saatten kısa: kısıt hiçbir şeyi değiştirmez
         for ogretmen_id, atamalar in baglam.ogretmen_atamalari.items():
+            m = self.deger(baglam, "m", ogretmen_id=ogretmen_id)
+            if m >= len(baglam.saatler):
+                continue  # okulun günü zaten m saatten kısa: kısıt hiçbir şeyi değiştirmez
             for g in baglam.gunler:
                 kisit = baglam.model.add(
-                    sum(baglam.dolu(atamalar, g, s) for s in baglam.saatler) <= self.m
+                    sum(baglam.dolu(atamalar, g, s) for s in baglam.saatler) <= m
                 )
                 baglam.grupla(kisit, "ogretmen_gunluk", ogretmen_id)
         return []

@@ -127,8 +127,6 @@ def _dogal_sira(madde: tuple[int, tuple[int, ...], str]) -> tuple:
 def _anlat(girdi: CozumGirdisi, cekirdek: list[GrupAnahtari]) -> Celiski:
     ad = Anlatim(girdi)
     atama = {a.id: a for a in girdi.atamalar}
-    n = girdi.zorunlu_parametre(GUNLUK_DERS_SINIRI_TURU, "n", VARSAYILAN_GUNLUK_DERS_SINIRI)
-    m = girdi.zorunlu_parametre(OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI)
 
     # (tür sırası, zaman, metin): önce türe, kilitlerde zamana, sonra okunan metne göre sıralanır.
     maddeler: list[tuple[int, tuple[int, ...], str]] = []
@@ -140,12 +138,18 @@ def _anlat(girdi: CozumGirdisi, cekirdek: list[GrupAnahtari]) -> Celiski:
             maddeler.append((sira, (), f"{iyelik(ad.ogretmen(p[0]))} gelemez saatleri"))
             ilgili.append(p[0])
         elif tur == "ogretmen_gunluk":
+            m = girdi.zorunlu_parametre(
+                OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI, ogretmen_id=p[0]
+            )
             maddeler.append((sira, (), f"{ad.ogretmen(p[0])} günde en fazla {m} saat derse girebilir"))
             ilgili.append(p[0])
         elif tur == "kilit":
             maddeler.append((sira, (p[1], p[2]), f"{ad.atama(p[0])} {ad.zaman(p[1], p[2])}te kilitli"))
             ilgili.append(p[0])
         elif tur == "gunluk_ders":
+            n = girdi.zorunlu_parametre(
+                GUNLUK_DERS_SINIRI_TURU, "n", VARSAYILAN_GUNLUK_DERS_SINIRI, sinif_id=p[0], ders_id=p[1]
+            )
             maddeler.append((sira, (), f"{ad.sinif_ders(p[0], p[1])} bir günde en fazla {n} saat olabilir"))
             ilgili.append(p[0])
         elif tur == "haftalik_saat":

@@ -9,6 +9,7 @@ Kurallar:
   saatleri. "Tercih etmez" saatler müsait sayılır (esnek kural).
 - Kullanılabilir saat: her gün için müsait saat ile öğretmenin günlük ders sınırının (M) küçüğü,
   haftalık toplamı. M zorunlu değilse (esnek tanımlanmışsa) günlük ders saati kadar kabul edilir.
+  M öğretmene, N derse ya da şubeye özel olabilir (ADR 0016): her varlık kendi değeriyle sayılır.
 - Sınıfın kapasitesi: gün sayısı × günlük ders saati.
 """
 
@@ -65,7 +66,8 @@ class YukHesabi:
         self.saat_sayisi = girdi.ayar.gunluk_ders_saati
         n = girdi.zorunlu_parametre(GUNLUK_DERS_SINIRI_TURU, "n", VARSAYILAN_GUNLUK_DERS_SINIRI)
         m = girdi.zorunlu_parametre(OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI)
-        # Esnek tanımlanmış sınır zorunlu kontrol gerektirmez: gün uzunluğu kadar kabul edilir.
+        # Okul geneli değerler. Esnek tanımlanmış sınır zorunlu kontrol gerektirmez: gün uzunluğu
+        # kadar kabul edilir. Varlığa özel değer için `ders_siniri` ve `ogretmen_siniri`.
         self.n = n if n is not None else self.saat_sayisi
         self.m = min(m if m is not None else self.saat_sayisi, self.saat_sayisi)
         # Aynı hücre için iki kayıt varsa bir kez sayılır. Okulun aralığı dışındaki kayıt sayılmaz
@@ -80,6 +82,22 @@ class YukHesabi:
             o: [self.saat_sayisi - gelemez_gunluk[o, g] for g in range(self.gun_sayisi)]
             for o in {o for o, _g, _s in self.gelemez}
         }
+
+    def ders_siniri(self, sinif_id: str, ders_id: str) -> int:
+        """Bu şubeye bu dersin günde en fazla kaç saat konabileceği (özel ayar dahil)."""
+        n = self.girdi.zorunlu_parametre(
+            GUNLUK_DERS_SINIRI_TURU, "n", VARSAYILAN_GUNLUK_DERS_SINIRI, sinif_id=sinif_id, ders_id=ders_id
+        )
+        return n if n is not None else self.saat_sayisi
+
+    def ogretmen_siniri(self, ogretmen_id: str | None) -> int:
+        """Öğretmenin günde en fazla kaç saat derse girebileceği (özel ayar dahil, gün uzunluğuyla sınırlı)."""
+        if ogretmen_id is None:
+            return self.m
+        m = self.girdi.zorunlu_parametre(
+            OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI, ogretmen_id=ogretmen_id
+        )
+        return min(m if m is not None else self.saat_sayisi, self.saat_sayisi)
 
     def musait_saat(self, ogretmen_id: str) -> list[int]:
         """Her gün için öğretmenin gelemez olmadığı saat sayısı."""
@@ -98,11 +116,12 @@ class YukHesabi:
 
     def _ogretmen_yuku(self, ogretmen_id: str, atamalar: list[DersAtama]) -> OgretmenYuku:
         musait = self.musait_saat(ogretmen_id)
+        m = self.ogretmen_siniri(ogretmen_id)
         return OgretmenYuku(
             ogretmen_id=ogretmen_id,
             ders_saati=sum(a.haftalik_saat for a in atamalar),
             musait_saat=sum(musait),
-            kullanilabilir_saat=sum(min(s, self.m) for s in musait),
+            kullanilabilir_saat=sum(min(s, m) for s in musait),
             atama_idleri=tuple(a.id for a in atamalar),
         )
 
@@ -115,7 +134,7 @@ class YukHesabi:
             return f"{ad} {yuk.ders_saati} saat dersi var, müsait olduğu {yuk.kullanilabilir_saat} saat var."
         return (
             f"{ad} {yuk.ders_saati} saat dersi var. Müsait olduğu {yuk.musait_saat} saatin, günde en "
-            f"fazla {self.m} saat derse girebildiği için yalnızca {yuk.kullanilabilir_saat} saati "
+            f"fazla {self.ogretmen_siniri(yuk.ogretmen_id)} saat derse girebildiği için yalnızca {yuk.kullanilabilir_saat} saati "
             f"kullanılabilir."
         )
 

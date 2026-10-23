@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 
 from cozucu.anlatim import Anlatim, iyelik
-from cozucu.kisitlar import GirdiHatasi, kural_olustur
+from cozucu.kisitlar import VARSAYILAN_KISITLAR, GirdiHatasi, kural_olustur
 from cozucu.model import Celiski, CozumGirdisi, DersAtama, MusaitlikDurumu
 from cozucu.yuk import YukHesabi
 
@@ -97,11 +97,30 @@ class _Kontrol:
                     k.ders_atama_id,
                 )
 
+        # Okul geneli tanımlar tek tek; her özel ayar kendi kuralının okul tanımıyla (yoksa
+        # varsayılanla) birlikte ayrı denetlenir: her hatalı ayar ayrı bir madde olur.
+        okul_tanimi = {t.tur: t for t in VARSAYILAN_KISITLAR}
         for tanim in g.kisitlar:
+            if tanim.kapsam.okul_mu:
+                okul_tanimi[tanim.tur] = tanim
+                try:
+                    kural_olustur(tanim)
+                except GirdiHatasi as hata:
+                    sorunlar.append(Celiski("gecersiz_kisit", str(hata), (tanim.tur,)))
+        for tanim in g.kisitlar:
+            if tanim.kapsam.okul_mu:
+                continue
+            temel = okul_tanimi.get(tanim.tur)
             try:
-                kural_olustur(tanim)
+                if temel is None:
+                    raise GirdiHatasi(f"'{tanim.tur}' için özel ayar var ama okul geneli tanımı yok")
+                kural_olustur(temel, [tanim])
             except GirdiHatasi as hata:
                 sorunlar.append(Celiski("gecersiz_kisit", str(hata), (tanim.tur,)))
+        ayni = Counter((t.tur, t.kapsam) for t in g.kisitlar if not t.kapsam.okul_mu)
+        for (tur, _k), adet in ayni.items():
+            if adet > 1:
+                sorunlar.append(Celiski("gecersiz_kisit", f"'{tur}' için aynı kapsamda iki özel ayar var", (tur,)))
         return sorunlar
 
     def _aralikta(self, gun: int, saat: int) -> bool:
@@ -136,18 +155,22 @@ class _Kontrol:
         for (sinif_id, ders_id), atamalar in self._gruplar(lambda a: (a.sinif_id, a.ders_id)).items():
             toplam = sum(a.haftalik_saat for a in atamalar)
             ogretmenler = {a.ogretmen_id for a in atamalar}
+            n = self.yuk.ders_siniri(sinif_id, ders_id)
             if None in ogretmenler:
-                gunluk = [self.n] * self.gun_sayisi
+                gunluk = [n] * self.gun_sayisi
             else:
                 gunluk = [
-                    min(self.n, sum(min(self._musait_saat(o)[g], self.m) for o in ogretmenler))
+                    min(n, sum(min(self._musait_saat(o)[g], self.yuk.ogretmen_siniri(o)) for o in ogretmenler))
                     for g in range(self.gun_sayisi)
                 ]
             kapasite = sum(gunluk)
             if toplam <= kapasite:
                 continue
             uygun_gun = sum(1 for k in gunluk if k > 0)
-            neden = f"bir ders bir sınıfa günde en fazla {self.n} saat konabildiği"
+            if n == self.n:
+                neden = f"bir ders bir sınıfa günde en fazla {n} saat konabildiği"
+            else:
+                neden = f"bu ders bu şubeye günde en fazla {n} saat konabildiği (özel ayar)"
             if uygun_gun < self.gun_sayisi:
                 kim = ", ".join(sorted(self.ad.ogretmen(o) for o in ogretmenler if o is not None))
                 neden += f" ve {kim} yalnızca {uygun_gun} gün müsait olduğu"
@@ -198,7 +221,7 @@ class _Kontrol:
                 sorunlar.append(Celiski(
                     "sinif_musaitligi",
                     f"{iyelik(ad)} haftada {ders_saati} saat dersi var, ama öğretmenlerinin müsait "
-                    f"saatleri ve bir dersin günde en fazla {self.n} saat olabilmesi kuralıyla en fazla "
+                    f"saatleri ve {self._ders_siniri_metni(atamalar)} kuralıyla en fazla "
                     f"{yerlesebilir} saati yerleşebilir. Bazı öğretmenleri yalnızca aynı saatlerde "
                     f"müsait olabilir.",
                     ilgili,
@@ -215,7 +238,7 @@ class _Kontrol:
         for a in atamalar:
             kapasite[kaynak][("ders", a.id)] += a.haftalik_saat
             for g in range(self.gun_sayisi):
-                kapasite[("ders", a.id)][("gun", a.id, g)] += self.n
+                kapasite[("ders", a.id)][("gun", a.id, g)] += self.yuk.ders_siniri(a.sinif_id, a.ders_id)
                 for s in range(self.saat_sayisi):
                     if (a.ogretmen_id, g, s) not in self._gelemez:
                         kapasite[("gun", a.id, g)][("saat", g, s)] = 1
@@ -303,22 +326,32 @@ class _Kontrol:
                     a.id,
                 )
         for (sinif_id, ders_id, g), adet in ders_gun.items():
-            if adet > self.n:
+            n = self.yuk.ders_siniri(sinif_id, ders_id)
+            if adet > n:
+                kim = "bir ders bir sınıfa" if n == self.n else "bu ders bu şubeye"
                 ekle(
                     f"{self.ad.sinif_ders(sinif_id, ders_id)} {self.ad.gun(g)} gününe {adet} saat "
-                    f"kilitli, ama bir ders bir sınıfa günde en fazla {self.n} saat konabilir.",
+                    f"kilitli, ama {kim} günde en fazla {n} saat konabilir.",
                     sinif_id,
                 )
         for (ogretmen_id, g), adet in ogretmen_gun.items():
-            if adet > self.m:
+            m = self.yuk.ogretmen_siniri(ogretmen_id)
+            if adet > m:
+                kim = "bir öğretmen" if m == self.m else "bu öğretmen"
                 ekle(
                     f"{self.ad.ogretmen(ogretmen_id)} {self.ad.gun(g)} günü {adet} saate kilitli, "
-                    f"ama bir öğretmen günde en fazla {self.m} saat derse girebilir.",
+                    f"ama {kim} günde en fazla {m} saat derse girebilir.",
                     ogretmen_id,
                 )
         return sorunlar
 
     # --- yardımcılar -------------------------------------------------------------------
+
+    def _ders_siniri_metni(self, atamalar: list[DersAtama]) -> str:
+        sinirlar = {self.yuk.ders_siniri(a.sinif_id, a.ders_id) for a in atamalar}
+        if len(sinirlar) == 1:
+            return f"bir dersin günde en fazla {sinirlar.pop()} saat olabilmesi"
+        return "derslerin günlük saat sınırları"
 
     def _gruplar(self, anahtar) -> dict:
         gruplar: dict = defaultdict(list)

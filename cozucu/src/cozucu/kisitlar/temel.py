@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import ClassVar
 
 from ortools.sat.python import cp_model
 
+from cozucu.kapsam import OGRETMEN_AILESI, YERLESIM_AILESI, Kapsam, cozumle
 from cozucu.model import CozumGirdisi, DersAtama, KisitTanimi
 
 # (atama_id, gun, saat) -> "bu atama bu saatte yapılıyor mu"
@@ -100,15 +101,36 @@ class KisitKurali(ABC):
     """Bir kural = bir sınıf. Yeni kural eklemek mevcut kodu değiştirmez.
 
     `zorunlu` ve `agirlik` örneğe `kural_olustur` tarafından `kisit` tanımından aktarılır.
-    Sınıf, hangi kipte çalışabildiğini `zorunlu_olabilir` / `esnek_olabilir` ile bildirir.
+    Sınıf, hangi kipte çalışabildiğini `zorunlu_olabilir` / `esnek_olabilir` ile, hangi
+    kapsamlarda özel ayar alabildiğini `kapsamlar` ile bildirir (boşsa yalnızca okul geneli).
+    Kapsam destekleyen kural değeri alanından değil `deger()` ile okur (ADR 0016).
     """
 
     tur: ClassVar[str]
     zorunlu_olabilir: ClassVar[bool] = True
     esnek_olabilir: ClassVar[bool] = False
+    kapsamlar: ClassVar[frozenset[str]] = frozenset()
 
     zorunlu: bool = True
     agirlik: int = 1
+    # (kapsam, o kapsamın parametreleriyle kurulmuş örnek): `kural_olustur` doldurur.
+    ozel: tuple[tuple[Kapsam, KisitKurali], ...] = ()
+
+    def deger(
+        self,
+        baglam: Baglam,
+        ad: str,
+        *,
+        sinif_id: str | None = None,
+        ders_id: str | None = None,
+        ogretmen_id: str | None = None,
+    ) -> int:
+        """Parametrenin bu varlık için geçerli değeri: en özel ayar, yoksa okul değeri."""
+        if not self.ozel:
+            return getattr(self, ad)
+        varlik = baglam.girdi.varlik(sinif_id=sinif_id, ders_id=ders_id, ogretmen_id=ogretmen_id)
+        bulunan = cozumle(self.ozel, varlik, kapsam=lambda o: o[0])
+        return getattr(bulunan[1] if bulunan else self, ad)
 
     @abstractmethod
     def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
@@ -122,11 +144,46 @@ KAYIT_DEFTERI: dict[str, type[KisitKurali]] = {}
 def kaydet(sinif: type[KisitKurali]) -> type[KisitKurali]:
     if sinif.tur in KAYIT_DEFTERI:
         raise ValueError(f"Aynı tur iki kez kaydedildi: {sinif.tur}")
+    if sinif.kapsamlar & OGRETMEN_AILESI and sinif.kapsamlar & YERLESIM_AILESI:
+        # Öğretmen kapsamı ders ve şube kapsamıyla aynı kuralda karşılaşırsa "hangisi kazanır"
+        # sorusu doğar; ADR 0016 bunu yasaklar. Gerekirse yeni bir ADR ile öncelik tanımlanır.
+        raise ValueError(f"'{sinif.tur}' öğretmen kapsamını ders ya da şube kapsamıyla birlikte bildiremez")
+    if not sinif.kapsamlar <= OGRETMEN_AILESI | YERLESIM_AILESI:
+        raise ValueError(f"'{sinif.tur}' bilinmeyen kapsam bildiriyor: {sorted(sinif.kapsamlar)}")
     KAYIT_DEFTERI[sinif.tur] = sinif
     return sinif
 
 
-def kural_olustur(tanim: KisitTanimi) -> KisitKurali:
+_EKSEN_ADI = {"ders": "derse", "sube": "şubeye", "sube_grubu": "şube grubuna", "ogretmen": "öğretmene"}
+
+
+def kural_olustur(tanim: KisitTanimi, ozeller: tuple[KisitTanimi, ...] | list[KisitTanimi] = ()) -> KisitKurali:
+    """Okul geneli tanımdan kural örneği; `ozeller` aynı türün özel ayarlarıdır (kapsamlı tanımlar)."""
+    if not tanim.kapsam.okul_mu:
+        raise GirdiHatasi(f"'{tanim.tur}' için okul geneli tanım bekleniyordu, kapsamlı tanım verildi")
+    kural = _ornek(tanim)
+    sinif = type(kural)
+    gorulen: set[Kapsam] = set()
+    ozel: list[tuple[Kapsam, KisitKurali]] = []
+    for o in ozeller:
+        if o.tur != tanim.tur:
+            raise GirdiHatasi(f"'{o.tur}' özel ayarı '{tanim.tur}' kuralına verildi")
+        if o.kapsam.okul_mu:
+            raise GirdiHatasi(f"'{o.tur}' için ikinci bir okul geneli tanım verildi")
+        desteklenmeyen = o.kapsam.eksenler - sinif.kapsamlar
+        if desteklenmeyen:
+            ad = ", ".join(_EKSEN_ADI[e] for e in sorted(desteklenmeyen))
+            raise GirdiHatasi(f"'{o.tur}' {ad} özel ayarlanamaz")
+        if o.kapsam in gorulen:
+            raise GirdiHatasi(f"'{o.tur}' için aynı kapsamda iki özel ayar var")
+        gorulen.add(o.kapsam)
+        # Kip ve ağırlık okul tanımından gelir; özel ayar yalnızca parametreleri değiştirir.
+        ozel.append((o.kapsam, _ornek(replace(o, zorunlu=tanim.zorunlu, agirlik=tanim.agirlik))))
+    kural.ozel = tuple(ozel)
+    return kural
+
+
+def _ornek(tanim: KisitTanimi) -> KisitKurali:
     sinif = KAYIT_DEFTERI.get(tanim.tur)
     if sinif is None:
         raise GirdiHatasi(f"Bilinmeyen kısıt türü: {tanim.tur}")

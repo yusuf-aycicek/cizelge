@@ -74,22 +74,25 @@ def dogrula(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> list[str]:
             hatalar.append(f"Kilitli hücre yerinde değil: {k.ders_atama_id} gün {k.gun} saat {k.saat}")
 
     # Aynı ders bir sınıfa günde en fazla n saat, (sınıf, ders) çifti bazında.
-    n = girdi.zorunlu_parametre(GUNLUK_DERS_SINIRI_TURU, "n", VARSAYILAN_GUNLUK_DERS_SINIRI)
-    if n is not None:
-        gunluk = Counter(
-            (atamalar[y.ders_atama_id].sinif_id, atamalar[y.ders_atama_id].ders_id, y.gun)
-            for y in gecerli
+    # Sınır şubeye, derse ya da şube grubuna özel olabilir: her çift kendi değeriyle denetlenir.
+    gunluk = Counter(
+        (atamalar[y.ders_atama_id].sinif_id, atamalar[y.ders_atama_id].ders_id, y.gun)
+        for y in gecerli
+    )
+    for (sinif, ders, g), adet in gunluk.items():
+        n = girdi.zorunlu_parametre(
+            GUNLUK_DERS_SINIRI_TURU, "n", VARSAYILAN_GUNLUK_DERS_SINIRI, sinif_id=sinif, ders_id=ders
         )
-        for (sinif, ders, g), adet in gunluk.items():
-            if adet > n:
-                hatalar.append(f"Günlük sınır aşıldı: {sinif} {ders} gün {g}: {adet} > {n}")
+        if n is not None and adet > n:
+            hatalar.append(f"Günlük sınır aşıldı: {sinif} {ders} gün {g}: {adet} > {n}")
 
     # Bir öğretmen günde en fazla m saat derse girer.
-    m = girdi.zorunlu_parametre(OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI)
-    if m is not None:
-        ogretmen_gunluk = Counter((o, g) for (o, g, _s), liste in ogretmen_hucre.items() for _ in liste)
-        for (ogretmen, g), adet in ogretmen_gunluk.items():
-            if adet > m:
-                hatalar.append(f"Öğretmen günlük sınırı aşıldı: {ogretmen} gün {g}: {adet} > {m}")
+    ogretmen_gunluk = Counter((o, g) for (o, g, _s), liste in ogretmen_hucre.items() for _ in liste)
+    for (ogretmen, g), adet in ogretmen_gunluk.items():
+        m = girdi.zorunlu_parametre(
+            OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI, ogretmen_id=ogretmen
+        )
+        if m is not None and adet > m:
+            hatalar.append(f"Öğretmen günlük sınırı aşıldı: {ogretmen} gün {g}: {adet} > {m}")
 
     return hatalar

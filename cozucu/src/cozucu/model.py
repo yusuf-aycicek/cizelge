@@ -11,6 +11,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from cozucu.kapsam import OKUL, Kapsam, Varlik, cozumle
+
 # Aynı ders bir sınıfa günde en fazla kaç saat konur (kisit tablosunda yoksa).
 VARSAYILAN_GUNLUK_DERS_SINIRI = 2
 GUNLUK_DERS_SINIRI_TURU = "gunluk_ders_siniri"
@@ -68,6 +70,7 @@ class Sinif:
     id: str
     ad: str
     seviye: int
+    sube_grubu_id: str | None = None  # "11 Sayısal" gibi; şube grubu kapsamlı ayarlar için
 
 
 @dataclass(frozen=True)
@@ -109,12 +112,18 @@ class Musaitlik:
 
 @dataclass(frozen=True)
 class KisitTanimi:
-    """Okul geneli bir kural. `tur`, kısıt kayıt defterindeki sınıfı seçer."""
+    """Bir kural tanımı. `tur`, kısıt kayıt defterindeki sınıfı seçer.
+
+    `kapsam` boşsa okul genelidir; doluysa okul değerini o kapsamda ezen bir **özel ayardır**
+    (ADR 0016). Kip (`zorunlu`) ve `agirlik` her zaman okul geneli tanımdan gelir; özel ayar
+    yalnızca parametreleri değiştirir.
+    """
 
     tur: str
     parametreler: dict[str, Any] = field(default_factory=dict, hash=False)
     zorunlu: bool = True
     agirlik: int = 1
+    kapsam: Kapsam = OKUL
 
 
 @dataclass(frozen=True)
@@ -169,24 +178,45 @@ class CozumGirdisi:
     # İsteğe bağlı: en az değişiklikle güncellemede temel alınan program (bkz. docs/adr/0006).
     temel_yerlesimler: list[TemelYerlesim] = field(default_factory=list)
 
-    def parametre(self, tur: str, ad: str, varsayilan: int) -> int:
-        """Okul geneli bir kuralın parametresi (kip fark etmeksizin); tanımlı değilse varsayılan."""
-        deger = varsayilan
+    def varlik(
+        self, *, sinif_id: str | None = None, ders_id: str | None = None, ogretmen_id: str | None = None
+    ) -> Varlik:
+        """Kapsam çözümlemesi için varlık; şubenin grubu şube listesinden bulunur."""
+        grup = next((s.sube_grubu_id for s in self.siniflar if s.id == sinif_id), None) if sinif_id else None
+        return Varlik(ders_id=ders_id, sinif_id=sinif_id, sube_grubu_id=grup, ogretmen_id=ogretmen_id)
+
+    def _okul_tanimi(self, tur: str) -> KisitTanimi | None:
+        okul = None
         for tanim in self.kisitlar:
-            if tanim.tur == tur:
-                deger = tanim.parametreler.get(ad, varsayilan)
-        return deger
+            if tanim.tur == tur and tanim.kapsam.okul_mu:
+                okul = tanim
+        return okul
 
-    def zorunlu_parametre(self, tur: str, ad: str, varsayilan: int) -> int | None:
-        """Okul geneli bir kuralın zorunlu kipteki parametresi.
+    def parametre(self, tur: str, ad: str, varsayilan: int, **varlik: str | None) -> int:
+        """Bir kuralın parametresi (kip fark etmeksizin).
 
-        Kural tanımlı değilse varsayılan döner; esnek tanımlanmışsa None (zorunlu değil).
+        Varlık verilirse (`sinif_id=`, `ders_id=`, `ogretmen_id=`) ona uyan en özel ayar kazanır
+        (`cozucu.kapsam.cozumle`); yoksa okul geneli tanım, o da yoksa varsayılan. Özel ayarda
+        olmayan parametre, kural sınıfının kurucusundaki gibi varsayılanı alır.
         """
-        deger: int | None = varsayilan
-        for tanim in self.kisitlar:
-            if tanim.tur == tur:
-                deger = tanim.parametreler.get(ad, varsayilan) if tanim.zorunlu else None
+        okul = self._okul_tanimi(tur)
+        deger = okul.parametreler.get(ad, varsayilan) if okul else varsayilan
+        if varlik:
+            ozeller = [t for t in self.kisitlar if t.tur == tur and not t.kapsam.okul_mu]
+            ozel = cozumle(ozeller, self.varlik(**varlik))
+            if ozel is not None:
+                deger = ozel.parametreler.get(ad, varsayilan)
         return deger
+
+    def zorunlu_parametre(self, tur: str, ad: str, varsayilan: int, **varlik: str | None) -> int | None:
+        """Bir kuralın zorunlu kipteki parametresi (varlık için `parametre` gibi çözümlenir).
+
+        Kural okul genelinde esnek tanımlanmışsa None (zorunlu değil): kip okul tanımından gelir.
+        """
+        okul = self._okul_tanimi(tur)
+        if okul is not None and not okul.zorunlu:
+            return None
+        return self.parametre(tur, ad, varsayilan, **varlik)
 
 
 @dataclass(frozen=True)

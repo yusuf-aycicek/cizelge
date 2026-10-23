@@ -152,12 +152,13 @@ class BosGun(EsnekKural):
 
     def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
         gun_sayisi = len(baglam.gunler)
-        m = baglam.girdi.zorunlu_parametre(
-            OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI
-        )
-        gunluk_sinir = min(m or len(baglam.saatler), len(baglam.saatler))
         cezalar: list[CezaTerimi] = []
-        for atamalar in baglam.ogretmen_atamalari.values():
+        for ogretmen_id, atamalar in baglam.ogretmen_atamalari.items():
+            # M öğretmene özel olabilir: günlük sınırı düşük öğretmenin hedef günü de yüksektir.
+            m = baglam.girdi.zorunlu_parametre(
+                OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI, ogretmen_id=ogretmen_id
+            )
+            gunluk_sinir = min(m or len(baglam.saatler), len(baglam.saatler))
             yuk = sum(a.haftalik_saat for a in atamalar)
             hedef_gun = max(-(-yuk // gunluk_sinir), gun_sayisi - self.hedef_bos_gun)
             if hedef_gun >= gun_sayisi:
