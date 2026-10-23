@@ -302,7 +302,7 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 | 5.3 | Okul ayarları ve listeler | Bitti (2026-10-16) |
 | 5.4 | Seviye şablonu ve ders dağılımı | Bitti (2026-10-16) |
 | 5.5 | Müsaitlik çizelgesi | K2 ile birlikte yapılacak (öğretmen detay sayfası) |
-| 5.6 | Kullanıcılar, telefon kontrolü, uçtan uca | K5'ten sonra (kontrol listesi tasarım 3e'de yapıldı) |
+| 5.6 | Kullanıcılar, telefon kontrolü, uçtan uca | K5'ten sonra (kontrol listesi tasarım 3e'de yapıldı). Müsaitlik çizelgesinde dokunmatik: kaydırma serbest, dokunma tek hücre, sürükleme "Toplu seç" modunda (K2 notlarında) |
 | 6.1 | Program üretme ekranı ve durum takibi | Bitti: `/program`; engeller (öğretmensiz, aşım) düğmeyi pasif yapar; süre seçimi; sorgulama `refetchInterval` fonksiyonuyla (etkin program yoksa durur); bekleme paneli (mini çizelge animasyonu, süre çubuğu, aşamalar); başarısızlıkta çelişkiler türüne göre ve ilgili şube/öğretmene bağlantıyla; panoda program adımı ve son programa bağlantı; API şemasında `CeliskiYanit` tipli |
 | 6.2 | Haftalık çizelge görünümü ve kalite özeti | Bitti: `/program/:id`; şube ve öğretmen sekmeleri, seçim adres çubuğunda; hücrede ders çipi ve öğretmen rozeti ya da şube adı; boş saat sade; hücreler gün gün sırayla yerleşir (en çok 0,6 sn); çizelge boyutu okul ayarı ile programın büyüğü; kalite özeti sade Türkçe |
 
@@ -366,6 +366,11 @@ K2 + 5.5'ten notlar:
 - Sürükleme dokunmatikte de çalışsın diye işaretçi yakalaması (pointer capture) bırakılır;
   hücrelerde `touch-action: none` (çizelgenin üstünde parmakla sayfa kaydırılamaz; 5.6'da
   telefon kontrolünde yeniden bakılacak).
+- **5.6 için karar (kullanıcı, K2 onayı):** dokunmatik ekranda çizelgenin üstünde sayfa kaydırma
+  engellenmeyecek (`touch-action: none` kalkar). Dokunmak tek hücreyi değiştirir; toplu seçim
+  (sürükleme) yalnızca açıkça açılan bir **"Toplu seç"** modunda yapılır (mod açıkken kaydırma o
+  çizelgede durur, mod göstergesi ve kapatma düğmesi görünür). Masaüstünde fareyle sürükleme
+  olduğu gibi kalır (`pointerType === "mouse"`).
 
 ### Sonraya: tasarım rötuşu
 
