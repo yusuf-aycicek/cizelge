@@ -519,6 +519,42 @@ AKISLAR["k1"] = async (tarayici, kaydet) => {
   }
 };
 
+// K1 sonrası düzeltmeler (D1-D6). Örnek okulda hazır bir program olmalı.
+// Önce: cd api && OKULAPI_ORTAM=gelistirme .venv/Scripts/python -m okulapi ornek-okul --evet --set gercekci
+// ve bir program üretilmiş olmalı.
+async function ornekGiris(tarayici, viewport) {
+  const baglam = await tarayici.newContext({ viewport, locale: "tr-TR" });
+  const s = await baglam.newPage();
+  await s.goto(ADRES + "/giris");
+  await s.getByLabel("E-posta").fill("mudur@ornek.test");
+  await s.getByLabel("Parola").fill("ornek-okul-parolasi");
+  await s.getByRole("button", { name: "Giriş yap" }).click();
+  await s.getByRole("img", { name: /Kurulum:/ }).waitFor();
+  return { baglam, s };
+}
+
+AKISLAR["duzeltmeler"] = async (tarayici, kaydet) => {
+  for (const [ad, viewport] of [["1366", MASAUSTU], ["800", { width: 800, height: 900 }]]) {
+    const { baglam, s } = await ornekGiris(tarayici, viewport);
+    await s.goto(ADRES + "/program");
+    await s.getByRole("heading", { name: "Programlar" }).waitFor();
+    await s.waitForTimeout(800);
+    await kaydet(s, `${ad}-program.png`, true);
+    await s.getByRole("link", { name: /Çizelgeyi aç|Çizelge/ }).first().click();
+    await s.getByRole("table", { name: /haftalık programı/ }).waitFor();
+    await s.waitForTimeout(1500);
+    await kaydet(s, `${ad}-cizelge-sube.png`);
+    await s.getByRole("tab", { name: "Öğretmene göre" }).click();
+    await s.waitForTimeout(1500);
+    await kaydet(s, `${ad}-cizelge-ogretmen.png`);
+    await s.getByRole("tab", { name: "Şubeye göre" }).click();
+    await s.mouse.wheel(0, 600);
+    await s.waitForTimeout(600);
+    await kaydet(s, `${ad}-kaydirilmis.png`);
+    await baglam.close();
+  }
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {

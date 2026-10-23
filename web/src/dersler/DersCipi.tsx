@@ -1,4 +1,5 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { useDarAlan } from "../bilesenler/darAlan";
 import stil from "./Ders.module.css";
 import { isaretKarakteri } from "./isaret";
 
@@ -6,8 +7,11 @@ type Props = {
   ad: string;
   /** Dersin rengi (#rrggbb, API'nin paletinden). Yoksa nötr çip. */
   renk?: string | null;
-  /** Kısa adı göstermek için (ör. çizelge hücresi): "MAT". */
-  kisa?: boolean;
+  /**
+   * Dar alanda (ör. çizelge hücresi) ad sığmazsa gösterilecek kısa ad ("TDE"). Verilirse çip
+   * bulunduğu alanın genişliğini ölçer; tam ad üzerine gelince ve ekran okuyucuda kalır.
+   */
+  kisaAd?: string | null;
   /** Aynı rengi paylaşan derslerdeki sırası (`dersIsaretleri`); 0 ya da yoksa işaret yok. */
   isaret?: number;
 };
@@ -23,16 +27,42 @@ type Props = {
  * Renk bir CSS değişkeni olarak verilir (`--ders-rengi`); stil yalnızca belirteçleri ve bu
  * değişkeni kullanır.
  */
-export function DersCipi({ ad, renk, kisa = false, isaret = 0 }: Props) {
+export function DersCipi({ ad, renk, kisaAd, isaret = 0 }: Props) {
+  if (kisaAd && kisaAd !== ad) return <SigdirilanCip ad={ad} kisaAd={kisaAd} renk={renk} isaret={isaret} />;
+  return <Cip renk={renk} isaret={isaret}>{ad}</Cip>;
+}
+
+function Cip({ renk, isaret, title, children }: { renk?: string | null; isaret: number; title?: string; children: ReactNode }) {
   const ozel = renk ? ({ "--ders-rengi": renk } as CSSProperties) : undefined;
   return (
-    <span className={stil.cip} style={ozel} title={kisa ? ad : undefined}>
+    <span className={stil.cip} style={ozel} title={title}>
       {isaret > 0 && (
         <span aria-hidden="true" className={stil.isaret}>
           {isaretKarakteri(isaret)}
         </span>
       )}
-      {ad}
+      {children}
+    </span>
+  );
+}
+
+/** Çip bir kutunun içinde: kutu alanın genişliğini verir, çip ise adın doğal genişliğini. */
+function SigdirilanCip({ ad, kisaAd, renk, isaret }: { ad: string; kisaAd: string; renk?: string | null; isaret: number }) {
+  const { kutu, metin, dar } = useDarAlan<HTMLSpanElement>(ad);
+  return (
+    <span ref={kutu} className={stil.cipKutusu}>
+      <span ref={metin} className={dar ? stil.olcuSinirli : stil.olcu}>
+        <Cip renk={renk} isaret={isaret} title={dar ? ad : undefined}>
+          {dar ? (
+            <>
+              <span aria-hidden="true">{kisaAd}</span>
+              <span className="gorunmez">{ad}</span>
+            </>
+          ) : (
+            ad
+          )}
+        </Cip>
+      </span>
     </span>
   );
 }

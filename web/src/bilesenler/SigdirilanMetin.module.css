@@ -1,0 +1,8 @@
+/* Bulunduğu satırda kalan bütün genişliği kaplar: genişliği "alan"dır, ölçüm buna göre yapılır. */
+.metin {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

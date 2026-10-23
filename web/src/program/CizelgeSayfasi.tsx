@@ -5,6 +5,8 @@ import type { CSSProperties } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import { hataMetni } from "../api/hata";
 import { SecimAlani } from "../bilesenler/Alan";
+import { kisaKisiAdi } from "../bilesenler/darAlan";
+import { SigdirilanMetin } from "../bilesenler/SigdirilanMetin";
 import { Iskelet } from "../bilesenler/Iskelet";
 import { OgretmenRozeti } from "../bilesenler/OgretmenRozeti";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
@@ -197,13 +199,13 @@ function Cizelge({ baslik, gunSayisi, saatSayisi, hucreler, gorunum, ders, dersI
                 const gecikme = { animationDelay: `${yerlesmeGecikmesiMs(g, s, saatSayisi)}ms` } as CSSProperties;
                 return (
                   <td key={g} className={stil.dolu} style={gecikme}>
-                    <DersCipi ad={d?.ad ?? "?"} renk={d?.renk} isaret={dersIsareti.get(a.ders_id)} />
+                    <DersCipi ad={d?.ad ?? "?"} kisaAd={d?.kisa_ad} renk={d?.renk} isaret={dersIsareti.get(a.ders_id)} />
                     <span className={stil.ikinci}>
                       {gorunum === "sube" ? (
                         o && (
                           <>
                             <OgretmenRozeti id={o.id} ad={o.ad} boyut="kucuk" />
-                            {o.ad}
+                            <SigdirilanMetin uzun={o.ad} kisa={kisaKisiAdi(o.ad)} />
                           </>
                         )
                       ) : (

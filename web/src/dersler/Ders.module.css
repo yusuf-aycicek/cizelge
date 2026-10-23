@@ -109,3 +109,19 @@
   font-size: 0.75em;
   line-height: 1;
 }
+
+/* Kısaltılabilen çip (çizelge hücresi). Kutu alanın genişliğini verir; ölçü kabı sınırsızdır, böylece
+   çipin doğal genişliği ölçülebilir (darAlan.ts). Kısa ad gösterilirken kap yeniden alana sınırlanır. */
+.cipKutusu {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+}
+.olcu {
+  display: inline-block;
+  max-width: none;
+}
+.olcuSinirli {
+  display: inline-block;
+  max-width: 100%;
+}

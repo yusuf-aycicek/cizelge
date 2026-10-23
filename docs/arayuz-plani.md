@@ -325,8 +325,8 @@ Uygulama sırası (kullanıcı kararı; her alt adımın sonunda kullanıcıya s
 | R | Ders paleti en az 20 renk; renkler tükenirse tekrar eden derslerin çipinde ayırt edici işaret | Bitti: 20 renk (ilk 14 yerinde; 6 yeni, CIELAB ΔE ile seçildi; en yakın çift 18,8); testler: her renk beyaz yazıyla ≥ 4.5:1, her çift ΔE ≥ 15; tekrar eden renkte çipin başında ◆ ▲ ● (eklenme sırasıyla, aria-hidden) |
 | K1 | Kapsam temeli (öğretmen kapsamının ders ve şube kapsamıyla çakışmaması kodda zorlanır) | Bitti |
 | D1 | Program sayfasındaki ön kontrol üretimdekiyle aynı (özel ayarlar dahil); hata varsa düğme pasif | Bitti: `GET /on-kontrol` worker'ın girdisi ve `cozucu.on_kontrol` ile; engeller ondan; test: özet temizken özel ayar hatası iki yerde aynı. K1 deneme özel ayarları geliştirme veritabanından silindi |
-| D2 | Çizelge hücrelerinde dar alanda kısa ders adı ve kısaltılmış öğretmen adı | **Sıradaki** |
-| D3 | Sol menü masaüstünde yapışkan (sticky) | |
+| D2 | Çizelge hücrelerinde dar alanda kısa ders adı ve kısaltılmış öğretmen adı | Bitti: `useDarAlan` adın doğal genişliğini ölçer (ResizeObserver), sığmazsa kısa biçim ("TDE", "Z. Demir"); tam ad `title` ve ekran okuyucuda. Ekran: docs/ekranlar/duzeltmeler/ |
+| D3 | Sol menü masaüstünde yapışkan (sticky) | **Sıradaki** |
 | D4 | Programlar tablosu 800 px'te sığar; taşma denetimine 800 px | |
 | D5 | Uygulamanın adı "Çizelge" | |
 | D6 | Program sayfası: hazır program öne, son başarısız deneme sade ve açılabilir | |
