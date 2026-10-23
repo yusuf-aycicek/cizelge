@@ -148,3 +148,37 @@ Kullanıcının gördüğü mesaj:
 İkinci kontrol, ön kontrolün yakalayamadığı (sınıflar arası etkileşimden doğan) çözümsüzlüklerde
 "süre yetmedi" yerine doğru durumu (`cozumsuz`) bildiriyor. Ama çelişki analizi büyük çekirdekleri
 30 sn içinde küçültemiyor; hızlandırılması sonraya bırakıldı (plan, "Sonraya").
+
+## Blok dersler (K4, 2026-10-23)
+
+Aynı makine ve ölçüm yöntemi (3 tohum, 8 iş parçacığı, 120 sn). Bloklu: okul önerisi açık
+(gerçekçi sette 330 atamanın hepsi bloklu: 162 × "2", 66 × "2+2", 48 × "1", 30 × "2+2+2", 24 ×
+"2+2+1"; büyükte 550/550). Bloksuz: `python -m cozucu.olcum <set> --bloksuz` (K4 öncesi davranış,
+bugünkü modelle). Ham sonuçlar: `scripts/sonuclar/k4-*.md`.
+
+| Set | Kip | İlk çözüm | 60 sn gerçek ceza (tohum 0/1/2) | 120 sn gerçek ceza (ort.) | 120 sn sınıf boşluğu | 120 sn pencere (ort.) | 120 sn bölünmüş (ort.) |
+|---|---|---|---|---|---|---|---|
+| Gerçekçi | bloksuz | 5,1-9,5 sn | 498 / 753 / 524 | 432 | 0 / 0 / 0 | 87 | 35 |
+| Gerçekçi | bloklu | 4,3-20,4 sn | 168 / 263 / 126 | **88** | 0 / 0 / 0 | 15 | 0 |
+| Büyük | bloksuz | 14,8-29,0 sn | 2638 / 2193 / 2024 | 1530 | 8 / 3 / 0 | 293 | 145 |
+| Büyük | bloklu | **43,6-72,2 sn** | yok / 1483 / yok | 834 | 0 / 4 / 9 | 167 | 0 |
+
+Yalnızca zorunlu kurallarla (bütün esnek ağırlıklar 0) büyük set, bloklu: ilk (ve en iyi) çözüm
+24,7 / 57,3 / 10,9 sn.
+
+**Yorum:**
+- Kalite iki sette de belirgin biçimde iyi: blok, bölünmüş dersi sıfırlıyor ve arama uzayını
+  daralttığı için pencere de azalıyor. Gerçekçi sette 120. saniyede ceza ~5 kat düşük.
+- **Kötüleşme: büyük sette ilk çözüm geç geliyor.** Süre 60 sn olsaydı iki tohumda program
+  çıkmazdı; 120 sn'de sınıf boşluğu iki tohumda sıfırlanmadı (4, 9). Neden: büyük sette şubeler
+  kapasitenin %95-100'ü kadar dolu ve atamaların yarısı "2" (iki saat aynı gün art arda) olmak
+  zorunda; zorunlu kısıtları sağlayan bir yerleşim bulmak bile 11-57 sn sürüyor (yalnızca
+  zorunlu kurallarla ölçüldü). Amaç fonksiyonu bunu ayrıca yavaşlatıyor.
+- Bloksuz büyük sette de 120 sn'de sınıf boşluğu iki tohumda sıfır değil (8, 3); 2026-10-14
+  ölçümünde 0/0/0 idi. Arada model büyüdü (özel ayarlar, gün uzunluğu, iki yönlü boş gün).
+  Aynı makinede tekrar ölçülerek ayrıca bakılmalı.
+- Öneri (kullanıcıya soruldu, uygulanmadı): iki aşamalı çözüm. Önce yalnızca zorunlu
+  kısıtlarla (süre bütçesinin bir kısmıyla) uygun bir yerleşim bulunur, sonra esnek kurallarla bu
+  yerleşim başlangıç ipucu olarak verilip iyileştirilir (CLAUDE.md bölüm 7'de anılan
+  iyileştirme). Ayrıca büyük okullarda (≥ 35 şube) varsayılan sürenin 180 sn olması ölçülerek
+  değerlendirilebilir.
