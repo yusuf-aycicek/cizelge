@@ -1,5 +1,6 @@
 /* Masaüstü: solda menü, üstte ince çubuk. Dar ekran (< 48rem): menü düğmeyle açılır. */
 .cerceve {
+  --ust-yuksekligi: 3.75rem;
   display: grid;
   /* minmax(0, 1fr): 1fr'nin alt sınırı içeriktir; geniş bir tablo içerik sütununu ve sayfayı taşırırdı. */
   grid-template-columns: var(--menu-genisligi) minmax(0, 1fr);
@@ -29,7 +30,7 @@
   align-items: center;
   gap: var(--bosluk-3);
   padding: var(--bosluk-2) var(--bosluk-5);
-  min-height: 3.75rem;
+  min-height: var(--ust-yuksekligi);
   background: var(--renk-ust-zemin);
   color: var(--renk-ust-metin);
   border-bottom: 1px solid var(--renk-kenar);
@@ -130,6 +131,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--bosluk-1);
+  /* Masaüstünde sayfa kaydırılınca menü görünümde kalır. Menü sütunu (zemini, kenarı) sayfa boyu
+     uzar; yapışan yalnızca liste. Üst çubuğun altında durur; ekrandan uzunsa kendi içinde kayar. */
+  position: sticky;
+  top: calc(var(--ust-yuksekligi) + var(--bosluk-4));
+  max-height: calc(100vh - var(--ust-yuksekligi) - 2 * var(--bosluk-4));
+  overflow-y: auto;
 }
 
 .baglanti {
@@ -199,6 +206,10 @@
   }
   .menu.acik {
     display: block;
+  }
+  .menu ul {
+    position: static;
+    max-height: none;
   }
   .icerik {
     padding: var(--bosluk-4) var(--bosluk-4) var(--bosluk-6);
