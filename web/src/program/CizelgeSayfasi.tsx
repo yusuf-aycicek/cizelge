@@ -1,7 +1,7 @@
 import { dersIsaretleri } from "../dersler/isaret";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, CalendarRange } from "lucide-react";
-import type { CSSProperties } from "react";
+import { Fragment, type CSSProperties } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import { hataMetni } from "../api/hata";
 import { SecimAlani } from "../bilesenler/Alan";
@@ -14,6 +14,7 @@ import { Sekmeler } from "../bilesenler/Sekmeler";
 import { useAtamalar } from "../dagilim/veri";
 import { DersCipi } from "../dersler/DersCipi";
 import { useBen } from "../kimlik/oturum";
+import { ogleArasiSonrasi, ogleArasiZili, saatVar, zilMetni, zilSaatleri, type ZilSaati } from "../okul/zaman";
 import { dersKaynagi, ogretmenKaynagi, sinifKaynagi, type Ders, type Ogretmen, type Sinif } from "../listeler/kaynaklar";
 import { turkceSirala } from "../metin";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
@@ -128,6 +129,10 @@ export function CizelgeSayfasi() {
             baslik={`${secili.ad} haftalık programı`}
             gunSayisi={boyut.gun}
             saatSayisi={boyut.saat}
+            gunSaatleri={okul.gun_saatleri}
+            ogleArasiSonra={okul.ogle_arasi_sonra}
+            zil={zilSaatleri(okul, boyut.saat)}
+            ogleZili={ogleArasiZili(okul, zilSaatleri(okul, boyut.saat))}
             hucreler={hucreler}
             gorunum={gorunum}
             ders={new Map(dersler.data.map((d) => [d.id, d]))}
@@ -148,6 +153,11 @@ type CizelgeProps = {
   baslik: string;
   gunSayisi: number;
   saatSayisi: number;
+  /** Her günün ders saati sayısı: kısa günün sonundaki hücreler "ders yok" görünür. */
+  gunSaatleri: readonly number[];
+  ogleArasiSonra: number | null;
+  zil: ZilSaati[] | null;
+  ogleZili: ZilSaati | null;
   hucreler: Map<string, Atama>;
   gorunum: CizelgeTuru;
   ders: Map<string, Ders>;
@@ -161,7 +171,10 @@ type CizelgeProps = {
  * diye okur (sütun ve satır başlıkları `scope` ile bağlı). Dolu hücreler kısa bir sırayla yerleşir
  * (CSS animasyonu, hücre başına gecikme); hareket azaltılmışsa hepsi hemen görünür.
  */
-function Cizelge({ baslik, gunSayisi, saatSayisi, hucreler, gorunum, ders, dersIsareti, sinif, ogretmen }: CizelgeProps) {
+function Cizelge({
+  baslik, gunSayisi, saatSayisi, gunSaatleri, ogleArasiSonra, zil, ogleZili, hucreler, gorunum, ders, dersIsareti, sinif,
+  ogretmen,
+}: CizelgeProps) {
   const gunler = Array.from({ length: gunSayisi }, (_, g) => GUN_ADLARI[g] ?? `${g + 1}. gün`);
   return (
     // Haftalık çizelge dar ekranda bilerek yana kayar (en az 44rem); taşma denetimi bunu bilir.
@@ -182,41 +195,60 @@ function Cizelge({ baslik, gunSayisi, saatSayisi, hucreler, gorunum, ders, dersI
         </thead>
         <tbody>
           {Array.from({ length: saatSayisi }, (_, s) => (
-            <tr key={s}>
-              <th scope="row" className={stil.saatBasligi}>
-                {s + 1}. saat
-              </th>
-              {gunler.map((_, g) => {
-                const a = hucreler.get(hucreAnahtari(g, s));
-                if (!a) {
+            <Fragment key={s}>
+              <tr>
+                <th scope="row" className={stil.saatBasligi}>
+                  {s + 1}. saat
+                  {zil?.[s] && <span className={stil.zil}>{zilMetni(zil[s])}</span>}
+                </th>
+                {gunler.map((_, g) => {
+                  const a = hucreler.get(hucreAnahtari(g, s));
+                  if (!a && !saatVar(gunSaatleri, g, s)) {
+                    // Kısa gün (ör. cuma 7 saat): bu saat o gün yok. Eski bir programın hücresi varsa yine gösterilir.
+                    return (
+                      <td key={g} className={stil.yok}>
+                        <span className="gorunmez">Bu saatte ders yok</span>
+                      </td>
+                    );
+                  }
+                  if (!a) {
+                    return (
+                      <td key={g} className={stil.bos}>
+                        <span className="gorunmez">Boş</span>
+                      </td>
+                    );
+                  }
+                  const d = ders.get(a.ders_id);
+                  const o = a.ogretmen_id ? ogretmen.get(a.ogretmen_id) : undefined;
+                  const gecikme = { animationDelay: `${yerlesmeGecikmesiMs(g, s, saatSayisi)}ms` } as CSSProperties;
                   return (
-                    <td key={g} className={stil.bos}>
-                      <span className="gorunmez">Boş</span>
+                    <td key={g} className={stil.dolu} style={gecikme}>
+                      <DersCipi ad={d?.ad ?? "?"} kisaAd={d?.kisa_ad} renk={d?.renk} isaret={dersIsareti.get(a.ders_id)} />
+                      <span className={stil.ikinci}>
+                        {gorunum === "sube" ? (
+                          o && (
+                            <>
+                              <OgretmenRozeti id={o.id} ad={o.ad} boyut="kucuk" />
+                              <SigdirilanMetin uzun={o.ad} kisa={kisaKisiAdi(o.ad)} />
+                            </>
+                          )
+                        ) : (
+                          sinif.get(a.sinif_id)?.ad
+                        )}
+                      </span>
                     </td>
                   );
-                }
-                const d = ders.get(a.ders_id);
-                const o = a.ogretmen_id ? ogretmen.get(a.ogretmen_id) : undefined;
-                const gecikme = { animationDelay: `${yerlesmeGecikmesiMs(g, s, saatSayisi)}ms` } as CSSProperties;
-                return (
-                  <td key={g} className={stil.dolu} style={gecikme}>
-                    <DersCipi ad={d?.ad ?? "?"} kisaAd={d?.kisa_ad} renk={d?.renk} isaret={dersIsareti.get(a.ders_id)} />
-                    <span className={stil.ikinci}>
-                      {gorunum === "sube" ? (
-                        o && (
-                          <>
-                            <OgretmenRozeti id={o.id} ad={o.ad} boyut="kucuk" />
-                            <SigdirilanMetin uzun={o.ad} kisa={kisaKisiAdi(o.ad)} />
-                          </>
-                        )
-                      ) : (
-                        sinif.get(a.sinif_id)?.ad
-                      )}
-                    </span>
-                  </td>
-                );
-              })}
-            </tr>
+                })}
+              </tr>
+              {ogleArasiSonrasi(ogleArasiSonra, s) && s + 1 < saatSayisi && (
+                // Öğle arası iki ders arasında ince bir ayraç: satır, ama hücreleri yok.
+                <tr className={stil.ogleArasi}>
+                  <th scope="row" colSpan={gunSayisi + 1}>
+                    <span>Öğle arası{ogleZili && ` · ${zilMetni(ogleZili)}`}</span>
+                  </th>
+                </tr>
+              )}
+            </Fragment>
           ))}
         </tbody>
       </table>

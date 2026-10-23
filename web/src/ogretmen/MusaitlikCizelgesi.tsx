@@ -1,7 +1,8 @@
 import { Ban, Waves } from "lucide-react";
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { hataMetni } from "../api/hata";
 import { useBildirim } from "../bilesenler/Bildirim";
+import { ogleArasiSonrasi, ogleArasiZili, saatVar, zilMetni, zilSaatleri, type Hafta } from "../okul/zaman";
 import { GUN_ADLARI } from "../program/aciklama";
 import {
   DURUM_ADLARI,
@@ -18,7 +19,8 @@ import {
 import stil from "./Ogretmen.module.css";
 import { useMusaitlik, useMusaitlikDegistir } from "./veri";
 
-type Props = { ogretmenId: string; ad: string; gunSayisi: number; saatSayisi: number };
+/** `hafta`: okulun günlere göre ders saati, öğle arası ve zil saatleri (kısa günün sonu tıklanamaz). */
+type Props = { ogretmenId: string; ad: string; gunSayisi: number; saatSayisi: number; hafta: Hafta };
 
 /** Sürükleme sürerken: hangi hücrelerden geçildi ve hepsi hangi duruma getirilecek. */
 type Surukleme = { hedef: Durum; hucreler: Konum[] };
@@ -42,8 +44,10 @@ function DurumIkonu({ durum }: { durum: Durum }) {
  *   sekme sırasındadır), oklar/Home/End ile gezilir, Enter ya da boşluk durumu değiştirir.
  * - **Kapasite:** cevaptaki yük sunucunun hesabıdır (ön kontrolle aynı); müsait saat ders yükünün
  *   altına düşerse anında uyarı.
+ * - **Kısa gün:** günün uzunluğunu aşan saatler (ör. cuma 6. saat, cuma 5 saatse) hücre değil
+ *   "ders yok" alanıdır; toplu işlemler ve oklar onları atlar.
  */
-export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi }: Props) {
+export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi, hafta }: Props) {
   const cizelge = useMusaitlik(ogretmenId);
   const degistir = useMusaitlikDegistir(ogretmenId);
   const bildirim = useBildirim();
@@ -53,6 +57,7 @@ export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi }: Pr
   const hucreRefleri = useRef(new Map<string, HTMLButtonElement>());
 
   const harita = durumHaritasi(cizelge.data?.hucreler ?? []);
+  const var_ = (k: Konum) => saatVar(hafta.gun_saatleri, k.gun, k.saat);
 
   function kaydet(hucreler: Konum[], hedef: Durum) {
     const degisen = degisiklikler(harita, hucreler, hedef);
@@ -110,7 +115,7 @@ export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi }: Pr
       kaydet([k], sonrakiDurum(durumu(harita, k)));
       return;
     }
-    const yeni = komsu(k, olay.key, gunSayisi, saatSayisi);
+    const yeni = komsu(k, olay.key, gunSayisi, saatSayisi, var_);
     if (yeni) {
       olay.preventDefault();
       setOdak(yeni);
@@ -119,7 +124,8 @@ export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi }: Pr
   }
 
   function toplu(hucreler: Konum[]) {
-    kaydet(hucreler, topluHedef(harita, hucreler));
+    const varolan = hucreler.filter(var_);
+    if (varolan.length > 0) kaydet(varolan, topluHedef(harita, varolan));
   }
 
   // Ekranda görünen durum: sürükleme sürerken geçilen hücreler yeni durumunu hemen gösterir.
@@ -129,6 +135,8 @@ export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi }: Pr
   const gunler = Array.from({ length: gunSayisi }, (_, g) => GUN_ADLARI[g] ?? `${g + 1}. gün`);
   const saatler = Array.from({ length: saatSayisi }, (_, s) => s);
   const yuk = cizelge.data?.yuk;
+  const zil = zilSaatleri(hafta, saatSayisi);
+  const ogleZili = ogleArasiZili(hafta, zil);
 
   return (
     <section aria-labelledby="musaitlik-baslik" className={stil.kart}>
@@ -172,47 +180,64 @@ export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi }: Pr
             </thead>
             <tbody>
               {saatler.map((saat) => (
-                <tr key={saat}>
-                  <th scope="row">
-                    <button type="button" className={stil.baslikDugmesi} disabled={!cizelge.data}
-                      onClick={() => toplu(gunler.map((_, gun) => ({ gun, saat })))}
-                      aria-label={`${saat + 1}. saat: bütün günlerde birlikte değiştir`}>
-                      {saat + 1}. saat
-                    </button>
-                  </th>
-                  {gunler.map((g, gun) => {
-                    const k = { gun, saat };
-                    const d = gorunen(k);
-                    const odakta = odak.gun === gun && odak.saat === saat;
-                    return (
-                      <td key={gun}>
-                        <button
-                          type="button"
-                          ref={(el) => {
-                            if (el) hucreRefleri.current.set(anahtar(k), el);
-                            else hucreRefleri.current.delete(anahtar(k));
-                          }}
-                          className={stil.hucre}
-                          data-durum={d}
-                          disabled={!cizelge.data}
-                          tabIndex={odakta ? 0 : -1}
-                          aria-label={`${g}, ${saat + 1}. saat: ${DURUM_ADLARI[d]}`}
-                          onPointerDown={(o) => basla(o, k)}
-                          onPointerEnter={() => gec(k)}
-                          // Klavye ve ekran okuyucunun "tıklaması" işaretçi olayı üretmez (detail 0).
-                          onClick={(o) => o.detail === 0 && kaydet([k], sonrakiDurum(durumu(harita, k)))}
-                          onKeyDown={(o) => tusla(o, k)}
-                          onFocus={() => setOdak(k)}
-                        >
-                          {/* key: durum değişince ikon yeniden kurulur, kısa giriş animasyonu oynar. */}
-                          <span key={d} className={stil.hucreIcerik}>
-                            <DurumIkonu durum={d} />
-                          </span>
-                        </button>
-                      </td>
-                    );
-                  })}
-                </tr>
+                <Fragment key={saat}>
+                  <tr>
+                    <th scope="row">
+                      <button type="button" className={stil.baslikDugmesi} disabled={!cizelge.data}
+                        onClick={() => toplu(gunler.map((_, gun) => ({ gun, saat })))}
+                        aria-label={`${saat + 1}. saat: bütün günlerde birlikte değiştir`}>
+                        {saat + 1}. saat
+                        {zil?.[saat] && <span className={stil.zil}>{zilMetni(zil[saat])}</span>}
+                      </button>
+                    </th>
+                    {gunler.map((g, gun) => {
+                      const k = { gun, saat };
+                      if (!var_(k)) {
+                        return (
+                          <td key={gun} className={stil.yok}>
+                            <span className="gorunmez">{`${g}, ${saat + 1}. saat: bu saatte ders yok`}</span>
+                          </td>
+                        );
+                      }
+                      const d = gorunen(k);
+                      const odakta = odak.gun === gun && odak.saat === saat;
+                      return (
+                        <td key={gun}>
+                          <button
+                            type="button"
+                            ref={(el) => {
+                              if (el) hucreRefleri.current.set(anahtar(k), el);
+                              else hucreRefleri.current.delete(anahtar(k));
+                            }}
+                            className={stil.hucre}
+                            data-durum={d}
+                            disabled={!cizelge.data}
+                            tabIndex={odakta ? 0 : -1}
+                            aria-label={`${g}, ${saat + 1}. saat: ${DURUM_ADLARI[d]}`}
+                            onPointerDown={(o) => basla(o, k)}
+                            onPointerEnter={() => gec(k)}
+                            // Klavye ve ekran okuyucunun "tıklaması" işaretçi olayı üretmez (detail 0).
+                            onClick={(o) => o.detail === 0 && kaydet([k], sonrakiDurum(durumu(harita, k)))}
+                            onKeyDown={(o) => tusla(o, k)}
+                            onFocus={() => setOdak(k)}
+                          >
+                            {/* key: durum değişince ikon yeniden kurulur, kısa giriş animasyonu oynar. */}
+                            <span key={d} className={stil.hucreIcerik}>
+                              <DurumIkonu durum={d} />
+                            </span>
+                          </button>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                  {ogleArasiSonrasi(hafta.ogle_arasi_sonra, saat) && saat + 1 < saatSayisi && (
+                    <tr className={stil.ogleArasi}>
+                      <th scope="row" colSpan={gunSayisi + 1}>
+                        <span>Öğle arası{ogleZili && ` · ${zilMetni(ogleZili)}`}</span>
+                      </th>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
             </tbody>
           </table>

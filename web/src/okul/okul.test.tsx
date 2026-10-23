@@ -28,13 +28,21 @@ function okulApisi(etkiler: string[] = []) {
         return HttpResponse.json({ detail: "Bu değişiklik mevcut kayıtları etkiliyor; devam etmek için etkileri onaylayın.", etkiler },
           { status: 409 });
       }
-      okul = { ...okul, ad: govde.ad as string, gun_sayisi: govde.gun_sayisi as number,
-        gunluk_ders_saati: govde.gunluk_ders_saati as number };
+      // Sunucunun tek gösterimi: liste verilirse en uzun gün günlük ders saati olur.
+      const gunSayisi = govde.gun_sayisi as number;
+      const liste = (govde.gun_saatleri as number[] | null) ?? Array(gunSayisi).fill(govde.gunluk_ders_saati);
+      okul = { ...okul, ...(govde as object), gun_sayisi: gunSayisi, gun_saatleri: liste, gunluk_ders_saati: Math.max(...liste) };
       return HttpResponse.json(okul);
     }),
   );
   return istekler;
 }
+
+/** Varsayılan okulda (her gün 8 saat, öğle arası ve zil saatleri yok) formun hafta alanları. */
+const HAFTA_VARSAYILAN = {
+  gun_saatleri: null, ogle_arasi_sonra: null, ilk_ders_baslangic: null, ders_suresi_dk: 40, teneffus_dk: 10,
+  ogle_arasi_dk: 40,
+};
 
 async function ac() {
   const s = uygulamayiCiz("/okul");
@@ -52,7 +60,8 @@ describe("okul bilgileri", () => {
     await kullanici.click(screen.getByRole("button", { name: "Kaydet" }));
 
     expect(await screen.findByText("Okul bilgileri kaydedildi.")).toBeInTheDocument();
-    expect(istekler).toEqual([{ yol: "okul", govde: { ad: "Cumhuriyet Lisesi", gun_sayisi: 5, gunluk_ders_saati: 8, etkileri_onayla: false } }]);
+    expect(istekler).toEqual([{ yol: "okul", govde: { ad: "Cumhuriyet Lisesi", gun_sayisi: 5, gunluk_ders_saati: 8,
+      ...HAFTA_VARSAYILAN, etkileri_onayla: false } }]);
     expect(within(screen.getByRole("banner")).getByText("Cumhuriyet Lisesi")).toBeInTheDocument();
   });
 
@@ -68,7 +77,7 @@ describe("okul bilgileri", () => {
     await kullanici.click(screen.getByRole("button", { name: "Kaydet" }));
     const pencere = await screen.findByRole("dialog", { name: "Bu değişiklik mevcut kayıtları etkileyecek" });
     expect(within(pencere).getAllByRole("listitem").map((l) => l.textContent)).toEqual(ETKILER);
-    expect(istekler).toEqual([{ yol: "ayar-etkisi", govde: { gun_sayisi: 5, gunluk_ders_saati: 6 } }]);
+    expect(istekler).toEqual([{ yol: "ayar-etkisi", govde: { gun_sayisi: 5, gunluk_ders_saati: 6, gun_saatleri: null } }]);
 
     await kullanici.click(within(pencere).getByRole("button", { name: "Vazgeç" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -87,7 +96,8 @@ describe("okul bilgileri", () => {
     await kullanici.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Kaydet ve uygula" }));
 
     expect(await screen.findByText("Okul bilgileri kaydedildi.")).toBeInTheDocument();
-    expect(istekler.at(-1)).toEqual({ yol: "okul", govde: { ad: BEN_ORNEK.okul.ad, gun_sayisi: 5, gunluk_ders_saati: 7, etkileri_onayla: true } });
+    expect(istekler.at(-1)).toEqual({ yol: "okul", govde: { ad: BEN_ORNEK.okul.ad, gun_sayisi: 5, gunluk_ders_saati: 7,
+      ...HAFTA_VARSAYILAN, etkileri_onayla: true } });
   });
 
   it("azaltmanın etkisi yoksa pencere açılmadan kaydeder", async () => {
@@ -112,6 +122,79 @@ describe("okul bilgileri", () => {
     await kullanici.click(screen.getByRole("button", { name: "Kaydet" }));
     const pencere = await screen.findByRole("dialog", { name: "Bu değişiklik mevcut kayıtları etkileyecek" });
     expect(within(pencere).getAllByRole("listitem")).toHaveLength(2);
+  });
+});
+
+describe("günlere göre ders saati, öğle arası, zil saatleri (K3)", () => {
+  it("varsayılan sade: tek 'günde kaç ders saati' alanı; gün kutuları ve zil alanları kapalı", async () => {
+    okulApisi();
+    await ac();
+    expect(screen.getByLabelText(/Günde kaç ders saati/)).toHaveValue(8);
+    expect(screen.getByRole("checkbox", { name: /Günlere göre farklı/ })).not.toBeChecked();
+    expect(screen.queryByLabelText("Cuma")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("İlk ders başlıyor")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Öğle arası")).toHaveValue("");
+  });
+
+  it("'günlere göre farklı' açılınca her gün bugünkü değerle başlar; cumayı kısaltmak önce etkileri sorar", async () => {
+    const istekler = okulApisi(ETKILER);
+    const { kullanici } = await ac();
+    await kullanici.click(screen.getByRole("checkbox", { name: /Günlere göre farklı/ }));
+    expect(screen.queryByLabelText(/Günde kaç ders saati/)).not.toBeInTheDocument();
+    const gunler = within(screen.getByRole("group", { name: "Her gün kaç ders saati var" }));
+    expect(["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"].map((g) => (gunler.getByLabelText(g) as HTMLInputElement).value))
+      .toEqual(["8", "8", "8", "8", "8"]);
+    expect(screen.queryByRole("note")).not.toBeInTheDocument(); // henüz hiçbir gün kısalmadı
+
+    await kullanici.clear(gunler.getByLabelText("Cuma"));
+    await kullanici.type(gunler.getByLabelText("Cuma"), "5");
+    expect(screen.getByRole("note")).toHaveTextContent(/müsaitlik kayıtları silinir/);
+    await kullanici.click(screen.getByRole("button", { name: "Kaydet" }));
+
+    const pencere = await screen.findByRole("dialog", { name: "Bu değişiklik mevcut kayıtları etkileyecek" });
+    expect(istekler).toEqual([{ yol: "ayar-etkisi", govde: { gun_sayisi: 5, gun_saatleri: [8, 8, 8, 8, 5] } }]);
+    await kullanici.click(within(pencere).getByRole("button", { name: "Kaydet ve uygula" }));
+    expect(await screen.findByText("Okul bilgileri kaydedildi.")).toBeInTheDocument();
+    expect(istekler.at(-1)?.govde).toMatchObject({ gun_sayisi: 5, gun_saatleri: [8, 8, 8, 8, 5], etkileri_onayla: true });
+    expect(istekler.at(-1)?.govde).not.toHaveProperty("gunluk_ders_saati");
+  });
+
+  it("öğle arası ve zil saatleri: önizleme öğle arasını sayar, kaydedince gönderilir", async () => {
+    const istekler = okulApisi();
+    const { kullanici } = await ac();
+    await kullanici.selectOptions(screen.getByLabelText("Öğle arası"), "4");
+    await kullanici.click(screen.getByRole("checkbox", { name: /Zil saatlerini göster/ }));
+    expect(screen.getByLabelText("İlk ders başlıyor")).toHaveValue("08:30");
+    const ogleDk = screen.getByLabelText("Öğle arası (dk)");
+    await kullanici.clear(ogleDk);
+    await kullanici.type(ogleDk, "50");
+
+    const onizleme = screen.getByRole("list", { name: "Zil saatleri önizlemesi" });
+    const satirlar = within(onizleme).getAllByRole("listitem").map((l) => l.textContent);
+    expect(satirlar.slice(0, 6)).toEqual([
+      "1. ders 08:30–09:10", "2. ders 09:20–10:00", "3. ders 10:10–10:50", "4. ders 11:00–11:40",
+      "Öğle arası 11:40–12:30", "5. ders 12:30–13:10",
+    ]);
+
+    await kullanici.click(screen.getByRole("button", { name: "Kaydet" }));
+    expect(await screen.findByText("Okul bilgileri kaydedildi.")).toBeInTheDocument();
+    expect(istekler.map((i) => i.yol)).toEqual(["okul"]); // kısalma yok: önizleme istenmedi
+    expect(istekler[0]!.govde).toMatchObject({ ogle_arasi_sonra: 4, ilk_ders_baslangic: "08:30", ogle_arasi_dk: 50 });
+  });
+
+  it("öğle arası son dersten sonra seçilemez; zil saati biçimi denetlenir", async () => {
+    const istekler = okulApisi();
+    const { kullanici } = await ac();
+    // Seçenekler en uzun günün son dersinden öncesine kadar: 8 saatte 7.
+    const secenekler = within(screen.getByLabelText("Öğle arası")).getAllByRole("option").map((o) => o.textContent);
+    expect(secenekler.at(-1)).toBe("7. dersten sonra");
+    await kullanici.selectOptions(screen.getByLabelText("Öğle arası"), "7");
+    const saat = screen.getByLabelText(/Günde kaç ders saati/);
+    await kullanici.clear(saat);
+    await kullanici.type(saat, "7");
+    await kullanici.click(screen.getByRole("button", { name: "Kaydet" }));
+    expect(screen.getByLabelText("Öğle arası")).toHaveAccessibleDescription(/Öğle arası son dersten önce olmalı/);
+    expect(istekler).toEqual([]);
   });
 });
 

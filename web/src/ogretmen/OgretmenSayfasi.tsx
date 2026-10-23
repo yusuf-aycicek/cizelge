@@ -92,7 +92,7 @@ export function OgretmenSayfasi() {
       {/* key: başka öğretmene geçince bölümler baştan kurulur (odak, sürükleme durumu sıfırlanır). */}
       <KisiselAyarlar key={`ayar-${ogretmen.id}`} ogretmenId={ogretmen.id} kurallar={kurallar.data} okul={okul} />
       <MusaitlikCizelgesi key={`musaitlik-${ogretmen.id}`} ogretmenId={ogretmen.id} ad={ogretmen.ad}
-        gunSayisi={okul.gun_sayisi} saatSayisi={okul.gunluk_ders_saati} />
+        gunSayisi={okul.gun_sayisi} saatSayisi={okul.gunluk_ders_saati} hafta={okul} />
     </>
   );
 }

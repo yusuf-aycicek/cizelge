@@ -2,7 +2,7 @@ import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
 import { Settings } from "lucide-react";
 import { Iskelet } from "../bilesenler/Iskelet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { Fragment, useState, type FormEvent } from "react";
 import { ApiHatasi, cagir, hataMetni } from "../api/hata";
 import { api } from "../api/istemci";
 import type { components } from "../api/sema";
@@ -14,7 +14,9 @@ import { OnayPenceresi } from "../bilesenler/OnayPenceresi";
 import { BEN_ANAHTARI, type Ben } from "../kimlik/oturum";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
 import stil from "./Okul.module.css";
+import { GUN_ADLARI } from "../program/aciklama";
 import { OzelAyarlarOzeti } from "./OzelAyarlarOzeti";
+import { kisaliyor, ogleArasiSonrasi, ogleArasiZili, zilMetni, zilSaatleri } from "./zaman";
 
 type Okul = components["schemas"]["OkulYanit"];
 type Kural = components["schemas"]["KuralYanit"];
@@ -22,6 +24,9 @@ type Seviye = "onemsiz" | "onemli" | "cok_onemli";
 
 export const OKUL_ANAHTARI = ["okul"] as const;
 export const KURALLAR_ANAHTARI = ["kurallar"] as const;
+
+/** Zil saatleri ilk açıldığında önerilen başlangıç (CLAUDE.md bölüm 10). */
+const VARSAYILAN_BASLANGIC = "08:30";
 
 const SEVIYELER: { deger: Seviye; ad: string }[] = [
   { deger: "onemsiz", ad: "Önemsiz" },
@@ -76,24 +81,61 @@ function OkulBilgileri({ okul }: { okul: Okul }) {
   const bildirim = useBildirim();
   // State'in başlangıç değeri props'tan: yalnızca ilk çizimde okunur. Sunucudaki değer değişince
   // üst bileşen `key`'i değiştirir ve bu bileşen yeni değerle baştan kurulur.
-  const [d, setD] = useState({ ad: okul.ad, gun: String(okul.gun_sayisi), saat: String(okul.gunluk_ders_saati) });
+  const [d, setD] = useState({
+    ad: okul.ad,
+    gun: String(okul.gun_sayisi),
+    saat: String(okul.gunluk_ders_saati),
+    farkli: new Set(okul.gun_saatleri).size > 1,
+    gunler: okul.gun_saatleri.map(String),
+    ogle: okul.ogle_arasi_sonra == null ? "" : String(okul.ogle_arasi_sonra),
+    zil: okul.ilk_ders_baslangic != null,
+    baslangic: okul.ilk_ders_baslangic?.slice(0, 5) ?? VARSAYILAN_BASLANGIC,
+    ders: String(okul.ders_suresi_dk),
+    teneffus: String(okul.teneffus_dk),
+    ogleDk: String(okul.ogle_arasi_dk),
+  });
   const [hatalar, setHatalar] = useState<AlanHatalari>({});
   const [etkiler, setEtkiler] = useState<string[] | null>(null);
 
   const yeniGun = Number(d.gun);
-  const yeniSaat = Number(d.saat);
-  const azaliyor = yeniGun < okul.gun_sayisi || yeniSaat < okul.gunluk_ders_saati;
+  // Gün sayısı değişince günlere göre liste kısalır ya da yeni günler ilk günün uzunluğuyla eklenir.
+  const gunler = Array.from({ length: yeniGun }, (_, g) => d.gunler[g] ?? d.gunler[0] ?? d.saat);
+  const yeniSaatler = d.farkli ? gunler.map(Number) : Array<number>(yeniGun).fill(Number(d.saat));
+  const enUzun = Math.max(...yeniSaatler.filter(Number.isFinite), 1);
+  const azaliyor = kisaliyor(okul.gun_saatleri, yeniSaatler);
+  const hafta = {
+    gun_saatleri: yeniSaatler,
+    ogle_arasi_sonra: d.ogle ? Number(d.ogle) : null,
+    ilk_ders_baslangic: d.zil ? d.baslangic : null,
+    ders_suresi_dk: Number(d.ders),
+    teneffus_dk: Number(d.teneffus),
+    ogle_arasi_dk: Number(d.ogleDk),
+  };
+  // Hafta: "her gün aynı" ise tek sayı, değilse günlere göre liste gider (sunucu tek gösterime getirir).
+  const haftaGovdesi = d.farkli
+    ? { gun_sayisi: yeniGun, gun_saatleri: yeniSaatler }
+    : { gun_sayisi: yeniGun, gunluk_ders_saati: Number(d.saat), gun_saatleri: null };
 
   const kaydet = useMutation({
     mutationFn: (etkileriOnayla: boolean) =>
       cagir(api.PATCH("/api/okul", {
-        body: { ad: d.ad.trim(), gun_sayisi: yeniGun, gunluk_ders_saati: yeniSaat, etkileri_onayla: etkileriOnayla },
+        body: {
+          ad: d.ad.trim(),
+          ...haftaGovdesi,
+          ogle_arasi_sonra: hafta.ogle_arasi_sonra,
+          ilk_ders_baslangic: hafta.ilk_ders_baslangic,
+          ders_suresi_dk: hafta.ders_suresi_dk,
+          teneffus_dk: hafta.teneffus_dk,
+          ogle_arasi_dk: hafta.ogle_arasi_dk,
+          etkileri_onayla: etkileriOnayla,
+        },
       })),
-    onSuccess: (yeni, etkileriOnayla) => {
+    onSuccess: (yeni) => {
       setEtkiler(null);
       istemci.setQueryData(OKUL_ANAHTARI, yeni);
       istemci.setQueryData<Ben | null>(BEN_ANAHTARI, (ben) => (ben ? { ...ben, okul: yeni } : ben));
-      if (etkileriOnayla) istemci.invalidateQueries(); // silinen kayıtlar başka sayfalarda da görünmesin
+      // Silinen kayıtlar başka sayfalarda görünmesin; gün uzunluğu ön kontrolü ve özetleri de değiştirir.
+      istemci.invalidateQueries({ predicate: (s) => s.queryKey[0] !== OKUL_ANAHTARI[0] && s.queryKey[0] !== BEN_ANAHTARI[0] });
       bildirim("basari", "Okul bilgileri kaydedildi.");
     },
     onError: (hata) => {
@@ -105,17 +147,28 @@ function OkulBilgileri({ okul }: { okul: Okul }) {
     },
   });
 
-  // Önizleme: azaltma varsa kaydetmeden önce etkiler sorulur.
+  // Önizleme: bir gün kısalıyorsa ya da gün azalıyorsa kaydetmeden önce etkiler sorulur (ADR 0014).
   const onizle = useMutation({
-    mutationFn: () => cagir(api.POST("/api/okul/ayar-etkisi", { body: { gun_sayisi: yeniGun, gunluk_ders_saati: yeniSaat } })),
+    mutationFn: () => cagir(api.POST("/api/okul/ayar-etkisi", { body: haftaGovdesi })),
     onSuccess: ({ etkiler: liste }) => (liste.length > 0 ? setEtkiler(liste) : kaydet.mutate(false)),
   });
 
   function gonder(olay: FormEvent) {
     olay.preventDefault();
     const h: AlanHatalari = {};
+    const saatGecersiz = (s: string) => !Number.isInteger(Number(s)) || Number(s) < 1 || Number(s) > 16;
     if (!d.ad.trim()) h.ad = "Okulun adını girin";
-    if (!Number.isInteger(yeniSaat) || yeniSaat < 1 || yeniSaat > 16) h.gunluk_ders_saati = "1 ile 16 arasında bir sayı girin";
+    if (!d.farkli && saatGecersiz(d.saat)) h.gunluk_ders_saati = "1 ile 16 arasında bir sayı girin";
+    if (d.farkli) gunler.forEach((s, g) => saatGecersiz(s) && (h[`gun-${g}`] = "1 ile 16 arasında"));
+    if (hafta.ogle_arasi_sonra != null && hafta.ogle_arasi_sonra >= enUzun) h.ogle_arasi_sonra = "Öğle arası son dersten önce olmalı";
+    if (d.zil) {
+      if (!/^\d{2}:\d{2}$/.test(d.baslangic)) h.ilk_ders_baslangic = "Saati 08:30 biçiminde girin";
+      const dk = (s: string, alt: number, ust: number, alan: string) =>
+        (!Number.isInteger(Number(s)) || Number(s) < alt || Number(s) > ust) && (h[alan] = `${alt} ile ${ust} arasında bir sayı girin`);
+      dk(d.ders, 10, 120, "ders_suresi_dk");
+      dk(d.teneffus, 0, 60, "teneffus_dk");
+      if (d.ogle) dk(d.ogleDk, 0, 180, "ogle_arasi_dk");
+    }
     setHatalar(h);
     if (Object.keys(h).length > 0) return;
     if (azaliyor) onizle.mutate();
@@ -125,6 +178,14 @@ function OkulBilgileri({ okul }: { okul: Okul }) {
   const sunucu = sunucuHatalari(etkiler ? null : (kaydet.error ?? onizle.error));
   const hata = (alan: string) => hatalar[alan] ?? sunucu.alanlar[alan];
   const gunSecenekleri = [...new Set([5, 6, okul.gun_sayisi])].sort();
+  const zil = d.zil ? zilSaatleri(hafta, enUzun) : null;
+  const ogleZili = ogleArasiZili(hafta, zil);
+
+  function farkliyiDegistir(acik: boolean) {
+    // Açılınca her gün bugünkü tek değerle başlar; kapanınca en uzun gün "her gün" değeri olur.
+    if (acik) setD({ ...d, farkli: true, gunler: Array<string>(yeniGun).fill(d.saat) });
+    else setD({ ...d, farkli: false, saat: String(enUzun) });
+  }
 
   return (
     <section className={sayfaStili.kart} aria-labelledby="okul-bilgileri">
@@ -139,9 +200,76 @@ function OkulBilgileri({ okul }: { okul: Okul }) {
               <option key={g} value={g}>{g} gün</option>
             ))}
           </SecimAlani>
-          <MetinAlani etiket="Günde kaç ders saati var" type="number" inputMode="numeric" min={1} max={16}
-            value={d.saat} onChange={(o) => setD({ ...d, saat: o.target.value })} hata={hata("gunluk_ders_saati")} />
+          {!d.farkli && (
+            <MetinAlani etiket="Günde kaç ders saati var" type="number" inputMode="numeric" min={1} max={16}
+              value={d.saat} onChange={(o) => setD({ ...d, saat: o.target.value })} hata={hata("gunluk_ders_saati")} />
+          )}
         </div>
+        <label className={stil.secenek}>
+          <input type="checkbox" checked={d.farkli} onChange={(o) => farkliyiDegistir(o.target.checked)} />
+          Günlere göre farklı (ör. cuma daha kısa)
+        </label>
+        {d.farkli && (
+          <fieldset className={stil.grup}>
+            <legend>Her gün kaç ders saati var</legend>
+            <div className={stil.gunler}>
+              {gunler.map((s, g) => (
+                <MetinAlani key={g} etiket={GUN_ADLARI[g] ?? `${g + 1}. gün`} type="number" inputMode="numeric" min={1} max={16}
+                  value={s} hata={hata(`gun-${g}`)}
+                  onChange={(o) => setD({ ...d, gunler: gunler.map((x, i) => (i === g ? o.target.value : x)) })} />
+              ))}
+            </div>
+          </fieldset>
+        )}
+
+        <div className={stil.ikili}>
+          <SecimAlani etiket="Öğle arası" value={d.ogle} onChange={(o) => setD({ ...d, ogle: o.target.value })}
+            hata={hata("ogle_arasi_sonra")} aciklama="Haftalık çizelgede iki ders arasında ayraç olarak görünür.">
+            <option value="">Öğle arası yok</option>
+            {Array.from({ length: Math.max(0, enUzun - 1) }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>{n}. dersten sonra</option>
+            ))}
+          </SecimAlani>
+        </div>
+
+        <label className={stil.secenek}>
+          <input type="checkbox" checked={d.zil} onChange={(o) => setD({ ...d, zil: o.target.checked })} />
+          Zil saatlerini göster (çizelgede "1. saat" altında 08:30–09:10 gibi)
+        </label>
+        {d.zil && (
+          <fieldset className={stil.grup}>
+            <legend>Zil saatleri</legend>
+            <div className={stil.dortlu}>
+              <MetinAlani etiket="İlk ders başlıyor" type="time" value={d.baslangic} hata={hata("ilk_ders_baslangic")}
+                onChange={(o) => setD({ ...d, baslangic: o.target.value })} />
+              <MetinAlani etiket="Ders süresi (dk)" type="number" inputMode="numeric" value={d.ders} hata={hata("ders_suresi_dk")}
+                onChange={(o) => setD({ ...d, ders: o.target.value })} />
+              <MetinAlani etiket="Teneffüs (dk)" type="number" inputMode="numeric" value={d.teneffus} hata={hata("teneffus_dk")}
+                onChange={(o) => setD({ ...d, teneffus: o.target.value })} />
+              {d.ogle && (
+                <MetinAlani etiket="Öğle arası (dk)" type="number" inputMode="numeric" value={d.ogleDk} hata={hata("ogle_arasi_dk")}
+                  onChange={(o) => setD({ ...d, ogleDk: o.target.value })} />
+              )}
+            </div>
+            {zil && (
+              <ol className={stil.zilOnizleme} aria-label="Zil saatleri önizlemesi">
+                {zil.map((z, s) => (
+                  <Fragment key={s}>
+                    <li>
+                      <span>{s + 1}. ders</span> {zilMetni(z)}
+                    </li>
+                    {ogleArasiSonrasi(hafta.ogle_arasi_sonra, s) && ogleZili && (
+                      <li className={stil.zilOgle} aria-label={`Öğle arası ${zilMetni(ogleZili)}`}>
+                        Öğle arası {zilMetni(ogleZili)}
+                      </li>
+                    )}
+                  </Fragment>
+                ))}
+              </ol>
+            )}
+          </fieldset>
+        )}
+
         {azaliyor && (
           <p className={stil.uyari} role="note">
             Gün ya da ders saati sayısını azaltıyorsunuz. Yeni ayarların dışında kalan müsaitlik kayıtları

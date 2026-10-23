@@ -115,3 +115,45 @@
   color: var(--renk-metin-ikincil);
   font-size: var(--yazi-kucuk);
 }
+
+/* Günlere göre ders saati, öğle arası ve zil saatleri (K3). */
+.grup {
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose);
+  padding: var(--bosluk-3) var(--bosluk-4) 0;
+  margin: 0 0 var(--bosluk-4);
+  max-width: 44rem;
+}
+.grup legend {
+  font-weight: var(--yazi-kalin);
+  padding: 0 var(--bosluk-1);
+}
+/* Beş-yedi gün yan yana; dar alanda sarar. */
+.gunler {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  gap: 0 var(--bosluk-3);
+}
+.dortlu {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 0 var(--bosluk-3);
+}
+.zilOnizleme {
+  list-style: none;
+  margin: 0 0 var(--bosluk-4);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--bosluk-1) var(--bosluk-4);
+  font-size: var(--yazi-kucuk);
+  font-variant-numeric: tabular-nums;
+}
+.zilOnizleme span {
+  color: var(--renk-metin-ikincil);
+  font-weight: var(--yazi-kalin);
+}
+.zilOgle {
+  color: var(--renk-metin-ikincil);
+  font-style: italic;
+}

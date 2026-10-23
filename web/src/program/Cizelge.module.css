@@ -109,3 +109,42 @@
   font-size: 0.6rem;
   box-shadow: none;
 }
+
+/* Zil saati: satır başlığında "1. saat"in altında (K3). */
+.zil {
+  display: block;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.7rem;
+  margin-top: 0.1rem;
+}
+/* Kısa günün sonundaki saat: o gün yok. Boş saatten ayrı, çapraz çizgili ve soluk. */
+.yok {
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 0.4rem,
+    color-mix(in srgb, var(--renk-kenar) 55%, transparent) 0.4rem 0.5rem
+  );
+  opacity: 0.7;
+}
+/* Öğle arası: iki ders arasında ince ayraç (satır yüksekliği küçük, ortada yazı). */
+.ogleArasi th {
+  padding: 0;
+  height: auto;
+}
+.ogleArasi span {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  font-size: 0.7rem;
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-metin-ikincil);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ogleArasi span::before,
+.ogleArasi span::after {
+  content: "";
+  flex: 1;
+  border-top: 1px dashed var(--renk-kenar);
+}

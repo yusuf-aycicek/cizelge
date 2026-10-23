@@ -3,7 +3,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { delay, http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import type { components } from "../api/sema";
-import { ORNEK_KURALLAR, sunucu } from "../test/sunucu";
+import { BEN_ORNEK, ORNEK_KURALLAR, sunucu } from "../test/sunucu";
 import { uygulamayiCiz } from "../test/yardimcilar";
 import { degisiklikler, durumHaritasi, komsu, sonrakiDurum, topluHedef, uygula } from "./musaitlik";
 
@@ -84,6 +84,11 @@ describe("müsaitlik mantığı", () => {
     expect(komsu({ gun: 0, saat: 0 }, "ArrowDown", 5, 8)).toEqual({ gun: 0, saat: 1 });
     expect(komsu({ gun: 1, saat: 3 }, "End", 5, 8)).toEqual({ gun: 4, saat: 3 });
     expect(komsu({ gun: 1, saat: 3 }, "a", 5, 8)).toBeNull();
+    // Kısa gün (cuma 5 saat): oklar ve End olmayan hücreyi atlar.
+    const var_ = (k: { gun: number; saat: number }) => k.gun < 4 || k.saat < 5;
+    expect(komsu({ gun: 3, saat: 6 }, "ArrowRight", 5, 8, var_)).toEqual({ gun: 3, saat: 6 });
+    expect(komsu({ gun: 1, saat: 6 }, "End", 5, 8, var_)).toEqual({ gun: 3, saat: 6 });
+    expect(komsu({ gun: 4, saat: 4 }, "ArrowDown", 5, 8, var_)).toEqual({ gun: 4, saat: 4 });
   });
 });
 
@@ -237,5 +242,38 @@ describe("müsaitlik çizelgesi", () => {
     const uyari = await screen.findByText(/Program bu haliyle üretilemez/);
     expect(uyari).toHaveAttribute("role", "alert");
     expect(uyari).toHaveTextContent(`${mesaj} Program bu haliyle üretilemez.`);
+  });
+});
+
+/** Cuma 5 saat, öğle arası 4. dersten sonra, zil saatleri 08:30'da (K3). */
+function kisaCumaliOkul() {
+  sunucu.use(http.get("/api/ben", () => HttpResponse.json({
+    ...BEN_ORNEK,
+    okul: { ...BEN_ORNEK.okul, gun_saatleri: [8, 8, 8, 8, 5], ogle_arasi_sonra: 4, ilk_ders_baslangic: "08:30:00" },
+  })));
+}
+
+describe("müsaitlik çizelgesi: kısa gün, öğle arası, zil saatleri (K3)", () => {
+  it("cumanın 6.-8. saati hücre değil; gün başlığı yalnızca var olan saatleri değiştirir", async () => {
+    kisaCumaliOkul();
+    const { istekler } = apiKur();
+    const { kullanici } = await ac();
+    expect(hucre("Cuma, 5. saat")).toBeEnabled();
+    expect(screen.queryByRole("button", { name: /^Cuma, 6\. saat:/ })).not.toBeInTheDocument();
+    expect(screen.getByText("Cuma, 6. saat: bu saatte ders yok")).toBeInTheDocument();
+    await kullanici.click(screen.getByRole("button", { name: "Cuma: bütün günü birlikte değiştir" }));
+    await waitFor(() => expect(istekler).toHaveLength(1));
+    expect(istekler[0]).toEqual(Array.from({ length: 5 }, (_, saat) => ({ gun: 4, saat, durum: "gelemez" })));
+  });
+
+  it("saat başlığında zil saati; 4. dersten sonra öğle arası ayracı", async () => {
+    kisaCumaliOkul();
+    apiKur();
+    await ac();
+    const tablo = screen.getByRole("table", { name: /müsaitlik çizelgesi/ });
+    expect(within(tablo).getByRole("button", { name: "1. saat: bütün günlerde birlikte değiştir" })).toHaveTextContent("1. saat08:30–09:10");
+    expect(within(tablo).getByRole("rowheader", { name: "Öğle arası · 11:40–12:20" })).toBeInTheDocument();
+    // Öğle arasından sonraki ders öğle arası süresi kadar sonra başlar.
+    expect(within(tablo).getByRole("button", { name: "5. saat: bütün günlerde birlikte değiştir" })).toHaveTextContent("12:20–13:00");
   });
 });

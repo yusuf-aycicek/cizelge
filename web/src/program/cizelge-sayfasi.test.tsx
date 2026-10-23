@@ -3,7 +3,7 @@ import { screen, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import { dagilimApisiKur } from "../test/dagilimApisi";
-import { sunucu } from "../test/sunucu";
+import { BEN_ORNEK, sunucu } from "../test/sunucu";
 import { uygulamayiCiz } from "../test/yardimcilar";
 
 const PROGRAM = {
@@ -85,5 +85,41 @@ describe("haftalık çizelge", () => {
     uygulamayiCiz("/program/p1");
     expect(await screen.findByText(/henüz hazır değil ya da oluşturulamadı/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Program sayfasına dönün." })).toHaveAttribute("href", "/program");
+  });
+});
+
+/** Cuma 5 saat, öğle arası 4. dersten sonra, zil saatleri 08:30'da (K3). */
+function kisaCumaliOkul() {
+  sunucu.use(http.get("/api/ben", () => HttpResponse.json({
+    ...BEN_ORNEK,
+    okul: { ...BEN_ORNEK.okul, gun_saatleri: [8, 8, 8, 8, 5], ogle_arasi_sonra: 4, ilk_ders_baslangic: "08:30:00" },
+  })));
+}
+
+describe("haftalık çizelge: kısa gün, öğle arası, zil saatleri (K3)", () => {
+  it("öğle arası iki ders arasında ince ayraç; satır başlığında saat aralığı; cumanın 6. saati yok", async () => {
+    kisaCumaliOkul();
+    kur();
+    uygulamayiCiz("/program/p1?gorunum=sube&sinif=s-9a");
+    const tablo = await screen.findByRole("table", { name: "9-A haftalık programı" });
+    const basliklar = within(tablo).getAllByRole("rowheader").map((h) => h.textContent);
+    expect(basliklar.slice(0, 6)).toEqual([
+      "1. saat08:30–09:10", "2. saat09:20–10:00", "3. saat10:10–10:50", "4. saat11:00–11:40",
+      "Öğle arası · 11:40–12:20", "5. saat12:20–13:00",
+    ]);
+    // Ayraç satırının hücresi yok: ekran okuyucu onu ders saati sanmaz.
+    const ayrac = within(tablo).getByRole("rowheader", { name: /Öğle arası/ }).closest("tr")!;
+    expect(within(ayrac).queryAllByRole("cell")).toHaveLength(0);
+    const satir = (basliga: string) => within(tablo).getAllByRole("row").find((r) => within(r).queryByRole("rowheader")?.textContent?.startsWith(basliga))!;
+    expect(within(satir("6. saat")).getAllByRole("cell")[4]).toHaveTextContent("Bu saatte ders yok");
+    expect(within(satir("5. saat")).getAllByRole("cell")[4]).toHaveTextContent("Boş");
+  });
+
+  it("zil saati ve öğle arası yoksa eskisi gibi: yalnızca '1. saat'", async () => {
+    kur();
+    uygulamayiCiz("/program/p1?gorunum=sube&sinif=s-9a");
+    const tablo = await screen.findByRole("table", { name: "9-A haftalık programı" });
+    expect(within(tablo).getAllByRole("rowheader").map((h) => h.textContent)).toEqual(
+      Array.from({ length: 8 }, (_, s) => `${s + 1}. saat`));
   });
 });

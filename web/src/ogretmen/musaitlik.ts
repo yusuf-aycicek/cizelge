@@ -63,14 +63,26 @@ export function uygula(hucreler: readonly KayitliHucre[], degisen: readonly Degi
   return [...harita.values()].sort((a, b) => a.gun - b.gun || a.saat - b.saat);
 }
 
-/** Klavye: oklarla bir hücre ötesine, kenarda durur. */
-export function komsu(k: Konum, tus: string, gunSayisi: number, saatSayisi: number): Konum | null {
+/**
+ * Klavye: oklarla bir hücre ötesine, kenarda durur. `var` verilirse olmayan hücreler (kısa günün
+ * sonu) atlanır: ok o yönde bir sonraki var olan hücreye gider, yoksa yerinde kalır.
+ */
+export function komsu(
+  k: Konum,
+  tus: string,
+  gunSayisi: number,
+  saatSayisi: number,
+  var_: (k: Konum) => boolean = () => true,
+): Konum | null {
   const yon: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+  const satir = Array.from({ length: gunSayisi }, (_, gun) => ({ gun, saat: k.saat })).filter(var_);
+  if (tus === "Home") return satir[0] ?? k;
+  if (tus === "End") return satir.at(-1) ?? k;
   const d = yon[tus];
-  if (tus === "Home") return { gun: 0, saat: k.saat };
-  if (tus === "End") return { gun: gunSayisi - 1, saat: k.saat };
   if (!d) return null;
-  const gun = Math.min(gunSayisi - 1, Math.max(0, k.gun + d[0]));
-  const saat = Math.min(saatSayisi - 1, Math.max(0, k.saat + d[1]));
-  return { gun, saat };
+  for (let gun = k.gun + d[0], saat = k.saat + d[1]; gun >= 0 && gun < gunSayisi && saat >= 0 && saat < saatSayisi;
+    gun += d[0], saat += d[1]) {
+    if (var_({ gun, saat })) return { gun, saat };
+  }
+  return k;
 }
