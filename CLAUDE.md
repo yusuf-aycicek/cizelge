@@ -190,11 +190,13 @@ Her ders ataması, gün ve saat üçlüsü için bir boolean değişken: "bu ata
 - Öğretmenin gün içindeki boş (pencere) saatlerini azaltma.
 - Aynı dersin günde iki saati varsa arka arkaya olması.
 - Sınıfın programında boş saat bırakmama (dersler günün başından itibaren dolsun).
-- Öğretmene boş gün: parametre hedef boş gün sayısıdır (varsayılan 1).
-  Hedef gün = max(⌈toplam saat / günlük sınır⌉, gün sayısı − hedef boş gün). Burada günlük sınır =
-  min(M, okulun günlük ders saati). Ceza = max(0, ders verilen gün − hedef gün). Hedefe ulaşan
-  öğretmen daha fazla sıkıştırılmaz. Yükü yüzünden boş günü mümkün olmayan öğretmene ceza
-  yazılmaz.
+- Öğretmene boş gün: parametre hedef boş gün sayısıdır (varsayılan 1; öğretmene özel olabilir).
+  Hedef gün = max(⌈toplam saat / günlük sınır⌉, gün sayısı − hedef boş gün); toplam saat ve
+  öğretmenin gelebildiği gün sayısıyla (bütün günü "gelemez" olmayan günler) sınırlı. Burada
+  günlük sınır = min(M, okulun günlük ders saati). Ceza = max(0, ders verilen gün − hedef gün).
+  Hedef öğretmene özelse hedeften az gelmek de cezalıdır (iki yönlü; "boş günüm olmasın").
+  Hedefe ulaşan öğretmen daha fazla sıkıştırılmaz. Yükü ya da müsaitliği yüzünden hedef mümkün
+  olmayan öğretmene ceza yazılmaz.
 - En az değişiklik (yalnızca temel program verildiğinde): temel programdaki bir yerleşim yeni
   programda yoksa ceza.
 
@@ -304,8 +306,8 @@ ne yapıldığını söyler. Öğretmen, ders ve şube bazında istisnalar için
 | Öğle arasının yeri | Tanımsız (blokların bölünmesi denetlenmez) | Tasarımda (c) |
 | Ders saatlerinin başlangıç ve bitiş saatleri (yalnızca gösterim) | 08.30'da başlar, 40 dk ders, 10 dk teneffüs | Tasarımda (j) |
 | Aynı dersin bir şubeye günlük sınırı (N) | 2 | Okul geneli var; derse, şubeye özel çözücüde ve API'de var (K1), arayüzü K4'te (e) |
-| Öğretmenin günlük ders sınırı (M) | 8 | Okul geneli var; öğretmene özel çözücüde ve API'de var (K1), arayüzü K2'de |
-| Öğretmene boş gün hedefi | Okul geneli 1; öğretmene özel 0, 1 ya da 2 | Okul geneli var; öğretmene özel tasarımda (d) |
+| Öğretmenin günlük ders sınırı (M) | 8 | Var: okul geneli ve öğretmene özel (öğretmen sayfası, K2) |
+| Öğretmene boş gün hedefi | Okul geneli 1; öğretmene özel 0, 1 ya da 2 | Var: okul geneli ve öğretmene özel (öğretmen sayfası, K2) |
 | Dersin bloklara bölünmesi | 1 saat: 1; 2: 2; 3: 2+1; 4: 2+2; 5: 2+2+1; 6: 2+2+2 | Tasarımda (b) |
 | Şube grupları (alanlar: sayısal, sözel, eşit ağırlık, dil) | Grup = seviye | Tasarımda (a) |
 | Şubeye özel "bu dersi almaz / ek alır" | Yok | Tasarımda (a) |

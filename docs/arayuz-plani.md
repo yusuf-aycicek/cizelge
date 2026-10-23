@@ -331,8 +331,8 @@ Uygulama sırası (kullanıcı kararı; her alt adımın sonunda kullanıcıya s
 | D5 | Uygulamanın adı "Çizelge" | Bitti: ad tek yerde (`web/src/urun.ts`); üst çubuk, giriş/kayıt sayfası (altında "Okul Ders Programı Oluşturma Sistemi"), sekme başlığı, API başlığı, README ve CLAUDE.md |
 | D6 | Program sayfası: hazır program öne, son başarısız deneme sade ve açılabilir | Bitti: en yeni hazır program önde; ondan sonraki başarısız deneme sade uyarı, nedeni `<details>` ile açılır; hiç hazır program yoksa büyük panel |
 | D7 | Deneme verisi temizliği: betiklerin (taşma, ekran görüntüsü) açtığı deneme okulları silinir | Bitti: `python -m okulapi deneme-temizle` (geliştirme ortamı koruması; yalnızca bütün kullanıcıları `tasma-/ekran-/bos-…@ornek.test` olan okullar; örnek okul kalır); iki betik iş bitince kendiliğinden çağırır. Geliştirme veritabanından 11 deneme okulu silindi |
-| K2 + 5.5 | Öğretmene özel boş gün ve müsaitlik çizelgesi: öğretmen detay sayfası | **Sürüyor.** K2a çözücü bitti: boş gün öğretmene özel, iki yönlü ceza yalnızca özel hedefte; hedef gün tek yerde (`yuk.bos_gun_hedefi`); kalite ölçüsü `fazla_bos_gun`. K2b bitti: `GET/PUT /ogretmenler/{id}/musaitlik` (toplu, ya hep ya hiç; cevapta yük ve ön kontrolle aynı aşım mesajı). K2c+K2d bitti: `/ogretmenler/:id` (kişisel ayarlar: "Okul varsayılanı" ve "özel" rozeti; müsaitlik çizelgesi: döngü, iyimser güncelleme, klavye, başlıkla ve sürükleyerek toplu işaretleme, ikon + desen + lejant, kısa animasyon, kapasite uyarısı; önceki/sonraki/seçim ile hızlı geçiş); öğretmen listesinde ad bağlantı; menüden "Öğretmen müsaitliği" kaldırıldı, eski adres ilk öğretmene yönlenir. Ekran: docs/ekranlar/k2/. Sırada: K2e örnek okulda boş gün denemesi |
-| K3 | Günlere göre ders saati ve öğle arası | |
+| K2 + 5.5 | Öğretmene özel boş gün ve müsaitlik çizelgesi: öğretmen detay sayfası | Bitti. K2a çözücü bitti: boş gün öğretmene özel, iki yönlü ceza yalnızca özel hedefte; hedef gün tek yerde (`yuk.bos_gun_hedefi`); kalite ölçüsü `fazla_bos_gun`. K2b bitti: `GET/PUT /ogretmenler/{id}/musaitlik` (toplu, ya hep ya hiç; cevapta yük ve ön kontrolle aynı aşım mesajı). K2c+K2d bitti: `/ogretmenler/:id` (kişisel ayarlar: "Okul varsayılanı" ve "özel" rozeti; müsaitlik çizelgesi: döngü, iyimser güncelleme, klavye, başlıkla ve sürükleyerek toplu işaretleme, ikon + desen + lejant, kısa animasyon, kapasite uyarısı; önceki/sonraki/seçim ile hızlı geçiş); öğretmen listesinde ad bağlantı; menüden "Öğretmen müsaitliği" kaldırıldı, eski adres ilk öğretmene yönlenir. Ekran: docs/ekranlar/k2/. K2e bitti: örnek okulda deneme (aşağıda). Hepsi geri alındı. |
+| K3 | Günlere göre ders saati ve öğle arası | **Sıradaki** (kullanıcı onayından sonra) |
 | K4 | Blok dersler | |
 | K5 | Şube grupları ve istisnalar | |
 | 5.6 | Kullanıcılar, telefon kontrolü (çizelgede gün gün görünüm), Playwright uçtan uca | |
@@ -353,6 +353,19 @@ K1'den notlar (kapsam temeli; tasarım: docs/kisisellestirme-plani.md, ADR 0016)
 - Ekran görüntüleri: docs/ekranlar/k1/. Testler: çözücü 189, API 510, web 224. Mutasyon denemesi
   7/7 (biri ilk denemede kaçtı: boş gün kuralının öğretmene özel M'yi okuması; ceza toplamını
   denetleyen test eklendi).
+
+K2 + 5.5'ten notlar:
+- **Boş gün denemesi (örnek okul, mini set, 30 sn):** önce bütün öğretmenler okul varsayılanında
+  (1 boş gün): hepsi 4 gün geliyor, ceza 0. Mehmet Kaya'ya 0 (her gün), Ayşe Yılmaz'a 2 boş gün:
+  Mehmet 4 → 5 gün, Ayşe 4 → 3 gün; ceza yine 0, öteki öğretmenler 4 gün. Deneme ayarları ve iki
+  deneme programı silindi.
+- **Denemenin bulduğu hata:** ilk denemede "0 boş gün" pazartesi bütün gün gelemeyen Ayşe'ye
+  verilmişti; hedef 5 gün kalıyor, kaçınılmaz 1 günlük ceza yazılıyordu. Hedef artık
+  öğretmenin gelebildiği gün sayısıyla da sınırlı (test eklendi).
+- Müsaitlik toplu API'si ya hep ya hiç; arayüz iyimser günceller, hata olursa geri alır.
+- Sürükleme dokunmatikte de çalışsın diye işaretçi yakalaması (pointer capture) bırakılır;
+  hücrelerde `touch-action: none` (çizelgenin üstünde parmakla sayfa kaydırılamaz; 5.6'da
+  telefon kontrolünde yeniden bakılacak).
 
 ### Sonraya: tasarım rötuşu
 

@@ -1,6 +1,18 @@
 """Öğretmene özel boş gün hedefi ve iki yönlü ceza (K2; docs/kisisellestirme-plani.md 4.2)."""
 
-from cozucu import CozumDurumu, CpSatCozucu, DersAtama, Kapsam, KisitTanimi, OkulAyari, Yerlesim, dogrula, olc
+from cozucu import (
+    CozumDurumu,
+    CpSatCozucu,
+    DersAtama,
+    Kapsam,
+    KisitTanimi,
+    Musaitlik,
+    MusaitlikDurumu,
+    OkulAyari,
+    Yerlesim,
+    dogrula,
+    olc,
+)
 from cozucu.kalite import agirlikli_ceza, ders_gunleri
 from cozucu.kisitlar import KAYIT_DEFTERI, etkin_agirliklar
 from cozucu.yuk import bos_gun_hedefi
@@ -94,3 +106,18 @@ def test_ozel_hedef_okul_kurali_kapaliysa_uygulanmaz():
     tanimlar = yalniz(BOS, agirlik=0) + [ozel_hedef(0)]
     girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=tek_saatler(), kisitlar=tanimlar)
     assert coz(girdi).toplam_ceza == 0
+
+
+def test_butun_gun_gelemezse_o_gun_hedeften_duser():
+    # "Boş günüm olmasın" ama pazartesi bütün gün gelemez: en fazla 4 gün gelebilir, hedef 4 gün.
+    # (Örnek okulda yapılan denemede bulundu: hedef 5 gün kalıyor, kaçınılmaz ceza yazılıyordu.)
+    pazartesi = [Musaitlik("o1", 0, s, MusaitlikDurumu.GELEMEZ) for s in range(6)]
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=tek_saatler(), musaitlikler=pazartesi,
+                      kisitlar=yalniz(BOS) + [ozel_hedef(0)])
+    assert bos_gun_hedefi(girdi, "o1", 5).gun == 4
+    sonuc = coz(girdi)
+    assert ders_gunleri(girdi, sonuc.yerlesimler)["o1"] == 4
+    assert sonuc.toplam_ceza == 0
+    # Günün bir saati gelemezse gün hâlâ gelinebilir: hedef 5.
+    girdi.musaitlikler.pop()
+    assert bos_gun_hedefi(girdi, "o1", 5).gun == 5

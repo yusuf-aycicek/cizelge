@@ -182,9 +182,10 @@ def _grupla(atamalar: list[DersAtama], anahtar) -> dict:
 class BosGunHedefi:
     """Bir öğretmenin haftada kaç gün gelmesi hedefleniyor (CLAUDE.md bölüm 7, ADR 0016).
 
-    `gun`: max(⌈yük / günlük sınır⌉, gün sayısı − hedef boş gün), sonra yük ve gün sayısıyla
-    sınırlı (3 saat dersi olan öğretmen 4 gün gelemez). Günlük sınır = min(M, günlük ders saati);
-    M öğretmene özel olabilir.
+    `gun`: max(⌈yük / günlük sınır⌉, gün sayısı − hedef boş gün), sonra yük, gün sayısı ve
+    öğretmenin **gelebildiği gün sayısıyla** sınırlı: 3 saat dersi olan öğretmen 4 gün gelemez;
+    bütün günü "gelemez" olan gün zaten boş gündür (o gün için ceza kaçınılmaz olurdu). Günlük
+    sınır = min(M, günlük ders saati); M öğretmene özel olabilir.
     `iki_yonlu`: hedef bu öğretmene özel tanımlıysa, hedeften **az** gün gelmek de cezalıdır
     ("boş günüm olmasın" ancak öğretmenin açık isteğiyse anlamlıdır; okul geneli hedefte
     öğretmeni daha çok güne yaymak pencereyi artırırdı).
@@ -201,7 +202,11 @@ def bos_gun_hedefi(girdi: CozumGirdisi, ogretmen_id: str, yuk: int) -> BosGunHed
     gunluk_sinir = max(1, min(m, saat_sayisi))
     hedef_bos = girdi.parametre(BOS_GUN_TURU, "hedef_bos_gun", VARSAYILAN_HEDEF_BOS_GUN, ogretmen_id=ogretmen_id)
     gun = max(-(-yuk // gunluk_sinir), gun_sayisi - hedef_bos)
-    gun = max(0, min(gun, yuk, gun_sayisi))
+    gelemez = {(m.gun, m.saat) for m in girdi.musaitlikler
+               if m.ogretmen_id == ogretmen_id and m.durum is MusaitlikDurumu.GELEMEZ
+               and m.gun < gun_sayisi and m.saat < saat_sayisi}
+    gelebildigi_gun = sum(1 for g in range(gun_sayisi) if sum(1 for gg, _s in gelemez if gg == g) < saat_sayisi)
+    gun = max(0, min(gun, yuk, gun_sayisi, gelebildigi_gun))
     ozeller = [t for t in girdi.kisitlar if t.tur == BOS_GUN_TURU and not t.kapsam.okul_mu]
     ozel = cozumle(ozeller, girdi.varlik(ogretmen_id=ogretmen_id)) is not None
     return BosGunHedefi(gun=gun, iki_yonlu=ozel)

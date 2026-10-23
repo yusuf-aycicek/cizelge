@@ -199,8 +199,11 @@ Blok kısıtı arama uzayını daraltır; daha hızlı çözüm beklenir, ama bu
 Bugün: `ceza = max(0, gün − hedef_gün)`; yalnızca fazla gelmek cezalı.
 
 Yeni:
-- `hedef_gun = max(⌈yük / günlük sınır⌉, gün sayısı − hedef_boş_gün)`, sonra `min(…, yük)` ile
-  sınırlanır: 3 saat dersi olan öğretmen 4 gün gelemez.
+- `hedef_gun = max(⌈yük / günlük sınır⌉, gün sayısı − hedef_boş_gün)`, sonra `min(…, yük,
+  gelebildiği gün)` ile sınırlanır: 3 saat dersi olan öğretmen 4 gün gelemez; bütün günü
+  "gelemez" olan gün zaten boştur. (Gelebildiği gün sınırı K2'de örnek okuldaki denemede
+  eklendi: pazartesi gelemeyen öğretmene "0 boş gün" verilince kaçınılmaz ceza yazılıyordu.)
+- Tek kaynak: `cozucu/yuk.py: bos_gun_hedefi`; çözücüdeki kural ve kalite ölçümü onu kullanır.
 - `fazla = max(0, gün − hedef_gun)` → mevcut ağırlıkla ceza (bugünkü davranış).
 - `eksik = max(0, hedef_gun − gün)` → yalnızca **öğretmene özel** hedef tanımlıysa cezalanır.
 
