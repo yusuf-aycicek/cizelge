@@ -9,13 +9,13 @@ import { Dugme } from "../bilesenler/Dugme";
 import { Iskelet } from "../bilesenler/Iskelet";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
 import { Tablo } from "../bilesenler/Tablo";
-import { useAtamalar, useDagilimOzeti } from "../dagilim/veri";
+import { useAtamalar } from "../dagilim/veri";
 import { ogretmenKaynagi, sinifKaynagi } from "../listeler/kaynaklar";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
-import { ASAMALAR, asamaBul, celiskileriGrupla, etkinMi, sureMetni, type Program } from "./aciklama";
+import { ASAMALAR, asamaBul, celiskileriGrupla, etkinMi, sureMetni, type Celiski, type Program } from "./aciklama";
 import { KaliteOzeti } from "./KaliteOzeti";
 import stil from "./Program.module.css";
-import { sonProgram, useProgramlar, useProgramUret } from "./veri";
+import { sonProgram, useOnKontrol, useProgramlar, useProgramUret } from "./veri";
 
 const SURELER = [
   { sn: 30, ad: "Hızlı", aciklama: "30 saniye. Denemek için." },
@@ -77,28 +77,19 @@ export function ProgramSayfasi() {
 // --- oluşturma -----------------------------------------------------------------------------
 
 function OlusturKarti({ sira, yeniden }: { sira: number; yeniden: boolean }) {
-  const ozet = useDagilimOzeti();
+  // Engeller, üretimdeki ön kontrolün kendisinden gelir (ayrı bir istemci hesabı yok): dağılım
+  // özeti "tamam" deyip üretimin ön kontrolde takılması bu yüzden olamaz.
+  const onKontrol = useOnKontrol();
   const atamalar = useAtamalar();
   const uret = useProgramUret();
   const bildirim = useBildirim();
   const [ad, setAd] = useState(`Program ${sira}`);
   const [sure, setSure] = useState<number>(120);
 
-  const asanOgretmen = ozet.data?.ogretmenler.filter((o) => o.asim).length ?? 0;
-  const asanSube = ozet.data?.siniflar.filter((s) => s.asim).length ?? 0;
-  const ogretmensiz = ozet.data?.ogretmensiz_atama ?? 0;
   const atamaYok = atamalar.data?.length === 0;
-  const engeller = [
-    atamaYok && { metin: "Henüz hiçbir şubeye ders atanmadı.", yol: "/ders-dagilimi", baglanti: "Ders dağılımına git" },
-    ogretmensiz > 0 && { metin: `${ogretmensiz} dersin öğretmeni seçilmedi.`, yol: "/ders-dagilimi", baglanti: "Öğretmenleri seç" },
-    asanOgretmen > 0 && {
-      metin: `${asanOgretmen} öğretmenin ders yükü müsait olduğu saatlerden fazla.`,
-      yol: "/ders-dagilimi?gorunum=ogretmen",
-      baglanti: "Öğretmenlere göre gör",
-    },
-    asanSube > 0 && { metin: `${asanSube} şubenin ders saati haftalık kapasiteyi aşıyor.`, yol: "/ders-dagilimi", baglanti: "Şubelere göre gör" },
-  ].filter((e): e is { metin: string; yol: string; baglanti: string } => Boolean(e));
-  const hazirlaniyor = ozet.isPending || atamalar.isPending;
+  const celiskiler = onKontrol.data?.celiskiler ?? [];
+  const engelVar = atamaYok || celiskiler.length > 0 || onKontrol.isError;
+  const hazirlaniyor = onKontrol.isPending || atamalar.isPending;
 
   function gonder(olay: FormEvent) {
     olay.preventDefault();
@@ -111,23 +102,28 @@ function OlusturKarti({ sira, yeniden }: { sira: number; yeniden: boolean }) {
   return (
     <section aria-labelledby="olustur-baslik" className={sayfaStili.kart}>
       <h2 id="olustur-baslik">{yeniden ? "Yeni program oluştur" : "Programı oluştur"}</h2>
-      {engeller.length > 0 ? (
+      {onKontrol.isError ? (
+        <div className={stil.engeller} role="note">
+          <p>Program oluşturulmadan önceki kontrol yapılamadı: {hataMetni(onKontrol.error)}</p>
+        </div>
+      ) : atamaYok ? (
+        <div className={stil.engeller} role="note">
+          <p>
+            <strong>Henüz hiçbir şubeye ders atanmadı.</strong> <Link to="/ders-dagilimi">Ders dağılımına git</Link>
+          </p>
+        </div>
+      ) : celiskiler.length > 0 ? (
         <div className={stil.engeller} role="note">
           <p>
             <strong>Bu sorunlar düzeltilmeden program oluşturulamaz:</strong>
           </p>
-          <ul>
-            {engeller.map((e) => (
-              <li key={e.metin}>
-                {e.metin} <Link to={e.yol}>{e.baglanti}</Link>
-              </li>
-            ))}
-          </ul>
+          <CeliskiGruplari celiskiler={celiskiler} />
         </div>
       ) : (
         !hazirlaniyor && (
           <p className={stil.hazirNotu}>
-            <Check aria-hidden="true" /> Ders dağılımı tamam: bütün derslerin öğretmeni seçildi, kapasite aşımı yok.
+            <Check aria-hidden="true" /> Ön kontrol tamam: bütün derslerin öğretmeni seçildi; dersler, öğretmenlerin
+            müsaitliğine ve kurallara (özel ayarlar dahil) sığıyor.
           </p>
         )
       )}
@@ -152,7 +148,7 @@ function OlusturKarti({ sira, yeniden }: { sira: number; yeniden: boolean }) {
         <Dugme
           type="submit"
           ikon={<WandSparkles />}
-          disabled={engeller.length > 0 || hazirlaniyor}
+          disabled={engelVar || hazirlaniyor}
           yukleniyor={uret.isPending}
           yukleniyorMetni="Gönderiliyor..."
           className={stil.olusturDugmesi}
@@ -262,10 +258,14 @@ function HazirPaneli({ program }: { program: Program }) {
   );
 }
 
-function BasarisizPaneli({ program }: { program: Program }) {
+/**
+ * Çelişkiler türlerine göre gruplu; ilgili şube ve öğretmenler düzeltilecek sayfaya bağlantı.
+ * Hem oluşturmadan önceki ön kontrol hem başarısız üretimin nedeni bununla gösterilir.
+ */
+function CeliskiGruplari({ celiskiler }: { celiskiler: readonly Celiski[] }) {
   const siniflar = useQuery({ queryKey: sinifKaynagi.anahtar, queryFn: sinifKaynagi.listele });
   const ogretmenler = useQuery({ queryKey: ogretmenKaynagi.anahtar, queryFn: ogretmenKaynagi.listele });
-  const gruplar = celiskileriGrupla(program.celiskiler ?? []);
+  const gruplar = celiskileriGrupla(celiskiler);
 
   // İlgili kimlikleri (şube, öğretmen) düzeltilecek sayfaya bağlantıya çevir.
   const baglantilar = (ilgili: readonly string[] = []) =>
@@ -278,16 +278,8 @@ function BasarisizPaneli({ program }: { program: Program }) {
     });
 
   return (
-    <section aria-labelledby="basarisiz-baslik" className={stil.basarisiz}>
-      <div className={stil.hazirUst}>
-        <CircleX aria-hidden="true" className={stil.basarisizIkonu} />
-        <div>
-          <h2 id="basarisiz-baslik">“{program.ad}” oluşturulamadı</h2>
-          <p className={stil.hazirZaman}>Aşağıdaki sorunları düzeltip yeniden deneyin.</p>
-        </div>
-      </div>
-      {gruplar.length > 0 ? (
-        gruplar.map((g) => (
+    <>
+      {gruplar.map((g) => (
           <div key={g.tur} className={stil.celiskiGrubu}>
             <h3>{g.baslik}</h3>
             <ul>
@@ -308,7 +300,23 @@ function BasarisizPaneli({ program }: { program: Program }) {
               ))}
             </ul>
           </div>
-        ))
+      ))}
+    </>
+  );
+}
+
+function BasarisizPaneli({ program }: { program: Program }) {
+  return (
+    <section aria-labelledby="basarisiz-baslik" className={stil.basarisiz}>
+      <div className={stil.hazirUst}>
+        <CircleX aria-hidden="true" className={stil.basarisizIkonu} />
+        <div>
+          <h2 id="basarisiz-baslik">“{program.ad}” oluşturulamadı</h2>
+          <p className={stil.hazirZaman}>Aşağıdaki sorunları düzeltip yeniden deneyin.</p>
+        </div>
+      </div>
+      {(program.celiskiler ?? []).length > 0 ? (
+        <CeliskiGruplari celiskiler={program.celiskiler ?? []} />
       ) : (
         <ul className={stil.celiskiGrubu}>
           {(program.hata_mesaji ?? "Program oluşturulamadı.").split("\n").map((satir) => (

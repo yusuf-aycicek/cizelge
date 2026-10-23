@@ -32,6 +32,7 @@ from okulapi.cekirdek.servisler import OkulServisi
 from okulapi.cekirdek.veritabani import Base, oturum_fabrikasi as fabrika_olustur
 from okulapi.moduller.ders_programi.cozucu_donusturucu import cozum_girdisi_olustur
 from okulapi.moduller.ders_programi.modeller import DersAtama, Kisit, Musaitlik, Program, Yerlesim
+from okulapi.moduller.ders_programi.servisler import dagilim_ozeti, on_kontrol_sonucu
 from okulapi.moduller.ders_programi.uretim import (
     BEKLENMEYEN_HATA,
     DOGRULAMA_HATASI,
@@ -287,6 +288,38 @@ def test_cozumsuz_girdide_celiskiler_ve_okunur_mesaj_yazilir(oturum_fabrikasi, m
     assert program.celiskiler and all({"tur", "mesaj", "ilgili"} <= c.keys() for c in program.celiskiler)
     assert "Ayşe Yılmaz" in program.hata_mesaji  # kimlik değil ad
     assert str(harita["o-ayse"]) in {i for c in program.celiskiler for i in c["ilgili"]}
+
+
+def test_uretim_oncesi_on_kontrol_uretimdekiyle_ayni_sonucu_verir(oturum_fabrikasi, mini):
+    """Program sayfası üretimden önce `on_kontrol_sonucu`nu gösterir. Dağılım özeti (yalnızca yük)
+    temizken özel ayar yüzünden üretim ön kontrolde takılıyorsa, ikisi de bunu aynı sözlerle
+    söylemeli (kullanıcının tarayıcıda gördüğü tutarsızlık)."""
+    okul_id, harita = mini
+    with okul_oturumu(oturum_fabrikasi, okul_id) as o:
+        # 9-A Matematik haftada 6 saat; bu şubeye özel günde en fazla 1 saat: 5 güne sığmaz.
+        o.add(Kisit(tur="gunluk_ders_siniri", parametreler={"n": 1}, zorunlu=True, agirlik=1,
+                    ders_id=harita["d-mat"], sinif_id=harita["s-9a"]))
+        o.commit()
+        ozet = dagilim_ozeti(o)
+        once = on_kontrol_sonucu(o)
+    assert ozet["ogretmensiz_atama"] == 0
+    assert not any(x["asim"] for x in ozet["ogretmenler"] + ozet["siniflar"])  # özet "tamam" der
+    assert [c["tur"] for c in once] == ["ders_gun_kapasitesi"]
+    assert "(özel ayar)" in once[0]["mesaj"]
+
+    program_id = program_ekle(oturum_fabrikasi, okul_id)
+    assert programi_uret(oturum_fabrikasi, okul_id, program_id) is UretimSonucu.BASARISIZ
+    program, _ = program_oku(oturum_fabrikasi, okul_id, program_id)
+    assert program.cozum_durumu == "on_kontrol_hatasi"
+    assert program.celiskiler == once
+
+
+def test_on_kontrol_temizse_uretim_on_kontrolde_takilmaz(oturum_fabrikasi, mini):
+    okul_id, _ = mini
+    with okul_oturumu(oturum_fabrikasi, okul_id) as o:
+        assert on_kontrol_sonucu(o) == []
+    program_id = program_ekle(oturum_fabrikasi, okul_id)
+    assert programi_uret(oturum_fabrikasi, okul_id, program_id) is UretimSonucu.HAZIR
 
 
 def test_sure_yetmezse_basarisiz_ve_mesaj(oturum_fabrikasi, mini):

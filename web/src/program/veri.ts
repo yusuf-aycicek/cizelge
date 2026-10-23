@@ -55,6 +55,21 @@ export function useProgramUret() {
   });
 }
 
+export const ON_KONTROL = ["on-kontrol"] as const;
+
+/**
+ * Üretimdeki ön kontrolün tamamı, üretmeden (özel ayarlar, müsaitlik, kurallar dahil). Sunucu
+ * worker'ın kullandığı girdiyi ve fonksiyonu kullanır: burada temiz olan üretimde ön kontrolde
+ * takılmaz. Sayfa her açıldığında yeniden istenir (veri başka sayfada değişmiş olabilir).
+ */
+export function useOnKontrol() {
+  return useQuery({
+    queryKey: ON_KONTROL,
+    queryFn: () => cagir(api.GET("/api/ders-programi/on-kontrol")),
+    refetchOnMount: "always",
+  });
+}
+
 /** En son program (liste eskiden yeniye sıralı). */
 export const sonProgram = (liste: readonly Program[] | undefined) => liste?.at(-1);
 

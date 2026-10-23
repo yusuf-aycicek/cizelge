@@ -63,6 +63,7 @@ export const varsayilanIsleyiciler = [
   http.get("/api/ders-renkleri", () => HttpResponse.json(ORNEK_DERS_RENKLERI)),
   http.get("/api/ders-programi/atamalar", () => HttpResponse.json([])),
   http.get("/api/ders-programi/programlar", () => HttpResponse.json([])),
+  http.get("/api/ders-programi/on-kontrol", () => HttpResponse.json({ celiskiler: [] })),
   http.get("/api/ders-programi/seviye-sablonlari", () => HttpResponse.json([])),
   http.get("/api/ders-programi/dagilim-ozeti", () =>
     HttpResponse.json({ haftalik_kapasite: 40, ogretmen_gunluk_siniri: 8, ogretmensiz_atama: 0, ogretmenler: [], siniflar: [] }),

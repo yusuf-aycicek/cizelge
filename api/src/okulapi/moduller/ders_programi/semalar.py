@@ -237,6 +237,10 @@ class CeliskiYanit(BaseModel):
     ilgili: list[str] = Field(default_factory=list, description="İlgili öğretmen, şube ya da atama kimlikleri")
 
 
+class OnKontrolYanit(BaseModel):
+    celiskiler: list[CeliskiYanit]
+
+
 class ProgramYanit(_Yanit):
     id: uuid.UUID
     ad: str

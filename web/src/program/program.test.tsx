@@ -44,14 +44,31 @@ function hazirVeri() {
 }
 
 describe("program oluşturma", () => {
-  it("öğretmensiz ders varsa düğme pasif ve neden söylenir", async () => {
-    dagilimApisiKur(); // 2 öğretmensiz ders
+  it("ön kontrol sorun bulursa düğme pasif, sorunlar baştan gruplu gösterilir", async () => {
+    dagilimApisiKur();
     programApisi([[]]);
+    sunucu.use(http.get("/api/ders-programi/on-kontrol", () => HttpResponse.json({ celiskiler: [
+      { tur: "ogretmen_secilmemis", mesaj: "9-A Fizik dersine öğretmen seçilmemiş.", ilgili: [] },
+    ] })));
     uygulamayiCiz("/program");
     const not = await screen.findByRole("note");
     expect(not).toHaveTextContent("Bu sorunlar düzeltilmeden program oluşturulamaz:");
-    expect(not).toHaveTextContent("2 dersin öğretmeni seçilmedi.");
-    expect(within(not).getByRole("link", { name: "Öğretmenleri seç" })).toHaveAttribute("href", "/ders-dagilimi");
+    expect(within(not).getByRole("heading", { name: "Öğretmeni seçilmemiş dersler" })).toBeInTheDocument();
+    expect(not).toHaveTextContent("9-A Fizik dersine öğretmen seçilmemiş.");
+    expect(screen.getByRole("button", { name: "Programı oluştur" })).toBeDisabled();
+  });
+
+  it("dağılım özeti temiz olsa da özel ayar yüzünden ön kontrol hata veriyorsa düğme pasif", async () => {
+    // Kullanıcının gördüğü tutarsızlık: özet "aşım yok" diyordu, üretim ön kontrolde takıldı.
+    // Artık engeller doğrudan üretimdeki ön kontrolden gelir.
+    hazirVeri(); // dağılım özetinde öğretmensiz ders ya da aşım yok
+    programApisi([[]]);
+    const mesaj = "9-A Matematik haftada 6 saat, ama bu ders bu şubeye günde en fazla 1 saat konabildiği (özel ayar) için en fazla 5 saat yerleşebilir.";
+    sunucu.use(http.get("/api/ders-programi/on-kontrol", () =>
+      HttpResponse.json({ celiskiler: [{ tur: "ders_gun_kapasitesi", mesaj, ilgili: [] }] })));
+    uygulamayiCiz("/program");
+    expect(await screen.findByText(mesaj)).toBeInTheDocument();
+    expect(screen.queryByText(/Ön kontrol tamam/)).toBeNull();
     expect(screen.getByRole("button", { name: "Programı oluştur" })).toBeDisabled();
   });
 
@@ -59,7 +76,7 @@ describe("program oluşturma", () => {
     hazirVeri();
     const govdeler = programApisi([[], [program()]]);
     const { kullanici } = uygulamayiCiz("/program");
-    expect(await screen.findByText(/Ders dağılımı tamam/)).toBeInTheDocument();
+    expect(await screen.findByText(/Ön kontrol tamam/)).toBeInTheDocument();
     await kullanici.click(screen.getByRole("radio", { name: /Hızlı/ }));
     await kullanici.click(screen.getByRole("button", { name: "Programı oluştur" }));
 

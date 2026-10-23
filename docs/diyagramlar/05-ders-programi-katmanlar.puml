@@ -58,6 +58,7 @@ package "servisler (iş kuralları)" {
   }
   class servisler <<modül>> {
     {static} +dagilim_ozeti(oturum) : dict
+    {static} +on_kontrol_sonucu(oturum) : list[dict]
   }
   class MusaitlikServisi {
     #_dogrula(alanlar, nesne)

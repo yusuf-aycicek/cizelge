@@ -1178,6 +1178,22 @@
         "title": "OkulYanit",
         "type": "object"
       },
+      "OnKontrolYanit": {
+        "properties": {
+          "celiskiler": {
+            "items": {
+              "$ref": "#/components/schemas/CeliskiYanit"
+            },
+            "title": "Celiskiler",
+            "type": "array"
+          }
+        },
+        "required": [
+          "celiskiler"
+        ],
+        "title": "OnKontrolYanit",
+        "type": "object"
+      },
       "OzelAyar": {
         "properties": {
           "kapsam": {
@@ -2821,6 +2837,28 @@
         "summary": "Guncelle",
         "tags": [
           "müsaitlik"
+        ]
+      }
+    },
+    "/api/ders-programi/on-kontrol": {
+      "get": {
+        "description": "Program üretilmeden önce, üretimdeki ön kontrolün tamamı (özel ayarlar dahil). `celiskiler`\nboş değilse üretim ön kontrolde başarısız olur; arayüz bu durumda oluşturma düğmesini kapatır.",
+        "operationId": "on_kontrolu_getir_api_ders_programi_on_kontrol_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnKontrolYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "On Kontrolu Getir",
+        "tags": [
+          "program"
         ]
       }
     },

@@ -285,6 +285,27 @@ export interface paths {
         patch: operations["guncelle_api_ders_programi_musaitlikler__kayit_id__patch"];
         trace?: never;
     };
+    "/api/ders-programi/on-kontrol": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * On Kontrolu Getir
+         * @description Program üretilmeden önce, üretimdeki ön kontrolün tamamı (özel ayarlar dahil). `celiskiler`
+         *     boş değilse üretim ön kontrolde başarısız olur; arayüz bu durumda oluşturma düğmesini kapatır.
+         */
+        get: operations["on_kontrolu_getir_api_ders_programi_on_kontrol_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ders-programi/programlar": {
         parameters: {
             query?: never;
@@ -1176,6 +1197,11 @@ export interface components {
              * Format: uuid
              */
             id: string;
+        };
+        /** OnKontrolYanit */
+        OnKontrolYanit: {
+            /** Celiskiler */
+            celiskiler: components["schemas"]["CeliskiYanit"][];
         };
         /** OzelAyar */
         OzelAyar: {
@@ -2147,6 +2173,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    on_kontrolu_getir_api_ders_programi_on_kontrol_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnKontrolYanit"];
                 };
             };
         };

@@ -42,7 +42,7 @@ export function asamaBul(
 
 // --- çelişkiler ------------------------------------------------------------------------------
 
-type Celiski = { tur: string; mesaj: string; ilgili?: string[] };
+export type Celiski = { tur: string; mesaj: string; ilgili?: string[] };
 
 const TUR_BASLIKLARI: Record<string, string> = {
   ogretmen_secilmemis: "Öğretmeni seçilmemiş dersler",

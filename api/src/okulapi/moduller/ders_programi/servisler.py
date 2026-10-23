@@ -17,6 +17,7 @@ from typing import Any
 
 from cozucu.kisitlar import GirdiHatasi, kural_olustur
 from cozucu.model import KisitTanimi
+from cozucu.on_kontrol import on_kontrol
 from cozucu.yuk import YukHesabi
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -114,6 +115,14 @@ class DersAtamaServisi(CrudServisi):
             return atamalar
 
         return self._kaydet(uygula)
+
+
+def on_kontrol_sonucu(oturum) -> list[dict[str, Any]]:
+    """Program üretiminin ön kontrolü, üretmeden. Worker'ın çözücüye verdiği girdi
+    (`cozum_girdisi_olustur`) ve çözücünün çağırdığı fonksiyon (`cozucu.on_kontrol.on_kontrol`)
+    aynıdır: burada geçen bir okul üretimde ön kontrolde takılmaz, takılan da burada görünür.
+    Özel ayarlar, müsaitlik, kurallar dahil (dağılım özeti yalnızca yük hesabını içerir)."""
+    return [{"tur": c.tur, "mesaj": c.mesaj, "ilgili": list(c.ilgili)} for c in on_kontrol(cozum_girdisi_olustur(oturum))]
 
 
 def dagilim_ozeti(oturum) -> dict[str, Any]:
