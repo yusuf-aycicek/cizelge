@@ -70,3 +70,14 @@
     margin-top: 0;
   }
 }
+
+/* Öğretmen adı, öğretmenin sayfasına bağlantı: metin rengi korunur, bağlantı olduğu altı çizili. */
+.ogretmenBaglantisi {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--renk-kenar-alan);
+  text-underline-offset: 0.2em;
+}
+.ogretmenBaglantisi:hover {
+  text-decoration-color: currentColor;
+}

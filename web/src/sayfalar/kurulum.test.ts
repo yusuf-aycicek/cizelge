@@ -9,7 +9,7 @@ describe("kurulum durumu", () => {
     const d = kurulumDurumu(BOS);
     expect([d.tamamlanan, d.gereken, d.yuzde]).toEqual([1, 6, 17]);
     expect(d.adimlar.map((a) => a.ayrinti)).toEqual([
-      "5 gün, günde 8 ders", "Henüz öğretmen yok", "Henüz şube yok", "Henüz ders yok", "Henüz ders atanmadı", "İsteğe bağlı", "Önceki adımlar bitince",
+      "5 gün, günde 8 ders", "Henüz öğretmen yok", "Henüz şube yok", "Henüz ders yok", "Henüz ders atanmadı", "İsteğe bağlı: öğretmenin adına tıklayın", "Önceki adımlar bitince",
     ]);
   });
 

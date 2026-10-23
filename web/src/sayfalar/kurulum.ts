@@ -74,8 +74,8 @@ export function kurulumDurumu(g: KurulumGirdisi): KurulumDurumu {
     { anahtar: "ders", ad: "Dersler", yol: "/dersler", durum: g.ders > 0 ? "tamam" : "bekliyor",
       ayrinti: sayili(g.ders, "ders", "Henüz ders yok") },
     { anahtar: "dagilim", ad: "Ders dağılımı", yol: "/ders-dagilimi", ...dagilim },
-    { anahtar: "musaitlik", ad: "Öğretmen müsaitliği", yol: "/musaitlik", durum: "istege-bagli",
-      ayrinti: "İsteğe bağlı" },
+    { anahtar: "musaitlik", ad: "Öğretmen müsaitliği", yol: "/ogretmenler", durum: "istege-bagli",
+      ayrinti: "İsteğe bağlı: öğretmenin adına tıklayın" },
   ];
   adimlar.push(programAdimi(g, adimlar.every((a) => a.durum === "tamam" || a.durum === "istege-bagli")));
   const gerekenler = adimlar.filter((a) => a.durum !== "istege-bagli");

@@ -556,6 +556,70 @@ AKISLAR["duzeltmeler"] = async (tarayici, kaydet) => {
   }
 };
 
+// K2 + 5.5: öğretmen detay sayfası. Örnek okulla (mini). Deneme değişiklikleri sonunda geri alınır.
+AKISLAR["k2"] = async (tarayici, kaydet) => {
+  const { baglam, s } = await ornekGiris(tarayici, MASAUSTU);
+  await s.goto(ADRES + "/ogretmenler");
+  await s.getByRole("table", { name: "Öğretmenler" }).waitFor();
+  await s.waitForTimeout(600);
+  await kaydet(s, "01-ogretmen-listesi.png");
+  await s.getByRole("table", { name: "Öğretmenler" }).getByRole("link", { name: /Zeynep Demir/ }).click();
+  const tablo = s.getByRole("table", { name: /müsaitlik çizelgesi/ });
+  await tablo.waitFor();
+  // Geri almak için başlangıçtaki müsaitlik (API).
+  const ogretmenId = s.url().split("/").pop();
+  const musaitlikYolu = `${ADRES}/api/ders-programi/ogretmenler/${ogretmenId}/musaitlik`;
+  const baslangic = await (await s.request.get(musaitlikYolu)).json();
+  await s.waitForTimeout(800);
+  await kaydet(s, "02-ogretmen-sayfasi.png", true);
+  // Sürükleyerek işaretleme: perşembe 1-4. saat. Bırakmadan önce görüntü.
+  const hucre = (ad) => s.getByRole("button", { name: new RegExp("^" + ad + ":") });
+  await hucre("Perşembe, 4. saat").scrollIntoViewIfNeeded();
+  const kutu = async (ad) => { const b = await hucre(ad).boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
+  await s.mouse.move(...(await kutu("Perşembe, 1. saat")));
+  await s.mouse.down();
+  for (const saat of [2, 3, 4]) await s.mouse.move(...(await kutu(`Perşembe, ${saat}. saat`)), { steps: 4 });
+  await kaydet(s, "03-surukleme.png");
+  await s.mouse.up();
+  await s.waitForTimeout(600);
+  // Bir günü tamamen "gelemez": kapasite uyarısı.
+  for (const gun of ["Pazartesi", "Salı", "Çarşamba"]) {
+    await s.getByRole("button", { name: `${gun}: bütün günü birlikte değiştir` }).click();
+    await s.waitForTimeout(400);
+  }
+  await s.getByText(/Program bu haliyle üretilemez/).waitFor();
+  await s.getByText(/Program bu haliyle üretilemez/).scrollIntoViewIfNeeded();
+  await s.waitForTimeout(400);
+  await kaydet(s, "04-kapasite-uyarisi.png");
+  // Kişisel ayar: boş gün hedefi 2.
+  await s.getByRole("combobox", { name: /Boş gün hedefi/ }).selectOption({ label: "2 gün" });
+  await s.getByText("özel", { exact: true }).waitFor();
+  await s.evaluate(() => window.scrollTo(0, 0));
+  await s.waitForTimeout(400);
+  await kaydet(s, "05-ozel-ayar.png");
+  // Telefonda aynı sayfa.
+  const tel = await baglam.newPage();
+  await tel.setViewportSize(TELEFON);
+  await tel.goto(s.url());
+  await tel.getByRole("table", { name: /müsaitlik çizelgesi/ }).waitFor();
+  await tel.waitForTimeout(800);
+  await kaydet(tel, "06-telefon.png", true);
+  // Geri al: özel ayar okul varsayılanına, müsaitlik başlangıçtaki haline (tek istek).
+  await s.getByRole("combobox", { name: /Boş gün hedefi/ }).selectOption({ index: 0 });
+  await s.getByText("özel", { exact: true }).waitFor({ state: "detached" });
+  const eski = new Map(baslangic.hucreler.map((h) => [`${h.gun}-${h.saat}`, h.durum]));
+  const degisiklikler = [];
+  for (let gun = 0; gun < 5; gun++) {
+    for (let saat = 0; saat < 6; saat++) degisiklikler.push({ gun, saat, durum: eski.get(`${gun}-${saat}`) ?? "musait" });
+  }
+  const geri = await s.request.put(musaitlikYolu, { headers: { Origin: ADRES }, data: { degisiklikler } });
+  if (!geri.ok()) throw new Error(`Müsaitlik geri alınamadı: ${geri.status()}`);
+  const son = await geri.json();
+  if (JSON.stringify(son.hucreler) !== JSON.stringify(baslangic.hucreler)) throw new Error("Müsaitlik eski haline dönmedi");
+  console.log("Deneme değişiklikleri geri alındı (müsaitlik ve boş gün hedefi).");
+  await baglam.close();
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {

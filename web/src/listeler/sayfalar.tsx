@@ -2,6 +2,8 @@
 import { dersIsaretleri } from "../dersler/isaret";
 import { OgretmenAdi } from "../bilesenler/OgretmenRozeti";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router";
+import stil from "./Liste.module.css";
 import { BookOpen, GraduationCap, School } from "lucide-react";
 import { hataMetni } from "../api/hata";
 import { useBildirim } from "../bilesenler/Bildirim";
@@ -27,10 +29,17 @@ const DERS_ALANLARI: ListeAlani[] = [
 export function OgretmenlerSayfasi() {
   return (
     <ListeSayfasi<Ogretmen, { ad: string; brans: string }>
-      gorunum={(alan, o) => (alan === "ad" ? <OgretmenAdi id={o.id} ad={o.ad} /> : undefined)}
+      // Ad, öğretmenin sayfasına (kişisel ayarlar ve müsaitlik) bağlantıdır.
+      gorunum={(alan, o) =>
+        alan === "ad" ? (
+          <Link to={`/ogretmenler/${o.id}`} className={stil.ogretmenBaglantisi}>
+            <OgretmenAdi id={o.id} ad={o.ad} />
+          </Link>
+        ) : undefined
+      }
       ikon={GraduationCap}
       baslik="Öğretmenler"
-      aciklama="Okulunuzdaki öğretmenler. Hangi derse kimin gireceğini Ders dağılımı sayfasında seçeceksiniz."
+      aciklama="Okulunuzdaki öğretmenler. Bir öğretmenin adına tıklayınca kişisel ayarları ve müsaitlik çizelgesi açılır. Hangi derse kimin gireceğini Ders dağılımı sayfasında seçeceksiniz."
       tekil="Öğretmen"
       bos={{
         baslik: "Henüz öğretmen eklenmedi",

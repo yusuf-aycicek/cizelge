@@ -52,6 +52,7 @@ try {
     await new Promise((r) => setTimeout(r, 500));
   }
   SAYFALAR.push(`/program/${program.id}`, `/program/${program.id}?gorunum=ogretmen`);
+  SAYFALAR.push(`/ogretmenler/${ogretmen.id}`);
 
   for (const [ad, boyut] of BOYUTLAR) {
     const sayfa = await baglam.newPage();

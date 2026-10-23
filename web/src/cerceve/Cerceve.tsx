@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   BookOpen,
   CalendarRange,
-  CalendarClock,
   CalendarDays,
   ClipboardList,
   GraduationCap,
@@ -34,7 +33,6 @@ export const MENU = [
   { yol: "/seviye-sablonu", ad: "Seviye şablonu", Ikon: Layers },
   { yol: "/ders-dagilimi", ad: "Ders dağılımı", Ikon: ClipboardList },
   { yol: "/program", ad: "Program", Ikon: CalendarRange },
-  { yol: "/musaitlik", ad: "Öğretmen müsaitliği", Ikon: CalendarClock },
   { yol: "/kullanicilar", ad: "Kullanıcılar", Ikon: UserCog },
 ] as const;
 

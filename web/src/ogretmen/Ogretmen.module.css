@@ -1,0 +1,278 @@
+.kart {
+  background: var(--renk-zemin);
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-buyuk);
+  box-shadow: var(--golge-kart);
+  padding: var(--bosluk-5) var(--bosluk-6);
+  margin-bottom: var(--bosluk-5);
+}
+.kart h2 {
+  margin-top: 0;
+}
+.aciklama {
+  color: var(--renk-metin-ikincil);
+  margin-top: 0;
+  max-width: 48rem;
+}
+
+/* --- öğretmenler arasında geçiş ------------------------------------------------------- */
+
+.gecis {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  margin-bottom: var(--bosluk-5);
+}
+.gecis svg {
+  width: 1rem;
+  height: 1rem;
+}
+.geri {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-1);
+  min-height: var(--dokunma-hedefi);
+}
+.gecisDugmeleri {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--bosluk-3);
+}
+.gecisDugmeleri > div {
+  margin: 0;
+  min-width: 12rem;
+}
+.gecisBaglantisi,
+.gecisPasif {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-1);
+  min-height: var(--dokunma-hedefi);
+  padding: 0 var(--bosluk-3);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose);
+  text-decoration: none;
+  margin-bottom: var(--bosluk-1);
+}
+.gecisBaglantisi:hover {
+  background: var(--renk-yuzey);
+}
+.gecisPasif {
+  color: var(--renk-metin-ikincil);
+  opacity: 0.5;
+}
+.sira {
+  color: var(--renk-metin-ikincil);
+  font-size: var(--yazi-kucuk);
+  min-height: var(--dokunma-hedefi);
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: var(--bosluk-1);
+}
+
+/* --- kişisel ayarlar ------------------------------------------------------------------ */
+
+.ayarlar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--bosluk-5);
+}
+.ayarEtiketi {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  font-weight: var(--yazi-kalin);
+  margin-bottom: var(--bosluk-1);
+}
+.ozelRozeti {
+  font-size: var(--yazi-kucuk);
+  font-weight: var(--yazi-kalin);
+  padding: 0 var(--bosluk-2);
+  border-radius: 999px;
+  background: var(--renk-yuzey-vurgu);
+  color: var(--renk-birincil);
+  border: 1px solid var(--renk-birincil);
+}
+.secim {
+  width: 100%;
+  max-width: 22rem;
+  min-height: var(--dokunma-hedefi);
+  padding: var(--bosluk-1) var(--bosluk-2);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose);
+  background: var(--renk-zemin);
+  font: inherit;
+}
+.ayarAciklama {
+  color: var(--renk-metin-ikincil);
+  font-size: var(--yazi-kucuk);
+  margin: var(--bosluk-1) 0 0;
+}
+
+/* --- müsaitlik çizelgesi -------------------------------------------------------------- */
+
+/* Durumlar renk dışında da ayrılır: gelemez çapraz çizgili + ⊘ ikonu, tercih etmez noktalı + ~ ikonu. */
+.hucre[data-durum="gelemez"],
+.ornekHucre[data-durum="gelemez"] {
+  background-color: var(--renk-hata-zemin);
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 6px,
+    color-mix(in srgb, var(--renk-hata-metin) 22%, transparent) 6px 8px
+  );
+  color: var(--renk-hata-metin);
+  border-color: color-mix(in srgb, var(--renk-hata-metin) 45%, transparent);
+}
+.hucre[data-durum="tercih_etmez"],
+.ornekHucre[data-durum="tercih_etmez"] {
+  background-color: var(--renk-uyari-zemin);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--renk-uyari-metin) 30%, transparent) 1.2px,
+    transparent 1.4px
+  );
+  background-size: 7px 7px;
+  color: var(--renk-uyari-metin);
+  border-color: color-mix(in srgb, var(--renk-uyari-metin) 45%, transparent);
+}
+
+.lejant {
+  list-style: none;
+  margin: 0 0 var(--bosluk-4);
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bosluk-2) var(--bosluk-5);
+  font-size: var(--yazi-kucuk);
+}
+.lejant li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+}
+.ornekHucre {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose);
+  background: var(--renk-zemin);
+}
+.ornekHucre svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.cizelgeKutusu {
+  overflow-x: auto;
+}
+.cizelge {
+  border-collapse: separate;
+  border-spacing: 0.3rem;
+  /* Sürüklerken metin seçilmesin, dokunmatikte sayfa kaymasın (parmakla boyama). */
+  user-select: none;
+}
+.cizelge th {
+  font-size: var(--yazi-kucuk);
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-metin-ikincil);
+}
+.kose {
+  width: 4.5rem;
+}
+.baslikDugmesi {
+  width: 100%;
+  min-height: var(--dokunma-hedefi);
+  padding: 0 var(--bosluk-2);
+  border: 1px dashed transparent;
+  border-radius: var(--kose);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.baslikDugmesi:hover {
+  border-color: var(--renk-kenar-alan);
+  background: var(--renk-yuzey);
+}
+
+.hucre {
+  width: 4.75rem;
+  height: 2.75rem; /* en az 44 px: parmakla dokunulabilir */
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose);
+  background: var(--renk-zemin);
+  cursor: pointer;
+  touch-action: none;
+  transition: background-color var(--sure-kisa) var(--egri), border-color var(--sure-kisa) var(--egri),
+    transform var(--sure-kisa) var(--egri);
+}
+.hucre:hover {
+  border-color: var(--renk-birincil);
+}
+.hucre:active {
+  transform: scale(0.94);
+}
+.hucre:disabled {
+  cursor: progress;
+}
+.hucreIcerik {
+  display: grid;
+  place-items: center;
+  animation: durumGir var(--sure) var(--egri);
+}
+.hucreIcerik svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+/* Durum değişince ikon hafifçe büyüyerek gelir. Hareket azaltılmışsa temel.css kapatır. */
+@keyframes durumGir {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+.yukOzeti p {
+  margin: var(--bosluk-3) 0 0;
+}
+.kapasiteUyarisi {
+  background: var(--renk-uyari-zemin);
+  color: var(--renk-uyari-metin);
+  border-inline-start: 4px solid currentColor;
+  border-radius: var(--kose);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  font-weight: var(--yazi-kalin);
+}
+
+.kisaAd {
+  display: none;
+}
+
+@media (max-width: 48rem) {
+  .kart {
+    padding: var(--bosluk-4);
+  }
+  /* Telefonda beş gün yan yana sığsın: kısa gün adı, 44 px hücre (parmak boyu). */
+  .uzunAd {
+    display: none;
+  }
+  .kisaAd {
+    display: inline;
+  }
+  .cizelge {
+    border-spacing: 0.2rem;
+  }
+  .kose {
+    width: auto;
+  }
+  .hucre {
+    width: 2.75rem;
+  }
+}

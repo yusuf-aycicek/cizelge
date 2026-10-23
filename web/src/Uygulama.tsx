@@ -15,6 +15,7 @@ import { DerslerSayfasi, OgretmenlerSayfasi, SiniflarSayfasi } from "./listeler/
 import { OkulAyarlariSayfasi } from "./okul/OkulAyarlariSayfasi";
 import { AnaSayfa } from "./sayfalar/AnaSayfa";
 import { Bulunamadi, YapimAsamasinda } from "./sayfalar/BasitSayfalar";
+import { MusaitlikYonlendirme, OgretmenSayfasi } from "./ogretmen/OgretmenSayfasi";
 import { TasarimSayfasi } from "./sayfalar/TasarimSayfasi";
 
 /**
@@ -43,6 +44,9 @@ export function Uygulama({ sorguIstemcisi }: { sorguIstemcisi: QueryClient }) {
               <Route path="tasarim" element={<TasarimSayfasi />} />
               <Route path="okul" element={<OkulAyarlariSayfasi />} />
               <Route path="ogretmenler" element={<OgretmenlerSayfasi />} />
+              <Route path="ogretmenler/:id" element={<OgretmenSayfasi />} />
+              {/* Eski adres: müsaitlik artık öğretmen sayfasında. */}
+              <Route path="musaitlik" element={<MusaitlikYonlendirme />} />
               <Route path="siniflar" element={<SiniflarSayfasi />} />
               <Route path="dersler" element={<DerslerSayfasi />} />
               <Route path="seviye-sablonu" element={<SeviyeSablonuSayfasi />} />
