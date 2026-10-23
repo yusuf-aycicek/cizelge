@@ -21,6 +21,10 @@ export default defineConfig({
     setupFiles: ["./src/test/kurulum.ts"],
     // Varsayılan 5 sn; yük altında akış testleri (giriş + yönlendirme + birkaç istek) aşabiliyordu.
     testTimeout: 15_000,
+    // Varsayılan, bütün çekirdekler kadar işçi. Docker (veritabanı, API, worker) aynı makinede
+    // çalışırken işçiler birbirini yavaşlatıp bekleme sürelerini aşıyordu (tek başına geçen testler
+    // toplu çalıştırmada düşüyordu). Yarısıyla sınırlamak kararsızlığı kaldırdı, toplam süre de kısaldı (ölçüm: 84 sn → 32 sn).
+    maxWorkers: "50%",
     css: { modules: { classNameStrategy: "non-scoped" } },
   },
 });

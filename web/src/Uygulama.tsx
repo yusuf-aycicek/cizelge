@@ -1,3 +1,4 @@
+import { CizelgeSayfasi } from "./program/CizelgeSayfasi";
 import { ProgramSayfasi } from "./program/ProgramSayfasi";
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { Route, Routes } from "react-router";
@@ -47,6 +48,7 @@ export function Uygulama({ sorguIstemcisi }: { sorguIstemcisi: QueryClient }) {
               <Route path="seviye-sablonu" element={<SeviyeSablonuSayfasi />} />
               <Route path="ders-dagilimi" element={<DersDagilimiSayfasi />} />
               <Route path="program" element={<ProgramSayfasi />} />
+              <Route path="program/:id" element={<CizelgeSayfasi />} />
               {MENU.filter((m) => !HAZIR_SAYFALAR.has(m.yol)).map((m) => (
                 <Route key={m.yol} path={m.yol.slice(1)} element={<YapimAsamasinda baslik={m.ad} />} />
               ))}

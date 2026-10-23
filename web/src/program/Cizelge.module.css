@@ -1,0 +1,111 @@
+.geri {
+  margin: 0 0 var(--bosluk-3);
+}
+.geri a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-1);
+  font-weight: var(--yazi-kalin);
+  text-decoration: none;
+}
+.geri svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.secim {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0 var(--bosluk-5);
+}
+.secim > div {
+  flex: 0 1 22rem;
+}
+.ozet {
+  color: var(--renk-metin-ikincil);
+  margin-bottom: var(--bosluk-5);
+}
+
+/* Kaydırma kutusu: position: relative görünmez başlıkların kaçmasını önler (Tablo ile aynı). */
+.kutu {
+  position: relative;
+  overflow-x: auto;
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-buyuk);
+  background: var(--renk-zemin);
+  box-shadow: var(--golge-kart);
+  margin-bottom: var(--bosluk-5);
+}
+
+.cizelge {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0.35rem;
+  table-layout: fixed;
+  min-width: 44rem;
+}
+.cizelge thead th {
+  font-size: var(--yazi-kucuk);
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-metin-ikincil);
+  padding: var(--bosluk-2) var(--bosluk-1);
+  text-align: center;
+}
+.kose {
+  width: 4.5rem;
+}
+.saatBasligi {
+  font-size: var(--yazi-kucuk);
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-metin-ikincil);
+  text-align: right;
+  padding-inline-end: var(--bosluk-2);
+  white-space: nowrap;
+}
+
+.cizelge td {
+  height: 3.75rem;
+  border-radius: var(--kose);
+  vertical-align: middle;
+  padding: var(--bosluk-1) var(--bosluk-2);
+}
+/* Boş saat sade: zemine yakın, kesik kenarlı. */
+.bos {
+  background: color-mix(in srgb, var(--renk-yuzey) 60%, var(--renk-zemin));
+  outline: 1px dashed var(--renk-kenar);
+  outline-offset: -1px;
+}
+.dolu {
+  background: var(--renk-yuzey);
+  box-shadow: inset 0 0 0 1px var(--renk-kenar);
+  /* Program açılınca hücreler gün gün, yukarıdan aşağı yerleşir; gecikme hücre başına satır içinde. */
+  animation: yerles var(--sure-uzun) var(--egri) backwards;
+  overflow: hidden;
+}
+@keyframes yerles {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem) scale(0.96);
+  }
+}
+.dolu > :first-child {
+  max-width: 100%;
+}
+.ikinci {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-1);
+  margin-top: 0.3rem;
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ikinci > span:first-child {
+  width: 1.4rem;
+  height: 1.4rem;
+  font-size: 0.6rem;
+  box-shadow: none;
+}
