@@ -59,4 +59,5 @@ Sistem bütün okullar için genel olduğundan bu istisnalar kodla değil, ayarl
   Kullanıcı hangi istisnanın sorun çıkardığını görür.
 - Bedeli:
   - kural kodu değeri doğrudan alanından değil, çözümleyiciden okur (küçük bir dolaylılık);
-  - `kisit` tablosunun benzersizliği bir ifade indeksine döner.
+  - `kisit` tablosunun benzersizliği kapsam sütunlarını da kapsar: `UNIQUE NULLS NOT DISTINCT`
+    (PostgreSQL 15+); boş sütunlar eşit sayılır, okul geneli satır yine tektir.

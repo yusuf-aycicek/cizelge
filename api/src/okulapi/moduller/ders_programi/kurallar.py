@@ -8,17 +8,24 @@
   kurala göre farklıdır) ve **"Önemli" = çözücünün varsayılan ağırlığı**. Karşılıklar yalnızca
   `ONEM_KARSILIKLARI`'nda tanımlıdır; okul müdürünün cevaplarına göre burada ayarlanacak
   (CLAUDE.md bölüm 10). Eşitliği test_kurallar.py denetler.
+- **Özel ayarlar** (ADR 0016): bir kuralın okul değeri bir öğretmene, derse ya da şubeye özel
+  ezilebilir. Aynı `kisit` tablosunda kapsam sütunları dolu satırlardır. Hangi kuralın hangi
+  kapsamı desteklediğini çözücünün kural sınıfı bildirir (`kapsamlar`); burada tekrar yazılmaz.
 """
 
 from __future__ import annotations
 
+import uuid
+from collections import defaultdict
 from typing import Any
 
-from cozucu.kisitlar import VARSAYILAN_KISITLAR, GirdiHatasi, kural_olustur
+from cozucu.kapsam import Kapsam
+from cozucu.kisitlar import KAYIT_DEFTERI, VARSAYILAN_KISITLAR, GirdiHatasi, kural_olustur
 from cozucu.model import KisitTanimi
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from okulapi.cekirdek.depo import DersDeposu, OgretmenDeposu, SinifDeposu
 from okulapi.cekirdek.servisler import GecersizVeri, KayitBulunamadi
 from okulapi.moduller.ders_programi.modeller import Kisit
 
@@ -76,6 +83,20 @@ VARSAYILANLAR: dict[str, KisitTanimi] = {t.tur: t for t in VARSAYILAN_KISITLAR}
 # Parametrelerin en küçük değerleri: kullanıcının diliyle hata için (çözücü de ayrıca denetler).
 PARAMETRE_ALT_SINIRLARI = {"n": 1, "m": 1, "hedef_bos_gun": 0}
 
+# API'nin bugün desteklediği kapsam eksenleri (çözücüdeki adlarıyla). Şube grubu K5'te gelir.
+API_EKSENLERI = ("ogretmen", "ders", "sube")
+EKSEN_METINLERI = {"ogretmen": "öğretmene", "ders": "derse", "sube": "şubeye"}
+
+
+def kapsamlar(tur: str) -> list[str]:
+    """Kuralın özel ayar alabildiği eksenler: çözücünün kural sınıfından."""
+    return [e for e in API_EKSENLERI if e in KAYIT_DEFTERI[tur].kapsamlar]
+
+
+def _kapsam_eksenleri(ders_id, sinif_id, ogretmen_id) -> set[str]:
+    eksenler = {"ders": ders_id, "sube": sinif_id, "ogretmen": ogretmen_id}
+    return {e for e, d in eksenler.items() if d is not None}
+
 
 def seviye(tur: str, agirlik: int) -> str:
     for ad, deger in ONEM_KARSILIKLARI[tur].items():
@@ -88,10 +109,23 @@ class KurallarServisi:
     def __init__(self, oturum: Session) -> None:
         self.oturum = oturum
 
-    def _kayit(self, tur: str) -> Kisit | None:
-        return self.oturum.scalars(select(Kisit).where(Kisit.tur == tur)).one_or_none()
+    def _kayit(
+        self, tur: str, ders_id: uuid.UUID | None = None, sinif_id: uuid.UUID | None = None,
+        ogretmen_id: uuid.UUID | None = None,
+    ) -> Kisit | None:
+        """Bu kapsamdaki tanım; kapsam verilmezse okul geneli tanım."""
+        return self.oturum.scalars(
+            select(Kisit).where(
+                Kisit.tur == tur,
+                Kisit.ders_id.is_(None) if ders_id is None else Kisit.ders_id == ders_id,
+                Kisit.sinif_id.is_(None) if sinif_id is None else Kisit.sinif_id == sinif_id,
+                Kisit.ogretmen_id.is_(None) if ogretmen_id is None else Kisit.ogretmen_id == ogretmen_id,
+            )
+        ).one_or_none()
 
-    def _kural(self, tur: str, kayit: Kisit | None) -> dict[str, Any]:
+    def _kural(self, tur: str, kayit: Kisit | None, ozeller: list[Kisit] | None = None) -> dict[str, Any]:
+        if ozeller is None:
+            ozeller = [k for k in self.oturum.scalars(select(Kisit).where(Kisit.tur == tur)) if not k.okul_geneli]
         v = VARSAYILANLAR[tur]
         parametreler = dict(kayit.parametreler) if kayit else dict(v.parametreler)
         agirlik = kayit.agirlik if kayit else v.agirlik
@@ -107,11 +141,43 @@ class KurallarServisi:
             "seviye": None if v.zorunlu else seviye(tur, agirlik),
             "varsayilan_seviye": None if v.zorunlu else seviye(tur, v.agirlik),
             "varsayilan": kayit is None,
+            "kapsamlar": kapsamlar(tur),
+            "ozel_ayarlar": self._ozel_ayarlar(ozeller),
         }
 
+    def _ozel_ayarlar(self, ozeller: list[Kisit]) -> list[dict[str, Any]]:
+        """Özel ayarlar, adlarıyla: arayüz kimlik değil "Ayşe Yılmaz", "9-A · Matematik" gösterir."""
+        ogretmen = {o.id: o.ad for o in OgretmenDeposu(self.oturum).listele()} if any(k.ogretmen_id for k in ozeller) else {}
+        sinif = {s.id: s.ad for s in SinifDeposu(self.oturum).listele()} if any(k.sinif_id for k in ozeller) else {}
+        ders = {d.id: d.ad for d in DersDeposu(self.oturum).listele()} if any(k.ders_id for k in ozeller) else {}
+        satirlar = []
+        for k in ozeller:
+            parcalar = [sinif.get(k.sinif_id), ders.get(k.ders_id), ogretmen.get(k.ogretmen_id)]
+            satirlar.append({
+                "kapsam": {"ders_id": k.ders_id, "sinif_id": k.sinif_id, "ogretmen_id": k.ogretmen_id},
+                "ad": " · ".join(p for p in parcalar if p),
+                "parametreler": dict(k.parametreler),
+            })
+        return sorted(satirlar, key=lambda s: s["ad"].casefold())
+
     def listele(self) -> list[dict[str, Any]]:
-        kayitlar = {k.tur: k for k in self.oturum.scalars(select(Kisit))}
-        return [self._kural(tur, kayitlar.get(tur)) for tur in KURAL_METINLERI]
+        okul: dict[str, Kisit] = {}
+        ozel: dict[str, list[Kisit]] = defaultdict(list)
+        for k in self.oturum.scalars(select(Kisit)):
+            if k.okul_geneli:
+                okul[k.tur] = k
+            else:
+                ozel[k.tur].append(k)
+        return [self._kural(tur, okul.get(tur), ozel.get(tur, [])) for tur in KURAL_METINLERI]
+
+    def _parametreleri_dogrula(self, tur: str, parametreler: dict[str, int]) -> None:
+        v = VARSAYILANLAR[tur]
+        if set(parametreler) != set(v.parametreler):
+            raise GecersizVeri(f"Bu kuralın ayarları: {', '.join(v.parametreler) or 'yok'}")
+        for ad, deger in parametreler.items():
+            alt = PARAMETRE_ALT_SINIRLARI.get(ad, 0)
+            if deger < alt:
+                raise GecersizVeri(f"{KURAL_METINLERI[tur][0]}: en az {alt} olmalı")
 
     def ayarla(self, tur: str, parametreler: dict[str, int] | None, onem: str | None) -> dict[str, Any]:
         if tur not in VARSAYILANLAR:
@@ -121,12 +187,7 @@ class KurallarServisi:
             raise GecersizVeri("Zorunlu kuralların önem seviyesi yoktur")
         kayit = self._kayit(tur)
         yeni_parametreler = {**(kayit.parametreler if kayit else v.parametreler), **(parametreler or {})}
-        if set(yeni_parametreler) != set(v.parametreler):
-            raise GecersizVeri(f"Bu kuralın ayarları: {', '.join(v.parametreler) or 'yok'}")
-        for ad, deger in yeni_parametreler.items():
-            alt = PARAMETRE_ALT_SINIRLARI.get(ad, 0)
-            if deger < alt:
-                raise GecersizVeri(f"{KURAL_METINLERI[tur][0]}: en az {alt} olmalı")
+        self._parametreleri_dogrula(tur, yeni_parametreler)
         agirlik = ONEM_KARSILIKLARI[tur][onem] if onem else (kayit.agirlik if kayit else v.agirlik)
         try:
             kural_olustur(KisitTanimi(tur, yeni_parametreler, zorunlu=v.zorunlu, agirlik=agirlik))
@@ -148,3 +209,64 @@ class KurallarServisi:
             self.oturum.delete(kayit)
             self.oturum.commit()
         return self._kural(tur, None)
+
+    # --- özel ayarlar ---------------------------------------------------------------------
+
+    def ozel_ayarla(
+        self, tur: str, ders_id: uuid.UUID | None, sinif_id: uuid.UUID | None, ogretmen_id: uuid.UUID | None,
+        parametreler: dict[str, int],
+    ) -> dict[str, Any]:
+        """Bir kuralın bu kapsamdaki özel değerini ekler ya da günceller."""
+        if tur not in VARSAYILANLAR:
+            raise KayitBulunamadi("Kural")
+        ad = KURAL_METINLERI[tur][0]
+        eksenler = _kapsam_eksenleri(ders_id, sinif_id, ogretmen_id)
+        if not eksenler:
+            raise GecersizVeri("Özel ayar için bir öğretmen, ders ya da şube seçin")
+        desteklenmeyen = eksenler - set(kapsamlar(tur))
+        if desteklenmeyen:
+            neye = " ve ".join(EKSEN_METINLERI[e] for e in API_EKSENLERI if e in desteklenmeyen)
+            raise GecersizVeri(f"\"{ad}\" kuralı {neye} özel ayarlanamaz")
+        for depo, kimlik, varlik in (
+            (OgretmenDeposu, ogretmen_id, "Öğretmen"), (DersDeposu, ders_id, "Ders"), (SinifDeposu, sinif_id, "Şube"),
+        ):
+            # Otomatik okul filtresi yüzünden başka okulun kaydı da "bulunamaz" (bileşik FK da reddeder).
+            if kimlik is not None and depo(self.oturum).getir(kimlik) is None:
+                raise GecersizVeri(f"{varlik} bu okulda bulunamadı")
+        self._parametreleri_dogrula(tur, parametreler)
+        okul = self._kayit(tur)
+        v = VARSAYILANLAR[tur]
+        zorunlu, agirlik = v.zorunlu, okul.agirlik if okul else v.agirlik
+        okul_tanimi = KisitTanimi(tur, dict(okul.parametreler) if okul else dict(v.parametreler), zorunlu=zorunlu, agirlik=agirlik)
+        try:
+            kapsam = Kapsam(
+                ders_id=None if ders_id is None else str(ders_id),
+                sinif_id=None if sinif_id is None else str(sinif_id),
+                ogretmen_id=None if ogretmen_id is None else str(ogretmen_id),
+            )
+            kural_olustur(okul_tanimi, [KisitTanimi(tur, parametreler, kapsam=kapsam)])
+        except (GirdiHatasi, ValueError) as hata:  # ValueError: Kapsam'ın aile denetimi
+            raise GecersizVeri(str(hata)) from hata
+        kayit = self._kayit(tur, ders_id, sinif_id, ogretmen_id)
+        if kayit is None:
+            kayit = Kisit(tur=tur, zorunlu=zorunlu, agirlik=agirlik, parametreler=parametreler,
+                          ders_id=ders_id, sinif_id=sinif_id, ogretmen_id=ogretmen_id)
+            self.oturum.add(kayit)
+        else:
+            kayit.parametreler = parametreler
+        self.oturum.commit()
+        return self._kural(tur, okul)
+
+    def ozel_kaldir(
+        self, tur: str, ders_id: uuid.UUID | None, sinif_id: uuid.UUID | None, ogretmen_id: uuid.UUID | None,
+    ) -> dict[str, Any]:
+        """Özel ayarı siler: o kapsamda okul değeri geçerli olur. Yoksa bir şey yapmaz."""
+        if tur not in VARSAYILANLAR:
+            raise KayitBulunamadi("Kural")
+        if not _kapsam_eksenleri(ders_id, sinif_id, ogretmen_id):
+            raise GecersizVeri("Kaldırılacak özel ayarın öğretmenini, dersini ya da şubesini belirtin")
+        kayit = self._kayit(tur, ders_id, sinif_id, ogretmen_id)
+        if kayit is not None:
+            self.oturum.delete(kayit)
+            self.oturum.commit()
+        return self._kural(tur, self._kayit(tur))

@@ -323,13 +323,29 @@ Uygulama sırası (kullanıcı kararı; her alt adımın sonunda kullanıcıya s
 | # | Alt adım | Durum |
 |---|---|---|
 | R | Ders paleti en az 20 renk; renkler tükenirse tekrar eden derslerin çipinde ayırt edici işaret | Bitti: 20 renk (ilk 14 yerinde; 6 yeni, CIELAB ΔE ile seçildi; en yakın çift 18,8); testler: her renk beyaz yazıyla ≥ 4.5:1, her çift ΔE ≥ 15; tekrar eden renkte çipin başında ◆ ▲ ● (eklenme sırasıyla, aria-hidden) |
-| K1 | Kapsam temeli (öğretmen kapsamının ders ve şube kapsamıyla çakışmaması kodda zorlanır) | **Sürüyor**: çözücü bitti (d96e3e7); sırada API (migration, özel ayar uçları), sonra arayüz özeti |
-| K2 + 5.5 | Öğretmene özel boş gün ve müsaitlik çizelgesi: öğretmen detay sayfası | |
+| K1 | Kapsam temeli (öğretmen kapsamının ders ve şube kapsamıyla çakışmaması kodda zorlanır) | Bitti |
+| K2 + 5.5 | Öğretmene özel boş gün ve müsaitlik çizelgesi: öğretmen detay sayfası | **Sıradaki** |
 | K3 | Günlere göre ders saati ve öğle arası | |
 | K4 | Blok dersler | |
 | K5 | Şube grupları ve istisnalar | |
 | 5.6 | Kullanıcılar, telefon kontrolü (çizelgede gün gün görünüm), Playwright uçtan uca | |
 | K6 | İkincil kurallar | |
+
+K1'den notlar (kapsam temeli; tasarım: docs/kisisellestirme-plani.md, ADR 0016):
+- **Çözücü:** `cozucu/kapsam.py` (`Kapsam`, `cozumle`); her tür için tek kural örneği ve özel
+  ayarları; N derse, şubeye (şube grubuna, K5'te veriyle) özel; M öğretmene özel. Yük, ön kontrol,
+  doğrulama, kalite, çelişki açıklaması ve boş gün kuralı değeri varlık başına okur.
+- **Öğretmen kapsamı ile ders/şube kapsamı aynı kuralda çakışamaz:** `Kapsam` oluşturulurken,
+  `kaydet` (iki aileyi bildiren kural sınıfı), API (422) ve veritabanı CHECK'i reddeder. Testli.
+- **API:** migration `ders_programi_0006_kisit_kapsami` (kapsam sütunları, bileşik FK + CASCADE,
+  CHECK, `UNIQUE NULLS NOT DISTINCT`); `GET /kurallar` → `kapsamlar`, `ozel_ayarlar`;
+  `PUT/DELETE /kurallar/{tur}/ozel`. Başka okulun öğretmenine özel ayar reddedilir; öğretmen,
+  ders, şube silinince özel ayarı da silinir.
+- **Arayüz:** okul ayarlarında "Özel ayarlar" özeti (kaldırma ile). Özel ayar **ekleme** ekranları
+  ilgili yerlerde gelecek: öğretmene özel K2'de (öğretmen detay sayfası), derse özel K4'te.
+- Ekran görüntüleri: docs/ekranlar/k1/. Testler: çözücü 189, API 510, web 224. Mutasyon denemesi
+  7/7 (biri ilk denemede kaçtı: boş gün kuralının öğretmene özel M'yi okuması; ceza toplamını
+  denetleyen test eklendi).
 
 Sıra değişikliği (kullanıcı kararı): sistemin ekranda uçtan uca kullanılabilmesi için 5.5 ve 5.6
 ertelendi, önce yapım sırası 6'nın ilk iki alt adımı yapılır. Örnek okulda müsaitlik verisi var.

@@ -560,15 +560,51 @@
             "title": "Agirlik",
             "type": "integer"
           },
+          "ders_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ders Id"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
           },
+          "ogretmen_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ogretmen Id"
+          },
           "parametreler": {
             "additionalProperties": true,
             "title": "Parametreler",
             "type": "object"
+          },
+          "sinif_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sinif Id"
           },
           "tur": {
             "title": "Tur",
@@ -654,6 +690,49 @@
         "title": "KuralAyari",
         "type": "object"
       },
+      "KuralKapsami": {
+        "description": "Özel ayarın yeri. Öğretmen tek başına; ders ve şube tek başına ya da birlikte (ADR 0016).",
+        "properties": {
+          "ders_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ders Id"
+          },
+          "ogretmen_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ogretmen Id"
+          },
+          "sinif_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sinif Id"
+          }
+        },
+        "title": "KuralKapsami",
+        "type": "object"
+      },
       "KuralYanit": {
         "properties": {
           "aciklama": {
@@ -674,6 +753,25 @@
               }
             ],
             "title": "Agirlik"
+          },
+          "kapsamlar": {
+            "items": {
+              "enum": [
+                "ogretmen",
+                "ders",
+                "sube"
+              ],
+              "type": "string"
+            },
+            "title": "Kapsamlar",
+            "type": "array"
+          },
+          "ozel_ayarlar": {
+            "items": {
+              "$ref": "#/components/schemas/OzelAyarYanit"
+            },
+            "title": "Ozel Ayarlar",
+            "type": "array"
           },
           "parametreler": {
             "additionalProperties": {
@@ -745,7 +843,9 @@
           "agirlik",
           "seviye",
           "varsayilan_seviye",
-          "varsayilan"
+          "varsayilan",
+          "kapsamlar",
+          "ozel_ayarlar"
         ],
         "title": "KuralYanit",
         "type": "object"
@@ -1076,6 +1176,52 @@
           "gunluk_ders_saati"
         ],
         "title": "OkulYanit",
+        "type": "object"
+      },
+      "OzelAyar": {
+        "properties": {
+          "kapsam": {
+            "$ref": "#/components/schemas/KuralKapsami"
+          },
+          "parametreler": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Parametreler",
+            "type": "object"
+          }
+        },
+        "required": [
+          "kapsam",
+          "parametreler"
+        ],
+        "title": "OzelAyar",
+        "type": "object"
+      },
+      "OzelAyarYanit": {
+        "properties": {
+          "ad": {
+            "description": "Kapsamın adı: \"Ayşe Yılmaz\", \"9-A · Matematik\"",
+            "title": "Ad",
+            "type": "string"
+          },
+          "kapsam": {
+            "$ref": "#/components/schemas/KuralKapsami"
+          },
+          "parametreler": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Parametreler",
+            "type": "object"
+          }
+        },
+        "required": [
+          "kapsam",
+          "ad",
+          "parametreler"
+        ],
+        "title": "OzelAyarYanit",
         "type": "object"
       },
       "ProgramUret": {
@@ -2336,6 +2482,151 @@
           }
         },
         "summary": "Kurali Ayarla",
+        "tags": [
+          "kural"
+        ]
+      }
+    },
+    "/api/ders-programi/kurallar/{tur}/ozel": {
+      "delete": {
+        "description": "Özel ayarı kaldırır: o kapsamda yeniden okul değeri geçerli olur.",
+        "operationId": "ozel_ayari_kaldir_api_ders_programi_kurallar__tur__ozel_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tur",
+            "required": true,
+            "schema": {
+              "title": "Tur",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ogretmen_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ogretmen Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ders_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ders Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sinif_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sinif Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KuralYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ozel Ayari Kaldir",
+        "tags": [
+          "kural"
+        ]
+      },
+      "put": {
+        "description": "Kuralın bir öğretmene, derse ya da şubeye özel değerini ekler ya da günceller.\n\n422: kural bu kapsamda ayarlanamıyor (ör. sınıf boşluğu öğretmene özel olamaz), kayıt bu\nokulda yok ya da değer geçersiz.",
+        "operationId": "ozel_ayari_kaydet_api_ders_programi_kurallar__tur__ozel_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tur",
+            "required": true,
+            "schema": {
+              "title": "Tur",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OzelAyar"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KuralYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ozel Ayari Kaydet",
         "tags": [
           "kural"
         ]

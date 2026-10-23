@@ -41,6 +41,9 @@ package "modeller (tablolar)" {
     +parametreler : dict [JSONB]
     +zorunlu : bool
     +agirlik : int
+    +ders_id : UUID [0..1]
+    +sinif_id : UUID [0..1]
+    +ogretmen_id : UUID [0..1]
   }
   class Program {
     +ad : str
@@ -76,6 +79,9 @@ Program "1" *-- "0..*" Yerlesim : ON DELETE\nCASCADE
 Yerlesim "0..*" --> "1" DersAtama : ders_atama_id\n(CASCADE)
 Program "0..*" --> "0..1" Program : temel_program_id\n(SET NULL)
 Okul "1" -- "0..*" Kisit
+Ogretmen "1" *-- "0..*" Kisit : özel ayar\n(CASCADE)
+Ders "1" *-- "0..*" Kisit : özel ayar\n(CASCADE)
+Sinif "1" *-- "0..*" Kisit : özel ayar\n(CASCADE)
 
 note right of DersAtama
   UNIQUE (okul_id, sinif_id, ders_id):
@@ -93,6 +99,11 @@ note left of Program
 end note
 
 note bottom of Kisit
+  Kapsam sütunlarının üçü boşsa okul geneli kural,
+  biri doluysa özel ayar (ADR 0016). CHECK: öğretmen
+  kapsamı ders/şube ile birleşmez. UNIQUE NULLS NOT
+  DISTINCT (okul_id, tur, ders_id, sinif_id, ogretmen_id).
+
   Bu paketteki bütün tablolar çekirdeğin
   OkulaAitMixin'inden türer (id, okul_id,
   UNIQUE (okul_id, id)); oklar sadelik

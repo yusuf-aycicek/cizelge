@@ -30,8 +30,11 @@ package "kisitlar.temel" {
     {static} +tur : str
     {static} +zorunlu_olabilir : bool
     {static} +esnek_olabilir : bool
+    {static} +kapsamlar : frozenset[str]
     +zorunlu : bool
     +agirlik : int
+    +ozel : tuple[tuple[Kapsam, KisitKurali]]
+    +deger(baglam, ad, sinif_id, ders_id, ogretmen_id) : int
     {abstract} +uygula(baglam : Baglam) : list[CezaTerimi]
   }
   class Baglam {
@@ -49,7 +52,23 @@ package "kisitlar.temel" {
   class temel <<modül>> {
     {static} +KAYIT_DEFTERI : dict[str, type[KisitKurali]]
     {static} +kaydet(sinif)
-    {static} +kural_olustur(tanim : KisitTanimi) : KisitKurali
+    {static} +kural_olustur(tanim : KisitTanimi, ozeller) : KisitKurali
+  }
+}
+
+' @kod cozucu.kapsam
+package "kapsam (en özel kapsam kazanır, ADR 0016)" {
+  class Kapsam <<dataclass>> {
+    +ders_id : str [0..1]
+    +sinif_id : str [0..1]
+    +sube_grubu_id : str [0..1]
+    +ogretmen_id : str [0..1]
+    +okul_mu : bool
+    +puan : int
+  }
+  class Varlik <<dataclass>>
+  class kapsam <<modül>> {
+    {static} +cozumle(adaylar, varlik : Varlik) : aday [0..1]
   }
 }
 
@@ -124,6 +143,7 @@ package "model (düz veri)" {
     +parametreler : dict
     +zorunlu : bool
     +agirlik : int
+    +kapsam : Kapsam
   }
 }
 
@@ -132,6 +152,8 @@ package "yuk (yük ve kapasite: tek kaynak, ADR 0015)" {
   class YukHesabi {
     +n : int
     +m : int
+    +ders_siniri(sinif_id : str, ders_id : str) : int
+    +ogretmen_siniri(ogretmen_id : str) : int
     +musait_saat(ogretmen_id : str) : list[int]
     +ogretmen_yukleri() : list[OgretmenYuku]
     +sinif_yukleri() : list[SinifYuku]

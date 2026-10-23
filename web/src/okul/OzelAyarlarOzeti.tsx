@@ -1,0 +1,94 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { X } from "lucide-react";
+import { cagir, hataMetni } from "../api/hata";
+import { api } from "../api/istemci";
+import type { components } from "../api/sema";
+import { useBildirim } from "../bilesenler/Bildirim";
+import { Dugme } from "../bilesenler/Dugme";
+import { FormHatasi } from "../bilesenler/form";
+import sayfaStili from "../sayfalar/Sayfa.module.css";
+import stil from "./Okul.module.css";
+
+type Kural = components["schemas"]["KuralYanit"];
+type OzelAyar = components["schemas"]["OzelAyarYanit"];
+
+/**
+ * Özel ayarın kullanıcı diliyle değeri: "günde en çok 6 saat derse girer". Kapsamın adı ("Ayşe
+ * Yılmaz", "9-A · Matematik") API'den gelir; burada yalnızca değer söylenir.
+ */
+export function ozelAyarMetni(tur: string, ozel: OzelAyar): string {
+  const p = ozel.parametreler;
+  const k = ozel.kapsam;
+  if (tur === "ogretmen_gunluk_siniri") return `günde en çok ${p.m} saat derse girer`;
+  if (tur === "gunluk_ders_siniri") {
+    if (k.ders_id && k.sinif_id) return `günde en çok ${p.n} saat`;
+    if (k.ders_id) return `bir şubeye günde en çok ${p.n} saat konur`;
+    return `aynı ders günde en çok ${p.n} saat konur`;
+  }
+  if (tur === "bos_gun") return `haftada ${p.hedef_bos_gun} boş gün hedeflenir`;
+  return Object.entries(p).map(([ad, deger]) => `${ad} = ${deger}`).join(", ");
+}
+
+/** Okul değeri, aynı dilde: "(okul geneli: 8)". */
+function okulDegeri(kural: Kural): string {
+  const degerler = Object.values(kural.parametreler);
+  return degerler.length === 1 ? `okul geneli: ${degerler[0]}` : "";
+}
+
+/**
+ * Okul ayarları > Özel ayarlar: okuldaki bütün özel ayarlar tek listede (docs/kisisellestirme-
+ * plani.md bölüm 8). Amaç şeffaflık: bir öğretmenin ya da dersin ayarı okul değerinden farklıysa
+ * burada görünür, hiçbir istisna gizli kalmaz. Her biri buradan kaldırılabilir; kaldırılınca o yerde
+ * okul değeri geçerli olur.
+ */
+export function OzelAyarlarOzeti({ kurallar }: { kurallar: Kural[] }) {
+  const istemci = useQueryClient();
+  const bildirim = useBildirim();
+  const satirlar = kurallar.flatMap((kural) => kural.ozel_ayarlar.map((ozel) => ({ kural, ozel })));
+
+  const kaldir = useMutation({
+    mutationFn: ({ kural, ozel }: { kural: Kural; ozel: OzelAyar }) => {
+      const { ders_id, sinif_id, ogretmen_id } = ozel.kapsam;
+      return cagir(api.DELETE("/api/ders-programi/kurallar/{tur}/ozel", {
+        params: {
+          path: { tur: kural.tur },
+          // Boş eksen sorguya hiç konmaz: "ders_id=null" gibi bir değer gitmesin.
+          query: { ...(ders_id && { ders_id }), ...(sinif_id && { sinif_id }), ...(ogretmen_id && { ogretmen_id }) },
+        },
+      }));
+    },
+    onSuccess: (_yanit, { kural, ozel }) =>
+      bildirim("basari", `${ozel.ad} için özel ayar kaldırıldı; okul değeri geçerli (${okulDegeri(kural)}).`),
+    onSettled: () => istemci.invalidateQueries({ queryKey: ["kurallar"] }),
+  });
+
+  return (
+    <section className={sayfaStili.kart} aria-labelledby="ozel-ayarlar">
+      <h2 id="ozel-ayarlar">Özel ayarlar</h2>
+      <p className={stil.aciklama}>
+        Bir öğretmene, derse ya da şubeye okul genelinden farklı bir değer verildiyse burada listelenir.
+      </p>
+      <FormHatasi mesaj={kaldir.error ? hataMetni(kaldir.error) : undefined} />
+      {satirlar.length === 0 ? (
+        <p className={stil.bosOzet}>Özel ayar yok: bütün kurallar okul genelinde aynı.</p>
+      ) : (
+        <ul className={stil.ozelListe} aria-label="Özel ayarlar">
+          {satirlar.map(({ kural, ozel }) => (
+            <li key={`${kural.tur}-${ozel.kapsam.ogretmen_id}-${ozel.kapsam.ders_id}-${ozel.kapsam.sinif_id}`}>
+              <span>
+                <strong>{ozel.ad}</strong>: {ozelAyarMetni(kural.tur, ozel)}
+                <span className={stil.ozelKural}>
+                  {kural.ad} ({okulDegeri(kural)})
+                </span>
+              </span>
+              <Dugme tur="metin" ikon={<X />} disabled={kaldir.isPending} aria-label={`${ozel.ad}: ${kural.ad} özel ayarını kaldır`}
+                onClick={() => kaldir.mutate({ kural, ozel })}>
+                Kaldır
+              </Dugme>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}

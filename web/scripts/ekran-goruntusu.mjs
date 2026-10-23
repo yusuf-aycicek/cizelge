@@ -498,6 +498,27 @@ AKISLAR["6-bekleme"] = async (tarayici, kaydet) => {
   await baglam.close();
 };
 
+// K1: okul ayarlarında özel ayarların özeti. Örnek okula birkaç özel ayar eklenmiş olmalı
+// (öğretmene özel M, derse ve şube + derse özel N).
+AKISLAR["k1"] = async (tarayici, kaydet) => {
+  for (const [ad, viewport] of [["masaustu", MASAUSTU], ["telefon", TELEFON]]) {
+    const baglam = await tarayici.newContext({ viewport, locale: "tr-TR" });
+    const s = await baglam.newPage();
+    await s.goto(ADRES + "/giris");
+    await s.getByLabel("E-posta").fill("mudur@ornek.test");
+    await s.getByLabel("Parola").fill("ornek-okul-parolasi");
+    await s.getByRole("button", { name: "Giriş yap" }).click();
+    await s.getByRole("img", { name: /Kurulum:/ }).waitFor();
+    await s.goto(ADRES + "/okul");
+    const bolum = s.getByRole("region", { name: "Özel ayarlar" });
+    await bolum.waitFor();
+    await bolum.scrollIntoViewIfNeeded();
+    await s.waitForTimeout(500);
+    await kaydet(s, `${ad}-ozel-ayarlar.png`);
+    await baglam.close();
+  }
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {

@@ -14,6 +14,7 @@ import { OnayPenceresi } from "../bilesenler/OnayPenceresi";
 import { BEN_ANAHTARI, type Ben } from "../kimlik/oturum";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
 import stil from "./Okul.module.css";
+import { OzelAyarlarOzeti } from "./OzelAyarlarOzeti";
 
 type Okul = components["schemas"]["OkulYanit"];
 type Kural = components["schemas"]["KuralYanit"];
@@ -36,7 +37,7 @@ const SAYI_AYARLARI: Record<string, string> = {
 };
 
 /**
- * Okul ayarları: okul bilgileri, kurallar ve (Gelişmiş) kuralların önemi.
+ * Okul ayarları: okul bilgileri, kurallar, özel ayarların özeti ve (Gelişmiş) kuralların önemi.
  *
  * Sayfa veriyi yükler; her bölüm ayrı bir bileşendir ve kendi formunu yönetir. Bölümlere
  * `key` verilir: sunucudaki değer değişince (kaydedince) bölüm yeni değerle baştan kurulur.
@@ -60,6 +61,7 @@ export function OkulAyarlariSayfasi() {
       {okul.data && kurallar.data && (
         <>
           <KurallarBolumu key={JSON.stringify(kurallar.data)} okul={okul.data} kurallar={kurallar.data} />
+          <OzelAyarlarOzeti kurallar={kurallar.data} />
           <OnemBolumu key={`onem-${JSON.stringify(kurallar.data)}`} kurallar={kurallar.data} />
         </>
       )}

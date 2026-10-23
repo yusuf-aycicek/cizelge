@@ -160,7 +160,7 @@ Tüm tablolarda `id` (uuid) ve `okul_id` (FK) bulunur. Aşağıda yalnızca diğ
 | `seviye_sablonu` | seviye, ders_id, haftalik_saat | Seviyenin ders listesi |
 | `ders_atama` | sinif_id, ders_id, ogretmen_id (boş olabilir), haftalik_saat | Çözücünün asıl girdisi |
 | `musaitlik` | ogretmen_id, gun, saat, durum (gelemez / tercih_etmez) | |
-| `kisit` | tur, parametreler (JSON), zorunlu, agirlik | Okul geneli kurallar |
+| `kisit` | tur, parametreler (JSON), zorunlu, agirlik, ders_id, sinif_id, ogretmen_id (kapsam; boş olabilir) | Okul geneli kurallar; kapsam doluysa o derse, şubeye ya da öğretmene özel ayar (ADR 0016) |
 | `program` | ad, durum, hata_mesaji, temel_program_id (boş olabilir), sure_siniri_sn, olusturma, bitis | Her üretim denemesi bir kayıt. `temel_program_id` doluysa en az değişiklikle güncellemedir |
 | `yerlesim` | program_id, ders_atama_id, gun, saat, kilitli | Programın hücreleri |
 
@@ -303,8 +303,8 @@ ne yapıldığını söyler. Öğretmen, ders ve şube bazında istisnalar için
 | Günlere göre farklı ders saati (ör. cuma 7) | Her gün aynı | Tasarımda (c) |
 | Öğle arasının yeri | Tanımsız (blokların bölünmesi denetlenmez) | Tasarımda (c) |
 | Ders saatlerinin başlangıç ve bitiş saatleri (yalnızca gösterim) | 08.30'da başlar, 40 dk ders, 10 dk teneffüs | Tasarımda (j) |
-| Aynı dersin bir şubeye günlük sınırı (N) | 2 | Okul geneli var; derse özel tasarımda (e) |
-| Öğretmenin günlük ders sınırı (M) | 8 | Var (kural) |
+| Aynı dersin bir şubeye günlük sınırı (N) | 2 | Okul geneli var; derse, şubeye özel çözücüde ve API'de var (K1), arayüzü K4'te (e) |
+| Öğretmenin günlük ders sınırı (M) | 8 | Okul geneli var; öğretmene özel çözücüde ve API'de var (K1), arayüzü K2'de |
 | Öğretmene boş gün hedefi | Okul geneli 1; öğretmene özel 0, 1 ya da 2 | Okul geneli var; öğretmene özel tasarımda (d) |
 | Dersin bloklara bölünmesi | 1 saat: 1; 2: 2; 3: 2+1; 4: 2+2; 5: 2+2+1; 6: 2+2+2 | Tasarımda (b) |
 | Şube grupları (alanlar: sayısal, sözel, eşit ağırlık, dil) | Grup = seviye | Tasarımda (a) |

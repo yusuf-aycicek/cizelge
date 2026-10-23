@@ -84,3 +84,34 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* --- özel ayarlar özeti ---------------------------------------------------------------- */
+
+.bosOzet {
+  color: var(--renk-metin-ikincil);
+  margin: 0;
+}
+
+.ozelListe {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 44rem;
+}
+.ozelListe li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-2) 0;
+  border-bottom: 1px solid var(--renk-kenar);
+}
+.ozelListe li:last-child {
+  border-bottom: none;
+}
+
+.ozelKural {
+  display: block;
+  color: var(--renk-metin-ikincil);
+  font-size: var(--yazi-kucuk);
+}

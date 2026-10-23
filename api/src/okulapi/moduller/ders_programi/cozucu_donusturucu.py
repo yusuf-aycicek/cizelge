@@ -13,6 +13,7 @@ from __future__ import annotations
 import uuid
 
 from cozucu import model as cm
+from cozucu.kapsam import Kapsam
 from cozucu.model import temel_program
 from sqlalchemy.orm import Session
 
@@ -65,8 +66,16 @@ def cozum_girdisi_olustur(
             cm.Musaitlik(ogretmen_id=str(m.ogretmen_id), gun=m.gun, saat=m.saat, durum=cm.MusaitlikDurumu(m.durum))
             for m in MusaitlikDeposu(oturum).listele()
         ],
-        kisitlar=[cm.KisitTanimi(tur=k.tur, parametreler=dict(k.parametreler), zorunlu=k.zorunlu, agirlik=k.agirlik)
+        kisitlar=[cm.KisitTanimi(tur=k.tur, parametreler=dict(k.parametreler), zorunlu=k.zorunlu, agirlik=k.agirlik,
+                                 kapsam=_kapsam(k))
                   for k in KisitDeposu(oturum).listele()],
         kilitli_yerlesimler=kilitliler,
         temel_yerlesimler=temel,
     )
+
+
+def _kapsam(k) -> Kapsam:
+    def metin(deger: uuid.UUID | None) -> str | None:
+        return None if deger is None else str(deger)
+
+    return Kapsam(ders_id=metin(k.ders_id), sinif_id=metin(k.sinif_id), ogretmen_id=metin(k.ogretmen_id))

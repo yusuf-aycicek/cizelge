@@ -32,12 +32,13 @@ export const ORNEK_KURALLAR: Kural[] = [
 
 function sayili(tur: string, ad: string, aciklama: string, p: string, v: number): Kural {
   return { tur, ad, aciklama, zorunlu: true, parametreler: { [p]: v }, varsayilan_parametreler: { [p]: v },
-    agirlik: null, seviye: null, varsayilan_seviye: null, varsayilan: true };
+    agirlik: null, seviye: null, varsayilan_seviye: null, varsayilan: true,
+    kapsamlar: tur === "gunluk_ders_siniri" ? ["ders", "sube"] : ["ogretmen"], ozel_ayarlar: [] };
 }
 
 function esnek(tur: string, ad: string, agirlik: number): Kural {
   return { tur, ad, aciklama: `${ad} açıklaması.`, zorunlu: false, parametreler: {}, varsayilan_parametreler: {},
-    agirlik, seviye: "onemli", varsayilan_seviye: "onemli", varsayilan: true };
+    agirlik, seviye: "onemli", varsayilan_seviye: "onemli", varsayilan: true, kapsamlar: [], ozel_ayarlar: [] };
 }
 
 /** API'nin paletinin başı (cekirdek/ders_renkleri.py ile aynı sırada). */

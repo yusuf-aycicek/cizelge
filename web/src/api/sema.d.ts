@@ -221,6 +221,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ders-programi/kurallar/{tur}/ozel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ozel Ayari Kaydet
+         * @description Kuralın bir öğretmene, derse ya da şubeye özel değerini ekler ya da günceller.
+         *
+         *     422: kural bu kapsamda ayarlanamıyor (ör. sınıf boşluğu öğretmene özel olamaz), kayıt bu
+         *     okulda yok ya da değer geçersiz.
+         */
+        put: operations["ozel_ayari_kaydet_api_ders_programi_kurallar__tur__ozel_put"];
+        post?: never;
+        /**
+         * Ozel Ayari Kaldir
+         * @description Özel ayarı kaldırır: o kapsamda yeniden okul değeri geçerli olur.
+         */
+        delete: operations["ozel_ayari_kaldir_api_ders_programi_kurallar__tur__ozel_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ders-programi/musaitlikler": {
         parameters: {
             query?: never;
@@ -918,15 +945,21 @@ export interface components {
         KisitYanit: {
             /** Agirlik */
             agirlik: number;
+            /** Ders Id */
+            ders_id?: string | null;
             /**
              * Id
              * Format: uuid
              */
             id: string;
+            /** Ogretmen Id */
+            ogretmen_id?: string | null;
             /** Parametreler */
             parametreler: {
                 [key: string]: unknown;
             };
+            /** Sinif Id */
+            sinif_id?: string | null;
             /** Tur */
             tur: string;
             /** Zorunlu */
@@ -955,6 +988,18 @@ export interface components {
             /** Seviye */
             seviye?: ("onemsiz" | "onemli" | "cok_onemli") | null;
         };
+        /**
+         * KuralKapsami
+         * @description Özel ayarın yeri. Öğretmen tek başına; ders ve şube tek başına ya da birlikte (ADR 0016).
+         */
+        KuralKapsami: {
+            /** Ders Id */
+            ders_id?: string | null;
+            /** Ogretmen Id */
+            ogretmen_id?: string | null;
+            /** Sinif Id */
+            sinif_id?: string | null;
+        };
         /** KuralYanit */
         KuralYanit: {
             /** Aciklama */
@@ -963,6 +1008,10 @@ export interface components {
             ad: string;
             /** Agirlik */
             agirlik: number | null;
+            /** Kapsamlar */
+            kapsamlar: ("ogretmen" | "ders" | "sube")[];
+            /** Ozel Ayarlar */
+            ozel_ayarlar: components["schemas"]["OzelAyarYanit"][];
             /** Parametreler */
             parametreler: {
                 [key: string]: number;
@@ -1127,6 +1176,27 @@ export interface components {
              * Format: uuid
              */
             id: string;
+        };
+        /** OzelAyar */
+        OzelAyar: {
+            kapsam: components["schemas"]["KuralKapsami"];
+            /** Parametreler */
+            parametreler: {
+                [key: string]: number;
+            };
+        };
+        /** OzelAyarYanit */
+        OzelAyarYanit: {
+            /**
+             * Ad
+             * @description Kapsamın adı: "Ayşe Yılmaz", "9-A · Matematik"
+             */
+            ad: string;
+            kapsam: components["schemas"]["KuralKapsami"];
+            /** Parametreler */
+            parametreler: {
+                [key: string]: number;
+            };
         };
         /** ProgramUret */
         ProgramUret: {
@@ -1835,6 +1905,76 @@ export interface operations {
     kurali_varsayilana_dondur_api_ders_programi_kurallar__tur__delete: {
         parameters: {
             query?: never;
+            header?: never;
+            path: {
+                tur: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KuralYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ozel_ayari_kaydet_api_ders_programi_kurallar__tur__ozel_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tur: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OzelAyar"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KuralYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ozel_ayari_kaldir_api_ders_programi_kurallar__tur__ozel_delete: {
+        parameters: {
+            query?: {
+                ogretmen_id?: string | null;
+                ders_id?: string | null;
+                sinif_id?: string | null;
+            };
             header?: never;
             path: {
                 tur: string;

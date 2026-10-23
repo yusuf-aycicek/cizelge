@@ -96,12 +96,25 @@ class Musaitlik(OkulaAitMixin, Base):
 
 
 class Kisit(OkulaAitMixin, Base):
-    """Okul geneli kural. `tur` çözücünün kural kayıt defterindeki adlardan biridir."""
+    """Bir kural tanımı. `tur` çözücünün kural kayıt defterindeki adlardan biridir.
+
+    Kapsam sütunlarının üçü de boşsa okul geneli kuraldır; biri doluysa okul değerini o derse,
+    şubeye ya da öğretmene özel ezen bir **özel ayardır** (ADR 0016). Özel ayarın kipi ve ağırlığı
+    çözücüde okul tanımından gelir; burada okul tanımındakiyle aynı yazılır.
+    """
 
     __tablename__ = "kisit"
     _tablo_kisitlari = (
-        UniqueConstraint("okul_id", "tur"),
+        # NULLS NOT DISTINCT: kapsamın boş sütunları eşit sayılır; okul geneli satır da tek kalır
+        # (migration ders_programi_0006).
+        UniqueConstraint("okul_id", "tur", "ders_id", "sinif_id", "ogretmen_id", postgresql_nulls_not_distinct=True),
+        # Ona özel ayar, varlığın parçasıdır: varlık silinince ayar da silinir.
+        okul_ici_fk("ders_id", "ders", ondelete="CASCADE"),
+        okul_ici_fk("sinif_id", "sinif", ondelete="CASCADE"),
+        okul_ici_fk("ogretmen_id", "ogretmen", ondelete="CASCADE"),
         CheckConstraint("agirlik >= 0", name="agirlik"),
+        # Öğretmen ailesi (M, boş gün) ile yerleşim ailesi (N, blok) ayrıktır (ADR 0016 madde 3).
+        CheckConstraint("ogretmen_id IS NULL OR (ders_id IS NULL AND sinif_id IS NULL)", name="kapsam_ailesi"),
     )
 
     tur: Mapped[str] = mapped_column(String(50))
@@ -109,6 +122,13 @@ class Kisit(OkulaAitMixin, Base):
     parametreler: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, server_default="{}")
     zorunlu: Mapped[bool]
     agirlik: Mapped[int] = mapped_column(default=1, server_default="1")
+    ders_id: Mapped[uuid.UUID | None]
+    sinif_id: Mapped[uuid.UUID | None]
+    ogretmen_id: Mapped[uuid.UUID | None]
+
+    @property
+    def okul_geneli(self) -> bool:
+        return self.ders_id is None and self.sinif_id is None and self.ogretmen_id is None
 
 
 PROGRAM_DURUMLARI = ("bekliyor", "uretiliyor", "hazir", "basarisiz")

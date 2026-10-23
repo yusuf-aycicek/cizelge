@@ -58,8 +58,9 @@ bulunur:
      yalnızca `ders`, `sube`, `sube_grubu` eksenleri.
 
    Bir kural sınıfı ikisini birden bildirirse `kaydet` onu **kayıt anında reddeder** (testle
-   denetlenir). Öğretmen eksenli bir tanım ders ya da şube ekseni de taşırsa veritabanı CHECK'i ve
-   `kural_olustur` reddeder. Böylece "Ayşe Yılmaz'a özel" bir değerle "Matematik'e özel" bir değer
+   denetlenir). Öğretmen eksenli bir tanım ders ya da şube ekseni de taşırsa `Kapsam` daha
+   oluşturulurken (`ValueError`), API (422) ve veritabanı CHECK'i (`ck_kisit_kapsam_ailesi`)
+   reddeder. Böylece "Ayşe Yılmaz'a özel" bir değerle "Matematik'e özel" bir değer
    aynı kuralda karşılaşamaz; hangisinin kazanacağı sorusu doğmaz. İleride iki ekseni birlikte
    isteyen bir kural gerekirse (ör. "Ayşe Yılmaz'ın Matematik dersleri sabah"), öncelik yeni bir
    ADR kararıyla tanımlanır.
@@ -103,6 +104,26 @@ Sonuç:
 - Yeni kural eklemek yine yeni bir sınıftır (açık/kapalı ilkesi).
 - `CpSatCozucu` ve kayıt defteri değişmez.
 
+**K1'de netleşen ayrıntılar** (uygulama ve testlerle):
+- **Kip ve ağırlık okul tanımından gelir;** özel ayar yalnızca parametreleri değiştirir. Okul bir
+  kuralı esnek yaptıysa ona ait özel ayarlar da esnektir. (`kural_olustur` özel örneğe okulun
+  kipini ve ağırlığını verir.)
+- Özel ayarda bulunmayan parametre, kural sınıfının kurucusundaki varsayılanı alır (çözücüdeki
+  örnek ile `CozumGirdisi.parametre` aynı sonucu verir).
+- Okul tanımı yoksa özel ayar, kuralın varsayılan tanımının üzerine kurulur. Varsayılanı da
+  olmayan bir türün özel ayarı `GirdiHatasi`dır.
+- Çözücünün dışındaki okuyucular (yük, ön kontrol, doğrulama, kalite, çelişki açıklaması, boş gün
+  kuralının M'si) değeri `CozumGirdisi.parametre(..., ogretmen_id=…)` / `sinif_id=, ders_id=` ile
+  varlık başına okur; hepsi `cozumle`yi kullanır.
+- Ön kontrol mesajı değer okul değerinden farklıysa bunu söyler: "bu ders bu şubeye günde en
+  fazla 1 saat konabildiği (özel ayar)". Çelişki açıklaması her öğretmenin ve dersin kendi
+  değerini yazar ("Ayşe Yılmaz günde en fazla 6 saat derse girebilir"). Ayrı bir
+  `("ozel", tur, kapsam)` çelişki grubu henüz yok; mevcut gruplar değeri doğru söylediği için
+  gerekmedi.
+- API: `GET /kurallar` her kural için `kapsamlar` (destekleri, çözücünün sınıfından) ve
+  `ozel_ayarlar` (`kapsam`, `ad`, `parametreler`) döner; `PUT/DELETE /kurallar/{tur}/ozel`.
+  Okul değerini "varsayılana döndürmek" özel ayarlara dokunmaz.
+
 **Neden "her kapsam için ayrı kural örneği" değil:**
 - Öyle olsaydı okul geneli N = 2 ve Matematik N = 3 tanımları aynı (şube, ders, gün) için iki
   kısıt ekleyip **ikisini birden** uygulardı: Matematik fiilen 2'de kalırdı.
@@ -118,7 +139,7 @@ politikası mevcut kalıpla eklenir (ADR 0009); okul izolasyonu bozulmaz.
 |---|---|
 | `cekirdek_0006_sube_grubu` | `sube_grubu` (ad, seviye; UNIQUE (okul_id, ad)); `sinif.sube_grubu_id` (boş olabilir; grubun seviyesi şubeninkiyle aynı olmalı: servis denetler) |
 | `cekirdek_0007_okul_zaman` | `okul`: `gun_saatleri int[]` (boşsa her gün `gunluk_ders_saati`), `ogle_arasi_sonra int` (boş = yok; ör. 4 = 4. dersten sonra), `ilk_ders_baslangic time` (08:30), `ders_suresi_dk` (40), `teneffus_dk` (10), `ogle_arasi_dk` (40), `maas_karsiligi_saat` ve `ek_ders_ust_siniri` (boş = uyarı yok). `gunluk_ders_saati` en uzun gün olarak kalır: mevcut kod ve kapasite hesabı kırılmaz |
-| `ders_programi_0006_kisit_kapsami` | `kisit`: `ders_id`, `sinif_id`, `sube_grubu_id`, `ogretmen_id` (hepsi boş olabilir, bileşik FK, `ON DELETE CASCADE`: öğretmen silinince özel ayarları da gider). CHECK: `sinif_id` ile `sube_grubu_id`'den en çok biri dolu; `ogretmen_id` doluysa öteki üçü boş. Mevcut `UNIQUE (okul_id, tur)` kalkar; yerine `UNIQUE (okul_id, tur, coalesce(ders_id,…), coalesce(sinif_id,…), coalesce(sube_grubu_id,…), coalesce(ogretmen_id,…))` ifade indeksi. **Var olan satırlar** dört boş sütunla `okul` kapsamında kalır; veri taşıması gerekmez |
+| `ders_programi_0006_kisit_kapsami` | `kisit`: `ders_id`, `sinif_id`, `sube_grubu_id`, `ogretmen_id` (hepsi boş olabilir, bileşik FK, `ON DELETE CASCADE`: öğretmen silinince özel ayarları da gider). CHECK: `sinif_id` ile `sube_grubu_id`'den en çok biri dolu; `ogretmen_id` doluysa öteki üçü boş. Mevcut `UNIQUE (okul_id, tur)` kalkar; yerine `UNIQUE NULLS NOT DISTINCT (okul_id, tur, ders_id, sinif_id, ogretmen_id)` (PostgreSQL 15+: boş sütunlar eşit sayılır, okul geneli satır da tek kalır; uygulamada `coalesce` ifade indeksinden daha okunur). **K1'de yapılan:** `ders_id`, `sinif_id`, `ogretmen_id`; `sube_grubu_id` tablosuyla birlikte K5'te eklenir. **Var olan satırlar** dört boş sütunla `okul` kapsamında kalır; veri taşıması gerekmez |
 | `ders_programi_0007_sablon_grubu` | `seviye_sablonu.sube_grubu_id` (boş = seviyenin şablonu). UNIQUE (okul_id, seviye, sube_grubu_id, ders_id) |
 | `ders_programi_0008_sube_istisnasi` | `sube_ders_istisnasi` (sinif_id, ders_id, tur `almaz`/`ek`, haftalik_saat: yalnızca `ek` için). UNIQUE (okul_id, sinif_id, ders_id) |
 

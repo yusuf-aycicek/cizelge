@@ -1,4 +1,4 @@
-/** Okul ayarları: okul bilgileri (azaltmanın etkileri), kurallar, kuralların önemi. */
+/** Okul ayarları: okul bilgileri (azaltmanın etkileri), kurallar, özel ayarların özeti, kuralların önemi. */
 import { screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
@@ -169,6 +169,58 @@ describe("gelişmiş: kuralların önemi", () => {
     const grup = screen.getByRole("group", { name: "Öğretmenin tercih etmediği saatler" });
     expect(within(grup).getByText(/elle girilmiş özel bir değer var \(7\)/)).toBeInTheDocument();
     expect(within(grup).getAllByRole("radio").some((r) => (r as HTMLInputElement).checked)).toBe(false);
+  });
+});
+
+describe("özel ayarların özeti", () => {
+  const AYSE = "11111111-1111-1111-1111-111111111111";
+  const MAT = "22222222-2222-2222-2222-222222222222";
+  const SUBE = "33333333-3333-3333-3333-333333333333";
+
+  /** Kurallar: öğretmene özel M ve şube + derse özel N. DELETE istekleri kaydedilir ve listeden düşer. */
+  function ozelApi() {
+    let ozelM = [{ kapsam: { ogretmen_id: AYSE, ders_id: null, sinif_id: null }, ad: "Ayşe Yılmaz", parametreler: { m: 6 } }];
+    const ozelN = [{ kapsam: { ogretmen_id: null, ders_id: MAT, sinif_id: SUBE }, ad: "9-A · Matematik", parametreler: { n: 3 } }];
+    const silinen: string[] = [];
+    sunucu.use(
+      http.get("/api/ders-programi/kurallar", () =>
+        HttpResponse.json(ORNEK_KURALLAR.map((k) =>
+          k.tur === "ogretmen_gunluk_siniri" ? { ...k, ozel_ayarlar: ozelM }
+            : k.tur === "gunluk_ders_siniri" ? { ...k, ozel_ayarlar: ozelN } : k))),
+      http.delete("/api/ders-programi/kurallar/:tur/ozel", ({ request, params }) => {
+        silinen.push(`${String(params.tur)}?${new URL(request.url).searchParams}`);
+        ozelM = [];
+        return HttpResponse.json(ORNEK_KURALLAR[1]);
+      }),
+    );
+    return silinen;
+  }
+
+  it("özel ayar yoksa söyler", async () => {
+    await ac();
+    const bolum = screen.getByRole("region", { name: "Özel ayarlar" });
+    expect(within(bolum).getByText("Özel ayar yok: bütün kurallar okul genelinde aynı.")).toBeInTheDocument();
+  });
+
+  it("bütün özel ayarlar adlarıyla ve okul değeriyle tek listede", async () => {
+    ozelApi();
+    await ac();
+    const liste = await screen.findByRole("list", { name: "Özel ayarlar" });
+    const maddeler = within(liste).getAllByRole("listitem").map((m) => m.textContent);
+    expect(maddeler).toEqual([
+      expect.stringContaining("9-A · Matematik: günde en çok 3 saatAynı dersin günlük sınırı (okul geneli: 2)"),
+      expect.stringContaining("Ayşe Yılmaz: günde en çok 6 saat derse girerÖğretmenin günlük ders sınırı (okul geneli: 8)"),
+    ]);
+  });
+
+  it("kaldırınca yalnızca o kapsam sorguya konur; liste tazelenir", async () => {
+    const silinen = ozelApi();
+    const { kullanici } = await ac();
+    await kullanici.click(await screen.findByRole("button", { name: "Ayşe Yılmaz: Öğretmenin günlük ders sınırı özel ayarını kaldır" }));
+    expect(await screen.findByText("Ayşe Yılmaz için özel ayar kaldırıldı; okul değeri geçerli (okul geneli: 8).")).toBeInTheDocument();
+    expect(silinen).toEqual([`ogretmen_gunluk_siniri?ogretmen_id=${AYSE}`]);
+    await waitFor(() => expect(screen.queryByText(/Ayşe Yılmaz: günde en çok/)).toBeNull());
+    expect(screen.getByText(/9-A · Matematik/)).toBeInTheDocument();
   });
 });
 

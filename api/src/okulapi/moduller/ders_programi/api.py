@@ -69,6 +69,26 @@ def kurali_varsayilana_dondur(tur: str, oturum: OkulOturumu) -> Any:
     return KurallarServisi(oturum).varsayilana_don(tur)
 
 
+@kural_router.put("/{tur}/ozel", response_model=semalar.KuralYanit)
+def ozel_ayari_kaydet(tur: str, veri: semalar.OzelAyar, oturum: OkulOturumu) -> Any:
+    """Kuralın bir öğretmene, derse ya da şubeye özel değerini ekler ya da günceller.
+
+    422: kural bu kapsamda ayarlanamıyor (ör. sınıf boşluğu öğretmene özel olamaz), kayıt bu
+    okulda yok ya da değer geçersiz.
+    """
+    k = veri.kapsam
+    return KurallarServisi(oturum).ozel_ayarla(tur, k.ders_id, k.sinif_id, k.ogretmen_id, veri.parametreler)
+
+
+@kural_router.delete("/{tur}/ozel", response_model=semalar.KuralYanit)
+def ozel_ayari_kaldir(
+    tur: str, oturum: OkulOturumu, ogretmen_id: uuid.UUID | None = None, ders_id: uuid.UUID | None = None,
+    sinif_id: uuid.UUID | None = None,
+) -> Any:
+    """Özel ayarı kaldırır: o kapsamda yeniden okul değeri geçerli olur."""
+    return KurallarServisi(oturum).ozel_kaldir(tur, ders_id, sinif_id, ogretmen_id)
+
+
 program_router = APIRouter(prefix="/programlar", tags=["program"])
 
 

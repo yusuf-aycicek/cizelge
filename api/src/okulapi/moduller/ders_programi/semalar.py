@@ -164,6 +164,10 @@ class KisitYanit(_Yanit):
     parametreler: dict[str, Any]
     zorunlu: bool
     agirlik: int
+    # Üçü de boşsa okul geneli; değilse özel ayar. Özel ayarlar `/kurallar/{tur}/ozel` ile yazılır.
+    ders_id: uuid.UUID | None = None
+    sinif_id: uuid.UUID | None = None
+    ogretmen_id: uuid.UUID | None = None
 
 
 # --- kurallar (okul geneli kısıtlar, kullanıcının diliyle) --------------------------------
@@ -185,11 +189,33 @@ class KuralYanit(BaseModel):
     seviye: Literal["onemsiz", "onemli", "cok_onemli", "ozel"] | None
     varsayilan_seviye: OnemSeviyesi | None
     varsayilan: bool
+    # Kuralın özel ayar alabildiği yerler (çözücünün kural sınıfından) ve okuldaki özel ayarlar.
+    kapsamlar: list[Literal["ogretmen", "ders", "sube"]]
+    ozel_ayarlar: list[OzelAyarYanit]
 
 
 class KuralAyari(BaseModel):
     parametreler: dict[str, int] | None = None
     seviye: OnemSeviyesi | None = None
+
+
+class KuralKapsami(BaseModel):
+    """Özel ayarın yeri. Öğretmen tek başına; ders ve şube tek başına ya da birlikte (ADR 0016)."""
+
+    ogretmen_id: uuid.UUID | None = None
+    ders_id: uuid.UUID | None = None
+    sinif_id: uuid.UUID | None = None
+
+
+class OzelAyar(BaseModel):
+    kapsam: KuralKapsami
+    parametreler: dict[str, int]
+
+
+class OzelAyarYanit(BaseModel):
+    kapsam: KuralKapsami
+    ad: str = Field(description="Kapsamın adı: \"Ayşe Yılmaz\", \"9-A · Matematik\"")
+    parametreler: dict[str, int]
 
 
 # --- program -----------------------------------------------------------------------------
@@ -235,3 +261,6 @@ class YerlesimYanit(_Yanit):
     gun: int
     saat: int
     kilitli: bool
+
+
+KuralYanit.model_rebuild()

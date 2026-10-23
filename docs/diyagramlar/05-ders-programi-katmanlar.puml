@@ -94,6 +94,8 @@ package "kurallar (önem seviyeleri tek yerde)" {
     +listele() : list[dict]
     +ayarla(tur : str, parametreler, onem) : dict
     +varsayilana_don(tur : str) : dict
+    +ozel_ayarla(tur, ders_id, sinif_id, ogretmen_id, parametreler) : dict
+    +ozel_kaldir(tur, ders_id, sinif_id, ogretmen_id) : dict
   }
   class kurallar <<modül>> {
     {static} +ONEM_KARSILIKLARI : dict[str, dict[str, int]]
@@ -142,7 +144,7 @@ package "cozucu_donusturucu (veritabanı → çözücü)" {
 ' @kod cozucu.kisitlar
 package "cozucu.kisitlar (ayrıntı: 06)" {
   class kisitlar <<modül>> {
-    {static} +kural_olustur(tanim : KisitTanimi) : KisitKurali
+    {static} +kural_olustur(tanim : KisitTanimi, ozeller) : KisitKurali
   }
 }
 ' @kod cozucu.model
