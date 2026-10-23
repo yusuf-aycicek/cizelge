@@ -24,13 +24,12 @@ def dogrula(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> list[str]:
     """İhlal listesini döner. Boş liste = program tüm zorunlu kısıtları sağlıyor."""
     hatalar: list[str] = []
     atamalar = {a.id: a for a in girdi.atamalar}
-    gun_sayisi, saat_sayisi = girdi.ayar.gun_sayisi, girdi.ayar.gunluk_ders_saati
 
     gecerli: list[Yerlesim] = []
     for y in yerlesimler:
         if y.ders_atama_id not in atamalar:
             hatalar.append(f"Bilinmeyen atama yerleşmiş: {y.ders_atama_id}")
-        elif not (0 <= y.gun < gun_sayisi and 0 <= y.saat < saat_sayisi):
+        elif not girdi.ayar.aralikta(y.gun, y.saat):
             hatalar.append(f"{y.ders_atama_id}: gün/saat aralık dışında ({y.gun}, {y.saat})")
         else:
             gecerli.append(y)

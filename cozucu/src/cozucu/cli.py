@@ -56,8 +56,13 @@ def _tablo(girdi: CozumGirdisi, hucre: dict[tuple[int, int], str]) -> str:
     satirlar.append("-" * len(satirlar[0]))
     for s in range(girdi.ayar.gunluk_ders_saati):
         satirlar.append(
-            f"{s + 1:>4} | " + " | ".join(hucre.get((g, s), "·").ljust(genislik) for g in range(len(gunler)))
+            f"{s + 1:>4} | " + " | ".join(
+                (hucre.get((g, s), "·") if girdi.ayar.aralikta(g, s) else "").ljust(genislik)
+                for g in range(len(gunler))
+            )
         )
+        if girdi.ayar.ogle_arasi_sonra == s + 1:
+            satirlar.append("     " + "öğle arası".center(len(satirlar[0]) - 5, "-"))
     return "\n".join(satirlar)
 
 

@@ -225,6 +225,12 @@ modellenmez.
 - `yuk.py` (ADR 0015) kapasiteyi ve öğretmenin günlük müsait saatini gün uzunluğuyla hesaplar;
   ön kontrol ve dağılım özeti kendiliğinden uyar.
 - Sınıf boşluğu ve pencere kuralları günün kendi uzunluğunu kullanır.
+- **K3'te yapılan:** değişkenler en uzun güne göre kurulur, kısa günün sonundaki hücreler temel
+  kural `gun_uzunlugu` ile 0'a sabitlenir (öteki kurallar değişmedi; sınıf boşluğu ve pencere
+  zaten yalnızca dolu saatlerin arasına bakar). Öğle arasının iki yanındaki saatler bitişik
+  sayılmaz: öğle arasıyla bölünen ders "bölünmüş ders" cezası alır (blok dersler K4'te
+  öğle arasına hiç yayılamayacak). Boş gün hedefindeki en az gün, en uzun günlerden başlanarak
+  hesaplanır.
 
 ## 5. Ön kontrol ve çelişki analizi
 

@@ -77,7 +77,7 @@ def olc(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> KaliteOlcumu:
     return KaliteOlcumu(
         sinif_boslugu=sum(max(s) + 1 - len(s) for s in sinif_gun.values()),
         ogretmen_penceresi=sum(max(s) - min(s) + 1 - len(s) for s in ogretmen_gun.values()),
-        bolunmus_ders=sum(_blok_sayisi(s) - 1 for s in ders_gun.values()),
+        bolunmus_ders=sum(_blok_sayisi(s, girdi, g) - 1 for (_s, _d, g), s in ders_gun.items()),
         tercih_etmez=tercih_etmez,
         eksik_bos_gun=eksik,
         fazla_bos_gun=fazla,
@@ -118,6 +118,6 @@ def _bos_gun_sapmasi(girdi: CozumGirdisi, ogretmen_gun: dict[tuple[str, int], se
     return eksik, fazla
 
 
-def _blok_sayisi(saatler: set[int]) -> int:
-    """Kesintisiz saat dizisi sayısı: {0,1,4} -> 2."""
-    return sum(1 for s in saatler if s - 1 not in saatler)
+def _blok_sayisi(saatler: set[int], girdi: CozumGirdisi, gun: int) -> int:
+    """Kesintisiz saat dizisi sayısı: {0,1,4} -> 2. Öğle arası diziyi böler."""
+    return sum(1 for s in saatler if s - 1 not in saatler or girdi.ayar.ogle_arasiyla_ayrilir(gun, s - 1))

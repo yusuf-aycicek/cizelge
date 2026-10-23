@@ -87,7 +87,7 @@ class Baglam:
         """Değişkeni döner; atama ya da gün/saat geçersizse anlaşılır bir GirdiHatasi fırlatır."""
         if atama_id not in self.atama:
             raise GirdiHatasi(f"Bilinmeyen ders ataması: {atama_id}")
-        if gun not in self.gunler or saat not in self.saatler:
+        if not self.girdi.ayar.aralikta(gun, saat):
             raise GirdiHatasi(f"Gün/saat okul ayarının dışında: gun={gun}, saat={saat}")
         return self.x[atama_id, gun, saat]
 

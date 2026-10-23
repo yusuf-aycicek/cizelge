@@ -1,6 +1,6 @@
 """Zorunlu kurallar: ihlal edilemezler, modele doğrudan kısıt olarak eklenirler.
 
-İlk beşi programın anlamını oluşturur ve her zaman uygulanır (TEMEL_KURALLAR).
+İlk altısı programın anlamını oluşturur ve her zaman uygulanır (TEMEL_KURALLAR).
 `GunlukDersSiniri` ve `OgretmenGunlukSiniri` okul geneli kurallardır, kayıt defterine kayıtlıdır ve parametresi
 `kisit` tablosundan değiştirilebilir; okul isterse günlük ders sınırını esnek de yapabilir.
 
@@ -78,6 +78,26 @@ class Gelemez(KisitKurali):
             for a in baglam.ogretmen_atamalari.get(m.ogretmen_id, []):
                 kisit = baglam.model.add(baglam.hucre(a.id, m.gun, m.saat) == 0)
                 baglam.grupla(kisit, "gelemez", m.ogretmen_id)
+        return []
+
+
+class GunUzunlugu(KisitKurali):
+    """Günün uzunluğunu aşan saatlere ders konmaz (ör. cuma 7 saatse 8. saat yoktur).
+
+    Değişkenler en uzun güne göre kurulur (`Baglam.saatler`); kısa günün sonundaki hücreler
+    burada 0'a sabitlenir. Böylece öteki kurallar her günü aynı biçimde dolaşır; CP-SAT ön
+    işlemesi sabit değişkenleri zaten modelden atar.
+    """
+
+    tur = "gun_uzunlugu"
+
+    def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
+        ayar = baglam.girdi.ayar
+        for g in baglam.gunler:
+            for s in range(ayar.saat_sayisi(g), len(baglam.saatler)):
+                for a in baglam.girdi.atamalar:
+                    kisit = baglam.model.add(baglam.x[a.id, g, s] == 0)
+                    baglam.grupla(kisit, "gun_uzunlugu", g)
         return []
 
 
@@ -169,5 +189,6 @@ TEMEL_KURALLAR: tuple[type[KisitKurali], ...] = (
     SinifCakismasi,
     OgretmenCakismasi,
     Gelemez,
+    GunUzunlugu,
     KilitliHucre,
 )

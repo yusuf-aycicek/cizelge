@@ -124,7 +124,7 @@ class _Kontrol:
         return sorunlar
 
     def _aralikta(self, gun: int, saat: int) -> bool:
-        return 0 <= gun < self.gun_sayisi and 0 <= saat < self.saat_sayisi
+        return self.girdi.ayar.aralikta(gun, saat)
 
     # --- kapasite ----------------------------------------------------------------------
 
@@ -157,7 +157,7 @@ class _Kontrol:
             ogretmenler = {a.ogretmen_id for a in atamalar}
             n = self.yuk.ders_siniri(sinif_id, ders_id)
             if None in ogretmenler:
-                gunluk = [n] * self.gun_sayisi
+                gunluk = [min(n, s) for s in self.yuk.gun_saatleri]
             else:
                 gunluk = [
                     min(n, sum(min(self._musait_saat(o)[g], self.yuk.ogretmen_siniri(o)) for o in ogretmenler))
@@ -201,7 +201,7 @@ class _Kontrol:
                 continue
             ders_saati = sum(a.haftalik_saat for a in atamalar)
             ogretmenler = {a.ogretmen_id for a in atamalar}
-            hucreler = [(g, s) for g in range(self.gun_sayisi) for s in range(self.saat_sayisi)]
+            hucreler = [(g, s) for g in range(self.gun_sayisi) for s in range(self.yuk.gun_saatleri[g])]
             kimse_yok = [h for h in hucreler if all((o, *h) in self._gelemez for o in ogretmenler)]
             ilgili = (sinif_id, *sorted(ogretmenler))
             ad = self.ad.sinif(sinif_id)
@@ -239,7 +239,7 @@ class _Kontrol:
             kapasite[kaynak][("ders", a.id)] += a.haftalik_saat
             for g in range(self.gun_sayisi):
                 kapasite[("ders", a.id)][("gun", a.id, g)] += self.yuk.ders_siniri(a.sinif_id, a.ders_id)
-                for s in range(self.saat_sayisi):
+                for s in range(self.yuk.gun_saatleri[g]):
                     if (a.ogretmen_id, g, s) not in self._gelemez:
                         kapasite[("gun", a.id, g)][("saat", g, s)] = 1
                         kapasite[("saat", g, s)][hedef] = 1

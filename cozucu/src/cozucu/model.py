@@ -44,18 +44,62 @@ def _negatif_olmasin(ad: str, deger: int) -> None:
 
 @dataclass(frozen=True)
 class OkulAyari:
+    """Okulun haftası.
+
+    `gunluk_ders_saati` en uzun gündür: çizelgenin satır sayısı ve günlük sınırların tavanı.
+    `gun_saatleri` günlere göre farklı ders saati sayısıdır (ör. cuma 7); boşsa her gün
+    `gunluk_ders_saati`. Günün uzunluğunun dışındaki saatler o gün yoktur.
+    `ogle_arasi_sonra`: öğle arası kaçıncı dersten sonra (ör. 4: 4. ile 5. ders arası); boşsa
+    yok. O günün dersi bu sayıdan fazla değilse o gün öğle arası yoktur.
+    """
+
     gun_sayisi: int
     gunluk_ders_saati: int
+    gun_saatleri: tuple[int, ...] = ()
+    ogle_arasi_sonra: int | None = None
 
     def __post_init__(self) -> None:
         if not 1 <= self.gun_sayisi <= 7:
             raise ValueError(f"gun_sayisi 1-7 arasında olmalı: {self.gun_sayisi}")
         if self.gunluk_ders_saati < 1:
             raise ValueError(f"gunluk_ders_saati en az 1 olmalı: {self.gunluk_ders_saati}")
+        # JSON'dan liste gelir; değişmez ve karşılaştırılabilir olsun diye demete çevrilir.
+        object.__setattr__(self, "gun_saatleri", tuple(self.gun_saatleri))
+        if self.gun_saatleri:
+            if len(self.gun_saatleri) != self.gun_sayisi:
+                raise ValueError(f"gun_saatleri {self.gun_sayisi} gün için olmalı: {self.gun_saatleri}")
+            if not all(1 <= s <= self.gunluk_ders_saati for s in self.gun_saatleri):
+                raise ValueError(f"gun_saatleri 1-{self.gunluk_ders_saati} arasında olmalı: {self.gun_saatleri}")
+        if self.ogle_arasi_sonra is not None and not 1 <= self.ogle_arasi_sonra < self.gunluk_ders_saati:
+            raise ValueError(f"ogle_arasi_sonra 1-{self.gunluk_ders_saati - 1} arasında olmalı: {self.ogle_arasi_sonra}")
+
+    def saat_sayisi(self, gun: int) -> int:
+        """O günün ders saati sayısı."""
+        return self.gun_saatleri[gun] if self.gun_saatleri else self.gunluk_ders_saati
+
+    @property
+    def gunluk_saatler(self) -> tuple[int, ...]:
+        return tuple(self.saat_sayisi(g) for g in range(self.gun_sayisi))
+
+    @property
+    def gunlere_gore_farkli(self) -> bool:
+        return len(set(self.gunluk_saatler)) > 1
+
+    def aralikta(self, gun: int, saat: int) -> bool:
+        """Bu hücre okulun haftasında var mı (gün kısaysa sonundaki saatler yoktur)."""
+        return 0 <= gun < self.gun_sayisi and 0 <= saat < self.saat_sayisi(gun)
+
+    def ogle_arasiyla_ayrilir(self, gun: int, saat: int) -> bool:
+        """`saat` ile `saat + 1` arasında o gün öğle arası var mı."""
+        return (
+            self.ogle_arasi_sonra is not None
+            and saat + 1 == self.ogle_arasi_sonra
+            and saat + 1 < self.saat_sayisi(gun)
+        )
 
     @property
     def haftalik_kapasite(self) -> int:
-        return self.gun_sayisi * self.gunluk_ders_saati
+        return sum(self.gunluk_saatler)
 
 
 @dataclass(frozen=True)

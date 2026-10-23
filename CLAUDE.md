@@ -191,9 +191,10 @@ Her ders ataması, gün ve saat üçlüsü için bir boolean değişken: "bu ata
 - Aynı dersin günde iki saati varsa arka arkaya olması.
 - Sınıfın programında boş saat bırakmama (dersler günün başından itibaren dolsun).
 - Öğretmene boş gün: parametre hedef boş gün sayısıdır (varsayılan 1; öğretmene özel olabilir).
-  Hedef gün = max(⌈toplam saat / günlük sınır⌉, gün sayısı − hedef boş gün); toplam saat ve
-  öğretmenin gelebildiği gün sayısıyla (bütün günü "gelemez" olmayan günler) sınırlı. Burada
-  günlük sınır = min(M, okulun günlük ders saati). Ceza = max(0, ders verilen gün − hedef gün).
+  Hedef gün = max(yükün sığdığı en az gün, gün sayısı − hedef boş gün); toplam saat ve
+  öğretmenin gelebildiği gün sayısıyla (bütün günü "gelemez" olmayan günler) sınırlı. Yükün
+  sığdığı en az gün: en uzun günlerden başlayarak günlük sınırların toplamı yükü karşılayana
+  kadar; günlük sınır = min(M, o günün ders saati). Günler eşitse ⌈toplam saat / günlük sınır⌉. Ceza = max(0, ders verilen gün − hedef gün).
   Hedef öğretmene özelse hedeften az gelmek de cezalıdır (iki yönlü; "boş günüm olmasın").
   Hedefe ulaşan öğretmen daha fazla sıkıştırılmaz. Yükü ya da müsaitliği yüzünden hedef mümkün
   olmayan öğretmene ceza yazılmaz.

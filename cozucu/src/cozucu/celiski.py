@@ -41,7 +41,7 @@ from cozucu.model import (
 )
 
 # Maddelerin mesajdaki sırası: önce kişiye/zamana bağlı kurallar, en son ders saatleri.
-_SIRA = ("gelemez", "ogretmen_gunluk", "kilit", "gunluk_ders", "haftalik_saat")
+_SIRA = ("gun_uzunlugu", "gelemez", "ogretmen_gunluk", "kilit", "gunluk_ders", "haftalik_saat")
 
 
 def celiskileri_bul(
@@ -134,7 +134,10 @@ def _anlat(girdi: CozumGirdisi, cekirdek: list[GrupAnahtari]) -> Celiski:
     for anahtar in cekirdek:
         tur, *p = anahtar
         sira = _SIRA.index(str(tur))
-        if tur == "gelemez":
+        if tur == "gun_uzunlugu":
+            g = int(p[0])
+            maddeler.append((sira, (g,), f"{ad.gun(g)} {girdi.ayar.saat_sayisi(g)} saat"))
+        elif tur == "gelemez":
             maddeler.append((sira, (), f"{iyelik(ad.ogretmen(p[0]))} gelemez saatleri"))
             ilgili.append(p[0])
         elif tur == "ogretmen_gunluk":

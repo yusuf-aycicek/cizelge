@@ -106,7 +106,8 @@ class ArdisikDers(EsnekKural):
     """Bir dersin aynı gündeki saatleri tek blok halinde olmalı.
 
     Ceza = o günkü blok sayısı - 1 = toplam saat - bitişik çift sayısı - 1 (en az 0).
-    Günde en fazla 2 saatlik derslerde bu, "bitişik olmayan çift ders" sayısıdır.
+    Günde en fazla 2 saatlik derslerde bu, "bitişik olmayan çift ders" sayısıdır. Öğle arasının
+    iki yanındaki saatler bitişik sayılmaz (ders öğle arasıyla bölünmüştür).
     (sınıf, ders) çifti bazında sayılır (günlük sınır kuralıyla aynı gerekçe).
     """
 
@@ -120,6 +121,8 @@ class ArdisikDers(EsnekKural):
                 dolu = [baglam.dolu(atamalar, g, s) for s in saatler]
                 bitisik = []
                 for s in saatler[:-1]:
+                    if baglam.girdi.ayar.ogle_arasiyla_ayrilir(g, s):
+                        continue  # öğle arasının iki yanındaki saatler bitişik sayılmaz
                     b = baglam.model.new_bool_var("")
                     baglam.model.add(b <= dolu[s])
                     baglam.model.add(b <= dolu[s + 1])

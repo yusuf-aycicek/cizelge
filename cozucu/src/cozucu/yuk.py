@@ -5,12 +5,12 @@ Bu hesabın tek kaynağı burasıdır (ADR 0015). İki kullanıcısı vardır:
 - API'nin ders dağılımı özeti: arayüz, veri girilirken aynı sonucu erken uyarı olarak gösterir.
 
 Kurallar:
-- Öğretmenin bir gündeki müsait saati: okulun günlük ders saati eksi o gün "gelemez" işaretli
-  saatleri. "Tercih etmez" saatler müsait sayılır (esnek kural).
+- Öğretmenin bir gündeki müsait saati: o günün ders saati sayısı (günler farklı uzunlukta
+  olabilir, ör. cuma 7) eksi o gün "gelemez" işaretli saatleri. "Tercih etmez" saatler müsait sayılır (esnek kural).
 - Kullanılabilir saat: her gün için müsait saat ile öğretmenin günlük ders sınırının (M) küçüğü,
   haftalık toplamı. M zorunlu değilse (esnek tanımlanmışsa) günlük ders saati kadar kabul edilir.
   M öğretmene, N derse ya da şubeye özel olabilir (ADR 0016): her varlık kendi değeriyle sayılır.
-- Sınıfın kapasitesi: gün sayısı × günlük ders saati.
+- Sınıfın kapasitesi: günlerin ders saatleri toplamı (her gün aynıysa gün sayısı × günlük ders saati).
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ class OgretmenYuku:
 class SinifYuku:
     sinif_id: str
     ders_saati: int
-    kapasite: int  # haftalık kapasite: gün sayısı × günlük ders saati
+    kapasite: int  # haftalık kapasite: günlerin ders saatleri toplamı
     ogretmensiz_atama: int  # öğretmeni seçilmemiş atama sayısı
     atama_idleri: tuple[str, ...] = ()
 
@@ -66,7 +66,8 @@ class YukHesabi:
         self.girdi = girdi
         self.ad = Anlatim(girdi)
         self.gun_sayisi = girdi.ayar.gun_sayisi
-        self.saat_sayisi = girdi.ayar.gunluk_ders_saati
+        self.saat_sayisi = girdi.ayar.gunluk_ders_saati  # en uzun gün: günlük sınırların tavanı
+        self.gun_saatleri = girdi.ayar.gunluk_saatler
         n = girdi.zorunlu_parametre(GUNLUK_DERS_SINIRI_TURU, "n", VARSAYILAN_GUNLUK_DERS_SINIRI)
         m = girdi.zorunlu_parametre(OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI)
         # Okul geneli değerler. Esnek tanımlanmış sınır zorunlu kontrol gerektirmez: gün uzunluğu
@@ -78,11 +79,11 @@ class YukHesabi:
         self.gelemez = {
             (mu.ogretmen_id, mu.gun, mu.saat)
             for mu in girdi.musaitlikler
-            if mu.durum is MusaitlikDurumu.GELEMEZ and mu.gun < self.gun_sayisi and mu.saat < self.saat_sayisi
+            if mu.durum is MusaitlikDurumu.GELEMEZ and girdi.ayar.aralikta(mu.gun, mu.saat)
         }
         gelemez_gunluk = Counter((o, g) for o, g, _s in self.gelemez)
         self._musait = {
-            o: [self.saat_sayisi - gelemez_gunluk[o, g] for g in range(self.gun_sayisi)]
+            o: [self.gun_saatleri[g] - gelemez_gunluk[o, g] for g in range(self.gun_sayisi)]
             for o in {o for o, _g, _s in self.gelemez}
         }
 
@@ -104,7 +105,7 @@ class YukHesabi:
 
     def musait_saat(self, ogretmen_id: str) -> list[int]:
         """Her gün için öğretmenin gelemez olmadığı saat sayısı."""
-        return self._musait.get(ogretmen_id, [self.saat_sayisi] * self.gun_sayisi)
+        return self._musait.get(ogretmen_id, list(self.gun_saatleri))
 
     # --- öğretmen ------------------------------------------------------------------------
 
@@ -167,8 +168,20 @@ class YukHesabi:
             return None
         return (
             f"{self.ad.sinif(yuk.sinif_id)} sınıfının haftada {yuk.ders_saati} saat dersi var, haftalık "
-            f"kapasite {yuk.kapasite} saat ({self.gun_sayisi} gün × {self.saat_sayisi} saat)."
+            f"kapasite {yuk.kapasite} saat ({kapasite_metni(self.gun_saatleri)})."
         )
+
+
+def kapasite_metni(gun_saatleri: tuple[int, ...]) -> str:
+    """"5 gün × 8 saat"; günler farklıysa çoğunluk ve ayrılan günler: "4 gün × 8 saat, Cuma 7 saat"."""
+    from cozucu.anlatim import Anlatim
+
+    sayac = Counter(gun_saatleri)
+    # Çoğunluk uzunluğu; eşitlikte uzun olan (genellikle "normal" gün odur).
+    cogu = max(sayac, key=lambda s: (sayac[s], s))
+    parcalar = [f"{sayac[cogu]} gün × {cogu} saat"]
+    parcalar += [f"{Anlatim.gun(g)} {s} saat" for g, s in enumerate(gun_saatleri) if s != cogu]
+    return ", ".join(parcalar)
 
 
 def _grupla(atamalar: list[DersAtama], anahtar) -> dict:
@@ -182,10 +195,12 @@ def _grupla(atamalar: list[DersAtama], anahtar) -> dict:
 class BosGunHedefi:
     """Bir öğretmenin haftada kaç gün gelmesi hedefleniyor (CLAUDE.md bölüm 7, ADR 0016).
 
-    `gun`: max(⌈yük / günlük sınır⌉, gün sayısı − hedef boş gün), sonra yük, gün sayısı ve
+    `gun`: max(yükün sığdığı en az gün, gün sayısı − hedef boş gün), sonra yük, gün sayısı ve
     öğretmenin **gelebildiği gün sayısıyla** sınırlı: 3 saat dersi olan öğretmen 4 gün gelemez;
     bütün günü "gelemez" olan gün zaten boş gündür (o gün için ceza kaçınılmaz olurdu). Günlük
-    sınır = min(M, günlük ders saati); M öğretmene özel olabilir.
+    sınır = min(M, o günün ders saati); M öğretmene özel olabilir. Yükün sığdığı en az gün: en uzun
+    günlerden başlayarak günlük sınırlar toplamı yükü karşılayana kadar (günler eşitse
+    ⌈yük / günlük sınır⌉).
     `iki_yonlu`: hedef bu öğretmene özel tanımlıysa, hedeften **az** gün gelmek de cezalıdır
     ("boş günüm olmasın" ancak öğretmenin açık isteğiyse anlamlıdır; okul geneli hedefte
     öğretmeni daha çok güne yaymak pencereyi artırırdı).
@@ -197,16 +212,28 @@ class BosGunHedefi:
 
 def bos_gun_hedefi(girdi: CozumGirdisi, ogretmen_id: str, yuk: int) -> BosGunHedefi:
     """Tek kaynak: çözücüdeki boş gün kuralı ve kalite ölçümü bunu kullanır."""
-    gun_sayisi, saat_sayisi = girdi.ayar.gun_sayisi, girdi.ayar.gunluk_ders_saati
+    ayar = girdi.ayar
+    gun_sayisi = ayar.gun_sayisi
     m = girdi.parametre(OGRETMEN_GUNLUK_SINIRI_TURU, "m", VARSAYILAN_OGRETMEN_GUNLUK_SINIRI, ogretmen_id=ogretmen_id)
-    gunluk_sinir = max(1, min(m, saat_sayisi))
     hedef_bos = girdi.parametre(BOS_GUN_TURU, "hedef_bos_gun", VARSAYILAN_HEDEF_BOS_GUN, ogretmen_id=ogretmen_id)
-    gun = max(-(-yuk // gunluk_sinir), gun_sayisi - hedef_bos)
+    gun = max(_en_az_gun(yuk, [max(1, min(m, s)) for s in ayar.gunluk_saatler]), gun_sayisi - hedef_bos)
     gelemez = {(m.gun, m.saat) for m in girdi.musaitlikler
                if m.ogretmen_id == ogretmen_id and m.durum is MusaitlikDurumu.GELEMEZ
-               and m.gun < gun_sayisi and m.saat < saat_sayisi}
-    gelebildigi_gun = sum(1 for g in range(gun_sayisi) if sum(1 for gg, _s in gelemez if gg == g) < saat_sayisi)
+               and ayar.aralikta(m.gun, m.saat)}
+    gelebildigi_gun = sum(
+        1 for g in range(gun_sayisi) if sum(1 for gg, _s in gelemez if gg == g) < ayar.saat_sayisi(g)
+    )
     gun = max(0, min(gun, yuk, gun_sayisi, gelebildigi_gun))
     ozeller = [t for t in girdi.kisitlar if t.tur == BOS_GUN_TURU and not t.kapsam.okul_mu]
     ozel = cozumle(ozeller, girdi.varlik(ogretmen_id=ogretmen_id)) is not None
     return BosGunHedefi(gun=gun, iki_yonlu=ozel)
+
+
+def _en_az_gun(yuk: int, gunluk_sinirlar: list[int]) -> int:
+    """Yükün sığdığı en az gün sayısı: en geniş günlerden başlayarak (sığmıyorsa bütün günler)."""
+    toplam = 0
+    for adet, sinir in enumerate(sorted(gunluk_sinirlar, reverse=True), start=1):
+        toplam += sinir
+        if toplam >= yuk:
+            return adet
+    return len(gunluk_sinirlar)
