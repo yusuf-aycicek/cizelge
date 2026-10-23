@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { CalendarRange, Check, CircleX, LoaderCircle, Sparkles, TableProperties, WandSparkles } from "lucide-react";
+import { CalendarRange, Check, CircleAlert, CircleX, LoaderCircle, Sparkles, TableProperties, WandSparkles } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { hataMetni } from "../api/hata";
@@ -15,7 +15,7 @@ import sayfaStili from "../sayfalar/Sayfa.module.css";
 import { ASAMALAR, asamaBul, celiskileriGrupla, etkinMi, sureMetni, type Celiski, type Program } from "./aciklama";
 import { KaliteOzeti } from "./KaliteOzeti";
 import stil from "./Program.module.css";
-import { sonProgram, useOnKontrol, useProgramlar, useProgramUret } from "./veri";
+import { sonHazirProgram, sonProgram, useOnKontrol, useProgramlar, useProgramUret } from "./veri";
 
 const SURELER = [
   { sn: 30, ad: "Hızlı", aciklama: "30 saniye. Denemek için." },
@@ -37,12 +37,15 @@ const DURUM_ADLARI: Record<string, string> = {
  * Program sayfası: oluşturma, bekleme, sonuç ve önceki programlar.
  *
  * Ekran tamamen sunucudaki son programın durumundan türetilir (ayrı bir "adım" state'i yok):
- * etkin üretim varsa bekleme paneli, yoksa oluşturma kartı; son program başarısızsa nedeni, hazırsa
- * kalite özeti ve çizelge bağlantısı. Sayfa yenilense ya da başka sekmede açılsa da aynı ekran gelir.
+ * etkin üretim varsa bekleme paneli, yoksa oluşturma kartı. Hazır bir program varsa (en yenisi) o öne
+ * çıkar; ondan sonraki deneme başarısızsa yalnızca sade, açılabilir bir uyarıdır (kullanıcının elinde
+ * çalışan bir program var). Hiç hazır program yoksa başarısız denemenin nedeni büyük panelde.
+ * Sayfa yenilense ya da başka sekmede açılsa da aynı ekran gelir.
  */
 export function ProgramSayfasi() {
   const programlar = useProgramlar();
   const son = sonProgram(programlar.data);
+  const hazir = sonHazirProgram(programlar.data);
 
   return (
     <>
@@ -62,8 +65,9 @@ export function ProgramSayfasi() {
             <BeklemePaneli program={son} />
           ) : (
             <>
-              {son?.durum === "hazir" && <HazirPaneli program={son} />}
-              {son?.durum === "basarisiz" && <BasarisizPaneli program={son} />}
+              {hazir && <HazirPaneli program={hazir} />}
+              {son?.durum === "basarisiz" &&
+                (hazir ? <SonDenemeUyarisi program={son} /> : <BasarisizPaneli program={son} />)}
               <OlusturKarti sira={(programlar.data?.length ?? 0) + 1} yeniden={Boolean(son)} />
             </>
           )}
@@ -315,15 +319,42 @@ function BasarisizPaneli({ program }: { program: Program }) {
           <p className={stil.hazirZaman}>Aşağıdaki sorunları düzeltip yeniden deneyin.</p>
         </div>
       </div>
-      {(program.celiskiler ?? []).length > 0 ? (
-        <CeliskiGruplari celiskiler={program.celiskiler ?? []} />
-      ) : (
-        <ul className={stil.celiskiGrubu}>
-          {(program.hata_mesaji ?? "Program oluşturulamadı.").split("\n").map((satir) => (
-            <li key={satir}>{satir}</li>
-          ))}
-        </ul>
-      )}
+      <BasarisizNedeni program={program} />
+    </section>
+  );
+}
+
+/** Başarısız üretimin nedeni: çelişkiler gruplu; yoksa sunucunun mesajı satır satır. */
+function BasarisizNedeni({ program }: { program: Program }) {
+  return (program.celiskiler ?? []).length > 0 ? (
+    <CeliskiGruplari celiskiler={program.celiskiler ?? []} />
+  ) : (
+    <ul className={stil.celiskiGrubu}>
+      {(program.hata_mesaji ?? "Program oluşturulamadı.").split("\n").map((satir) => (
+        <li key={satir}>{satir}</li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Hazır programdan sonraki başarısız deneme: sade bir uyarı, nedeni açılır (<details>). Doğal
+ * <details>/<summary> klavyeyle açılır kapanır; ekran okuyucu "daraltılmış/genişletilmiş" der.
+ */
+function SonDenemeUyarisi({ program }: { program: Program }) {
+  return (
+    <section aria-labelledby="son-deneme-baslik" className={stil.sonDeneme}>
+      <p id="son-deneme-baslik" className={stil.sonDenemeBaslik}>
+        <CircleAlert aria-hidden="true" />
+        <span>
+          Son deneme “{program.ad}” oluşturulamadı{program.bitis ? ` (${tarih(program.bitis)})` : ""}. Hazır program
+          yukarıda; yeni bir deneme için aşağıdaki sorunları düzeltin.
+        </span>
+      </p>
+      <details className={stil.sonDenemeAyrinti}>
+        <summary>Nedenini göster</summary>
+        <BasarisizNedeni program={program} />
+      </details>
     </section>
   );
 }

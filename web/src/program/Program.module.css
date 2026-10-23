@@ -431,3 +431,37 @@ ul.celiskiGrubu {
 .tekSatir {
   white-space: nowrap;
 }
+
+/* Hazır programdan sonraki başarısız deneme: sade uyarı (büyük kırmızı panel değil). */
+.sonDeneme {
+  border: 1px solid var(--renk-kenar);
+  border-inline-start: 4px solid var(--renk-uyari-metin);
+  border-radius: var(--kose);
+  background: var(--renk-zemin);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  margin-bottom: var(--bosluk-5);
+}
+.sonDenemeBaslik {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-2);
+  margin: 0;
+}
+.sonDenemeBaslik svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--renk-uyari-metin);
+}
+.sonDenemeAyrinti {
+  margin-top: var(--bosluk-2);
+  padding-inline-start: calc(1.2rem + var(--bosluk-2));
+}
+.sonDenemeAyrinti summary {
+  cursor: pointer;
+  color: var(--renk-birincil);
+  font-weight: var(--yazi-kalin);
+  min-height: var(--dokunma-hedefi);
+  display: list-item;
+}

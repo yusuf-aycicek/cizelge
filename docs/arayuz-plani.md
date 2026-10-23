@@ -329,7 +329,8 @@ Uygulama sırası (kullanıcı kararı; her alt adımın sonunda kullanıcıya s
 | D3 | Sol menü masaüstünde yapışkan (sticky) | Bitti: menü listesi `position: sticky`, üst çubuğun altında; ekrandan uzunsa kendi içinde kayar; telefonda değişmedi |
 | D4 | Programlar tablosu 800 px'te sığar; taşma denetimine 800 px | Bitti: oluşturma ve süre tek sütunda, uzun ad kırılır. Taşma denetimi 800 px'i de dener ve artık **kutu içi yana kaymayı** da yakalar (eski sürüm yalnızca sayfa taşmasına bakıyordu, bu hatayı göremezdi). Yeni denetim 800 px'te öğretmenler, dersler, şablon ve ders dağılımı tablolarında da kayma buldu; düzeltildi: tablo kutusu container query ile dar alanda sıkışır, tablo hücresindeki çip satır kırar, ders dağılımında 64rem altında şube listesi üste alınır. Bilerek kayan haftalık çizelge `data-kaydirilabilir` ile işaretli. Denetime hazır bir program ve çizelgesi de eklendi |
 | D5 | Uygulamanın adı "Çizelge" | Bitti: ad tek yerde (`web/src/urun.ts`); üst çubuk, giriş/kayıt sayfası (altında "Okul Ders Programı Oluşturma Sistemi"), sekme başlığı, API başlığı, README ve CLAUDE.md |
-| D6 | Program sayfası: hazır program öne, son başarısız deneme sade ve açılabilir | **Sıradaki** |
+| D6 | Program sayfası: hazır program öne, son başarısız deneme sade ve açılabilir | Bitti: en yeni hazır program önde; ondan sonraki başarısız deneme sade uyarı, nedeni `<details>` ile açılır; hiç hazır program yoksa büyük panel |
+| D7 | Deneme verisi temizliği: betiklerin (taşma, ekran görüntüsü) açtığı deneme okulları silinir | **Sıradaki** |
 | K2 + 5.5 | Öğretmene özel boş gün ve müsaitlik çizelgesi: öğretmen detay sayfası | |
 | K3 | Günlere göre ders saati ve öğle arası | |
 | K4 | Blok dersler | |

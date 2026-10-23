@@ -132,6 +132,35 @@ describe("program oluşturma", () => {
     expect(within(panel).getByRole("link", { name: "Şule Kaya" })).toHaveAttribute("href", "/ders-dagilimi?gorunum=ogretmen");
   });
 
+  it("hazır program varsa o öne çıkar; sonraki başarısız deneme sade uyarı, nedeni açılınca görünür", async () => {
+    hazirVeri();
+    const basarisiz = program({
+      id: "p2", ad: "Program 2", durum: "basarisiz", bitis: "2026-10-24T10:00:00Z",
+      celiskiler: [{ tur: "ders_gun_kapasitesi", mesaj: "9-A Matematik günlere sığmıyor.", ilgili: [] }],
+    });
+    programApisi([[HAZIR, basarisiz]]);
+    const { kullanici } = uygulamayiCiz("/program");
+    const hazir = await screen.findByRole("region", { name: "“Program 1” hazır" });
+    const uyari = screen.getByRole("region", { name: /Son deneme “Program 2” oluşturulamadı/ });
+    // Hazır panel önce gelir; büyük kırmızı panel yok.
+    expect(hazir.compareDocumentPosition(uyari) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "“Program 2” oluşturulamadı" })).toBeNull();
+    // Ayrıntı kapalı başlar, açılınca neden görünür.
+    const ozet = within(uyari).getByText("Nedenini göster");
+    expect(ozet.closest("details")).not.toHaveAttribute("open");
+    await kullanici.click(ozet);
+    expect(ozet.closest("details")).toHaveAttribute("open");
+    expect(within(uyari).getByText("9-A Matematik günlere sığmıyor.")).toBeVisible();
+  });
+
+  it("hiç hazır program yoksa başarısız deneme büyük panelde", async () => {
+    hazirVeri();
+    programApisi([[program({ durum: "basarisiz", hata_mesaji: "Süre yetmedi." })]]);
+    uygulamayiCiz("/program");
+    expect(await screen.findByRole("region", { name: "“Program 1” oluşturulamadı" })).toBeInTheDocument();
+    expect(screen.queryByText(/Son deneme/)).toBeNull();
+  });
+
   it("çelişki listesi yoksa sunucunun mesajı satır satır gösterilir", async () => {
     hazirVeri();
     programApisi([[program({ durum: "basarisiz", hata_mesaji: "Süre yetmedi.\nDaha uzun süre deneyin." })]]);
