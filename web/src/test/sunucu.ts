@@ -45,6 +45,14 @@ export const ORNEK_KURALLAR: Kural[] = [
   { ...esnek("bos_gun", "Öğretmene boş gün", 4), parametreler: { hedef_bos_gun: 1 }, varsayilan_parametreler: { hedef_bos_gun: 1 }, kapsamlar: ["ogretmen"] },
   esnek("ogretmen_penceresi", "Öğretmenin boş (pencere) saatleri", 3),
   esnek("ardisik_ders", "Bir dersin saatleri arka arkaya", 2),
+  // İkincil kurallar (K6). Eski testler sıra numarasıyla eriştiği için sona eklendi.
+  { ...esnek("ders_saat_tercihi", "Dersin saat tercihi", 3), kapsamlar: ["ders", "sube", "sube_grubu"], zorunlu_eksenler: ["ders"] },
+  { ...esnek("gunluk_en_az_ders", "Öğretmen bir iki saat için gelmesin", 3), parametreler: { k: 2 }, varsayilan_parametreler: { k: 2 },
+    kapsamlar: ["ogretmen"] },
+  { ...esnek("ders_yayilimi", "Aynı ders günlere yayılsın", 2), parametreler: { yayilsin: true }, varsayilan_parametreler: { yayilsin: true },
+    kapsamlar: ["ders", "sube", "sube_grubu"] },
+  { ...sayili("haftalik_yuk", "Öğretmenin haftalık ders yükü", "Eşiklerin dışındaki öğretmen uyarılır.", "alt", 0),
+    parametreler: { alt: 0, ust: 0 }, varsayilan_parametreler: { alt: 0, ust: 0 } },
 ];
 
 function sayili(tur: string, ad: string, aciklama: string, p: string, v: number): Kural {

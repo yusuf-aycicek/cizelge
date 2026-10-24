@@ -22,7 +22,7 @@ import { SEKILLER_ANAHTARI, desenOku } from "../dersler/desen";
 import { dersKaynagi, ogretmenKaynagi, sinifKaynagi } from "../listeler/kaynaklar";
 import { useSubeGruplari } from "../listeler/SubeGruplari";
 import { turkceSirala } from "../metin";
-import { ozelAyarMetni } from "./OzelAyarlarOzeti";
+import { okulDegeri as okulDegerMetni, ozelAyarMetni } from "./OzelAyarlarOzeti";
 import stil from "./Okul.module.css";
 
 type Kural = components["schemas"]["KuralYanit"];
@@ -51,11 +51,17 @@ export function gecerliKapsamlar(kural: Pick<Kural, "kapsamlar" | "zorunlu_eksen
 }
 
 /** Kuralın özel değeri: hangi parametre, nasıl sorulur. Burada olmayan kural listelenmez. */
-const DEGERLER: Record<string, { parametre: string; etiket: string; tip: "sayi" | "bos_gun" | "desen" }> = {
+type DegerTipi = "sayi" | "bos_gun" | "desen" | "saat_tercihi" | "acik_kapali" | "esikler";
+const DEGERLER: Record<string, { parametre: string; etiket: string; tip: DegerTipi }> = {
   gunluk_ders_siniri: { parametre: "n", etiket: "Aynı ders günde en çok kaç saat", tip: "sayi" },
   ogretmen_gunluk_siniri: { parametre: "m", etiket: "Günde en çok kaç saat derse girer", tip: "sayi" },
   bos_gun: { parametre: "hedef_bos_gun", etiket: "Haftada kaç boş gün", tip: "bos_gun" },
   blok_deseni: { parametre: "desen", etiket: "Dağılım şekli", tip: "desen" },
+  // İkincil kurallar (K6).
+  ders_saat_tercihi: { parametre: "saatler", etiket: "Saatler", tip: "saat_tercihi" },
+  gunluk_en_az_ders: { parametre: "k", etiket: "Geldiği günde en az kaç ders (1: sınır yok)", tip: "sayi" },
+  ders_yayilimi: { parametre: "yayilsin", etiket: "Art arda günler", tip: "acik_kapali" },
+  haftalik_yuk: { parametre: "alt", etiket: "Haftalık ders yükü", tip: "esikler" },
 };
 
 const EKSEN_SUTUNU = { ders: "ders_id", sube: "sinif_id", sube_grubu: "sube_grubu_id", ogretmen: "ogretmen_id" } as const;
@@ -63,6 +69,7 @@ const EKSEN_SUTUNU = { ders: "ders_id", sube: "sinif_id", sube_grubu: "sube_grub
 /** Okul geneli değer, cümle içinde: "okul geneli 2" ya da dağılım şeklinde "okulun önerisi". */
 function okulDegeri(kural: Kural): string {
   if (kural.tur === "blok_deseni") return "okulun önerdiği dağılım şekli";
+  if (DEGERLER[kural.tur]?.tip !== "sayi" && DEGERLER[kural.tur]?.tip !== "bos_gun") return okulDegerMetni(kural);
   const d = DEGERLER[kural.tur];
   return d ? `okul geneli: ${String(kural.parametreler[d.parametre])}` : "okul geneli";
 }
@@ -82,7 +89,9 @@ export function etkiCumleleri(kural: Kural, kapsamAdi: string, etki: Etki): stri
   return cumleler;
 }
 
-export function OzelAyarEkle({ kurallar, gunlukDersSaati, onKapat }: { kurallar: Kural[]; gunlukDersSaati: number; onKapat: () => void }) {
+export function OzelAyarEkle({ kurallar, gunlukDersSaati, ogleArasiSonra, onKapat }: {
+  kurallar: Kural[]; gunlukDersSaati: number; ogleArasiSonra?: number | null; onKapat: () => void;
+}) {
   const istemci = useQueryClient();
   const bildirim = useBildirim();
   const ogretmenler = useQuery({ queryKey: ogretmenKaynagi.anahtar, queryFn: ogretmenKaynagi.listele });
@@ -102,6 +111,10 @@ export function OzelAyarEkle({ kurallar, gunlukDersSaati, onKapat }: { kurallar:
   const [kapsamAnahtari, setKapsamAnahtari] = useState("");
   const [secim, setSecim] = useState<Partial<Record<Eksen, string>>>({});
   const [deger, setDeger] = useState("");
+  // Saat tercihi: istenen ya da istenmeyen saatler (0'dan başlar). Yük eşikleri: alt ve üst.
+  const [saatTuru, setSaatTuru] = useState<"saatler" | "kacin">("saatler");
+  const [saatler, setSaatler] = useState<number[]>([]);
+  const [esik, setEsik] = useState({ alt: "0", ust: "0" });
   const [hata, setHata] = useState<string>();
 
   const kural = uygunKurallar.find((k) => k.tur === tur);
@@ -124,7 +137,7 @@ export function OzelAyarEkle({ kurallar, gunlukDersSaati, onKapat }: { kurallar:
   });
 
   const kaydet = useMutation({
-    mutationFn: (parametreler: Record<string, number | number[]>) =>
+    mutationFn: (parametreler: Record<string, number | number[] | boolean>) =>
       cagir(api.PUT("/api/ders-programi/kurallar/{tur}/ozel", { params: { path: { tur } }, body: { kapsam, parametreler } })),
     onSuccess: async (yanit) => {
       await istemci.invalidateQueries({ queryKey: ["kurallar"] });
@@ -142,6 +155,9 @@ export function OzelAyarEkle({ kurallar, gunlukDersSaati, onKapat }: { kurallar:
     const k = uygunKurallar.find((x) => x.tur === yeniTur);
     const d = DEGERLER[yeniTur];
     setDeger(k && d && d.tip !== "desen" ? String(k.parametreler[d.parametre]) : "");
+    setSaatTuru("saatler");
+    setSaatler([]);
+    setEsik({ alt: String(k?.parametreler.alt ?? 0), ust: String(k?.parametreler.ust ?? 0) });
     setKapsamAnahtari("");
     setSecim({});
     setHata(undefined);
@@ -156,6 +172,17 @@ export function OzelAyarEkle({ kurallar, gunlukDersSaati, onKapat }: { kurallar:
       const desen = desenOku(deger);
       if (desen === null) return setHata("Dağılım şeklini 2+2+1 biçiminde ya da \"blok yok\" olarak yazın.");
       return kaydet.mutate({ [d.parametre]: desen });
+    }
+    if (d.tip === "saat_tercihi") {
+      if (saatler.length === 0) return setHata("En az bir saat seçin.");
+      return kaydet.mutate({ [saatTuru]: saatler });
+    }
+    if (d.tip === "acik_kapali") return kaydet.mutate({ yayilsin: deger !== "false" });
+    if (d.tip === "esikler") {
+      const alt = Number(esik.alt), ust = Number(esik.ust);
+      if (![alt, ust].every((x) => Number.isInteger(x) && x >= 0 && x <= 60)) return setHata("Eşikler 0 ile 60 arasında olmalı (0: eşik yok).");
+      if (alt && ust && alt > ust) return setHata("Alt eşik üst eşikten büyük olamaz.");
+      return kaydet.mutate({ alt, ust });
     }
     const sayi = Number(deger);
     const enCok = d.tip === "bos_gun" ? 2 : gunlukDersSaati;
@@ -210,12 +237,56 @@ export function OzelAyarEkle({ kurallar, gunlukDersSaati, onKapat }: { kurallar:
             <option value="2">2 boş gün</option>
           </SecimAlani>
         )}
+        {d?.tip === "acik_kapali" && (
+          <SecimAlani etiket={d.etiket} value={deger} onChange={(o) => setDeger(o.target.value)}>
+            <option value="true">Art arda günlere konmasın (günlere yayılsın)</option>
+            <option value="false">Art arda günlere konabilir</option>
+          </SecimAlani>
+        )}
+        {d?.tip === "esikler" && (
+          <>
+            <MetinAlani etiket="Alt eşik (saat, 0: yok)" type="number" inputMode="numeric" min={0} max={60} value={esik.alt}
+              aciklama="Ör. maaş karşılığı" onChange={(o) => setEsik({ ...esik, alt: o.target.value })} />
+            <MetinAlani etiket="Üst eşik (saat, 0: yok)" type="number" inputMode="numeric" min={0} max={60} value={esik.ust}
+              aciklama="Ör. ek ders sınırı" onChange={(o) => setEsik({ ...esik, ust: o.target.value })} />
+          </>
+        )}
         {d?.tip === "desen" && (
           <MetinAlani etiket={d.etiket} placeholder="2+2+1 ya da blok yok" value={deger}
             aciklama="Toplamı dersin haftalık saatine eşit olmalı; uymayan şube program sayfasında söylenir."
             onChange={(o) => setDeger(o.target.value)} />
         )}
       </div>
+      {d?.tip === "saat_tercihi" && (
+        <fieldset className={stil.saatTercihi}>
+          <legend>Dersin saatleri</legend>
+          <div className={stil.secenekler}>
+            <label className={stil.secenek}>
+              <input type="radio" name="saat-turu" checked={saatTuru === "saatler"} onChange={() => setSaatTuru("saatler")} />
+              Yalnızca seçilen saatlerde olsun
+            </label>
+            <label className={stil.secenek}>
+              <input type="radio" name="saat-turu" checked={saatTuru === "kacin"} onChange={() => setSaatTuru("kacin")} />
+              Seçilen saatlerde olmasın
+            </label>
+          </div>
+          <div className={stil.saatKutulari}>
+            {Array.from({ length: gunlukDersSaati }, (_, s) => (
+              <label key={s} className={stil.secenek}>
+                <input type="checkbox" checked={saatler.includes(s)}
+                  onChange={(o) => setSaatler(o.target.checked ? [...saatler, s].sort((a, b) => a - b) : saatler.filter((x) => x !== s))} />
+                {s + 1}. ders{ogleArasiSonra && s === ogleArasiSonra ? " (öğle arasından hemen sonra)" : ""}
+              </label>
+            ))}
+          </div>
+          {ogleArasiSonra ? (
+            <Dugme tur="metin" type="button" onClick={() => { setSaatTuru("saatler"); setSaatler(Array.from({ length: ogleArasiSonra }, (_, s) => s)); }}>
+              Sabah saatlerini seç (öğle arasından önce)
+            </Dugme>
+          ) : null}
+          <p className={stil.aciklama}>Esnek kuraldır: program olabildiğince uyar, başka bir zorunluluk varsa ayrılabilir.</p>
+        </fieldset>
+      )}
       {kural && tamam && etki.data && (
         <div className={stil.etkiKutusu} role="status" aria-label="Bu ayarın etkisi">
           {etkiCumleleri(kural, kapsamAdi, etki.data).map((c) => (

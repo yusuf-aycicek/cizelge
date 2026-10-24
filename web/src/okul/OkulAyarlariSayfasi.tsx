@@ -69,8 +69,10 @@ export function OkulAyarlariSayfasi() {
           <KurallarBolumu key={JSON.stringify(kurallar.data)} okul={okul.data} kurallar={kurallar.data} />
           <BlokBolumu key={`blok-${JSON.stringify(kurallar.data)}`} kurallar={kurallar.data} okul={okul.data}
             onKaydet={() => kurallar.refetch()} />
-          <OzelAyarlarOzeti kurallar={kurallar.data} gunlukDersSaati={okul.data.gunluk_ders_saati} />
-          <OnemBolumu key={`onem-${JSON.stringify(kurallar.data)}`} kurallar={kurallar.data} />
+          <OzelAyarlarOzeti kurallar={kurallar.data} gunlukDersSaati={okul.data.gunluk_ders_saati}
+            ogleArasiSonra={okul.data.ogle_arasi_sonra} />
+          <OnemBolumu key={`onem-${JSON.stringify(kurallar.data)}`} kurallar={kurallar.data}
+            gunlukDersSaati={okul.data.gunluk_ders_saati} />
         </>
       )}
     </>
@@ -391,37 +393,84 @@ function KurallarBolumu({ okul, kurallar }: { okul: Okul; kurallar: Kural[] }) {
 
 // --- gelişmiş: esnek kuralların önemi ---------------------------------------------------------
 
-function OnemBolumu({ kurallar }: { kurallar: Kural[] }) {
+/** Gelişmiş bölümde önemin yanında okul değeri ayarlanan ikincil kurallar (K6) ve yük eşikleri. */
+type IkincilDegerler = { k: string; yayilsin: boolean; alt: string; ust: string };
+
+function ikincilDegerler(kurallar: Kural[], varsayilan = false): IkincilDegerler {
+  const p = (tur: string) => {
+    const k = kurallar.find((x) => x.tur === tur);
+    return (varsayilan ? k?.varsayilan_parametreler : k?.parametreler) ?? {};
+  };
+  return {
+    k: String(p("gunluk_en_az_ders").k ?? 2),
+    yayilsin: p("ders_yayilimi").yayilsin !== false,
+    alt: String(p("haftalik_yuk").alt ?? 0),
+    ust: String(p("haftalik_yuk").ust ?? 0),
+  };
+}
+
+/** Değişen ikincil değerler: kural türü → gönderilecek parametreler. */
+function ikincilDegisiklikler(once: IkincilDegerler, simdi: IkincilDegerler): Record<string, Record<string, number | boolean>> {
+  const sonuc: Record<string, Record<string, number | boolean>> = {};
+  if (simdi.k !== once.k) sonuc.gunluk_en_az_ders = { k: Number(simdi.k) };
+  if (simdi.yayilsin !== once.yayilsin) sonuc.ders_yayilimi = { yayilsin: simdi.yayilsin };
+  if (simdi.alt !== once.alt || simdi.ust !== once.ust) sonuc.haftalik_yuk = { alt: Number(simdi.alt), ust: Number(simdi.ust) };
+  return sonuc;
+}
+
+function OnemBolumu({ kurallar, gunlukDersSaati }: { kurallar: Kural[]; gunlukDersSaati: number }) {
   const istemci = useQueryClient();
   const bildirim = useBildirim();
   const esnek = kurallar.filter((k) => !k.zorunlu);
+  const yukKurali = kurallar.find((k) => k.tur === "haftalik_yuk");
   const [secim, setSecim] = useState<Record<string, string>>(Object.fromEntries(esnek.map((k) => [k.tur, k.seviye ?? "onemli"])));
+  const ilk = ikincilDegerler(kurallar);
+  const [ikincil, setIkincil] = useState(ilk);
+  const [hatalar, setHatalar] = useState<AlanHatalari>({});
   const degisen = esnek.filter((k) => secim[k.tur] !== k.seviye && secim[k.tur] !== "ozel");
+  const parametreler = ikincilDegisiklikler(ilk, ikincil);
+  const turler = [...new Set([...degisen.map((k) => k.tur), ...Object.keys(parametreler)])];
 
   const kaydet = useMutation({
     mutationFn: async () => {
-      for (const k of degisen) {
+      for (const tur of turler) {
+        const seviye = degisen.some((k) => k.tur === tur) ? (secim[tur] as Seviye) : undefined;
         await cagir(api.PUT("/api/ders-programi/kurallar/{tur}", {
-          params: { path: { tur: k.tur } },
-          body: { seviye: secim[k.tur] as Seviye },
+          params: { path: { tur } },
+          body: { ...(seviye && { seviye }), ...(parametreler[tur] && { parametreler: parametreler[tur] }) },
         }));
       }
     },
-    onSuccess: () => bildirim("basari", "Kuralların önemi kaydedildi."),
+    onSuccess: () => bildirim("basari", "Gelişmiş ayarlar kaydedildi."),
     onSettled: () => istemci.invalidateQueries({ queryKey: KURALLAR_ANAHTARI }),
   });
+
+  function gonder(olay: FormEvent) {
+    olay.preventDefault();
+    const h: AlanHatalari = {};
+    const k = Number(ikincil.k);
+    if (!Number.isInteger(k) || k < 1 || k > gunlukDersSaati) h.k = `1 ile ${gunlukDersSaati} arasında bir sayı girin`;
+    for (const ad of ["alt", "ust"] as const) {
+      const x = Number(ikincil[ad]);
+      if (!Number.isInteger(x) || x < 0 || x > 60) h[ad] = "0 ile 60 arasında bir sayı girin (0: eşik yok)";
+    }
+    if (!h.alt && !h.ust && Number(ikincil.alt) && Number(ikincil.ust) && Number(ikincil.alt) > Number(ikincil.ust))
+      h.alt = "Alt eşik üst eşikten büyük olamaz";
+    setHatalar(h);
+    if (Object.keys(h).length === 0) kaydet.mutate();
+  }
 
   return (
     <details className={`${sayfaStili.kart} ${stil.gelismis}`}>
       <summary>
-        <h2>Gelişmiş: kuralların önemi</h2>
+        <h2>Gelişmiş: kuralların önemi ve ikincil kurallar</h2>
       </summary>
       <p className={stil.aciklama}>
         Program bu kurallara olabildiğince uyar. İki kural çatıştığında daha önemli olan seçilir.
         Varsayılan ayarlar çoğu okul için uygundur.
       </p>
       <FormHatasi mesaj={kaydet.error ? hataMetni(kaydet.error) : undefined} />
-      <form noValidate onSubmit={(o) => { o.preventDefault(); kaydet.mutate(); }}>
+      <form noValidate onSubmit={gonder}>
         {esnek.map((k) => (
           // fieldset + legend: ekran okuyucu her seçeneği kuralın adıyla birlikte okur.
           <fieldset key={k.tur} className={stil.kural} aria-describedby={`${k.tur}-aciklama`}>
@@ -439,17 +488,51 @@ function OnemBolumu({ kurallar }: { kurallar: Kural[] }) {
                 </label>
               ))}
             </div>
+            {k.tur === "gunluk_en_az_ders" && (
+              <div className={stil.kuralDegeri}>
+                <MetinAlani etiket="Geldiği günde en az kaç ders" type="number" inputMode="numeric" min={1} max={gunlukDersSaati}
+                  value={ikincil.k} hata={hatalar.k}
+                  aciklama={`1: sınır yok. Varsayılan: ${String(k.varsayilan_parametreler.k)}. Öğretmene özel değer: Özel ayarlar.`}
+                  onChange={(o) => setIkincil({ ...ikincil, k: o.target.value })} />
+              </div>
+            )}
+            {k.tur === "ders_yayilimi" && (
+              <label className={stil.secenek}>
+                <input type="checkbox" checked={ikincil.yayilsin} onChange={(o) => setIkincil({ ...ikincil, yayilsin: o.target.checked })} />
+                Bütün derslerde açık (bir derste kapatmak için: Özel ayarlar)
+              </label>
+            )}
+            {k.tur === "ders_saat_tercihi" && (
+              <p className={stil.aciklama}>Hangi dersin hangi saatlerde olacağı Özel ayarlar bölümünde, "Özel ayar ekle" ile seçilir.</p>
+            )}
             {k.seviye === "ozel" && secim[k.tur] === "ozel" && (
               <p className={stil.uyari}>Bu kural için elle girilmiş özel bir değer var ({k.agirlik}). Bir seviye seçerseniz değişir.</p>
             )}
           </fieldset>
         ))}
+        {yukKurali && (
+          <fieldset className={stil.kural} aria-describedby="haftalik_yuk-aciklama">
+            <legend>{yukKurali.ad}</legend>
+            <p id="haftalik_yuk-aciklama" className={stil.aciklama}>
+              {yukKurali.aciklama}
+            </p>
+            <div className={stil.ikili}>
+              <MetinAlani etiket="Alt eşik (saat)" type="number" inputMode="numeric" min={0} max={60} value={ikincil.alt}
+                hata={hatalar.alt} aciklama="Ör. maaş karşılığı. 0: eşik yok." onChange={(o) => setIkincil({ ...ikincil, alt: o.target.value })} />
+              <MetinAlani etiket="Üst eşik (saat)" type="number" inputMode="numeric" min={0} max={60} value={ikincil.ust}
+                hata={hatalar.ust} aciklama="Ör. ek ders sınırı. 0: eşik yok." onChange={(o) => setIkincil({ ...ikincil, ust: o.target.value })} />
+            </div>
+          </fieldset>
+        )}
         <div className={stil.dugmeler}>
-          <Dugme type="submit" disabled={degisen.length === 0} yukleniyor={kaydet.isPending} yukleniyorMetni="Kaydediliyor...">
-            Önemleri kaydet
+          <Dugme type="submit" disabled={turler.length === 0} yukleniyor={kaydet.isPending} yukleniyorMetni="Kaydediliyor...">
+            Gelişmiş ayarları kaydet
           </Dugme>
           <Dugme tur="ikincil"
-            onClick={() => setSecim(Object.fromEntries(esnek.map((k) => [k.tur, k.varsayilan_seviye ?? "onemli"])))}>
+            onClick={() => {
+              setSecim(Object.fromEntries(esnek.map((k) => [k.tur, k.varsayilan_seviye ?? "onemli"])));
+              setIkincil(ikincilDegerler(kurallar, true));
+            }}>
             Varsayılanlara dön
           </Dugme>
         </div>

@@ -30,11 +30,38 @@ export function ozelAyarMetni(tur: string, ozel: OzelAyar): string {
   }
   if (tur === "bos_gun") return `haftada ${p.hedef_bos_gun} boş gün hedeflenir`;
   if (tur === "blok_deseni" && Array.isArray(p.desen)) return `dağılım şekli ${desenMetni(p.desen)}`;
+  if (tur === "ders_saat_tercihi") return saatTercihiMetni(p.saatler, p.kacin);
+  if (tur === "gunluk_en_az_ders") return Number(p.k) <= 1 ? "bir saat için de gelebilir" : `geldiği günde en az ${p.k} ders`;
+  if (tur === "ders_yayilimi") return p.yayilsin ? "art arda günlere konmasın" : "art arda günlere konabilir";
+  if (tur === "haftalik_yuk") return esikMetni(Number(p.alt ?? 0), Number(p.ust ?? 0));
   return Object.entries(p).map(([ad, deger]) => `${ad} = ${deger}`).join(", ");
 }
 
+const saatListesi = (saatler: number[]) => saatler.map((s) => `${s + 1}.`).join(", ");
+
+/** "1., 2. ve 3. saatlerde olsun; 5. saatte olmasın" (saatler 0'dan başlar). */
+export function saatTercihiMetni(saatler: unknown, kacin: unknown): string {
+  const parcalar: string[] = [];
+  if (Array.isArray(saatler) && saatler.length) parcalar.push(`${saatListesi(saatler)} saatlerde olsun`);
+  if (Array.isArray(kacin) && kacin.length) parcalar.push(`${saatListesi(kacin)} saatlerde olmasın`);
+  return parcalar.join("; ") || "saat tercihi yok";
+}
+
+/** Haftalık yük eşikleri: "en az 15, en çok 30 saat" ya da "eşik yok". */
+export function esikMetni(alt: number, ust: number): string {
+  if (alt && ust) return `haftada en az ${alt}, en çok ${ust} saat`;
+  if (alt) return `haftada en az ${alt} saat`;
+  if (ust) return `haftada en çok ${ust} saat`;
+  return "yük eşiği yok";
+}
+
+/** İkincil kurallar (K6): okul değeri de özel ayarla aynı cümleyle söylenir. */
+const CUMLELI_KURALLAR = new Set(["ders_saat_tercihi", "gunluk_en_az_ders", "ders_yayilimi", "haftalik_yuk"]);
+
 /** Okul değeri, aynı dilde: "(okul geneli: 8)". */
-function okulDegeri(kural: Kural): string {
+export function okulDegeri(kural: Kural): string {
+  if (CUMLELI_KURALLAR.has(kural.tur))
+    return `okul geneli: ${ozelAyarMetni(kural.tur, { ad: "", kapsam: {}, parametreler: kural.parametreler } as OzelAyar)}`;
   const degerler = Object.values(kural.parametreler);
   return degerler.length === 1 ? `okul geneli: ${degerler[0]}` : "";
 }
@@ -45,7 +72,9 @@ function okulDegeri(kural: Kural): string {
  * burada görünür, hiçbir istisna gizli kalmaz. Her biri buradan kaldırılabilir; kaldırılınca o yerde
  * okul değeri geçerli olur.
  */
-export function OzelAyarlarOzeti({ kurallar, gunlukDersSaati }: { kurallar: Kural[]; gunlukDersSaati: number }) {
+export function OzelAyarlarOzeti({ kurallar, gunlukDersSaati, ogleArasiSonra }: {
+  kurallar: Kural[]; gunlukDersSaati: number; ogleArasiSonra?: number | null;
+}) {
   const istemci = useQueryClient();
   const [ekleniyor, setEkleniyor] = useState(false);
   const bildirim = useBildirim();
@@ -98,7 +127,7 @@ export function OzelAyarlarOzeti({ kurallar, gunlukDersSaati }: { kurallar: Kura
         </ul>
       )}
       {ekleniyor ? (
-        <OzelAyarEkle kurallar={kurallar} gunlukDersSaati={gunlukDersSaati} onKapat={() => setEkleniyor(false)} />
+        <OzelAyarEkle kurallar={kurallar} gunlukDersSaati={gunlukDersSaati} ogleArasiSonra={ogleArasiSonra} onKapat={() => setEkleniyor(false)} />
       ) : (
         <Dugme tur="ikincil" ikon={<Plus />} className={stil.ozelEkleDugmesi} onClick={() => setEkleniyor(true)}>
           Özel ayar ekle

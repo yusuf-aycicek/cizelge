@@ -206,3 +206,26 @@
 .etkiKutusu p {
   margin: var(--bosluk-2) 0;
 }
+
+/* Özel ayar ekle: dersin saat tercihi (K6). */
+.saatTercihi {
+  margin: var(--bosluk-3) 0 0;
+  padding: var(--bosluk-3);
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose);
+}
+.saatTercihi legend {
+  font-weight: var(--yazi-kalin);
+  padding: 0 var(--bosluk-1);
+}
+.saatKutulari {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bosluk-2) var(--bosluk-4);
+  margin: var(--bosluk-2) 0;
+}
+/* Gelişmiş: yük eşikleri ve kuralın değeri, önem seçiminin altında. */
+.kuralDegeri {
+  margin-top: var(--bosluk-2);
+  max-width: 24rem;
+}

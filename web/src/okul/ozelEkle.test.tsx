@@ -77,6 +77,7 @@ describe("özel ayar ekle", () => {
     // Kapsamı olmayan kurallar (sınıf boşluğu gibi) listelenmez.
     expect(secenekler(kuralKutusu)).toEqual([
       "Seçin", "Aynı dersin günlük sınırı", "Öğretmenin günlük ders sınırı", "Dağılım şekli (blok dersler)", "Öğretmene boş gün",
+      "Dersin saat tercihi", "Öğretmen bir iki saat için gelmesin", "Aynı ders günlere yayılsın", "Öğretmenin haftalık ders yükü",
     ]);
     await kullanici.selectOptions(kuralKutusu, N);
     const nerede = form.getByRole("combobox", { name: "Nerede geçerli" });
@@ -139,6 +140,46 @@ describe("özel ayar ekle", () => {
     await kullanici.click(form.getByRole("button", { name: "Özel ayarı kaydet" }));
     expect(form.getByText(/1 ile \d+ arasında bir sayı girin/)).toBeInTheDocument();
     expect(istekler.filter((i) => i.yontem === "PUT")).toEqual([]);
+  });
+
+  it("dersin saat tercihi (K6): yalnızca ders içeren kapsamlar; seçilen saatler 0'dan başlayarak gider", async () => {
+    expect(gecerliKapsamlar(kural("ders_saat_tercihi")).map((s) => s.anahtar)).toEqual(["ders", "ders_sube", "ders_grup"]);
+    const { kullanici, form, istekler } = await formuAc();
+    await kullanici.selectOptions(form.getByRole("combobox", { name: "Kural" }), "ders_saat_tercihi");
+    await kullanici.selectOptions(form.getByRole("combobox", { name: "Nerede geçerli" }), "ders");
+    await kullanici.selectOptions(form.getByRole("combobox", { name: "Ders" }), "d-mat");
+    await kullanici.click(form.getByRole("button", { name: "Özel ayarı kaydet" }));
+    expect(form.getByText("En az bir saat seçin.")).toBeInTheDocument();
+    await kullanici.click(form.getByRole("radio", { name: "Seçilen saatlerde olmasın" }));
+    await kullanici.click(form.getByRole("checkbox", { name: "5. ders" }));
+    await kullanici.click(form.getByRole("checkbox", { name: "6. ders" }));
+    await kullanici.click(form.getByRole("button", { name: "Özel ayarı kaydet" }));
+    expect(await screen.findByText("Özel ayar kaydedildi: 9-A · Matematik, 5., 6. saatlerde olmasın.")).toBeInTheDocument();
+    expect(istekler.filter((i) => i.yontem === "PUT")).toEqual([
+      { yontem: "PUT", yol: "ders_saat_tercihi", govde: { kapsam: { ders_id: "d-mat" }, parametreler: { kacin: [4, 5] } } },
+    ]);
+  });
+
+  it("haftalık yük eşikleri (K6): öğretmene özel, alt üstten büyükse gönderilmez", async () => {
+    const { kullanici, form, istekler } = await formuAc();
+    await kullanici.selectOptions(form.getByRole("combobox", { name: "Kural" }), "haftalik_yuk");
+    await kullanici.selectOptions(form.getByRole("combobox", { name: "Nerede geçerli" }), "ogretmen");
+    await kullanici.selectOptions(form.getByRole("combobox", { name: "Öğretmen" }), "o-ayse");
+    const alt = form.getByRole("spinbutton", { name: "Alt eşik (saat, 0: yok)" });
+    const ust = form.getByRole("spinbutton", { name: "Üst eşik (saat, 0: yok)" });
+    await kullanici.clear(alt);
+    await kullanici.type(alt, "20");
+    await kullanici.clear(ust);
+    await kullanici.type(ust, "15");
+    await kullanici.click(form.getByRole("button", { name: "Özel ayarı kaydet" }));
+    expect(form.getByText("Alt eşik üst eşikten büyük olamaz.")).toBeInTheDocument();
+    await kullanici.clear(ust);
+    await kullanici.type(ust, "0");
+    await kullanici.click(form.getByRole("button", { name: "Özel ayarı kaydet" }));
+    expect(await screen.findByText(/haftada en az 20 saat\./)).toBeInTheDocument();
+    expect(istekler.filter((i) => i.yontem === "PUT")).toEqual([
+      { yontem: "PUT", yol: "haftalik_yuk", govde: { kapsam: { ogretmen_id: "o-ayse" }, parametreler: { alt: 20, ust: 0 } } },
+    ]);
   });
 
   it("gruba özel ayar kaldırılırken grubun kimliği de gönderilir", async () => {

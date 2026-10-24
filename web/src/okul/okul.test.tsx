@@ -283,23 +283,50 @@ describe("gelişmiş: kuralların önemi", () => {
       return HttpResponse.json(ORNEK_KURALLAR[5]);
     }));
     const { kullanici } = await ac();
-    await kullanici.click(await screen.findByText("Gelişmiş: kuralların önemi"));
+    await kullanici.click(await screen.findByText("Gelişmiş: kuralların önemi ve ikincil kurallar"));
     const bosGun = screen.getByRole("group", { name: "Öğretmene boş gün" });
     expect(within(bosGun).getByRole("radio", { name: /^Önemli/ })).toBeChecked();
     expect(within(bosGun).getByText("(varsayılan)")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Önemleri kaydet" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Gelişmiş ayarları kaydet" })).toBeDisabled();
 
     await kullanici.click(within(bosGun).getByRole("radio", { name: "Çok önemli" }));
-    await kullanici.click(screen.getByRole("button", { name: "Önemleri kaydet" }));
-    expect(await screen.findByText("Kuralların önemi kaydedildi.")).toBeInTheDocument();
+    await kullanici.click(screen.getByRole("button", { name: "Gelişmiş ayarları kaydet" }));
+    expect(await screen.findByText("Gelişmiş ayarlar kaydedildi.")).toBeInTheDocument();
     expect(govdeler).toEqual([{ tur: "bos_gun", govde: { seviye: "cok_onemli" } }]);
+  });
+
+  it("ikincil kurallar (K6): günde en az ders, yayılım ve yük eşikleri kaydedilir", async () => {
+    const govdeler: { tur: string; govde: unknown }[] = [];
+    sunucu.use(http.put("/api/ders-programi/kurallar/:tur", async ({ request, params }) => {
+      govdeler.push({ tur: params.tur as string, govde: await request.json() });
+      return HttpResponse.json(ORNEK_KURALLAR[5]);
+    }));
+    const { kullanici } = await ac();
+    await kullanici.click(await screen.findByText("Gelişmiş: kuralların önemi ve ikincil kurallar"));
+    const enAz = screen.getByRole("group", { name: "Öğretmen bir iki saat için gelmesin" });
+    const k = within(enAz).getByRole("spinbutton", { name: "Geldiği günde en az kaç ders" });
+    expect(k).toHaveValue(2);
+    await kullanici.clear(k);
+    await kullanici.type(k, "3");
+    await kullanici.click(within(screen.getByRole("group", { name: "Aynı ders günlere yayılsın" })).getByRole("checkbox"));
+    const yuk = screen.getByRole("group", { name: "Öğretmenin haftalık ders yükü" });
+    const alt = within(yuk).getByRole("spinbutton", { name: "Alt eşik (saat)" });
+    await kullanici.clear(alt);
+    await kullanici.type(alt, "15");
+    await kullanici.click(screen.getByRole("button", { name: "Gelişmiş ayarları kaydet" }));
+    expect(await screen.findByText("Gelişmiş ayarlar kaydedildi.")).toBeInTheDocument();
+    expect(govdeler).toEqual([
+      { tur: "gunluk_en_az_ders", govde: { parametreler: { k: 3 } } },
+      { tur: "ders_yayilimi", govde: { parametreler: { yayilsin: false } } },
+      { tur: "haftalik_yuk", govde: { parametreler: { alt: 15, ust: 0 } } },
+    ]);
   });
 
   it("elle girilmiş özel değer açıklanır", async () => {
     const ozel = ORNEK_KURALLAR.map((k) => (k.tur === "tercih_etmez" ? { ...k, seviye: "ozel" as const, agirlik: 7, varsayilan: false } : k));
     sunucu.use(http.get("/api/ders-programi/kurallar", () => HttpResponse.json(ozel)));
     const { kullanici } = await ac();
-    await kullanici.click(await screen.findByText("Gelişmiş: kuralların önemi"));
+    await kullanici.click(await screen.findByText("Gelişmiş: kuralların önemi ve ikincil kurallar"));
     const grup = screen.getByRole("group", { name: "Öğretmenin tercih etmediği saatler" });
     expect(within(grup).getByText(/elle girilmiş özel bir değer var \(7\)/)).toBeInTheDocument();
     expect(within(grup).getAllByRole("radio").some((r) => (r as HTMLInputElement).checked)).toBe(false);
