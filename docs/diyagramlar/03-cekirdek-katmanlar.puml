@@ -61,6 +61,7 @@ package "servisler (iş kuralları, işlem sınırı)" {
   class OgretmenServisi
   class SinifServisi
   class DersServisi
+  class SubeGrubuServisi
   class OkulServisi {
     +oturum : Session
     +depo : OkulDeposu
@@ -88,6 +89,7 @@ package "depo (veri erişimi)" {
   class OgretmenDeposu
   class SinifDeposu
   class DersDeposu
+  class SubeGrubuDeposu
   class OkulDeposu {
     +oturum : Session
     +getir(okul_id : UUID) : Okul | None
@@ -122,6 +124,8 @@ bagimliliklar ..> Session : okul_oturumu()\noturumun okulu ile
 CrudServisi <|-- OgretmenServisi
 CrudServisi <|-- SinifServisi
 CrudServisi <|-- DersServisi
+CrudServisi <|-- SubeGrubuServisi
+OkulaAitDepo <|-- SubeGrubuDeposu : T = SubeGrubu
 OkulaAitDepo <|-- OgretmenDeposu : T = Ogretmen
 OkulaAitDepo <|-- SinifDeposu : T = Sinif
 OkulaAitDepo <|-- DersDeposu : T = Ders

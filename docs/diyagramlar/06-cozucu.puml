@@ -18,7 +18,9 @@ package "cpsat" {
     +is_parcacigi : int
     +tohum : int
     +gozlemci : Gozlemci [0..1]
+    +iki_asamali : bool
     +coz(girdi : CozumGirdisi, sure_siniri_sn : float) : CozumSonucu
+    -_ilk_asama(girdi, sure, baslangic)
     -_ana_cozum(baglam, sure, baslangic)
     -_uygunluk_kontrolu(girdi, sure) : int
   }
@@ -87,6 +89,10 @@ package "kisitlar.zorunlu (modele kısıt ekler)" {
   class OgretmenGunlukSiniri {
     +m : int
   }
+  class HaftalikYuk {
+    +alt : int
+    +ust : int
+  }
 }
 
 ' @kod cozucu.kisitlar.esnek
@@ -98,6 +104,16 @@ package "kisitlar.esnek (ceza terimi döner)" {
   class ArdisikDers
   class BosGun {
     +hedef_bos_gun : int
+  }
+  class DersSaatTercihi {
+    +saatler : list[int]
+    +kacin : list[int]
+  }
+  class GunlukEnAzDers {
+    +k : int
+  }
+  class DersYayilimi {
+    +yayilsin : bool
   }
   class Degisiklik
 }
@@ -199,6 +215,18 @@ package "kalite (bağımsız)" {
   class kalite <<modül>> {
     {static} +olc(girdi : CozumGirdisi, yerlesimler : list[Yerlesim]) : KaliteOlcumu
   }
+  class KaliteOlcumu <<dataclass>> {
+    +sinif_boslugu : int
+    +ogretmen_penceresi : int
+    +bolunmus_ders : int
+    +tercih_etmez : int
+    +eksik_bos_gun : int
+    +fazla_bos_gun : int
+    +degisen_yerlesim : int
+    +saat_tercihi : int
+    +az_dersli_gun : int
+    +art_arda_gun : int
+  }
 }
 
 ' --- gerçekleme ve kalıtım ----------------------------------------------------------------
@@ -212,13 +240,18 @@ KisitKurali <|-- BlokDeseni
 KisitKurali <|-- KilitliHucre
 KisitKurali <|-- GunlukDersSiniri
 KisitKurali <|-- OgretmenGunlukSiniri
+KisitKurali <|-- HaftalikYuk
 KisitKurali <|-- EsnekKural
 EsnekKural <|-- TercihEtmez
 EsnekKural <|-- OgretmenPenceresi
 EsnekKural <|-- SinifBoslugu
 EsnekKural <|-- ArdisikDers
 EsnekKural <|-- BosGun
+EsnekKural <|-- DersSaatTercihi
+EsnekKural <|-- GunlukEnAzDers
+EsnekKural <|-- DersYayilimi
 EsnekKural <|-- Degisiklik
+kalite ..> KaliteOlcumu : üretir
 
 ' --- strategy: bağlam (context) kuralları kayıt defterinden alır, hepsine aynı arayüzle uygular ---
 CpSatCozucu ..> kisitlar : kurallari_hazirla()
@@ -242,11 +275,20 @@ temel ..> KisitTanimi : okur
 note top of KisitKurali
   <b>Strategy deseni</b>
   Strateji arayüzü: KisitKurali.uygula(baglam)
-  Somut stratejiler: her kural sınıfı (12 tane)
+  Somut stratejiler: her kural sınıfı (19 tane:
+10 zorunlu/uyarı, 9 esnek)
   Bağlam (context): CpSatCozucu; kuralları
   KAYIT_DEFTERI'nden alır, hepsine aynı çağrıyı yapar.
   Yeni kural = yeni alt sınıf + @kaydet;
   CpSatCozucu değişmez (açık/kapalı, ADR 0002).
+end note
+
+note bottom of CpSatCozucu
+  İki aşamalı çözüm (ADR 0018):
+  1. _ilk_asama: yalnızca zorunlu kısıtlar, amaçsız,
+     ilk programda dur (çözümsüzse → celiski)
+  2. _ana_cozum: ilk program tam ipucu,
+     esnek kurallarla kalan sürede iyileştir
 end note
 
 note right of ProgramCozucu

@@ -1,138 +1,164 @@
 # Çizelge – Okul Ders Programı Oluşturma Sistemi
 
-Okullar için çakışmasız haftalık ders programı üreten, çok okullu (multi-tenant) web uygulaması.
-Kararların ve kapsamın tek doğruluk kaynağı [CLAUDE.md](CLAUDE.md).
+Okullar için çakışmasız haftalık ders programı üreten, çok okullu (multi-tenant) bir web uygulaması.
+Okul yöneticisi öğretmenleri, şubeleri, dersleri ve kimin hangi şubeye hangi dersi haftada kaç saat
+verdiğini girer; kuralları ayarlar. Sistem arka planda, hiçbir öğretmenin ve şubenin aynı saatte iki
+yerde olmadığı bir program üretir. Yönetici sonucu görür, sürükleyip bırakarak düzeltir, yayımlar,
+PDF ve Excel olarak alır.
 
-## Tek komutla çalıştırma
+Yazılım Tasarımı ve Mimarisi dersi dönem projesi. Kapsamın ve kararların tek doğruluk kaynağı
+[CLAUDE.md](CLAUDE.md); proje raporu [docs/rapor.md](docs/rapor.md) ([PDF](docs/rapor.pdf)); UML
+diyagramları [docs/diyagramlar/](docs/diyagramlar/) ([hepsi A3 PDF](docs/diyagramlar/diyagramlar.pdf)).
 
-Gerekenler: Docker (Docker Desktop ya da Docker Engine + Compose).
+![Haftalık çizelge](docs/ekranlar/teslim/03-cizelge-sube.png)
 
-```bash
-docker compose up --build
+## Ne yapar
+
+- **Veri girişi:** okul ayarları (gün sayısı, günlere göre ders saati, öğle arası, zil saatleri),
+  öğretmen, şube, şube grubu ve ders listeleri; Excel'den içe aktarma.
+- **Ders dağılımı:** seviye (ya da şube grubu) şablonu bir kez tanımlanır, şubelere uygulanır;
+  şubeye özel "bu dersi almaz / ek alır" istisnaları korunur. Her derse öğretmen seçilir, öğretmen
+  yükleri anında görünür.
+- **Kurallar:** zorunlu kurallar (çakışma yok, müsaitlik, günlük sınırlar, blok dersler, kilitler)
+  ve "Önemsiz / Önemli / Çok önemli" ağırlıklı esnek kurallar (sınıf boşluğu, öğretmen penceresi,
+  boş gün, tercih etmez, dersin saat tercihi...). Kurallar derse, şubeye, gruba ya da öğretmene özel
+  ayarlanabilir.
+- **Program üretme:** kuyruk üzerinden, durum takibiyle; çözüm yoksa nedeni kullanıcının diliyle
+  ("... 24 saat dersi var, müsait olduğu 20 saat var"). Mevcut programı temel alarak en az
+  değişiklikle yeniden üretme.
+- **Elle düzeltme:** sürükle bırak (hedefte aynı şubenin dersi varsa yer değiştirir), çakışma
+  uyarısı, hücre kilitleme, geri alma.
+- **Çıktı ve paylaşım:** şube/öğretmen PDF'leri, çarşaf liste, Excel; programı yayımlama ve
+  öğretmenlere girişsiz, salt okunur paylaşım linki.
+
+## Mimari özeti
+
+```
+Tarayıcı (React)
+     |  aynı köken: /api
+     v
+API (FastAPI, modüler monolit)  ---->  PostgreSQL (RLS)
+     |                                     ^
+     v                                     |
+Kuyruk (Redis + RQ)  ---->  Worker  ---->  Çözücü (saf Python, OR-Tools CP-SAT)
 ```
 
-Bu komut:
+- **Çözücü API'den ayrı çalışır:** üretim dakikalar sürebilir; worker'da çalıştığı için API'nin
+  diğer istekleri beklemez. Worker sayısı `--scale` ile artırılır.
+- **Çözücü bir arayüzün arkasındadır** (`ProgramCozucu` → `CpSatCozucu`) ve **her kural ayrı bir
+  sınıftır** (strategy deseni): yeni kural mevcut kodu değiştirmeden eklenir.
+- **Okul izolasyonu üç katmanlıdır:** ORM her sorguya okul koşulunu tek yerden ekler, bileşik
+  yabancı anahtarlar okullar arası ilişkiyi, PostgreSQL satır düzeyi güvenliği (RLS) başka okulun
+  satırlarını görmeyi engeller. Aktif okul yalnızca oturumdan gelir.
+- **API modüler monolittir:** çekirdek (okul, kullanıcı, öğretmen, şube, ders) ders programı
+  modülünü bilmez; modül çekirdeğe bir sözleşmeyle kaydolur.
+- **Kimlik doğrulama sunucu taraflı oturumladır:** `HttpOnly`, `SameSite=Strict` çerez, argon2id,
+  köken denetimi; arayüz ile API aynı kökenden görünür, CORS yoktur.
 
-1. `db`: PostgreSQL 17'yi başlatır. İlk açılışta uygulama rolünü (`okul_uygulama`) oluşturur
-   (`docker/postgres/init/`). Veri `db_verisi` biriminde durur.
-2. `redis`: iş kuyruğu (Redis 7.4, RQ). Bilgisayara port açılmaz; yalnızca api ve worker ulaşır.
-3. `api`: imajı derler (çözücü paketi + API + worker). Veritabanı ve Redis sağlıklı olunca
-   migration'ları uygular (`python -m okulapi.migrasyon upgrade heads`) ve API'yi başlatır.
-4. `worker`: aynı imaj, `python -m okulworker`. Kuyruktaki program üretme işlerini çalıştırır.
-   API sağlıklı olunca (migration'lar bitince) başlar. Birden fazla worker için:
-   `docker compose up --scale worker=3`.
-5. `web`: arayüz (React + TypeScript, Vite geliştirme sunucusu). İlk açılışta paketleri kurar
-   (bir iki dakika sürebilir). `/api` isteklerini api konteynerine iletir.
+Her önemli kararın gerekçesi ve alternatifleri [docs/adr/](docs/adr/) altındadır (25 karar kaydı).
+
+## Kurulum (Docker Compose)
+
+Gereken tek şey Docker (Docker Desktop ya da Docker Engine + Compose eklentisi). Bilgisayarda
+Python ya da Node kurulu olması gerekmez.
+
+**1. Sistemi başlatın** (depo kökünde; ilk derleme ve arayüz paketlerinin kurulumu birkaç dakika
+sürer):
+
+```bash
+docker compose up --build -d --wait
+```
+
+`--wait`, bütün servisler sağlıklı olana kadar bekler. Beş konteyner çalışır: `db` (PostgreSQL 17),
+`redis` (iş kuyruğu), `api` (FastAPI), `worker` (program üretimi), `web` (arayüz).
+
+**2. Migration'lar** kendiliğinden uygulanır: `api` konteyneri başlarken önce
+`python -m okulapi.migrasyon upgrade heads` çalıştırır, sonra API'yi açar. Elle çalıştırmak
+gerekirse:
+
+```bash
+docker compose exec api python -m okulapi.migrasyon upgrade heads
+```
+
+**3. Örnek okulu yükleyin.** Veritabanındaki bütün okulları silip örnek bir okul kurar; bu yüzden
+`OKULAPI_ORTAM=gelistirme` ve `--evet` olmadan çalışmaz. `--set gercekci`: 24 şube, 42 öğretmen,
+330 ders ataması (`--set` verilmezse 3 şubelik mini set):
+
+```bash
+docker compose exec -e OKULAPI_ORTAM=gelistirme api python -m okulapi ornek-okul --evet --set gercekci
+```
+
+**4. Giriş:** http://localhost:5173 adresini açın, `mudur@ornek.test` / `ornek-okul-parolasi` ile
+giriş yapın. Kendi okulunuzu kurmak için giriş sayfasındaki "Okulunuzu kaydedin" bağlantısı kullanılır.
 
 | Adres | Ne |
 |---|---|
-| http://localhost:5173 | **Arayüz** (geliştirme). `/tasarim`: tasarım temeli vitrini |
-| http://localhost:8000/docs | API belgeleri (Swagger), endpoint'leri buradan denemek mümkün |
+| http://localhost:5173 | Arayüz |
+| http://localhost:8000/docs | API belgeleri (Swagger) |
 | http://localhost:8000/api/saglik | Sağlık kontrolü (API ve veritabanı) |
-| `localhost:5433` | PostgreSQL. Bilgisayardan erişim için 5433 kullanılır (5432 aynı makinedeki başka projelerde). |
+| `localhost:5433` | PostgreSQL (yalnızca testler ve inceleme için) |
 
-Veritabanı rolleri (yalnızca geliştirme parolaları, `docker-compose.yml`):
+**Port doluysa:** `.env.example` dosyasını `.env` adıyla kopyalayıp `WEB_PORT`, `API_PORT`,
+`DB_PORT` değerlerini değiştirin; arayüz adresi `http://localhost:<WEB_PORT>` olur, API'nin köken
+denetimi yeni portu kendiliğinden izler.
 
-| Rol | Kullanım |
+**Durdurma:** `docker compose down`; veritabanını da silmek için `docker compose down -v`.
+
+Müdür parolasını unutursa sunucuyu işleten kişi (API'den erişilemez):
+
+```bash
+docker compose exec api python -m okulapi parola-sifirla mudur@ornek.test
+```
+
+## Kısa kullanım kılavuzu
+
+Sol menü işin sırasını izler; ana sayfa okulun durumunu özetler.
+
+1. **Okul kur:** giriş sayfasından okul kaydı (okul adı, müdür, e-posta, en az 12 karakterlik
+   parola). **Okul ayarları**'nda gün sayısı, günlük ders saati (gerekirse günlere göre), öğle
+   arası ve zil saatleri; **Gelişmiş** bölümünde kuralların önemi.
+2. **Öğretmen ve ders gir:** **Öğretmenler**, **Sınıflar** (şubeler ve şube grupları) ve
+   **Dersler** sayfalarında elle ya da **Excel'den aktar** sayfasındaki şablonla toplu olarak.
+   Öğretmen sayfasında müsaitlik çizelgesi (gelemez / tercih etmez) ve öğretmene özel ayarlar
+   (günlük sınır, boş gün hedefi) girilir.
+3. **Ders dağılımı:** **Seviye şablonu**'nda bir seviyenin (ya da şube grubunun) dersleri ve haftalık
+   saatleri bir kez yazılıp şubelere uygulanır. **Ders dağılımı** sayfasında her derse öğretmen
+   seçilir; öğretmen görünümünde toplam yük ve uyarılar görünür.
+4. **Program üret:** **Program** sayfasında ad ve süre ("Hızlı" 30 sn, "Dengeli" 2 dk, "Uzun" 5 dk) seçilip
+   **Programı oluştur**'a basılır. Durum birkaç saniyede bir yenilenir
+   (`bekliyor → uretiliyor → hazir`). Ön kontrol ya da çözücü bir çelişki bulursa nedeni ve ilgili
+   öğretmen/şube listelenir.
+5. **Elle düzelt:** çizelgede bir ders taşınırken hedef hücreler boyanır: uygun olanlar yeşil,
+   esnek bir kuralı bozanlar sarı kesik çizgili, zorunlu kuralı bozanlar taralı ve soluk. Hedefte
+   aynı şubenin dersi varsa ikisi yer değiştirir. Hücre kilitlenebilir (yeniden üretimde yerinde kalır),
+   her işlem **Geri al** ile geri alınır. Mevcut programı temel alıp "en az değişiklikle yeniden
+   üret" seçilebilir.
+6. **Yayımla:** **Yayın** sayfasında program yayımlanır; okul, şube ya da öğretmen için girişsiz
+   paylaşım linki oluşturulur. Yayın dondurulmuştur: veri değişirse "eski veriyle üretildi" uyarısı
+   çıkar.
+7. **PDF / Excel al:** çizelgedeki **İndir** menüsünden şube PDF'leri (A4, her şube bir sayfa),
+   öğretmen PDF'leri, çarşaf liste (A3) ya da Excel (şubeler, öğretmenler, çarşaf ve liste
+   sekmeleri).
+
+## Ekran görüntüleri
+
+Gerçekçi örnek okulla, temiz bir kurulumda alınmıştır (`docs/ekranlar/teslim/`).
+
+| | |
 |---|---|
-| `okul_sahip` | Tabloların sahibi. Migration'lar bu rolle çalışır. |
-| `okul_uygulama` | Uygulamanın bağlandığı rol. Satır düzeyi güvenliğe (RLS) tabidir, yalnızca kendi okulunun satırlarını görür. |
-| `okul_giris` | Girişi olmayan (NOLOGIN) rol. Okul bilinmeden kullanıcı ve oturum arayan `SECURITY DEFINER` fonksiyonların sahibidir (ADR 0012). |
+| ![Giriş](docs/ekranlar/teslim/01-giris.png) | ![Ders dağılımı](docs/ekranlar/teslim/02-ders-dagilimi.png) |
+| Giriş | Ders dağılımı: şubelere göre öğretmen seçimi |
+| ![Şube çizelgesi](docs/ekranlar/teslim/03-cizelge-sube.png) | ![Öğretmen çizelgesi](docs/ekranlar/teslim/04-cizelge-ogretmen.png) |
+| Üretilen program, şube görünümü | Öğretmen görünümü |
+| ![İndir menüsü](docs/ekranlar/teslim/05-indir-menusu.png) | ![Program listesi](docs/ekranlar/teslim/06-programlar.png) |
+| PDF ve Excel çıktıları | Programlar ve kalite özeti |
 
-Kayıt ve giriş (ADR 0012). Aktif okul yalnızca oturumdan belirlenir:
-
-1. `POST /api/kayit` `{"okul": {"ad": "..."}, "ad": "...", "email": "...", "sifre": "..."}`: okul, ilk
-   müdür ve oturum oluşur. Oturum jetonu `HttpOnly` bir çerezde (`oturum`) döner.
-2. `POST /api/giris` `{"email", "sifre"}` ve `POST /api/cikis`. `GET /api/ben`: giriş yapan kullanıcı
-   ve okulu (yoksa 401).
-3. Diğer bütün `/api/...` uçları oturum çerezi ister. Swagger sayfasında (`/docs`) önce
-   `/api/kayit` ya da `/api/giris` çalıştırılır; tarayıcı çerezi sonraki isteklere kendisi ekler.
-4. Müdür, yardımcı hesaplarını `/api/kullanicilar` uçlarıyla yönetir. Parola en az 12 karakterdir.
-
-Müdür parolasını unutursa sistemi işleten kişi sunucuda (API'den erişilemez):
-
-```bash
-docker compose exec api python -m okulapi parola-sifirla mudur@okul.example
-```
-
-Yeni parola iki kez sorulur. `--rastgele` ile rastgele bir parola üretilip bir kez gösterilir.
-Kullanıcının bütün oturumları kapanır, hatalı giriş kilidi kalkar.
-
-### Örnek okul (demo ve ekran görüntüleri)
-
-Geliştirme veritabanını temizleyip mini veri setiyle (`veri/mini.json`) örnek bir okul yükler.
-Sistem `docker compose up` ile çalışırken bilgisayarda çalıştırılır:
-
-```bash
-cd api && OKULAPI_ORTAM=gelistirme .venv/Scripts/python -m okulapi ornek-okul --evet
-```
-
-PowerShell'de: `cd api; $env:OKULAPI_ORTAM="gelistirme"; .venv\Scripts\python -m okulapi ornek-okul --evet`
-
-- **Veritabanındaki bütün okullar, kullanıcılar ve oturumlar silinir.** Bu yüzden iki koruması
-  vardır:
-  - `OKULAPI_ORTAM=gelistirme` açıkça verilmeden çalışmaz (çıkış kodu 3). Ayarın varsayılanı
-    `yayin`dır; yayındaki bir sunucu bu değişkeni hiç tanımlamamalıdır.
-  - `--evet` olmadan çalışmaz (çıkış kodu 2).
-- Yüklenenler: 5 öğretmen, 3 şube, 7 ders, 18 ders ataması, 15 müsaitlik kaydı. Ayrıca her seviye
-  için bir seviye şablonu, o seviyenin ilk şubesinin derslerinden üretilir.
-- Giriş: `mudur@ornek.test` / `ornek-okul-parolasi` (http://localhost:5173).
-- `--set gercekci`: mini set yerine gerçekçi set (42 öğretmen, 24 şube, 330 ders ataması). Program
-  üretimi süre sınırını kullanır; bekleme ekranını görmek için.
-- Veri, API'nin kendisinden geçerek yüklenir (süreç içinde, sunucuya istek atmadan); bütün
-  doğrulamalar uygulanır. Kod: `api/src/okulapi/ornek_okul.py`.
-
-### Geliştirme ortamı: arayüz ve API aynı kökenden (ADR 0013)
-
-Tarayıcı arayüzü ve API'yi her zaman **aynı köken** (şema + alan adı + port) üzerinden görür.
-Oturum çerezi `SameSite=Strict`'tir ve veri değiştiren isteklerde `Origin` başlığı denetlenir.
-Ayrı kökenden yapılan istekler (CORS) bilerek desteklenmez.
-
-- **Geliştirmede** arayüz Vite ile `http://localhost:5173`'te çalışır (yapım sırası 5). Vite'ın
-  proxy'si `/api` isteklerini API'ye iletir. Arayüz kodu API'yi göreli adresle çağırır
-  (`fetch("/api/ben")`). `web/vite.config.ts` şöyle olacak:
-
-  ```ts
-  export default defineConfig({
-    plugins: [react()],
-    server: { proxy: { "/api": "http://localhost:8000" } },
-  })
-  ```
-
-- **Yayında** arayüzün derlenmiş dosyaları ve API aynı alan adının arkasındadır (ters vekil
-  sunucu, ör. nginx ya da Caddy: `/` statik dosyalar, `/api` API).
-
-Ayarlar (ortam değişkenleri, `docker-compose.yml`):
-
-| Değişken | Geliştirme | Yayın |
-|---|---|---|
-| `OKULAPI_IZINLI_KOKENLER` | `["http://localhost:5173", "http://localhost:8000"]` (Vite ve `/docs`) | `["https://<alan adı>"]` |
-| `OKULAPI_CEREZ_SECURE` | `false` (http) | verilmez; varsayılan `true` (yalnızca HTTPS) |
-
-`OKULAPI_IZINLI_KOKENLER` verilmezse tarayıcıdan hiçbir yazma isteği kabul edilmez, giriş bile
-yapılamaz (403, "köken denetimi"). Bu, güvenli bir varsayılandır. curl gibi tarayıcı dışı
-istemciler `Origin` göndermez; onlar için yalnızca oturum çerezi gerekir.
-
-Program üretme akışı (ADR 0011):
-
-1. `POST /api/ders-programi/programlar` `{"ad": "Güz dönemi"}`: 202 ve `bekliyor` durumundaki
-   program döner, iş kuyruğa konur.
-2. `GET /api/ders-programi/programlar/{id}`: durum birkaç saniyede bir sorulur:
-   `bekliyor` → `uretiliyor` → `hazir` (ya da `basarisiz` ve okunur bir `hata_mesaji`).
-3. `GET /api/ders-programi/programlar/{id}/yerlesimler`: programın hücreleri.
-
-Okulun devam eden bir üretimi varken yeni istek 409, kuyruğa ulaşılamazsa 503 alır.
-
-Durdurmak için `docker compose down` kullanılır. Veritabanını da silmek için:
-
-```bash
-docker compose down -v
-```
+Geliştirme sırasında her adımın sonunda alınan görüntüler `docs/ekranlar/<adım>/` altındadır.
 
 ## Testler
 
-Testler, gerçek PostgreSQL'e karşı çalışır (`localhost:5433`, `okul_test` veritabanı her
-çalıştırmada sıfırdan migration'larla kurulur). Önce yalnızca veritabanını başlatın:
+Testler gerçek PostgreSQL'e karşı çalışır (`localhost:5433`; `okul_test` veritabanı her
+çalıştırmada migration'larla sıfırdan kurulur). Önce yalnızca veritabanı:
 
 ```bash
 docker compose up -d db
@@ -144,108 +170,64 @@ docker compose up -d db
 cd cozucu && python -m venv .venv && .venv/Scripts/pip install -e ".[test]" && .venv/Scripts/python -m pytest
 ```
 
-API (çözücü paketine bağımlıdır, önce o kurulur; worker paketi diyagram denetimi için):
+API (çözücü ve worker paketleriyle birlikte; kuyruk bellek içi ikizle, RQ fakeredis ile sınanır):
 
 ```bash
 cd api && python -m venv .venv && .venv/Scripts/pip install -e ../cozucu -e ".[test]" -e ../worker && .venv/Scripts/python -m pytest
 ```
 
-Bu testler Redis gerektirmez: kuyruk bellek içi bir ikizle, RQ gerçeklemesi fakeredis ile
-sınanır.
-
-Uçtan uca kabul testleri, çalışan bütün sisteme (api, redis, worker, db) HTTP ile bağlanır:
-- yapım sırası 3: mini seti yükler, program ister, durumun `bekliyor` → `uretiliyor` → `hazir`
-  olduğunu denetler ve 9-A'nın haftalık çizelgesini yazdırır;
-- yapım sırası 4: kayıt, çıkış ve giriş; `X-Okul-Id` başlığının işe yaramadığı; Vite kökeninin
-  izinli, yabancı kökenin reddedildiği. Geliştirme veritabanına yeni bir okul eklediği için
-varsayılan çalıştırmada yer almaz:
+Arayüz: tip denetimi, lint ve testler (Vitest + Testing Library + MSW; API gerekmez):
 
 ```bash
-docker compose up -d --build --wait
+cd web && npm ci && npm run denetim
 ```
+
+Uçtan uca testler çalışan bütün sisteme bağlanır (`docker compose up -d --build --wait` ve örnek
+okul yüklendikten sonra). API tarafı (kuyruk akışı, kayıt/giriş, köken denetimi) ve tarayıcı tarafı
+(Playwright, bilgisayardaki Edge ile; masaüstü ve telefon boyutu):
 
 ```bash
 cd api && .venv/Scripts/python -m pytest -m uctan_uca -s
 ```
 
-Linux/macOS'ta `.venv/Scripts/` yerine `.venv/bin/` kullanılır. Uzun süren ölçüm testleri
-`-m slow` ile ayrıca çalıştırılır.
-
-## Arayüz (web/)
-
-React + TypeScript + Vite. Plan ve kararlar: [docs/arayuz-plani.md](docs/arayuz-plani.md).
-Docker olmadan, bilgisayarda (Node 22; API `localhost:8000`'de çalışıyor olmalı):
-
-```bash
-cd web && npm install && npm run dev
-```
-
-Denetimler: tip denetimi, lint ve testler (Vitest + Testing Library + MSW; API gerekmez):
-
-```bash
-cd web && npm run denetim
-```
-
-Uçtan uca test (Playwright, bilgisayardaki Edge; çalışan sisteme ve örnek okula karşı, masaüstü ve
-telefon boyutunda). Test dokunduğu veriyi iş bitince geri alır. API kodu değiştiyse önce
-`docker compose up -d --build api worker` (API imajı kodu içine kopyalar):
-
 ```bash
 cd web && npm run e2e
 ```
 
-API değişince arayüzün tipleri yenilenir. Yenilenmezse iki test (api ve web) kırılır:
+Linux/macOS'ta `.venv/Scripts/` yerine `.venv/bin/` kullanılır. Uzun süren ölçüm testleri
+`-m slow` ile ayrıca çalıştırılır. Diyagram-kod tutarlılığı API testlerinin parçasıdır
+(`api/tests/test_diyagramlar.py`).
 
-```bash
-api/.venv/Scripts/python scripts/openapi_yaz.py
-```
-
-```bash
-cd web && npm run api:tipler
-```
-
-Ekran görüntüleri, çalışan arayüzden bilgisayardaki Edge ile alınır ve `docs/ekranlar/<adım>/`
-altına yazılır:
-
-```bash
-cd web && node scripts/ekran-goruntusu.mjs 5.1
-```
-
-## Çözücüyü komut satırından çalıştırma
+### Çözücüyü komut satırından çalıştırma
 
 ```bash
 cd cozucu && .venv/Scripts/python -m cozucu ../veri/mini.json --sinif 9-A
 ```
 
-## Diyagramlar
+## Geliştirme notları
 
-UML diyagramlarının kaynakları `docs/diyagramlar/*.puml`, çıktıları `docs/diyagramlar/cikti/`
-altındadır. PlantUML sürümü sabitlenmiş Docker imajıyla çalışır. Çıktıları yeniden üretmek için:
-
-```bash
-python scripts/diyagramlari_uret.py
-```
-
-Diyagramdaki sınıf, metot, parametre ve alan adlarının kodda var olduğunu
-`api/tests/test_diyagramlar.py` denetler. Kod değiştiğinde bu test diyagramın da güncellenmesi
-gerektiğini söyler.
-
-| Diyagram | İçerik |
-|---|---|
-| 01 | Genel bakış: paketler ve bağımlılıklar |
-| 02, 03 | Çekirdek: modeller ve okul izolasyonu; router → servis → depo katmanları |
-| 04, 05 | Ders programı modülü: tablolar; servisler, depolar, dönüştürücü |
-| 06 | Çözücü: `ProgramCozucu`, `CpSatCozucu`, kısıt kuralları (strategy deseni) |
-| 07, 08 | Nesne diyagramları: mini set, veri girişinden ve program üretiminden sonra |
-| 09 | Dağıtım: konteynerler (db, redis, api, worker), portlar, roller; planlanan web (Vite proxy) |
-| 10 | Kimlik doğrulama: servisler, uçlar, köken denetimi, okul bilinmeden arama |
+- **Arayüzü Docker olmadan** çalıştırmak için (Node 22; API `localhost:8000`'de çalışıyor olmalı):
+  `cd web && npm install && npm run dev`. Vite'ın proxy'si `/api` isteklerini API'ye iletir
+  (ADR 0013). Yayında arayüz derlenir (`npm run build`) ve API ile aynı alan adının arkasına, bir ters
+  vekil sunucuyla (nginx, Caddy) HTTPS üzerinden konur; `OKULAPI_CEREZ_SECURE` verilmez (varsayılan
+  açık), `OKULAPI_IZINLI_KOKENLER` yayın adresini içerir.
+- **Veritabanı rolleri:** `okul_sahip` (tablo sahibi, migration'lar), `okul_uygulama` (api ve
+  worker; RLS'ye tabi, yalnızca DML), `okul_giris` ve `okul_paylasim` (`NOLOGIN`; okul bilinmeden
+  arama yapan `SECURITY DEFINER` fonksiyonların sahipleri). `docker-compose.yml`'deki parolalar
+  yalnızca geliştirme içindir.
+- **API değişince** arayüzün tipleri yenilenir (yenilenmezse api ve web testlerinden biri kırılır):
+  `api/.venv/Scripts/python scripts/openapi_yaz.py`, sonra `cd web && npm run api:tipler`.
+- **Diyagramlar:** `python scripts/diyagramlari_uret.py` (PlantUML, sürümü sabit Docker imajı) ve
+  `api/.venv/Scripts/python scripts/diyagram_pdf.py` (A3 PDF). Ayrıntı:
+  [docs/diyagramlar/README.md](docs/diyagramlar/README.md).
 
 ## Belgeler
 
-- [CLAUDE.md](CLAUDE.md): kapsam, mimari, veri modeli, yapım sırası
+- [CLAUDE.md](CLAUDE.md): kapsam, mimari, veri modeli, çözücü kuralları, yapım sırası
+- [docs/rapor.md](docs/rapor.md): proje raporu; [docs/sunum-taslagi.md](docs/sunum-taslagi.md): sunum içeriği
 - [docs/adr/](docs/adr/): mimari karar kayıtları
-- [docs/cozucu-plani.md](docs/cozucu-plani.md), [docs/api-plani.md](docs/api-plani.md), [docs/kuyruk-plani.md](docs/kuyruk-plani.md): adım planları
 - [docs/olcumler.md](docs/olcumler.md): çözücü süre ve kalite ölçümleri
+- [docs/cozucu-plani.md](docs/cozucu-plani.md), [docs/api-plani.md](docs/api-plani.md), [docs/kuyruk-plani.md](docs/kuyruk-plani.md), [docs/kimlik-plani.md](docs/kimlik-plani.md), [docs/arayuz-plani.md](docs/arayuz-plani.md), [docs/kisisellestirme-plani.md](docs/kisisellestirme-plani.md): adım planları
 
 ## Klasörler
 
@@ -255,7 +237,7 @@ api/       FastAPI uygulaması (okulapi): çekirdek + modüller
 worker/    Kuyruk işçisi (okulworker): modülleri bilmeyen genel çalıştırıcı
 web/       Arayüz (React + TypeScript + Vite)
 docker/    Konteyner başlangıç betikleri
-docs/      Diyagramlar, ADR'ler, planlar, ölçümler
-veri/      Test veri setleri (mini, gerçekçi, büyük)
-scripts/   Deney ve yardımcı betikler
+docs/      Rapor, diyagramlar, ADR'ler, planlar, ölçümler, ekran görüntüleri
+veri/      Test veri setleri (mini, gerçekçi, büyük; adlar uydurmadır)
+scripts/   Diyagram, ölçüm ve yardımcı betikler
 ```

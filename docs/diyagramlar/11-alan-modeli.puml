@@ -1,0 +1,185 @@
+@startuml 11-alan-modeli
+!include _stil.iuml
+title Alan modeli: okulun verisi, kurallar ve program (bütün varlıklar tek sayfada; ayrıntı: 02, 04)
+hide empty members
+skinparam linetype ortho
+skinparam nodesep 40
+skinparam ranksep 60
+
+skinparam class<<cekirdek>> {
+  BackgroundColor #EEF4FB
+  BorderColor #6C8EBF
+}
+skinparam class<<ders_programi>> {
+  BackgroundColor #FBF7EC
+  BorderColor #B8955A
+}
+
+' Yalnızca önemli alanlar gösterilir. Her okula ait varlıkta ayrıca id ve okul_id vardır (OkulaAitMixin).
+
+' @kod okulapi.cekirdek.modeller
+package "Çekirdek (okulapi.cekirdek)" {
+  class Okul <<cekirdek>> {
+    +ad : str
+    +gun_sayisi : int
+    +gunluk_ders_saati : int
+    +gun_saatleri : list[int] [0..1]
+    +ogle_arasi_sonra : int [0..1]
+    +ilk_ders_baslangic : time [0..1]
+  }
+  class Kullanici <<cekirdek>> {
+    +email : str
+    +ad : str
+    +rol : str
+  }
+  class Ogretmen <<cekirdek>> {
+    +ad : str
+    +brans : str
+  }
+  class SubeGrubu <<cekirdek>> {
+    +ad : str
+    +seviye : int
+  }
+  class Sinif <<cekirdek>> {
+    +ad : str
+    +seviye : int
+  }
+  class Ders <<cekirdek>> {
+    +ad : str
+    +kisa_ad : str
+    +renk : str
+  }
+}
+
+' @kod okulapi.cekirdek.zil
+package "Zil (yalnızca gösterim)" {
+  class Zil <<dataclass>> {
+    +baslangic : str
+    +bitis : str
+  }
+}
+
+' @kod okulapi.moduller.ders_programi.modeller
+package "Ders programı modülü: veri" {
+  class SeviyeSablonu <<ders_programi>> {
+    +seviye : int
+    +haftalik_saat : int
+  }
+  class SubeDersIstisnasi <<ders_programi>> {
+    +tur : str
+    +haftalik_saat : int [0..1]
+  }
+  class DersAtama <<ders_programi>> {
+    +haftalik_saat : int
+  }
+  class Musaitlik <<ders_programi>> {
+    +gun : int
+    +saat : int
+    +durum : str
+  }
+  class Kisit <<ders_programi>> {
+    +tur : str
+    +parametreler : dict
+    +zorunlu : bool
+    +agirlik : int
+    +okul_geneli : bool
+  }
+}
+
+' @kod cozucu.kapsam
+package "Özel ayar kapsamı (cozucu.kapsam)" {
+  class Kapsam <<dataclass>> {
+    +ders_id : str [0..1]
+    +sinif_id : str [0..1]
+    +sube_grubu_id : str [0..1]
+    +ogretmen_id : str [0..1]
+    +puan : int
+  }
+}
+
+' @kod okulapi.moduller.ders_programi.modeller
+package "Ders programı modülü: sonuç" {
+  class Program <<ders_programi>> {
+    +ad : str
+    +durum : str
+    +sure_siniri_sn : int
+    +toplam_ceza : int [0..1]
+    +olcumler : dict [0..1]
+  }
+  class Yerlesim <<ders_programi>> {
+    +gun : int
+    +saat : int
+    +kilitli : bool
+  }
+  class ProgramIslemi <<ders_programi>> {
+    +sira : int
+    +tur : str
+  }
+  class Yayin <<ders_programi>> {
+    +program_adi : str
+    +icerik : dict
+  }
+  class PaylasimLinki <<ders_programi>> {
+    +tur : str
+    +jeton : str
+  }
+}
+
+Okul "1" *-- "1..*" Kullanici : yönetir
+Okul "1" *-- "0..*" Ogretmen
+Okul "1" *-- "0..*" Sinif
+Okul "1" *-- "0..*" SubeGrubu
+Okul "1" *-- "0..*" Ders
+Okul "1" ..> "0..*" Zil : zil saatleri\n(hesaplanır)
+SubeGrubu "0..1" o-- "0..*" Sinif : grubun şubeleri
+
+SeviyeSablonu "0..*" --> "1" Ders
+SubeGrubu "0..1" *-- "0..*" SeviyeSablonu : grubun şablonu
+Sinif "1" *-- "0..*" SubeDersIstisnasi : almaz / ek
+SubeDersIstisnasi "0..*" --> "1" Ders
+
+DersAtama "0..*" --> "1" Sinif
+DersAtama "0..*" --> "1" Ders
+DersAtama "0..*" --> "0..1" Ogretmen : verir
+Ogretmen "1" *-- "0..*" Musaitlik : gelemez /\ntercih etmez
+
+Kisit "0..*" --> "0..1" Kapsam : özel ayar\n(ders | şube | grup | öğretmen)
+
+Program "1" *-- "0..*" Yerlesim : hücreler
+Yerlesim "0..*" --> "1" DersAtama
+Program "1" *-- "0..*" ProgramIslemi : geri alma
+Program "0..*" --> "0..1" Program : temel program
+Yayin ..> Program : dondurulmuş kopya
+PaylasimLinki ..> Yayin : gösterir
+
+Kisit -[hidden]down- Kapsam
+
+note top of DersAtama
+  Çözücünün asıl girdisi: "bir sınıf, bir ders,
+  bir öğretmen" (UNIQUE sinif_id, ders_id).
+  Şablon + istisna → ders atamaları.
+end note
+
+note bottom of Kapsam
+  Kisit satırında dört kapsam sütunu
+  (ders_id, sinif_id, sube_grubu_id,
+  ogretmen_id). Çözücü en özel kapsamı
+  seçer (puan: ders 4, şube 2, grup 1,
+  öğretmen 1): ders+şube 6 > ders+grup 5
+  > ders 4 > şube 2 > grup 1 > okul 0
+  (ADR 0016).
+end note
+
+note as okulnotu
+  Ders programı modülündeki her varlık da okula aittir
+  (okul_id; okul silinince silinir). Okuldan bu varlıklara
+  giden oklar okunurluk için çizilmedi. Okulda en fazla
+  bir Yayin ve bir etkin üretim vardır.
+end note
+
+legend right
+  Mavi: çekirdek; krem: ders programı modülü.
+  Dolu elmas: bileşim (okul silinirse parçaları da silinir).
+  Boş elmas: toplama (grup silinince şube grupsuz kalır).
+endlegend
+@enduml

@@ -14,6 +14,7 @@ package "okulapi.cekirdek (ayrıntı: 02)" {
   class Okul <<çekirdek>>
   class Ogretmen <<çekirdek>>
   class Sinif <<çekirdek>>
+  class SubeGrubu <<çekirdek>>
   class Ders <<çekirdek>>
 }
 
@@ -21,8 +22,15 @@ package "okulapi.cekirdek (ayrıntı: 02)" {
 package "modeller (tablolar)" {
   class SeviyeSablonu {
     +seviye : int
+    +sube_grubu_id : UUID [0..1]
     +ders_id : UUID
     +haftalik_saat : int
+  }
+  class SubeDersIstisnasi {
+    +sinif_id : UUID
+    +ders_id : UUID
+    +tur : str
+    +haftalik_saat : int [0..1]
   }
   class DersAtama {
     +sinif_id : UUID
@@ -43,7 +51,9 @@ package "modeller (tablolar)" {
     +agirlik : int
     +ders_id : UUID [0..1]
     +sinif_id : UUID [0..1]
+    +sube_grubu_id : UUID [0..1]
     +ogretmen_id : UUID [0..1]
+    +okul_geneli : bool
   }
   class Program {
     +ad : str
@@ -59,6 +69,7 @@ package "modeller (tablolar)" {
     +celiskiler : list [JSONB, 0..1]
     +sure_sn : float [0..1]
     +girdi_ozeti : str [0..1]
+    +veri_ozeti : str [0..1]
   }
   class Yerlesim {
     +program_id : UUID
@@ -67,6 +78,25 @@ package "modeller (tablolar)" {
     +saat : int
     +kilitli : bool
   }
+  class ProgramIslemi {
+    +program_id : UUID
+    +sira : int
+    +tur : str
+    +veri : dict [JSONB]
+  }
+  class Yayin {
+    +program_id : UUID [0..1]
+    +program_adi : str
+    +yayin_zamani : datetime
+    +icerik : dict [JSONB]
+    +veri_ozeti : str [0..1]
+  }
+  class PaylasimLinki {
+    +tur : str
+    +ogretmen_id : UUID [0..1]
+    +sinif_id : UUID [0..1]
+    +jeton : str
+  }
 }
 
 ' Hepsi bileşik yabancı anahtar (okul_id, x_id) -> x(okul_id, id): yalnızca aynı okul.
@@ -74,14 +104,22 @@ DersAtama "0..*" --> "1" Sinif : sinif_id
 DersAtama "0..*" --> "1" Ders : ders_id
 DersAtama "0..*" --> "0..1" Ogretmen : ogretmen_id
 SeviyeSablonu "0..*" --> "1" Ders : ders_id
+SubeGrubu "0..1" *-- "0..*" SeviyeSablonu : grubun şablonu\n(CASCADE)
+Sinif "1" *-- "0..*" SubeDersIstisnasi : almaz / ek\n(CASCADE)
+SubeDersIstisnasi "0..*" --> "1" Ders : ders_id
 Ogretmen "1" *-- "0..*" Musaitlik : ON DELETE\nCASCADE
 Program "1" *-- "0..*" Yerlesim : ON DELETE\nCASCADE
+Program "1" *-- "0..*" ProgramIslemi : geri alma yığını\n(CASCADE)
 Yerlesim "0..*" --> "1" DersAtama : ders_atama_id\n(CASCADE)
 Program "0..*" --> "0..1" Program : temel_program_id\n(SET NULL)
 Okul "1" -- "0..*" Kisit
 Ogretmen "1" *-- "0..*" Kisit : özel ayar\n(CASCADE)
 Ders "1" *-- "0..*" Kisit : özel ayar\n(CASCADE)
 Sinif "1" *-- "0..*" Kisit : özel ayar\n(CASCADE)
+SubeGrubu "1" *-- "0..*" Kisit : özel ayar\n(CASCADE)
+Okul "1" -- "0..1" Yayin : UNIQUE (okul_id)
+Yayin "0..1" --> "0..1" Program : program_id\n(SET NULL)
+Okul "1" -- "0..*" PaylasimLinki
 
 note right of DersAtama
   UNIQUE (okul_id, sinif_id, ders_id):
@@ -96,18 +134,30 @@ note left of Program
   uretiliyor/hazir → baslama dolu;
   hazir → cozum_durumu optimal ya da uygun;
   hazir/basarisiz → bitis dolu (ADR 0011).
+  Kısmi benzersiz indeks: okulda en fazla bir
+  etkin (bekliyor/uretiliyor) üretim.
 end note
 
 note bottom of Kisit
-  Kapsam sütunlarının üçü boşsa okul geneli kural,
+  Kapsam sütunlarının dördü boşsa okul geneli kural,
   biri doluysa özel ayar (ADR 0016). CHECK: öğretmen
-  kapsamı ders/şube ile birleşmez. UNIQUE NULLS NOT
-  DISTINCT (okul_id, tur, ders_id, sinif_id, ogretmen_id).
+  kapsamı ders/şube/grup ile birleşmez; şube ile grup
+  birlikte olmaz. UNIQUE NULLS NOT DISTINCT
+  (okul_id, tur, ders_id, sinif_id, sube_grubu_id, ogretmen_id).
 
   Bu paketteki bütün tablolar çekirdeğin
   OkulaAitMixin'inden türer (id, okul_id,
   UNIQUE (okul_id, id)); oklar sadelik
   için çizilmedi. Hepsinde RLS açıktır.
+end note
+
+note bottom of Yayin
+  Yayınlanan programın dondurulmuş kopyası
+  (ADR 0022): icerik çıktı modelinin JSON'u;
+  atama ya da öğretmen silinse de değişmez.
+  Paylaşım linki yayına değil okula bağlıdır;
+  link ile okuma yalnızca paylasim_icerigi
+  SECURITY DEFINER fonksiyonuyla.
 end note
 
 legend right

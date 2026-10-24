@@ -60,6 +60,11 @@ package "servisler (iş kuralları)" {
     {static} +dagilim_ozeti(oturum) : dict
     {static} +on_kontrol_sonucu(oturum) : list[dict]
   }
+  class SubeIstisnasiServisi {
+    +listele() : list[dict]
+    +olustur(sinif_id : UUID, ders_id : UUID, tur : str, haftalik_saat : int) : dict
+    +sil(istisna_id : UUID) : dict
+  }
   class MusaitlikServisi {
     #_dogrula(alanlar, nesne)
   }
@@ -73,6 +78,7 @@ package "servisler (iş kuralları)" {
   class ProgramServisi {
     +kuyruk : IsKuyrugu [0..1]
     +uret(ad : str, temel_program_id : UUID, sure_siniri_sn : int) : Program
+    +fark(program_id : UUID, ile_id : UUID) : dict
     +listele() : list[Program]
     +getir(program_id : UUID) : Program
     +yerlesimler(program_id : UUID) : list[Yerlesim]
@@ -80,11 +86,54 @@ package "servisler (iş kuralları)" {
   }
 }
 
+' @kod okulapi.moduller.ders_programi.elle
+package "elle (elle düzeltme, ADR 0019)" {
+  class ElleDuzeltmeServisi {
+    +harita(program_id : UUID, atama_id : UUID, gun : int, saat : int) : dict
+    +tasi(program_id : UUID, atama_id : UUID, gun : int, saat : int, hedef_gun : int, hedef_saat : int) : Program
+    +kilitle(program_id : UUID, atama_id : UUID, gun : int, saat : int, kilitli : bool) : Program
+    +geri_al(program_id : UUID) : Program
+  }
+}
+
+' @kod okulapi.moduller.ders_programi.yayin
+package "yayin (ADR 0022)" {
+  class YayinServisi {
+    +yayinla(program_id : UUID) : dict
+    +kaldir()
+    +durum() : dict [0..1]
+  }
+}
+' @kod okulapi.moduller.ders_programi.paylasim
+package "paylasim (girişsiz link)" {
+  class PaylasimServisi {
+    +listele() : list[dict]
+    +olustur(tur : str, ogretmen_id : UUID, sinif_id : UUID) : dict
+    +toplu_olustur(tur : str) : list[dict]
+    +yenile(link_id : UUID) : dict
+    +iptal(link_id : UUID)
+  }
+}
+' @kod okulapi.moduller.ders_programi.ice_aktarma
+package "ice_aktarma (Excel, ADR 0021)" {
+  class ice_aktarma <<modül>> {
+    {static} +sablon_xlsx() : bytes
+    {static} +onizle(oturum, icerik : bytes) : Plan
+    {static} +kaydet(oturum, icerik : bytes, ozet : str) : dict
+  }
+}
+
+' @kod cozucu.tasima
+package "cozucu.tasima" {
+  class Degerlendirici <<harici>>
+}
+
 ' @kod okulapi.moduller.ders_programi.depo
 package "depo" {
   class SeviyeSablonuDeposu {
     +sablonun(seviye : int, sube_grubu_id : UUID) : list[SeviyeSablonu]
   }
+  class SubeIstisnasiDeposu
   class DersAtamaDeposu {
     +siniflarin(sinif_idler : list[UUID]) : list[DersAtama]
   }
@@ -168,12 +217,18 @@ CrudServisi <|-- MusaitlikServisi
 CrudServisi <|-- KisitServisi
 OkulaAitDepo <|-- SeviyeSablonuDeposu
 OkulaAitDepo <|-- DersAtamaDeposu
+OkulaAitDepo <|-- SubeIstisnasiDeposu
 OkulaAitDepo <|-- YerlesimDeposu
 
 SeviyeSablonuServisi --> "1" SeviyeSablonuDeposu : depo
 DersAtamaServisi --> "1" DersAtamaDeposu : depo
 SeviyeSablonuServisi ..> DersAtamaDeposu : uygula(): öğretmeni\nboş atama ekler
 ProgramServisi ..> YerlesimDeposu
+ElleDuzeltmeServisi ..> Degerlendirici : hedef hücre:\nuygun / takas / çakışma
+ElleDuzeltmeServisi ..> cozucu_donusturucu : girdi
+YayinServisi ..> cozucu_donusturucu : veri özeti
+ice_aktarma ..> DersAtamaDeposu : tek işlemde ekler
+SeviyeSablonuServisi ..> SubeIstisnasiDeposu : uygula(): istisnalar\nkorunur
 KisitServisi ..> kisitlar : kural_olustur():\ntür ve parametre doğrulaması
 cozucu_donusturucu ..> DersAtamaDeposu
 cozucu_donusturucu ..> YerlesimDeposu

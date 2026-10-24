@@ -22,6 +22,9 @@ dependencies = [
     # Çıktı: PDF ve Excel (ADR 0020). Yalnızca moduller/ders_programi/cikti içe aktarır.
     "reportlab>=4.2",
     "openpyxl>=3.1",
+    # `python -m okulapi ornek-okul` veriyi API'nin kendisinden geçirir (süreç içinde TestClient);
+    # Starlette'in TestClient'ı httpx2 ister. Komut konteynerde de çalışsın diye çalışma bağımlılığı.
+    "httpx2>=2.0",
     # Depodaki çözücü paketi (/cozucu). Ders programı modülü onu girdi/çıktı dönüşümü ve kısıt
     # doğrulaması için kullanır; çözücü API'yi bilmez. Geliştirmede: pip install -e ../cozucu
     "cozucu",

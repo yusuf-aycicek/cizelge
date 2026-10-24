@@ -14,7 +14,7 @@ services:
     ports:
       # Bilgisayardan erişim (testler, inceleme) 5433 üzerinden: aynı makinedeki başka projelerin
       # PostgreSQL konteynerleri 5432 kullanıyor. Konteynerler arası bağlantı yine db:5432.
-      - "5433:5432"
+      - "${DB_PORT:-5433}:5432"
     volumes:
       - db_verisi:/var/lib/postgresql/data  # konteyner silinse de veri kalır
       # İlk başlatmada uygulama rolünü oluşturan betik (yalnızca boş veri biriminde çalışır).
@@ -50,7 +50,8 @@ services:
       OKULAPI_CEREZ_SECURE: "false"
       # Veri değiştiren isteklerde kabul edilen kökenler: Vite geliştirme sunucusu (arayüz, /api
       # isteklerini buraya yönlendirir) ve API'nin kendi belge sayfası (/docs).
-      OKULAPI_IZINLI_KOKENLER: '["http://localhost:5173", "http://localhost:8000"]'
+      # Port .env ile değiştirilirse (WEB_PORT, API_PORT) kökenler de onları izler.
+      OKULAPI_IZINLI_KOKENLER: '["http://localhost:${WEB_PORT:-5173}", "http://localhost:${API_PORT:-8000}"]'
     depends_on:
       db:
         condition: service_healthy  # veritabanı bağlantı kabul etmeden api başlamaz
@@ -61,7 +62,7 @@ services:
       sh -c "python -m okulapi.migrasyon upgrade heads &&
              uvicorn okulapi.main:uygulama_olustur --factory --host 0.0.0.0 --port 8000"
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/saglik')"]
       interval: 5s
@@ -99,7 +100,7 @@ services:
       # Paketler konteynerin kendi biriminde: bilgisayardaki (Windows) node_modules kullanılmaz.
       - web_paketleri:/app/node_modules
     ports:
-      - "5173:5173"
+      - "${WEB_PORT:-5173}:5173"
     depends_on:
       api:
         condition: service_healthy

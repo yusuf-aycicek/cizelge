@@ -19,5 +19,9 @@ COPY worker/pyproject.toml worker/pyproject.toml
 COPY worker/src worker/src
 RUN pip install --no-cache-dir ./worker
 
+# Örnek okul komutunun veri setleri (docker compose exec api python -m okulapi ornek-okul ...).
+COPY veri/mini.json veri/gercekci.json veri/
+ENV OKULAPI_VERI_DIZINI=/app/veri
+
 EXPOSE 8000
 CMD ["uvicorn", "okulapi.main:uygulama_olustur", "--factory", "--host", "0.0.0.0", "--port", "8000"]

@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -29,7 +30,9 @@ ORNEK_EMAIL = "mudur@ornek.test"
 ORNEK_PAROLA = "ornek-okul-parolasi"
 ORNEK_OKUL = "Atatürk Anadolu Lisesi"
 ORNEK_MUDUR = "Hatice Yıldız"
-VERI = Path(__file__).resolve().parents[3] / "veri"
+# Depodan çalışırken depo kökündeki veri/; konteynerde paket kurulu olduğu için imajın kopyası
+# (api/Dockerfile: OKULAPI_VERI_DIZINI=/app/veri).
+VERI = Path(os.environ.get("OKULAPI_VERI_DIZINI") or Path(__file__).resolve().parents[3] / "veri")
 MINI = VERI / "mini.json"
 # Seçilebilir setler: mini (5 öğretmen, 3 şube; hızlı) ve gerçekçi (42 öğretmen, 24 şube; çözücü
 # süre sınırını kullanır, bekleme ekranını görmek için).

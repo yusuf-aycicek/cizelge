@@ -5,3 +5,6 @@
 .git
 cozucu/.venv
 scripts/sonuclar
+**/node_modules
+.env
+*.zip

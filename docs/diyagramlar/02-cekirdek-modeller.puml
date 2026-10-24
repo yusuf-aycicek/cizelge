@@ -50,9 +50,14 @@ package "modeller (tablolar)" {
     +ad : str
     +brans : str
   }
+  class SubeGrubu {
+    +ad : str
+    +seviye : int
+  }
   class Sinif {
     +ad : str
     +seviye : int
+    +sube_grubu_id : UUID [0..1]
   }
   class Ders {
     +ad : str
@@ -71,6 +76,19 @@ package "modeller (tablolar)" {
     +hata_sayisi : int
     +pencere_basi : datetime
     +kilit_bitis : datetime [0..1]
+  }
+}
+
+' @kod okulapi.cekirdek.zil
+package "zil (yalnızca gösterim)" {
+  class Zil <<dataclass>> {
+    +baslangic : str
+    +bitis : str
+    +metin : str
+  }
+  class zil <<modül>> {
+    {static} +okulun_zilleri(okul : Okul) : tuple[list[Zil], Zil]
+    {static} +zil_saatleri(...) : list[Zil]
   }
 }
 
@@ -96,6 +114,7 @@ ZamanDamgasi <|-- OkulaAitMixin
 OkulaAitMixin <|-- Kullanici
 OkulaAitMixin <|-- Ogretmen
 OkulaAitMixin <|-- Sinif
+OkulaAitMixin <|-- SubeGrubu
 OkulaAitMixin <|-- Ders
 OkulaAitMixin <|-- Oturum
 Base <|-- GirisDenemesi
@@ -104,6 +123,10 @@ Kullanici "1" *-- "0..*" Oturum : ON DELETE\nCASCADE
 Okul "1" -- "0..*" Kullanici
 Okul "1" -- "0..*" Ogretmen
 Okul "1" -- "0..*" Sinif
+Okul "1" -- "0..*" SubeGrubu
+SubeGrubu "0..1" o-- "0..*" Sinif : sube_grubu_id\n(SET NULL)
+zil ..> Okul : ilk_ders_baslangic,\nders_suresi_dk, teneffus_dk
+zil ..> Zil : üretir
 Okul "1" -- "0..*" Ders
 
 kiraci ..> OkulaAitMixin : koşul ekler,\nokul_id yazar

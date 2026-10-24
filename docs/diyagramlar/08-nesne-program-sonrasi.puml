@@ -1,73 +1,103 @@
 @startuml 08-nesne-program-sonrasi
 !include _stil.iuml
-title Nesne diyagramı (2/2): mini set, program üretildikten sonra (9-A Matematik yerleşimleri)
+title Nesne diyagramı (2/2): program üretildikten ve elle düzeltildikten sonra (07'deki kesit)
 
-' 07'deki veri aynen durur; burada yalnızca program ve yerleşimler eklenir. Yerleşimler mini setin
-' gerçek çözümünden alındı (gun 0 = pazartesi, saat 0 = 1. ders).
+' 07'deki veri aynen durur; burada program, yerleşimler, bir elle düzeltme işlemi ve kalite özeti
+' eklenir (gun 0 = pazartesi, saat 0 = 1. ders; öğle arası 4. dersten sonra). Yerleşimler bütün
+' zorunlu kurallara uyar. Kalite ve süre bütün okulun programınındır (kesitte gösterilmeyen şube ve
+' öğretmenlerle); değerler gerçekçi setin bir 120 sn ölçümünden (docs/olcumler.md, ADR 0025, tohum 0).
 
-object "a9amat : DersAtama" as atama {
+object "a1 : DersAtama" as a1 {
   id = a-9a-mat
-  sinif_id = s-9a
-  ders_id = d-mat
-  ogretmen_id = o-ayse
   haftalik_saat = 6
+}
+object "a3 : DersAtama" as a3 {
+  id = a-9b-fel
+  haftalik_saat = 2
 }
 
 object "guz : Program" as p1 {
   id = p-guz
   ad = "Güz dönemi"
   durum = "hazir"
-  hata_mesaji = null
   temel_program_id = null
   sure_siniri_sn = 120
-  baslama = 2026-10-14 10:02:00
-  bitis = 2026-10-14 10:02:01
-  cozum_durumu = "optimal"
-  toplam_ceza = 0
-  sure_sn = 0.3
+  cozum_durumu = "uygun"
+  toplam_ceza = 60
+  sure_sn = 120.3
+  olcumler = {"sinif_boslugu": 0, "ogretmen_penceresi": 8, ...}
+  veri_ozeti = "3f9c…"
 }
 
 object "y1 : Yerlesim" as y1 {
   program_id = p-guz
   ders_atama_id = a-9a-mat
-  gun = 1
+  gun = 0
   saat = 0
   kilitli = true
 }
 object "y2 : Yerlesim" as y2 {
-  gun = 2
-  saat = 0
-  kilitli = false
-}
-object "y3 : Yerlesim" as y3 {
-  gun = 3
-  saat = 0
-  kilitli = false
-}
-object "y4 : Yerlesim" as y4 {
-  gun = 3
+  ders_atama_id = a-9a-mat
+  gun = 0
   saat = 1
   kilitli = false
 }
+object "y3 : Yerlesim" as y3 {
+  ders_atama_id = a-9a-mat
+  gun = 2
+  saat = 2
+}
+object "y4 : Yerlesim" as y4 {
+  ders_atama_id = a-9a-mat
+  gun = 2
+  saat = 3
+}
 object "y5 : Yerlesim" as y5 {
-  gun = 4
-  saat = 4
-  kilitli = false
+  ders_atama_id = a-9a-mat
+  gun = 3
+  saat = 0
 }
 object "y6 : Yerlesim" as y6 {
-  gun = 4
+  ders_atama_id = a-9a-mat
+  gun = 3
+  saat = 1
+}
+object "y7 : Yerlesim" as y7 {
+  ders_atama_id = a-9b-fel
+  gun = 1
+  saat = 4
+}
+object "y8 : Yerlesim" as y8 {
+  ders_atama_id = a-9b-fel
+  gun = 1
   saat = 5
-  kilitli = false
+}
+
+object "islem1 : ProgramIslemi" as is1 {
+  program_id = p-guz
+  sira = 1
+  tur = "tasima"
+  veri = {"ders_atama_id": a-9a-mat, "eski": [[4,0],[4,1]], "yeni": [[3,0],[3,1]]}
+}
+
+object "kalite : KaliteOlcumu" as kal {
+  sinif_boslugu = 0
+  ogretmen_penceresi = 8
+  bolunmus_ders = 0
+  tercih_etmez = 0
+  eksik_bos_gun = 9
+  fazla_bos_gun = 0
+  degisen_yerlesim = 0
+  saat_tercihi = 0
+  az_dersli_gun = 3
+  art_arda_gun = 0
 }
 
 object "guz2 : Program" as p2 {
   id = p-guz-2
-  ad = "Güz dönemi (güncelleme)"
+  ad = "Güz dönemi (öğretmen değişti)"
   durum = "bekliyor"
   temel_program_id = p-guz
-  sure_siniri_sn = 120
-  baslama = null
-  bitis = null
   cozum_durumu = null
 }
 
@@ -77,33 +107,45 @@ p1 *-- y3
 p1 *-- y4
 p1 *-- y5
 p1 *-- y6
-y1 --> atama : ders_atama_id
-y2 --> atama
-y3 --> atama
-y4 --> atama
-y5 --> atama
-y6 --> atama
+p1 *-- y7
+p1 *-- y8
+p1 *-- is1
+y1 --> a1 : ders_atama_id
+y6 --> a1
+y7 --> a3 : ders_atama_id
+y8 --> a3
+p1 ..> kal : olcumler = kalite.olc(...)\n(JSONB olarak saklanır)
 p2 --> p1 : temel_program_id
 
-note bottom of atama
-  haftalik_saat = 6 → tam 6 yerleşim.
-  Salı 1, Çarşamba 1, Perşembe 1-2, Cuma 5-6:
-  pazartesi yok (Ayşe gelemez),
-  hiçbir günde 2'den fazla saat yok (gunluk_ders_siniri n=2),
-  Perşembe ve Cuma'daki ikişer saat arka arkaya.
+note bottom of a1
+  haftalik_saat = 6 → tam 6 yerleşim, "2+2+2" bloklar:
+  Pazartesi 1-2, Çarşamba 3-4, Perşembe 1-2.
+  Her blok ayrı günde, art arda, öğle arasını kesmiyor;
+  hiçbir günde 2'den fazla saat yok (gunluk_ders_siniri n = 2).
 end note
 
 note right of y1
-  Kilitli hücre: veri girişinde
-  sabitlendi, çözücü yerinden
-  oynatmadı.
+  Kilitli hücre: elle sabitlendi;
+  yeniden üretimde de yerinde kalır.
+end note
+
+note right of is1
+  Elle düzeltme (ADR 0019): Perşembe bloğu
+  Cuma'dan taşındı. "Geri al" en büyük
+  sira'yı tersine çevirir.
 end note
 
 note right of p2
-  En az değişiklikle güncelleme isteği:
-  temel program p-guz. Worker bu kaydı
-  kuyruktan alınca durum
-  bekliyor → uretiliyor → hazir olur
-  (yapım sırası 3).
+  En az değişiklikle güncelleme: temel program
+  p-guz. Worker kuyruktan alınca durum
+  bekliyor → uretiliyor → hazir olur;
+  p-guz'dan farklı her yerleşim ceza (8).
+end note
+
+note bottom of kal
+  Toplam ceza = pencere 8 × 3 + eksik boş gün 9 × 4 = 60.
+  Sınıf boşluğu (ağırlık 30) 0. "Az dersli gün" ölçülür
+  ama kural okul genelinde kapalı (k = 1, ADR 0025):
+  cezaya girmez.
 end note
 @enduml

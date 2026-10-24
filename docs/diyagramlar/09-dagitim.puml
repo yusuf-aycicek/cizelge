@@ -1,6 +1,6 @@
 @startuml 09-dagitim
 !include _stil.iuml
-title Dağıtım diyagramı: docker compose up --build (geliştirme ortamı)
+title Dağıtım diyagramı: docker compose up --build (tek makine) ve yayın ortamı için not
 
 skinparam node {
   BackgroundColor #FFFFFF
@@ -11,78 +11,89 @@ skinparam node<<planlanan>> {
   BorderColor #A0A0A0
   FontColor #8A8A8A
 }
-skinparam artifact<<planlanan>> {
-  BackgroundColor #F6F6F6
-  BorderColor #A0A0A0
-  FontColor #8A8A8A
-}
 
-node "Geliştirici bilgisayarı\n<<cihaz>>\nWindows 11" as pc {
-  node "Tarayıcı" as tarayici
-  node "pytest\n(api/.venv, cozucu/.venv)" as testler
-
-  node "Docker Desktop (WSL2)\n<<yürütme ortamı>>" as docker {
-    node "db\n<<konteyner>>\npostgres:17" as db {
-      database "okul\n(ve testler için okul_test)" as okuldb
-      artifact "rol: okul_sahip\n(tablo sahibi, süper kullanıcı;\nmigration'lar)" as rol_sahip
-      artifact "rol: okul_uygulama\n(uygulama; RLS'ye tabi,\nyalnızca DML yetkisi)" as rol_uyg
-      artifact "01-uygulama-rolu.sh\n(docker-entrypoint-initdb.d)" as init
-      artifact "rol: okul_giris (NOLOGIN)\nSECURITY DEFINER fonksiyonların sahibi:\ngiris_bilgisi, oturum_coz, kaba kuvvet sayacı" as rol_giris
-    }
-    storage "db_verisi\n<<birim>>" as birim
-
-    node "api\n<<konteyner>>\npython:3.14-slim\nOKULAPI_CEREZ_SECURE=false\nOKULAPI_IZINLI_KOKENLER=[:5173, :8000]" as api {
-      artifact "okulapi\n(FastAPI, uvicorn)" as okulapi
-      artifact "cozucu\n(OR-Tools CP-SAT)" as cozucu
-      artifact "migrasyon\n(Alembic: upgrade heads)" as migrasyon
-    }
-
-    node "redis\n<<konteyner>>\nredis:7.4" as redis {
-      queue "program_uretimi\n(RQ kuyruğu;\niş kimliği = program kimliği)" as kuyruk
-    }
-
-    node "worker\n<<konteyner>>\napi ile aynı imaj" as worker {
-      artifact "okulworker\n(python -m okulworker;\nRQ worker'ı, iş başına fork)" as okulworker
-      artifact "okulapi + cozucu\n(iş fonksiyonu:\nuretim.uretim_isi)" as isler
-    }
-    node "web\n<<konteyner>>\nnode:22-alpine" as web {
-      artifact "Vite geliştirme sunucusu\n(React + TypeScript)\nlocalhost:5173" as vite
-    }
-    storage "web_paketleri\n<<birim>>\n(node_modules)" as paketler
+node "Kullanıcının bilgisayarı / telefonu\n<<cihaz>>" as cihaz {
+  node "Web tarayıcısı\n<<yürütme ortamı>>" as tarayici {
+    artifact "React uygulaması\n(TypeScript, derlenmiş JS paketi)" as spa
+    artifact "oturum çerezi\nHttpOnly, SameSite=Strict" as cerez
   }
 }
 
-tarayici --> api : HTTP\nlocalhost:8000 → api:8000\n(/docs, /api/...)
-testler --> db : TCP/PostgreSQL\nlocalhost:5433 → db:5432
-okulapi --> rol_uyg : bağlanır (db:5432)\nOKULAPI_VERITABANI_URL
-migrasyon --> rol_sahip : bağlanır (db:5432)\nOKULAPI_MIGRASYON_URL
-db --> birim : /var/lib/postgresql/data
-init ..> rol_uyg : ilk açılışta oluşturur
-okulapi ..> cozucu : import
-okulapi --> kuyruk : işi ekler, "kuyrukta mı?"\n(redis:6379, port dışarı açılmaz)
+node "Sunucu (Docker Engine / Docker Desktop)\n<<cihaz>>" as sunucu {
+  node "Docker Compose projesi\n<<yürütme ortamı>>" as compose {
+
+    node "web\n<<konteyner>>\nnode:22-alpine\nport 5173 (WEB_PORT)" as web {
+      artifact "Vite sunucusu\n(npm run dev)" as vite
+      artifact "web/src\n(React kaynakları)" as webkaynak
+    }
+    storage "web_paketleri\n<<birim>>\nnode_modules" as paketler
+
+    node "api\n<<konteyner>>\npython:3.14-slim (api/Dockerfile)\nport 8000 (API_PORT)" as api {
+      artifact "okulapi\n(FastAPI + uvicorn)" as okulapi
+      artifact "cozucu\n(OR-Tools CP-SAT; ön kontrol)" as cozucu_api
+      artifact "migrasyon\n(Alembic: upgrade heads)" as migrasyon
+      artifact "veri/*.json\n(ornek-okul komutu)" as veriseti
+    }
+
+    node "worker\n<<konteyner>>\napi ile aynı imaj\n(--scale worker=N)" as worker {
+      artifact "okulworker\n(python -m okulworker;\nRQ worker, iş başına fork)" as okulworker
+      artifact "okulapi + cozucu\n(uretim.uretim_isi)" as isler
+    }
+
+    node "redis\n<<konteyner>>\nredis:7.4\n(dışarıya port açılmaz)" as redis {
+      queue "program_uretimi\n(RQ kuyruğu;\niş kimliği = program kimliği)" as kuyruk
+    }
+
+    node "db\n<<konteyner>>\npostgres:17\nport 5433 → 5432 (DB_PORT)" as db {
+      database "okul\n(RLS açık tablolar)" as okuldb
+      artifact "rol: okul_sahip\n(tablo sahibi; migration'lar)" as rol_sahip
+      artifact "rol: okul_uygulama\n(api ve worker; RLS'ye tabi,\nyalnızca DML)" as rol_uyg
+      artifact "rol: okul_giris (NOLOGIN)\nSECURITY DEFINER fonksiyonlar:\ngiris_bilgisi, oturum_coz,\nkaba kuvvet sayacı (ADR 0012)" as rol_giris
+      artifact "rol: okul_paylasim (NOLOGIN)\npaylasim_icerigi(jeton)\n(girişsiz link, ADR 0022)" as rol_paylasim
+      artifact "01-uygulama-rolu.sh\n(docker-entrypoint-initdb.d)" as init
+    }
+    storage "db_verisi\n<<birim>>" as birim
+  }
+}
+
+tarayici --> vite : HTTP :5173\n(sayfa + /api aynı köken)
+vite --> okulapi : Vite proxy\n/api → http://api:8000\n(ADR 0013)
+vite ..> webkaynak : derler, sunar
+web --> paketler
+spa ..> cerez
+okulapi --> rol_uyg : TCP db:5432\nOKULAPI_VERITABANI_URL
+migrasyon --> rol_sahip : TCP db:5432\nOKULAPI_MIGRASYON_URL
+okulapi --> kuyruk : RESP redis:6379\nişi ekler / "kuyrukta mı?"
 okulworker --> kuyruk : işi alır
 okulworker ..> isler : çalıştırır
-isler --> rol_uyg : bağlanır (db:5432)\nRLS, işteki okul_id ile
+isler --> rol_uyg : TCP db:5432\nSET LOCAL app.okul_id
 rol_uyg ..> rol_giris : yalnızca EXECUTE\n(okul bilinmeden arama)
+rol_uyg ..> rol_paylasim : yalnızca EXECUTE
+db --> birim : /var/lib/postgresql/data
+init ..> rol_uyg : ilk açılışta oluşturur
 
-tarayici --> vite : HTTP localhost:5173\n(arayüz ve /api aynı köken)
-vite --> api : Vite proxy: /api → api:8000\n(ADR 0013)
-web --> paketler
+node "Yayın ortamı (önerilen)\n<<planlanan>>" as yayin #F6F6F6;line.dashed {
+  artifact "ters vekil (nginx / Caddy)\nHTTPS :443\n/ → web/dist (npm run build)\n/api → api:8000" as vekil
+}
+tarayici ..> vekil : HTTPS\n(çerez Secure)
+vekil ..> okulapi : HTTP (iç ağ)
 
 note right of db
-  Konteyner içinde 5432; bilgisayara 5433 ile açılır
-  (aynı makinedeki başka projeler 5432 kullanıyor).
-  api, db ve redis sağlıklı olmadan başlamaz (healthcheck).
-  worker, api sağlıklı olmadan başlamaz: migration'ları api uygular.
+  Başlama sırası (healthcheck):
+  db, redis sağlıklı → api (önce migration) →
+  api sağlıklı → worker, web.
+  Bilgisayardan erişim yalnızca testler için (5433).
 end note
 
 note bottom of worker
-  Ölçeklenir: docker compose up --scale worker=3.
   Aynı iş iki kez yapılmaz (FOR UPDATE, ADR 0011).
+  Çözücü API sürecinde değil worker'da çalışır:
+  uzun süren üretim diğer istekleri bekletmez.
 end note
 
 legend right
-  Bütün konteynerler çalışıyor (web, yapım sırası 5.1'den beri).
-  Yayın ortamı (ters vekil sunucu, HTTPS) yayına alma adımında.
+  Düz ok: çalışma anı iletişimi (protokol, hedef port)
+  Kesik ok: yerel bağımlılık / yayın ortamında yol
+  Portlar .env ile değiştirilebilir (.env.example).
 endlegend
 @enduml

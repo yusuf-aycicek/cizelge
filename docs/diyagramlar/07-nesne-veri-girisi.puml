@@ -1,94 +1,163 @@
 @startuml 07-nesne-veri-girisi
 !include _stil.iuml
-title Nesne diyagramı (1/2): mini set, veri girişinden sonra (9-A Matematik dilimi)
+title Nesne diyagramı (1/2): örnek okuldan bir kesit, veri girişinden sonra (9-A ve 9-B)
 
 ' Nesneler 02 ve 04'teki sınıfların örnekleridir; alan adları onlarla aynıdır (test_diyagramlar.py
-' denetler). Kimlikler (uuid) okunabilirlik için veri/mini.json'daki kısa adlarla gösterilir.
+' denetler). Kimlikler (uuid) okunabilirlik için kısa adlarla gösterilir. Kişi adları uydurmadır.
 
-object "mini : Okul" as okul {
-  id = <okul-uuid>
-  ad = "Mini Lisesi"
+object "okul : Okul" as okul {
+  id = <okul>
+  ad = "Örnek Anadolu Lisesi"
   gun_sayisi = 5
-  gunluk_ders_saati = 6
-}
-
-object "ayse : Ogretmen" as ayse {
-  id = o-ayse
-  okul_id = <okul-uuid>
-  ad = "Ayşe Yılmaz"
-  brans = "Matematik"
+  gunluk_ders_saati = 8
+  ogle_arasi_sonra = 4
 }
 
 object "s9a : Sinif" as s9a {
   id = s-9a
-  okul_id = <okul-uuid>
+  okul_id = <okul>
   ad = "9-A"
   seviye = 9
+  sube_grubu_id = null
+}
+object "s9b : Sinif" as s9b {
+  id = s-9b
+  okul_id = <okul>
+  ad = "9-B"
+  seviye = 9
+  sube_grubu_id = null
 }
 
 object "mat : Ders" as mat {
   id = d-mat
-  okul_id = <okul-uuid>
   ad = "Matematik"
   kisa_ad = "MAT"
 }
-
-object "a9amat : DersAtama" as atama {
-  id = a-9a-mat
-  okul_id = <okul-uuid>
-  sinif_id = s-9a
-  ders_id = d-mat
-  ogretmen_id = o-ayse
-  haftalik_saat = 6
+object "fel : Ders" as fel {
+  id = d-fel
+  ad = "Felsefe"
+  kisa_ad = "FEL"
 }
 
-object "m1 : Musaitlik" as m1 {
-  ogretmen_id = o-ayse
-  gun = 0
+object "ece : Ogretmen" as ece {
+  id = o-ece
+  okul_id = <okul>
+  ad = "Ece Örnek"
+  brans = "Matematik"
+}
+object "kaan : Ogretmen" as kaan {
+  id = o-kaan
+  okul_id = <okul>
+  ad = "Kaan Deneme"
+  brans = "Felsefe"
+}
+
+object "sablon9mat : SeviyeSablonu" as sb1 {
+  seviye = 9
+  sube_grubu_id = null
+  ders_id = d-mat
+  haftalik_saat = 6
+}
+object "sablon9fel : SeviyeSablonu" as sb2 {
+  seviye = 9
+  sube_grubu_id = null
+  ders_id = d-fel
+  haftalik_saat = 2
+}
+
+object "istisna : SubeDersIstisnasi" as ist {
+  sinif_id = s-9a
+  ders_id = d-fel
+  tur = "almaz"
+  haftalik_saat = null
+}
+
+object "a1 : DersAtama" as a1 {
+  id = a-9a-mat
+  sinif_id = s-9a
+  ders_id = d-mat
+  ogretmen_id = o-ece
+  haftalik_saat = 6
+}
+object "a2 : DersAtama" as a2 {
+  id = a-9b-mat
+  sinif_id = s-9b
+  ders_id = d-mat
+  ogretmen_id = o-ece
+  haftalik_saat = 6
+}
+object "a3 : DersAtama" as a3 {
+  id = a-9b-fel
+  sinif_id = s-9b
+  ders_id = d-fel
+  ogretmen_id = o-kaan
+  haftalik_saat = 2
+}
+
+object "cuma : Musaitlik" as mus {
+  ogretmen_id = o-kaan
+  gun = 4
   saat = 0
   durum = "gelemez"
 }
 
-object "m6 : Musaitlik" as m6 {
-  ogretmen_id = o-ayse
-  gun = 0
-  saat = 5
-  durum = "gelemez"
-}
-
-object "gunluk : Kisit" as kisit {
-  okul_id = <okul-uuid>
-  tur = "gunluk_ders_siniri"
-  parametreler = {"n": 2}
+object "kaanGunluk : Kisit" as k1 {
+  tur = "ogretmen_gunluk_siniri"
+  parametreler = {"m": 6}
   zorunlu = true
-  agirlik = 1
+  ogretmen_id = o-kaan
+  okul_geneli = false
+}
+object "matBlok : Kisit" as k2 {
+  tur = "blok_deseni"
+  parametreler = {"desen": [2, 2, 2]}
+  zorunlu = true
+  ders_id = d-mat
+  okul_geneli = false
 }
 
-okul -- ayse
 okul -- s9a
-okul -- mat
-okul -- kisit
-atama --> s9a : sinif_id
-atama --> mat : ders_id
-atama --> ayse : ogretmen_id
-ayse *-- m1
-ayse *-- m6
+okul -- s9b
+okul -- ece
+okul -- kaan
+sb1 --> mat : ders_id
+sb2 --> fel : ders_id
+s9a *-- ist
+ist --> fel : ders_id
+a1 --> s9a : sinif_id
+a1 --> mat
+a1 --> ece : ogretmen_id
+a2 --> s9b : sinif_id
+a2 --> mat
+a2 --> ece
+a3 --> s9b : sinif_id
+a3 --> fel
+a3 --> kaan : ogretmen_id
+kaan *-- mus
+kaan *-- k1 : özel ayar
+mat *-- k2 : özel ayar
 
-note right of m6
-  Ayşe pazartesi bütün gün gelemez:
-  saat 0..5 için 6 Musaitlik nesnesi
-  (ilk ve son gösterildi).
+note bottom of ist
+  "9-A Felsefe almaz": şablon (9. seviye: Matematik 6, Felsefe 2)
+  uygulanınca 9-A'ya Felsefe ataması açılmaz, 9-B'ye açılır.
+  Şablon yeniden uygulansa da istisna korunur (K5).
 end note
 
-note bottom of atama
-  Mini setin tamamı: 3 sınıf, 5 öğretmen, 7 ders, 18 atama
-  (71 ders saati). Bu dilim çözücünün asıl girdisini gösterir:
-  9-A'ya haftada 6 saat Matematik'i Ayşe Yılmaz verir.
-  Mini sette seviye şablonu kullanılmadı; atamalar doğrudan girildi.
+note right of k1
+  Öğretmene özel ayar (ADR 0016): okul geneli
+  günde en fazla 8 saat (M), Kaan Deneme için 6.
+  En özel kapsam kazanır.
 end note
 
-note right of kisit
-  Aynı ders bir sınıfa günde
-  en fazla 2 saat (zorunlu).
+note right of k2
+  Derse özel blok şekli: Matematik
+  "2+2+2" (okul önerisi 6 saat için de
+  2+2+2; burada açıkça seçildi, düşmez).
+end note
+
+note bottom of mus
+  Kaan Deneme cuma bütün gün gelemez: 8 saat
+  için 8 Musaitlik nesnesi (biri gösterildi).
+  Başka okulda da görevli öğretmen böyle girilir.
 end note
 @enduml

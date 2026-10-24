@@ -1,0 +1,222 @@
+@startuml 12-api-katmanlari
+!include _stil.iuml
+title API katmanları: router → servis → depo → model; kiracı izolasyonu, kuyruk ve çıktı (PDF/Excel)
+hide empty members
+
+skinparam class<<cekirdek>> {
+  BackgroundColor #EEF4FB
+  BorderColor #6C8EBF
+}
+
+class FastAPI <<harici>>
+class Session <<harici>>
+class "reportlab" as reportlab <<harici>>
+class "openpyxl" as openpyxl <<harici>>
+class "rq / Redis" as rq <<harici>>
+
+' @kod okulapi.main
+package "main (uygulama fabrikası)" {
+  class main <<modül>> {
+    {static} +uygulama_olustur(ayarlar : Ayarlar) : FastAPI
+  }
+}
+' @kod okulapi.cekirdek.kimlik.koken
+package "kimlik.koken (ara katman)" {
+  class KokenDenetimi <<cekirdek>> {
+    +izinli : set[str]
+  }
+}
+
+' ===== 1. Sunum katmanı: router (HTTP ↔ şema) =====
+' @kod okulapi.moduller.ders_programi.api
+package "1. Router: ders_programi.api (çekirdeğinki: 03)" {
+  class api <<modül>> {
+    {static} +program_uret(veri, oturum, kuyruk, istek)
+    {static} +ders_tasi(program_id, veri, oturum)
+    {static} +subeler_pdf(program_id, oturum, sinif_id)
+    {static} +ogretmenler_pdf(program_id, oturum, ogretmen_id)
+    {static} +carsaf_pdf(program_id, oturum)
+    {static} +program_excel(program_id, oturum)
+    {static} +yayinla(veri, oturum)
+  }
+}
+' @kod okulapi.cekirdek.bagimliliklar
+package "bagimliliklar (Depends: oturum ve okul tek yerden)" {
+  class bagimliliklar <<modül>> {
+    {static} +aktif_oturum(istek) : OturumBilgisi
+    {static} +aktif_okul_id(oturum : OturumBilgisi) : UUID
+    {static} +okul_oturumu_al(istek, okul_id) : Session
+    {static} +kuyruk_al(istek) : IsKuyrugu
+  }
+}
+
+' ===== 2. Servis katmanı: iş kuralları, işlem sınırı =====
+' @kod okulapi.cekirdek.servisler
+package "2. Servis: cekirdek.servisler" {
+  abstract class "CrudServisi<T>" as CrudServisi <<cekirdek>> {
+    +listele() : list[T]
+    +getir(kayit_id : UUID) : T
+    +olustur(alanlar : dict) : T
+    +guncelle(kayit_id : UUID, degisiklikler : dict) : T
+    +sil(kayit_id : UUID)
+    #_dogrula(alanlar : dict, nesne : T | None)
+  }
+}
+' @kod okulapi.moduller.ders_programi.servisler
+package "2. Servis: ders_programi.servisler" {
+  class DersAtamaServisi
+  class KisitServisi
+  class ProgramServisi {
+    +uret(ad : str, temel_program_id : UUID, sure_siniri_sn : int) : Program
+    +getir(program_id : UUID) : Program
+  }
+}
+' @kod okulapi.moduller.ders_programi.elle
+package "2. Servis: elle" {
+  class ElleDuzeltmeServisi {
+    +tasi(program_id : UUID, atama_id : UUID, gun : int, saat : int, hedef_gun : int, hedef_saat : int) : Program
+    +geri_al(program_id : UUID) : Program
+  }
+}
+
+' ===== 3. Veri erişim katmanı =====
+' @kod okulapi.cekirdek.depo
+package "3. Depo: cekirdek.depo" {
+  class "OkulaAitDepo<T>" as OkulaAitDepo <<cekirdek>> {
+    +oturum : Session
+    +listele() : list[T]
+    +getir(kayit_id : UUID) : T | None
+    +ekle(nesne : T) : T
+  }
+}
+' @kod okulapi.cekirdek.kiraci
+package "Kiracı izolasyonu: cekirdek.kiraci" {
+  class kiraci <<modül>> {
+    {static} +okul_oturumu(fabrika, okul_id : UUID) : Session
+    {static} +veritabaninda_okulu_ayarla(oturum, okul_id : UUID)
+  }
+}
+
+' ===== Kuyruk =====
+' @kod okulapi.cekirdek.kuyruk
+package "Kuyruk: cekirdek.kuyruk" {
+  interface IsKuyrugu <<cekirdek>> {
+    +kuyruga_ekle(is_id : str, fonksiyon : str, argumanlar : dict, zaman_asimi_sn : int)
+    +kuyrukta_mi(is_id : str) : bool
+  }
+  class RqKuyrugu <<cekirdek>>
+  class BellekKuyrugu <<cekirdek>>
+}
+' @kod okulapi.moduller.ders_programi.uretim
+package "uretim (worker'da çalışır)" {
+  class uretim <<modül>> {
+    {static} +uretim_isi(okul_id : str, program_id : str) : str
+    {static} +programi_uret(fabrika, okul_id, program_id, cozucu) : UretimSonucu
+  }
+}
+
+' ===== Çıktı (ADR 0020) =====
+' @kod okulapi.moduller.ders_programi.cikti.model
+package "cikti.model (biçimden bağımsız çıktı modeli)" {
+  class ProgramCiktisi <<dataclass>> {
+    +okul : str
+    +program : str
+    +hafta : Hafta
+    +subeler : list[Cizelge]
+    +ogretmenler : list[Cizelge]
+  }
+  class Hafta <<dataclass>> {
+    +gun_adlari : list[str]
+    +gun_saatleri : list[int]
+    +zil : list[Zil] [0..1]
+  }
+  class Cizelge <<dataclass>> {
+    +ad : str
+    +tur : str
+    +hucreler : list[Hucre]
+  }
+  class Hucre <<dataclass>> {
+    +gun : int
+    +saat : int
+    +uzunluk : int
+    +ders : str
+    +ogretmen : str
+  }
+}
+' @kod okulapi.moduller.ders_programi.cikti.veri
+package "cikti.veri" {
+  class veri <<modül>> {
+    {static} +program_ciktisi(oturum, program_id : UUID) : ProgramCiktisi
+  }
+}
+' @kod okulapi.moduller.ders_programi.cikti.pdf
+package "cikti.pdf" {
+  class pdf <<modül>> {
+    {static} +haftalik_pdf(cikti : ProgramCiktisi, cizelgeler : list[Cizelge], alt_baslik : str) : bytes
+    {static} +carsaf_pdf(cikti : ProgramCiktisi, tur : str) : bytes
+  }
+}
+' @kod okulapi.moduller.ders_programi.cikti.excel
+package "cikti.excel" {
+  class excel <<modül>> {
+    {static} +program_xlsx(cikti : ProgramCiktisi) : bytes
+  }
+}
+
+main ..> FastAPI : oluşturur
+main ..> KokenDenetimi : ara katman
+main ..> api : router'ı modülden\n(MODUL.router)
+api ..> bagimliliklar : Depends
+api ..> ProgramServisi
+api ..> ElleDuzeltmeServisi
+api ..> veri : çıktı modeli
+api ..> pdf
+api ..> excel
+bagimliliklar ..> kiraci : okul_oturumu()
+kiraci ..> Session : okul koşulu,\nSET LOCAL app.okul_id
+CrudServisi <|-- DersAtamaServisi
+CrudServisi <|-- KisitServisi
+CrudServisi *-- "1" OkulaAitDepo : depo
+OkulaAitDepo --> "1" Session
+ProgramServisi --> "0..1" IsKuyrugu : kuyruk
+IsKuyrugu <|.. RqKuyrugu
+IsKuyrugu <|.. BellekKuyrugu
+RqKuyrugu ..> rq
+ProgramServisi ..> uretim : iş yolu (adıyla)
+rq ..> uretim : worker çalıştırır
+veri ..> ProgramCiktisi : üretir
+ProgramCiktisi *-- "1" Hafta
+ProgramCiktisi *-- "0..*" Cizelge
+Cizelge *-- "0..*" Hucre
+pdf ..> reportlab
+excel ..> openpyxl
+
+note right of CrudServisi
+  <b>Servis katmanı deseni</b>
+  Router ince kalır: şema doğrulama, Depends.
+  İş kuralları ve işlem sınırı serviste;
+  veritabanı kısıt ihlalleri (23505, 23503,
+  23514) 409/422'ye çevrilir.
+end note
+
+note right of kiraci
+  <b>Kiracı izolasyonu (ADR 0009)</b>
+  1. ORM: her sorguya okul_id koşulu
+  2. Bileşik FK: okullar arası ilişki yok
+  3. RLS: app.okul_id dışındaki satır görünmez
+  Endpoint yazan kişi unutamaz: okul yalnızca
+  oturumdan (bagimliliklar) gelir.
+end note
+
+note bottom of ProgramCiktisi
+  Aynı model PDF'e, Excel'e ve yayına (JSON,
+  dondurulmuş) gider: biçim eklemek modeli
+  değiştirmez (ADR 0020, 0022).
+end note
+
+note top of main
+  <b>Modüler monolit (ADR 0008)</b>
+  Tek süreç, tek dağıtım; çekirdek modülleri
+  bilmez, modüller birbirini bilmez.
+end note
+@enduml

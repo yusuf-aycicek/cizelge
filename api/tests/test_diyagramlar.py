@@ -289,8 +289,10 @@ def test_nesneler_sinif_diyagramiyla_ve_kodla_tutarli(nesne):
     for ata in inspect.getmro(kod_sinifi):
         if ata.__name__ in siniflar:
             diyagram_alanlari |= {UYE_ADI.match(u)["ad"] for u in siniflar[ata.__name__].uyeler}
+    # Varsayılanı olmayan dataclass alanı sınıf niteliği değildir (ör. KaliteOlcumu.sinif_boslugu).
+    dataclass_alanlari = {f.name for f in dataclasses.fields(kod_sinifi)} if dataclasses.is_dataclass(kod_sinifi) else set()
     for alan in nesne.alanlar:
-        assert hasattr(kod_sinifi, alan), f"{nesne.sinif}.{alan}: kodda yok"
+        assert hasattr(kod_sinifi, alan) or alan in dataclass_alanlari, f"{nesne.sinif}.{alan}: kodda yok"
         assert alan in diyagram_alanlari, f"{nesne.sinif}.{alan}: sınıf diyagramında yok"
 
 

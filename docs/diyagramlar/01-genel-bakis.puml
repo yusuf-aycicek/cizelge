@@ -4,7 +4,7 @@ title Genel bakış: paketler ve bağımlılıklar
 
 ' "' @paket" satırları: test_diyagramlar.py bu Python paketlerinin gerçekten var olduğunu denetler.
 
-package "web (React arayüzü)" <<planlanan>> as web #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A {
+package "web\n(React + TypeScript, Vite;\nyalnızca API ile konuşur)" as web {
 }
 ' @paket okulworker
 package "okulworker\n(kuyruk işçisi, genel çalıştırıcı)" as worker {
@@ -22,7 +22,7 @@ package "okulapi (API, modüler monolit)" as okulapi {
   }
   package "moduller" as moduller {
     ' @paket okulapi.moduller.ders_programi
-    package "ders_programi\n(şablon, atama, müsaitlik,\nkısıt, program, yerleşim)" as ders_programi {
+    package "ders_programi\n(şablon, istisna, atama, müsaitlik, kural,\nprogram, elle düzeltme, PDF/Excel çıktı,\niçe aktarma, yayın ve paylaşım linki)" as ders_programi {
     }
     package "ders_notlari" <<planlanan>> as ders_notlari #F6F6F6;line.dashed;line:9A9A9A;text:8A8A8A {
     }
@@ -38,7 +38,7 @@ package "cozucu\n(saf Python, OR-Tools CP-SAT)" as cozucu {
 database "PostgreSQL 17" as pg
 queue "Redis\n(RQ kuyruğu)" as redis
 
-web ..> main : HTTP / JSON
+web ..> main : HTTP / JSON\n(aynı köken, /api)
 main ..> cekirdek : <<import>>
 main ..> moduller : etkin modülleri\nayardan adıyla yükler\n(importlib)
 migrasyon ..> cekirdek : <<import>>
