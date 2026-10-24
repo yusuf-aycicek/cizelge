@@ -279,3 +279,28 @@ sette (40 şube) 10-25 sn'de, sınıf boşluğu 16-30 saatle. Arayüz **30 ve da
 okulda "Hızlı" seçeneğinin yanında "bu süre program bulmaya yetmeyebilir" der
 (`ProgramSayfasi.HIZLI_YETMEYEBILIR_SUBE`): ilk programın sürenin yarısını (15 sn) geçtiği yer
 ölçülen iki noktanın arasındadır. Okulun sunucusu bu makineden yavaşsa sınır daha erken aşılır.
+
+## İkincil kurallar (K6, 2026-10-24)
+
+Gerçekçi set, bloklu, iki aşamalı, 3 tohum, sakin makine. Varsayılanla açık gelen iki yeni kural:
+öğretmenin geldiği günde en az 2 ders (ağırlık 3) ve aynı dersin günlere yayılması (ağırlık 2).
+Saat tercihi okul genelinde yoktur, ceza getirmez. Ham sonuç: `scripts/sonuclar/k6-gercekci-bloklu.md`.
+
+| 120 sn | Toplam ceza | Sınıf boşluğu | Pencere | Tercih etmez | Eksik boş gün | Az dersli gün | Art arda gün |
+|---|---|---|---|---|---|---|---|
+| P1 (K6 öncesi) | 82 / 67 / 58 (ort. 69) | 0 / 0 / 0 | 10 / 9 / 6 | 0 / 0 / 0 | 13 / 10 / 10 | (ölçülmüyordu) | (ölçülmüyordu) |
+| K6 | 337 / 269 / 247 (ort. 284) | 0 / 0 / 0 | 34 / 18 / 18 | 2 / 4 / 0 | 24 / 17 / 16 | 1 / 1 / 1 | 63 / 62 / 63 |
+
+- İlk program 5,1-8,4 sn (P1: 5,2-8,9 sn); 60 sn'de de sınıf boşluğu her tohumda 0. Süre sınırı
+  kararı (120 sn) değişmez.
+- Toplam ceza yeni terimleri içerdiği için doğrudan karşılaştırılamaz. Eski ölçüler üzerinden
+  (pencere × 3 + tercih etmez × 5 + eksik boş gün × 4): ortalama 69 → 156. **Öğretmen konforu
+  kötüleşti:** pencere 8 → 23, eksik boş gün 11 → 19.
+- Bunun nedeni yayılım kuralı: 120 sn sonunda bile 62-63 art arda gün çifti kalıyor (ceza ~125,
+  toplamın yarısından fazlası). Kural boş gün ve pencereyle çatışıyor: öğretmeni dört güne
+  sıkıştırmak aynı dersi art arda günlere iter; 3 bloklu (2+2+2, 2+2+1) bir ders 5 günlük haftada
+  ancak pazartesi-çarşamba-cuma ile yayılabilir.
+- "Günde en az ders" ucuz: her tohumda 1 gün kalıyor, boş gün hedefiyle aynı yönde çalışıyor.
+- **Kullanıcıya soruldu:** yayılımın varsayılan önemi "Önemli" (2) yerine "Önemsiz" (1) mi olsun,
+  yoksa kural yalnızca açıkça istenen derslerde mi çalışsın. Karar verilene kadar CLAUDE.md'deki
+  varsayılan (açık, "Önemli") uygulanıyor.

@@ -766,8 +766,22 @@ Kullanım limiti dolabileceği için her alt parça ayrı commit edilir; yarıda
 | K6a-c | Çözücü: `ders_saat_tercihi` (esnek, ders / ders + şube / ders + grup; `saatler` tercih edilen, `kacin` kaçınılan; okul genelinde tercih yok), `gunluk_en_az_ders` (esnek, okul ve öğretmen; k=2; öğretmenin yükü ve en iyi günü yetmezse k küçülür, 1'de kural yok), `ders_yayilimi` (esnek, ders/şube/grup; art arda iki gün dolu → ceza; `yayilsin: false` ile kapanır). Değerler tek kaynakta (`cozucu/tercihler.py`), kalite ölçüleri `saat_tercihi`, `az_dersli_gun`, `art_arda_gun` (eski programlarda 0). Ağırlıklar 3 / 3 / 2. API: metinler, önem karşılıkları, parametre doğrulaması (saat listesi, `yayilsin`). Mutasyon 14/14. Eski testlerden üçü yeni kuralları kapattı (konuları değil), mini setteki "en az değişiklik" payı 4 → 6 | Bitti |
 | K6d | Öğretmen haftalık yük uyarısı (ADR 0023): eşikler `haftalik_yuk` uyarı kuralı (`alt`, `ust`; 0 = kapalı; okul ve öğretmene özel; modele bir şey eklemez; alt > üst reddedilir). Metin tek yerde (`YukHesabi.ogretmen_yuk_uyarisi`): dağılım özetinde `yuk_uyarisi`, `GET /on-kontrol` yanıtında ayrı `uyarilar` listesi (üretimi engellemez). Arayüz: öğretmen kartında turuncu uyarı, program sayfasında "Uyarılar (programı engellemez)". Mutasyon 5/5 (ilk turda eşiğe eşit yük kaçtı, sınır testi eklendi) | Bitti |
 | K6e | Arayüz: "Özel ayar ekle"de dört yeni kural (saat tercihi: "yalnızca seçilen saatlerde olsun" / "seçilen saatlerde olmasın" ve saat kutuları, öğle arasından hemen sonraki saat adıyla, "sabah saatlerini seç" kısayolu; en az ders: sayı; yayılım: açık/kapalı; yük: alt ve üst eşik). Özel ayarların özetinde sade cümleler ("5., 6. saatlerde olmasın", "haftada en az 15 saat"). Okul ayarları "Gelişmiş: kuralların önemi ve ikincil kurallar": yeni kuralların önemi, "geldiği günde en az kaç ders", "bütün derslerde açık" kutusu, yük eşikleri; tek "Gelişmiş ayarları kaydet". Kalite özetinde "az dersli gün", "art arda gün" ve (yalnızca sıfırdan büyükse) "saat tercihi". Testler: 5 yeni web testi | Bitti |
-| K6f | Örnek okulda deneme (ayarlar yedeklenip geri alınır) ve gerçekçi sette 120 sn ölçümü | Sırada |
-| T | Tasarım rötuşu: iki seçenek, 6 ekran görüntüsü; kullanıcı seçecek | |
+| K6f | Örnek okulda deneme ve gerçekçi sette ölçüm (aşağıda "K6'dan notlar"; docs/olcumler.md "İkincil kurallar") | Bitti |
+| T | Tasarım rötuşu: iki seçenek, 6 ekran görüntüsü; kullanıcı seçecek | Sırada |
+
+K6'dan notlar:
+- **Deneme (örnek okul, mini set, 5 gün × 6 saat, "Hızlı" 30 sn; API ve worker yeni imajla):**
+  kurallar kapalıyken (k = 1, yayılım kapalı) 13 art arda gün çifti, öğretmenin 1 saatlik bir günü;
+  varsayılanla 3 çift, 1 saatlik gün yok (her öğretmen gününde en az 2 ders). k = 3 ile en az 3.
+  Kimya "yalnızca 4.-6. saat": 8 saatin hepsi 4.-6. saatte (önce 6'sı 1.-2. saatteydi); Tarih
+  "1.-2. saatte olmasın": hepsi 3.-6. saatte (önce 3'ü). Matematik "1.-3. saat" yalnızca kısmen
+  (12/18): tek öğretmenin 18 saati var, sabah 15 yer. Yük eşikleri 16-20: ön kontrolde 3 uyarı
+  ("Fatma Şahin haftada 9 saat derse giriyor, alt eşik 16 saat (7 saat eksik)."), çelişki 0,
+  program üretildi; dağılım özetinde aynı 3 öğretmen.
+- **Geri alma:** veritabanı önce `pg_dump` ile yedeklendi; betik özel ayarları ve okul değerlerini
+  kaldırdı, 5 deneme programını sildi; kurallar ve program listesi başlangıçla birebir aynı.
+- **Ölçüm:** sınıf boşluğu her tohumda 0, ama yayılım kuralı öğretmen konforunu kötüleştiriyor
+  (pencere 8 → 23, eksik boş gün 11 → 19); varsayılan önemi kullanıcıya soruldu.
 
 ## 8. Açık sorular
 
