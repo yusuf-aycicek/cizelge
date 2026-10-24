@@ -11,6 +11,7 @@ from fastapi import APIRouter, Request, Response
 from okulapi.cekirdek.api import crud_router
 from okulapi.cekirdek.bagimliliklar import Kuyruk, OkulOturumu
 from okulapi.moduller.ders_programi import semalar
+from okulapi.moduller.ders_programi.elle import ElleDuzeltmeServisi
 from okulapi.moduller.ders_programi.kurallar import KurallarServisi
 from okulapi.moduller.ders_programi.servisler import (
     DersAtamaServisi,
@@ -195,6 +196,35 @@ def program_sil(program_id: uuid.UUID, oturum: OkulOturumu) -> Response:
 def program_farki(program_id: uuid.UUID, oturum: OkulOturumu, ile: uuid.UUID | None = None) -> Any:
     """Bu programın `ile` programından (verilmezse temel programından) farklı hücreleri. 422: karşılaştırılacak program yok."""
     return ProgramServisi(oturum).fark(program_id, ile)
+
+
+@program_router.get("/{program_id}/tasima", response_model=semalar.TasimaHaritasi)
+def tasima_haritasi(program_id: uuid.UUID, ders_atama_id: uuid.UUID, gun: int, saat: int, oturum: OkulOturumu) -> Any:
+    """Elle düzeltme (7.1): dersin (blok dersse bütün bloğun) taşınabileceği her başlangıç hücresi;
+    uygun / uyarı (esnek ölçü kötüleşir) / engel (zorunlu kural) ve nedenleri."""
+    return ElleDuzeltmeServisi(oturum).harita(program_id, ders_atama_id, gun, saat)
+
+
+@program_router.post("/{program_id}/tasi", response_model=semalar.ProgramYanit)
+def ders_tasi(program_id: uuid.UUID, veri: semalar.TasimaIstegi, oturum: OkulOturumu) -> Any:
+    """422: zorunlu kuralı çiğner (nedenler mesajda). 409: esnek ölçüyü kötüleştirir ve
+    `uyarilari_kabul` verilmedi. Başarıda programın güncel hâli (kalite ölçümü yeniden hesaplanır)."""
+    ElleDuzeltmeServisi(oturum).tasi(program_id, veri.ders_atama_id, veri.gun, veri.saat, veri.hedef_gun,
+                                     veri.hedef_saat, veri.uyarilari_kabul)
+    return ProgramServisi(oturum).getir(program_id)
+
+
+@program_router.put("/{program_id}/kilit", response_model=semalar.ProgramYanit)
+def ders_kilitle(program_id: uuid.UUID, veri: semalar.KilitIstegi, oturum: OkulOturumu) -> Any:
+    ElleDuzeltmeServisi(oturum).kilitle(program_id, veri.ders_atama_id, veri.gun, veri.saat, veri.kilitli)
+    return ProgramServisi(oturum).getir(program_id)
+
+
+@program_router.post("/{program_id}/geri-al", response_model=semalar.ProgramYanit)
+def degisikligi_geri_al(program_id: uuid.UUID, oturum: OkulOturumu) -> Any:
+    """Son elle değişikliği geri alır. 409: geri alınacak değişiklik yok."""
+    ElleDuzeltmeServisi(oturum).geri_al(program_id)
+    return ProgramServisi(oturum).getir(program_id)
 
 
 @program_router.get("/{program_id}/yerlesimler", response_model=list[semalar.YerlesimYanit])

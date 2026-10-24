@@ -1,7 +1,7 @@
 import { dersIsaretleri } from "../dersler/isaret";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, CalendarRange } from "lucide-react";
-import { Fragment, type CSSProperties } from "react";
+import { ArrowLeft, CalendarRange, Lock } from "lucide-react";
+import { Fragment, useRef, type CSSProperties, type DragEvent, type ReactNode } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import { hataMetni } from "../api/hata";
 import { SecimAlani } from "../bilesenler/Alan";
@@ -22,6 +22,8 @@ import sayfaStili from "../sayfalar/Sayfa.module.css";
 import { GUN_ADLARI } from "./aciklama";
 import { birlesikHucreler, cizelgeBoyutu, cizelgeHucreleri, hucreAnahtari, yerlesmeGecikmesiMs, type Atama, type CizelgeTuru } from "./cizelge";
 import stil from "./Cizelge.module.css";
+import { DuzeltmeCubugu, UyariOnayi, hedefMetni, useElleDuzeltme } from "./DuzeltmeCubugu";
+import type { Hedef } from "./duzeltme";
 import { GunlukCizelge } from "./GunlukCizelge";
 import { KaliteOzeti } from "./KaliteOzeti";
 import { EskiVeriUyarisi, FarkOzeti } from "./ProgramYonetimi";
@@ -52,6 +54,7 @@ export function CizelgeSayfasi() {
   // Temel programa göre değişen hücreler (6.3): `?fark=1` ile açılır, adres paylaşılabilir.
   const farkGoster = parametreler.get("fark") === "1";
   const fark = useProgramFarki(id, hazir && Boolean(program.data?.temel_program_id) && farkGoster);
+  const duz = useElleDuzeltme(id);
 
   const sorgular = [program, atamalar, dersler, siniflar, ogretmenler];
   const hatali = sorgular.find((s) => s.isError) ?? (yerlesimler.isError ? yerlesimler : undefined);
@@ -112,6 +115,28 @@ export function CizelgeSayfasi() {
       .filter((h) => hucreler.get(hucreAnahtari(h.gun, h.saat))?.id === h.ders_atama_id)
       .map((h) => hucreAnahtari(h.gun, h.saat)),
   );
+  // Bu görünümdeki kilitli hücreler (7.1).
+  const kilitli = new Set(
+    yerlesimler.data
+      .filter((y) => y.kilitli && hucreler.get(hucreAnahtari(y.gun, y.saat))?.id === y.ders_atama_id)
+      .map((y) => hucreAnahtari(y.gun, y.saat)),
+  );
+  const dersAdi = (a: Atama) =>
+    `${siniflar.data.find((x) => x.id === a.sinif_id)?.ad ?? ""} ${dersler.data.find((x) => x.id === a.ders_id)?.ad ?? ""}`.trim();
+  const seciliDers = (a: Atama, gun: number, saat: number) => ({
+    ders_atama_id: a.id, gun, saat, ad: dersAdi(a), kilitli: kilitli.has(hucreAnahtari(gun, saat)),
+  });
+  const duzeltme: CizelgeDuzeltme = {
+    kilitli,
+    secili: duz.secili && hucreler.get(hucreAnahtari(duz.secili.gun, duz.secili.saat))?.id === duz.secili.ders_atama_id
+      ? hucreAnahtari(duz.secili.gun, duz.secili.saat) : null,
+    hedefler: duz.hedefler,
+    onSec: (a, g, s) => duz.sec(seciliDers(a, g, s)),
+    onSurukle: (a, g, s) => duz.surukle(seciliDers(a, g, s)),
+    onSurukleBitti: duz.birak,
+    onHedef: duz.hedefSec,
+    onUzerinde: duz.hedefUzerinde,
+  };
   const cizelgeOzellikleri: CizelgeProps | undefined = secili && {
     baslik: `${secili.ad} haftalık programı`,
     gunSayisi: boyut.gun,
@@ -127,6 +152,7 @@ export function CizelgeSayfasi() {
     sinif: new Map(siniflar.data.map((s) => [s.id, s])),
     ogretmen: new Map(ogretmenler.data.map((o) => [o.id, o])),
     vurgulu,
+    duzeltme,
   };
 
   return (
@@ -160,6 +186,18 @@ export function CizelgeSayfasi() {
           </SecimAlani>
           <p className={stil.ozet}>{hucreler.size} ders saati</p>
         </div>
+        <DuzeltmeCubugu
+          secili={duz.secili}
+          tasiniyor={duz.tasiniyor}
+          haritaYukleniyor={duz.haritaYukleniyor}
+          hedefAciklamasi={duz.uzerinde}
+          degisiklikSayisi={program.data.elle_duzeltme ?? 0}
+          mesgul={duz.mesgul}
+          onTasi={duz.tasimayaBasla}
+          onKilit={duz.kilit}
+          onVazgec={duz.birak}
+          onGeriAl={duz.geriAl}
+        />
         {/* key: başka şube ya da öğretmen seçilince çizelge yeniden kurulur, hücreler yeniden yerleşir. */}
         {cizelgeOzellikleri &&
           (telefon ? (
@@ -171,6 +209,8 @@ export function CizelgeSayfasi() {
       <div className={sayfaStili.kart}>
         <KaliteOzeti program={program.data} />
       </div>
+      <UyariOnayi hedef={duz.onaylanacak} ad={duz.secili?.ad ?? ""} yukleniyor={duz.tasiYukleniyor}
+        onOnayla={duz.onayla} onVazgec={duz.onayVazgec} />
     </>
   );
 }
@@ -196,7 +236,32 @@ export type CizelgeProps = {
   ogretmen: Map<string, Ogretmen>;
   /** Vurgulanacak hücreler (temel programdan değişenler); anahtar `hucreAnahtari`. */
   vurgulu?: ReadonlySet<string>;
+  /** Elle düzeltme (7.1): yoksa çizelge yalnızca gösterir. */
+  duzeltme?: CizelgeDuzeltme;
 };
+
+export type CizelgeDuzeltme = {
+  kilitli: ReadonlySet<string>;
+  /** Seçili dersin hücresi (`hucreAnahtari`; bloğun herhangi bir saati). */
+  secili: string | null;
+  /** Taşıma modunda: hedef başlangıç hücresi -> durum ve nedenler. */
+  hedefler: ReadonlyMap<string, Hedef> | null;
+  onSec: (a: Atama, gun: number, saat: number) => void;
+  onSurukle: (a: Atama, gun: number, saat: number) => void;
+  onSurukleBitti: () => void;
+  onHedef: (gun: number, saat: number) => void;
+  onUzerinde: (gun: number, saat: number) => void;
+};
+
+/** Hedef hücrenin işareti: renk dışında ekran okuyucuya da söylenir. */
+export function HedefIsareti({ hedef }: { hedef: Hedef | undefined }) {
+  if (!hedef) return null;
+  return <span className="gorunmez">{`Hedef: ${hedefMetni(hedef)} `}</span>;
+}
+
+/** Bloğun saatlerinden biri seçili mi (seçili ders bloğun ortasından da seçilmiş olabilir). */
+export const blokSecili = (secili: string | null | undefined, gun: number, saat: number, uzunluk: number) =>
+  Boolean(secili) && Array.from({ length: uzunluk }, (_, i) => hucreAnahtari(gun, saat + i)).includes(secili!);
 
 /**
  * Gün × saat tablosu. Doğal <table>: ekran okuyucu hücreyi "Salı, 3. saat: Matematik, Ayşe Yılmaz"
@@ -205,10 +270,60 @@ export type CizelgeProps = {
  */
 function Cizelge({
   baslik, gunSayisi, saatSayisi, gunSaatleri, ogleArasiSonra, zil, ogleZili, hucreler, gorunum, ders, dersIsareti, sinif,
-  ogretmen, vurgulu,
+  ogretmen, vurgulu, duzeltme,
 }: CizelgeProps) {
   const gunler = Array.from({ length: gunSayisi }, (_, g) => GUN_ADLARI[g] ?? `${g + 1}. gün`);
   const birlesik = birlesikHucreler(hucreler, gunSayisi, saatSayisi, ogleArasiSonra);
+  // Sürükleme bir hücreye bırakılmadan biterse taşıma iptal edilir; bırakıldıysa karar (taşı / onay) sürer.
+  const birakildi = useRef(false);
+  const hedefler = duzeltme?.hedefler;
+  /** Hedef olabilen her hücrenin (boş ya da dolu) sürükle-bırak olayları ve durumu. */
+  const hedefOzellikleri = (g: number, s: number) => {
+    const h = hedefler?.get(hucreAnahtari(g, s));
+    if (!duzeltme || !hedefler) return {};
+    return {
+      "data-hedef": h?.durum ?? "yok",
+      title: h ? hedefMetni(h) : undefined,
+      onDragOver: (o: DragEvent) => {
+        if (h && h.durum !== "engel") o.preventDefault();
+      },
+      onDragEnter: () => duzeltme.onUzerinde(g, s),
+      onDrop: (o: DragEvent) => {
+        o.preventDefault();
+        birakildi.current = true;
+        duzeltme.onHedef(g, s);
+      },
+    };
+  };
+  /** Hücrenin içi: düzeltmede düğme (tıklama: seç ya da hedef; sürükleme: taşı). */
+  const hucreDugmesi = (g: number, s: number, a: Atama | undefined, icerik: ReactNode) => {
+    if (!duzeltme) return icerik;
+    const tasiniyor = Boolean(hedefler);
+    const kilit = a && duzeltme.kilitli.has(hucreAnahtari(g, s));
+    return (
+      <button
+        type="button"
+        className={stil.hucreDugmesi}
+        draggable={Boolean(a) && !kilit && !tasiniyor}
+        onDragStart={(o) => {
+          if (!a) return;
+          o.dataTransfer.setData("text/plain", a.id);
+          o.dataTransfer.effectAllowed = "move";
+          birakildi.current = false;
+          duzeltme.onSurukle(a, g, s);
+        }}
+        onDragEnd={() => {
+          if (!birakildi.current) duzeltme.onSurukleBitti();
+        }}
+        onClick={() => (tasiniyor ? duzeltme.onHedef(g, s) : a && duzeltme.onSec(a, g, s))}
+        onMouseEnter={() => tasiniyor && duzeltme.onUzerinde(g, s)}
+        onFocus={() => tasiniyor && duzeltme.onUzerinde(g, s)}
+      >
+        <HedefIsareti hedef={hedefler?.get(hucreAnahtari(g, s))} />
+        {icerik}
+      </button>
+    );
+  };
   return (
     // Haftalık çizelge dar ekranda bilerek yana kayar (en az 44rem); taşma denetimi bunu bilir.
     <div className={stil.kutu} data-kaydirilabilir>
@@ -248,8 +363,8 @@ function Cizelge({
                   }
                   if (!a) {
                     return (
-                      <td key={g} className={stil.bos}>
-                        <span className="gorunmez">Boş</span>
+                      <td key={g} className={stil.bos} {...hedefOzellikleri(g, s)}>
+                        {hedefler ? hucreDugmesi(g, s, undefined, <span className="gorunmez">Boş saat</span>) : <span className="gorunmez">Boş</span>}
                       </td>
                     );
                   }
@@ -258,9 +373,15 @@ function Cizelge({
                   const gecikme = { animationDelay: `${yerlesmeGecikmesiMs(g, s, saatSayisi)}ms` } as CSSProperties;
                   const uzunluk = birlesik.uzunluk.get(hucreAnahtari(g, s)) ?? 1;
                   const degisti = blokDegisti(vurgulu, g, s, uzunluk);
+                  const kilit = duzeltme?.kilitli.has(hucreAnahtari(g, s));
+                  const secili = blokSecili(duzeltme?.secili, g, s, uzunluk);
                   return (
-                    <td key={g} className={[stil.dolu, uzunluk > 1 && stil.blok, degisti && stil.degisti].filter(Boolean).join(" ")}
-                      style={gecikme} rowSpan={uzunluk > 1 ? uzunluk : undefined} data-degisti={degisti || undefined}>
+                    <td key={g} className={[stil.dolu, uzunluk > 1 && stil.blok, degisti && stil.degisti, kilit && stil.kilitli].filter(Boolean).join(" ")}
+                      style={gecikme} rowSpan={uzunluk > 1 ? uzunluk : undefined} data-degisti={degisti || undefined}
+                      data-kilitli={kilit || undefined} data-secili={secili || undefined} {...hedefOzellikleri(g, s)}>
+                      {hucreDugmesi(g, s, a, <>
+                      {kilit && <Lock aria-hidden="true" className={stil.kilitIkonu} />}
+                      {kilit && <span className="gorunmez">Kilitli: </span>}
                       {degisti && <span className="gorunmez">Temel programa göre değişti: </span>}
                       {uzunluk > 1 && (
                         // Ekran okuyucu satır başlığı olarak yalnızca ilk saati okur: kaç saat sürdüğü burada.
@@ -282,6 +403,7 @@ function Cizelge({
                           sinif.get(a.sinif_id)?.ad
                         )}
                       </span>
+                      </>)}
                     </td>
                   );
                 })}

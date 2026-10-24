@@ -4,7 +4,7 @@ import pytest
 
 from cozucu import DersAtama, KisitTanimi, Musaitlik, MusaitlikDurumu, OkulAyari, Ogretmen, Sinif, Ders, Yerlesim
 from cozucu.dogrulama import ihlaller
-from cozucu.tasima import ENGEL, UYARI, UYGUN, Degerlendirici, TasimaHatasi, blok_hucreleri, tasi
+from cozucu.tasima import ENGEL, UYARI, UYGUN, Degerlendirici, Hareket, TasimaHatasi, blok_hucreleri, hareketler, tasi
 from yardimci import girdi_kur
 
 # 3 gün x 4 saat, öğle arası 2. dersten sonra. 9-A: Matematik 2 saat (blok 2, Ayşe), Fizik 1 (Mehmet).
@@ -54,7 +54,8 @@ def test_uygun_tasima():
 
 
 @pytest.mark.parametrize("kaynak, hedef, beklenen", [
-    (("9a-fiz", 1, 0), (0, 0), "9-A Pazartesi 1. saat iki derste olur (Fizik, Matematik)"),
+    # Fizik pazartesi 1'e: oradaki Matematik bloğunun bir saati takasla salıya giderdi, blok bölünür.
+    (("9a-fiz", 1, 0), (0, 0), "9-A Matematik'in dağılımı 2 olmalı, 1+1 olur"),
     (("9b-kim", 0, 2), (0, 1), "Ayşe Yılmaz Pazartesi 2. saat iki şubede olur (9-A, 9-B)"),
     (("9b-kim", 0, 2), (1, 3), "Ayşe Yılmaz Salı 4. saat gelemez"),
     (("9a-mat", 0, 0), (1, 1), "9-A Matematik Salı günü öğle arasını keser (blok bütün kalmalı)"),
@@ -114,6 +115,64 @@ def test_harita_her_baslangici_degerlendirir_kendi_yerini_atlar():
     assert (0, 0) not in harita  # kendi yeri
     assert (0, 3) not in harita  # 2 saatlik blok 4. saatten başlayamaz (gün biter)
     assert harita[(2, 0)].durum == UYGUN
-    assert harita[(1, 0)].durum == ENGEL  # 9-A'nın salı 1. saatte Fizik'i var
+    assert (harita[(1, 0)].durum, harita[(1, 0)].takas) == (UYGUN, ("9-A Fizik",))  # Fizik pazartesiye geçer
     assert harita[(1, 1)].durum == ENGEL  # öğle arası
     assert len(harita) == 3 * 3 - 1
+
+
+def test_hedefte_ayni_subenin_dersi_varsa_yer_degistirir():
+    # Matematik bloğu salı 1-2'ye: salı 1'deki Fizik, Matematik'in boşalttığı pazartesi 1'e geçer.
+    d = Degerlendirici(GIRDI, PROGRAM).degerlendir("9a-mat", 0, 0, 1, 0)
+    assert (d.durum, d.takas) == (UYGUN, ("9-A Fizik",))
+    assert set(d.hareketler) == {
+        Hareket("9a-mat", ((0, 0), (0, 1)), ((1, 0), (1, 1))),
+        Hareket("9a-fiz", ((1, 0),), ((0, 0),)),
+    }
+
+
+def test_ayni_gunde_kaydirmada_takas_bosalan_saate_gider():
+    # Pazartesi: Matematik 1-2, Fizik 3 (öğle arası yok). Matematik bir saat aşağı: Fizik 1. saate.
+    girdi = girdi_kur(ayar=OkulAyari(1, 4), ogretmenler=GIRDI.ogretmenler, siniflar=GIRDI.siniflar, dersler=GIRDI.dersler,
+                      atamalar=GIRDI.atamalar[:2])
+    program = [Yerlesim("9a-mat", 0, 0), Yerlesim("9a-mat", 0, 1), Yerlesim("9a-fiz", 0, 2)]
+    assert hareketler(girdi, program, "9a-mat", [(0, 0), (0, 1)], 0, 1) == [
+        Hareket("9a-mat", ((0, 0), (0, 1)), ((0, 1), (0, 2))),
+        Hareket("9a-fiz", ((0, 2),), ((0, 0),)),
+    ]
+    assert Degerlendirici(girdi, program).degerlendir("9a-mat", 0, 0, 0, 1).durum == UYGUN
+
+
+def test_takas_edilecek_ders_kilitliyse_ya_da_ogretmeni_doluysa_engel():
+    program = [*PROGRAM[:2], Yerlesim("9a-fiz", 1, 0, kilitli=True), PROGRAM[3]]
+    d = Degerlendirici(GIRDI, program).degerlendir("9a-mat", 0, 0, 1, 0)
+    assert (d.durum, d.nedenler) == (ENGEL, ("9-A Fizik kilitli; yer değiştiremez",))
+    # 9-B Kimya'yı salı 1'e (boş) almak serbest; 9-A Fizik takasında Mehmet'in o saatte 9-B dersi olsaydı engel olurdu.
+    girdi = girdi_kur(ayar=GIRDI.ayar, ogretmenler=GIRDI.ogretmenler, siniflar=GIRDI.siniflar, dersler=GIRDI.dersler,
+                      atamalar=[*GIRDI.atamalar[:2], DersAtama("9b-kim", "9b", "kim", "o-mehmet", 1)])
+    program = [*PROGRAM[:3], Yerlesim("9b-kim", 0, 0)]
+    d = Degerlendirici(girdi, program).degerlendir("9a-mat", 0, 0, 1, 0)
+    assert d.durum == ENGEL and "Mehmet Kaya Pazartesi 1. saat iki şubede olur (9-A, 9-B)" in d.nedenler
+
+
+def test_kapali_esnek_kural_uyari_vermez():
+    # "Tercih etmez" kuralı okulda kapalı (ağırlık 0): o saate taşımak uyarısız.
+    girdi = girdi_kur(ayar=GIRDI.ayar, ogretmenler=GIRDI.ogretmenler, siniflar=GIRDI.siniflar, dersler=GIRDI.dersler,
+                      atamalar=GIRDI.atamalar, musaitlikler=GIRDI.musaitlikler,
+                      kisitlar=[KisitTanimi("tercih_etmez", {}, zorunlu=False, agirlik=0)])
+    assert Degerlendirici(girdi, PROGRAM).degerlendir("9a-fiz", 1, 0, 2, 0).durum == UYGUN
+
+
+def test_takas_edilen_ders_kaynagin_ayni_konumuna_gider():
+    # Fizik salı 2. saatte: Matematik bloğu salı 1-2'ye gelince Fizik pazartesi 2. saate (bloğun 2. saati) geçer.
+    program = [*PROGRAM[:2], Yerlesim("9a-fiz", 1, 1), PROGRAM[3]]
+    assert hareketler(GIRDI, program, "9a-mat", [(0, 0), (0, 1)], 1, 0)[1] == Hareket("9a-fiz", ((1, 1),), ((0, 1),))
+
+
+def test_ayni_gunde_kaydirmada_duranlar_bosalan_saatlere_sirayla():
+    girdi = girdi_kur(ayar=OkulAyari(1, 5), atamalar=[
+        DersAtama("9a-mat", "9a", "mat", "o1", 3), DersAtama("9a-fiz", "9a", "fiz", "o2", 1), DersAtama("9a-tar", "9a", "tar", "o3", 1)])
+    program = [Yerlesim("9a-mat", 0, s) for s in range(3)] + [Yerlesim("9a-fiz", 0, 3), Yerlesim("9a-tar", 0, 4)]
+    assert hareketler(girdi, program, "9a-mat", [(0, 0), (0, 1), (0, 2)], 0, 2)[1:] == [
+        Hareket("9a-fiz", ((0, 3),), ((0, 0),)),
+        Hareket("9a-tar", ((0, 4),), ((0, 1),)),
+    ]

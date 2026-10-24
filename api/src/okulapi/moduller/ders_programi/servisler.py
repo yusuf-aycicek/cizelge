@@ -53,6 +53,7 @@ from okulapi.moduller.ders_programi.modeller import (
     SubeDersIstisnasi,
     Yerlesim,
 )
+from okulapi.moduller.ders_programi.elle import islem_sayilari
 from okulapi.moduller.ders_programi.uretim import (
     URETIM_BASARISIZ,
     URETIM_ISI,
@@ -427,7 +428,9 @@ class ProgramServisi:
         verinin özeti şimdikinden farklı mı. Şimdiki özet istek başına bir kez hesaplanır; özeti
         olmayan eski programda bilinmiyor (None)."""
         simdiki: str | None = None
+        sayilar = islem_sayilari(self.oturum, [p.id for p in programlar])
         for p in programlar:
+            p.elle_duzeltme = sayilar.get(p.id, 0)  # type: ignore[attr-defined]
             p.eski_veri = None  # type: ignore[attr-defined]
             if p.durum == "hazir" and p.veri_ozeti is not None:
                 simdiki = simdiki or veri_ozeti(cozum_girdisi_olustur(self.oturum))

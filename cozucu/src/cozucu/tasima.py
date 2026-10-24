@@ -5,6 +5,10 @@ modeli kullanılmaz. Kurallar:
 
 - **Blok bütün taşınır:** dağılım şekli olan dersin aynı gündeki kesintisiz saatleri (öğle arasıyla
   ayrılmayan) birlikte taşınır; şekli olmayan ders tek saat taşınır.
+- **Yer değiştirme:** hedef saatlerde aynı şubenin başka dersi varsa o ders, taşınan dersin boşalttığı
+  saatlere geçer (takas). Dolu bir okulda boş hücre azdır; takas olmadan neredeyse hiçbir taşıma
+  yapılamıyordu (gerçekçi sette 40 dersin 38'inin geçerli hedefi yoktu). Takas edilen dersin bloğu
+  bölünürse ya da öğretmeni o saatte doluysa doğrulayıcı yakalar.
 - **Kilitli ders taşınmaz.**
 - **Engel:** taşıma, programda önceden olmayan bir zorunlu kısıt ihlali doğuruyorsa (öğretmen ya da
   şube çakışması, gelemez, günlük sınırlar, blok, öğle arası, haftanın dışı). Yalnızca **yeni**
@@ -51,6 +55,9 @@ class Degerlendirme:
     nedenler: tuple[str, ...]
     hucreler: tuple[tuple[int, int], ...] = ()
     olcum: KaliteOlcumu | None = field(default=None, compare=False)
+    # Bütün hareketler (taşınan ders ve takas edilenler) ve takas edilen derslerin adları.
+    hareketler: tuple[Hareket, ...] = field(default=(), compare=False)
+    takas: tuple[str, ...] = ()
 
 
 def blok_hucreleri(girdi: CozumGirdisi, yerlesimler: list[Yerlesim], atama_id: str, gun: int, saat: int) -> list[tuple[int, int]]:
@@ -71,11 +78,55 @@ def blok_hucreleri(girdi: CozumGirdisi, yerlesimler: list[Yerlesim], atama_id: s
     return [(gun, s) for s in range(bas, son + 1)]
 
 
+@dataclass(frozen=True)
+class Hareket:
+    """Bir atamanın hücrelerinin yer değiştirmesi (taşınan ders ya da takas edilen ders)."""
+
+    ders_atama_id: str
+    eski: tuple[tuple[int, int], ...]
+    yeni: tuple[tuple[int, int], ...]
+
+
+def hareketler(girdi: CozumGirdisi, yerlesimler: list[Yerlesim], atama_id: str, hucreler: list[tuple[int, int]],
+               hedef_gun: int, hedef_saat: int) -> list[Hareket]:
+    """Taşımanın bütün hareketleri: önce taşınan ders, sonra hedefte duran aynı şube dersleri.
+
+    Hedefte duran ders boşalan saatlere geçer: hedef ile kaynak örtüşmüyorsa aynı konuma (hedefin
+    i. saatindeki ders kaynağın i. saatine), örtüşüyorsa (aynı günde kaydırma) sırayla boşalan saatlere.
+    """
+    hedef = [(hedef_gun, hedef_saat + i) for i in range(len(hucreler))]
+    sinif = {a.id: a.sinif_id for a in girdi.atamalar}
+    bu_sinif = sinif.get(atama_id)
+    kaynak = set(hucreler)
+    duranlar = sorted(
+        ((y.gun, y.saat), y.ders_atama_id) for y in yerlesimler
+        if (y.gun, y.saat) in set(hedef) and y.ders_atama_id != atama_id and sinif.get(y.ders_atama_id) == bu_sinif
+    )
+    sonuc = [Hareket(atama_id, tuple(hucreler), tuple(hedef))]
+    if not duranlar:
+        return sonuc
+    if kaynak & set(hedef):
+        bosalan = sorted(kaynak - set(hedef))
+        eslesme = dict(zip([h for h, _a in duranlar], bosalan))
+    else:
+        eslesme = {h: hucreler[hedef.index(h)] for h, _a in duranlar}
+    atamalara: dict[str, list[tuple[tuple[int, int], tuple[int, int]]]] = {}
+    for h, a in duranlar:
+        atamalara.setdefault(a, []).append((h, eslesme[h]))
+    sonuc += [Hareket(a, tuple(e for e, _y in ciftler), tuple(y for _e, y in ciftler)) for a, ciftler in atamalara.items()]
+    return sonuc
+
+
+def uygula(yerlesimler: list[Yerlesim], hareketler_: list[Hareket]) -> list[Yerlesim]:
+    """Hareketleri yerleşim listesine uygular (kilit bilgisi hareket eden hücrelerde kalkar). Yeni liste döner."""
+    kalkan = {(h.ders_atama_id, g, s) for h in hareketler_ for g, s in h.eski}
+    kalan = [y for y in yerlesimler if (y.ders_atama_id, y.gun, y.saat) not in kalkan]
+    return kalan + [Yerlesim(h.ders_atama_id, g, s) for h in hareketler_ for g, s in h.yeni]
+
+
 def tasi(yerlesimler: list[Yerlesim], atama_id: str, hucreler: list[tuple[int, int]], hedef_gun: int, hedef_saat: int) -> list[Yerlesim]:
-    """Hücreleri hedefe kaydırır: bloğun ilk saati `hedef_saat`e gelir. Yeni liste döner."""
-    eski = set(hucreler)
-    kalan = [y for y in yerlesimler if not (y.ders_atama_id == atama_id and (y.gun, y.saat) in eski)]
-    return kalan + [Yerlesim(atama_id, hedef_gun, hedef_saat + i) for i in range(len(hucreler))]
+    """Takassız kaydırma: bloğun ilk saati `hedef_saat`e gelir. Yeni liste döner."""
+    return uygula(yerlesimler, [Hareket(atama_id, tuple(hucreler), tuple((hedef_gun, hedef_saat + i) for i in range(len(hucreler))))])
 
 
 class Degerlendirici:
@@ -84,7 +135,8 @@ class Degerlendirici:
     def __init__(self, girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> None:
         self.girdi = girdi
         self.yerlesimler = yerlesimler
-        self.onceki: set[tuple] = {i.anahtar for i in ihlaller(girdi, yerlesimler)}
+        self.bloklar = BlokHesabi(girdi)
+        self.onceki: set[tuple] = {i.anahtar for i in ihlaller(girdi, yerlesimler, self.bloklar)}
         self.olcum = olc(girdi, yerlesimler)
         self.agirliklar = etkin_agirliklar(girdi)
         self.ad = Anlatim(girdi)
@@ -93,12 +145,15 @@ class Degerlendirici:
                     hucreler: list[tuple[int, int]] | None = None) -> Degerlendirme:
         hucreler = hucreler or blok_hucreleri(self.girdi, self.yerlesimler, atama_id, gun, saat)
         hedef = tuple((hedef_gun, hedef_saat + i) for i in range(len(hucreler)))
-        kilitli = {(y.gun, y.saat) for y in self.yerlesimler if y.ders_atama_id == atama_id and y.kilitli}
-        if kilitli & set(hucreler):
-            return Degerlendirme(hedef_gun, hedef_saat, ENGEL,
-                                 (f"{self.ad.atama(atama_id)} kilitli; taşımak için önce kilidi açın",), hedef)
-        yeni = tasi(self.yerlesimler, atama_id, hucreler, hedef_gun, hedef_saat)
-        yeni_ihlaller: list[Ihlal] = [i for i in ihlaller(self.girdi, yeni) if i.anahtar not in self.onceki]
+        hepsi = hareketler(self.girdi, self.yerlesimler, atama_id, hucreler, hedef_gun, hedef_saat)
+        takas = tuple(dict.fromkeys(self.ad.atama(h.ders_atama_id) for h in hepsi[1:]))
+        kilitli = {(y.ders_atama_id, y.gun, y.saat) for y in self.yerlesimler if y.kilitli}
+        for h in hepsi:
+            if any((h.ders_atama_id, g, s) in kilitli for g, s in h.eski):
+                neden = "taşımak için önce kilidi açın" if h.ders_atama_id == atama_id else "yer değiştiremez"
+                return Degerlendirme(hedef_gun, hedef_saat, ENGEL, (f"{self.ad.atama(h.ders_atama_id)} kilitli; {neden}",), hedef)
+        yeni = uygula(self.yerlesimler, hepsi)
+        yeni_ihlaller: list[Ihlal] = [i for i in ihlaller(self.girdi, yeni, self.bloklar) if i.anahtar not in self.onceki]
         if yeni_ihlaller:
             return Degerlendirme(hedef_gun, hedef_saat, ENGEL, tuple(dict.fromkeys(i.mesaj for i in yeni_ihlaller)), hedef)
         sonra = olc(self.girdi, yeni)
@@ -107,7 +162,7 @@ class Degerlendirici:
             for alan, tur in OLCU_KURAL_TURU.items()
             if self.agirliklar.get(tur, 0) > 0 and getattr(sonra, alan) > getattr(self.olcum, alan)
         )
-        return Degerlendirme(hedef_gun, hedef_saat, UYARI if uyarilar else UYGUN, uyarilar, hedef, sonra)
+        return Degerlendirme(hedef_gun, hedef_saat, UYARI if uyarilar else UYGUN, uyarilar, hedef, sonra, tuple(hepsi), takas)
 
     def harita(self, atama_id: str, gun: int, saat: int) -> list[Degerlendirme]:
         """Bloğun sığdığı her başlangıç hücresi için değerlendirme (kendi yeri hariç)."""

@@ -135,6 +135,9 @@ class BlokHesabi:
         self._kilitler: dict[str, list[tuple[int, int]]] = defaultdict(list)
         for k in girdi.kilitli_yerlesimler:
             self._kilitler[k.ders_atama_id].append((k.gun, k.saat))
+        # Desen yalnızca girdiye bağlıdır: atama başına bir kez hesaplanır. Elle taşımanın haritası
+        # aynı girdiyle onlarca kez doğrulama yapar (7.1); önbelleksiz gerçekçi sette 3 sn sürüyordu.
+        self._desenler: dict[str, Desen | None] = {}
 
     # --- desen ----------------------------------------------------------------------------
 
@@ -151,10 +154,10 @@ class BlokHesabi:
 
     def desen(self, a: DersAtama) -> Desen | None:
         """Çözücünün uygulayacağı desen. Okul önerisi uygulanamıyorsa None (atama bloksuz)."""
-        d = self.istenen(a)
-        if d is None or d.ozel:
-            return d
-        return d if not self.sorunlar(a, d) else None
+        if a.id not in self._desenler:
+            d = self.istenen(a)
+            self._desenler[a.id] = d if d is None or d.ozel or not self.sorunlar(a, d) else None
+        return self._desenler[a.id]
 
     # --- uygulanabilirlik -------------------------------------------------------------------
 

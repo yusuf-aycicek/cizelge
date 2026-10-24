@@ -1,11 +1,13 @@
-import { useState, type CSSProperties } from "react";
+import { Lock } from "lucide-react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { kisaKisiAdi } from "../bilesenler/darAlan";
 import { OgretmenRozeti } from "../bilesenler/OgretmenRozeti";
 import { SigdirilanMetin } from "../bilesenler/SigdirilanMetin";
 import { DersCipi } from "../dersler/DersCipi";
 import { ogleArasiSonrasi, saatVar, zilMetni } from "../okul/zaman";
 import { GUN_ADLARI, GUN_KISA_ADLARI } from "./aciklama";
-import { blokDegisti, type CizelgeProps } from "./CizelgeSayfasi";
+import { blokDegisti, blokSecili, HedefIsareti, type CizelgeProps } from "./CizelgeSayfasi";
+import { hedefMetni } from "./DuzeltmeCubugu";
 import { birlesikHucreler, hucreAnahtari } from "./cizelge";
 import stil from "./Cizelge.module.css";
 
@@ -19,10 +21,13 @@ function bugun(gunSayisi: number): number {
  * Telefonda haftalık çizelge (5.6): yana kayan geniş tablo yerine bir gün seçilir, o günün dersleri
  * alt alta listelenir. Bloklar (art arda saatler) tek satırdır: "1.-2. saat". Boş saat "Boş",
  * öğle arası ayraç olarak görünür; kısa günün sonundaki saatler listelenmez.
+ *
+ * Elle düzeltme (7.1) dokunarak yapılır: derse dokunmak onu seçer ("Taşı", "Kilitle" çubukta);
+ * taşıma modunda her saat bir hedeftir (başka güne geçip orada da seçilebilir).
  */
 export function GunlukCizelge({
   baslik, gunSayisi, saatSayisi, gunSaatleri, ogleArasiSonra, zil, ogleZili, hucreler, gorunum, ders, dersIsareti, sinif,
-  ogretmen, vurgulu,
+  ogretmen, vurgulu, duzeltme,
 }: CizelgeProps) {
   const [gun, setGun] = useState(() => bugun(gunSayisi));
   const birlesik = birlesikHucreler(hucreler, gunSayisi, saatSayisi, ogleArasiSonra);
@@ -42,9 +47,25 @@ export function GunlukCizelge({
     const d = a && ders.get(a.ders_id);
     const o = a?.ogretmen_id ? ogretmen.get(a.ogretmen_id) : undefined;
     const degisti = Boolean(a) && blokDegisti(vurgulu, gun, s, uzunluk);
+    const kilit = Boolean(a) && duzeltme?.kilitli.has(k);
+    const hedef = duzeltme?.hedefler?.get(k);
+    const dugmeli = Boolean(duzeltme && (a || duzeltme.hedefler));
+    const dugme = (icerik: ReactNode) =>
+      dugmeli && duzeltme ? (
+        <button type="button" className={stil.gunDugmesi} title={hedef ? hedefMetni(hedef) : undefined}
+          onClick={() => (duzeltme.hedefler ? duzeltme.onHedef(gun, s) : a && duzeltme.onSec(a, gun, s))}>
+          <HedefIsareti hedef={hedef} />
+          {icerik}
+        </button>
+      ) : icerik;
     satirlar.push(
-      <li key={s} className={[a ? stil.gunDolu : stil.gunBos, degisti && stil.degisti].filter(Boolean).join(" ")}
-        style={{ animationDelay: `${s * 40}ms` } as CSSProperties} data-degisti={degisti || undefined}>
+      <li key={s} className={[a ? stil.gunDolu : stil.gunBos, degisti && stil.degisti, kilit && stil.kilitli].filter(Boolean).join(" ")}
+        style={{ animationDelay: `${s * 40}ms` } as CSSProperties} data-degisti={degisti || undefined}
+        data-kilitli={kilit || undefined} data-secili={blokSecili(duzeltme?.secili, gun, s, uzunluk) || undefined}
+        data-hedef={duzeltme?.hedefler ? hedef?.durum ?? "yok" : undefined} data-dugmeli={dugmeli || undefined}>
+        {dugme(<>
+        {kilit && <Lock aria-hidden="true" className={stil.kilitIkonu} />}
+        {kilit && <span className="gorunmez">Kilitli: </span>}
         {degisti && <span className="gorunmez">Temel programa göre değişti: </span>}
         <span className={stil.gunSaat}>
           {saatMetni}
@@ -69,6 +90,7 @@ export function GunlukCizelge({
         ) : (
           <span className={stil.gunBosMetin}>Boş</span>
         )}
+        </>)}
       </li>,
     );
     if (ogleArasiSonrasi(ogleArasiSonra, s + uzunluk - 1) && s + uzunluk < saatSayisi) {

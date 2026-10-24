@@ -13,7 +13,7 @@ function program(degisiklik: Partial<Program> = {}): Program {
   return {
     id: "p1", ad: "Program 1", durum: "bekliyor", hata_mesaji: null, temel_program_id: null, sure_siniri_sn: 120,
     olusturma: "2026-10-24T09:00:00Z", baslama: null, bitis: null, cozum_durumu: null, toplam_ceza: null,
-    olcumler: null, celiskiler: null, sure_sn: null, ...degisiklik,
+    olcumler: null, celiskiler: null, sure_sn: null, elle_duzeltme: 0, ...degisiklik,
   };
 }
 

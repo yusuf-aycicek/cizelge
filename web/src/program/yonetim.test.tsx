@@ -14,7 +14,7 @@ function program(d: Partial<Program>): Program {
   return {
     id: "p1", ad: "Eylül", durum: "hazir", hata_mesaji: null, temel_program_id: null, sure_siniri_sn: 120,
     olusturma: "2026-10-24T09:00:00Z", baslama: "2026-10-24T09:00:01Z", bitis: "2026-10-24T09:02:01Z",
-    cozum_durumu: "uygun", toplam_ceza: 10, olcumler: OLCUM, celiskiler: [], sure_sn: 12, eski_veri: false, ...d,
+    cozum_durumu: "uygun", toplam_ceza: 10, olcumler: OLCUM, celiskiler: [], sure_sn: 12, eski_veri: false, elle_duzeltme: 0, ...d,
   };
 }
 const EYLUL = program({});

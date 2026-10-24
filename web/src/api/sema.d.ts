@@ -487,6 +487,85 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ders-programi/programlar/{program_id}/geri-al": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Degisikligi Geri Al
+         * @description Son elle değişikliği geri alır. 409: geri alınacak değişiklik yok.
+         */
+        post: operations["degisikligi_geri_al_api_ders_programi_programlar__program_id__geri_al_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/programlar/{program_id}/kilit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Ders Kilitle */
+        put: operations["ders_kilitle_api_ders_programi_programlar__program_id__kilit_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/programlar/{program_id}/tasi": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ders Tasi
+         * @description 422: zorunlu kuralı çiğner (nedenler mesajda). 409: esnek ölçüyü kötüleştirir ve
+         *     `uyarilari_kabul` verilmedi. Başarıda programın güncel hâli (kalite ölçümü yeniden hesaplanır).
+         */
+        post: operations["ders_tasi_api_ders_programi_programlar__program_id__tasi_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/programlar/{program_id}/tasima": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tasima Haritasi
+         * @description Elle düzeltme (7.1): dersin (blok dersse bütün bloğun) taşınabileceği her başlangıç hücresi;
+         *     uygun / uyarı (esnek ölçü kötüleşir) / engel (zorunlu kural) ve nedenleri.
+         */
+        get: operations["tasima_haritasi_api_ders_programi_programlar__program_id__tasima_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ders-programi/programlar/{program_id}/yerlesimler": {
         parameters: {
             query?: never;
@@ -1168,6 +1247,13 @@ export interface components {
             /** Detail */
             detail: string;
         };
+        /** HucreKonumu */
+        HucreKonumu: {
+            /** Gun */
+            gun: number;
+            /** Saat */
+            saat: number;
+        };
         /** IstisnaAtlanan */
         IstisnaAtlanan: {
             /** Ders */
@@ -1206,6 +1292,20 @@ export interface components {
             okul: components["schemas"]["OkulOlustur"];
             /** Sifre */
             sifre: string;
+        };
+        /** KilitIstegi */
+        KilitIstegi: {
+            /**
+             * Ders Atama Id
+             * Format: uuid
+             */
+            ders_atama_id: string;
+            /** Gun */
+            gun: number;
+            /** Kilitli */
+            kilitli: boolean;
+            /** Saat */
+            saat: number;
         };
         /** KisitGuncelle */
         KisitGuncelle: {
@@ -1679,6 +1779,11 @@ export interface components {
             cozum_durumu: string | null;
             /** Durum */
             durum: string;
+            /**
+             * Elle Duzeltme
+             * @default 0
+             */
+            elle_duzeltme: number;
             /** Eski Veri */
             eski_veri?: boolean | null;
             /** Hata Mesaji */
@@ -1968,6 +2073,53 @@ export interface components {
              * @description İstisna ile ders dağılımı tutarsızsa açıklama (otomatik düzeltilmez)
              */
             uyari: string | null;
+        };
+        /**
+         * TasimaHaritasi
+         * @description Bir dersin taşınabileceği her başlangıç hücresi (7.1). `hucreler`: birlikte taşınan blok.
+         */
+        TasimaHaritasi: {
+            /** Hedefler */
+            hedefler: components["schemas"]["TasimaHedefi"][];
+            /** Hucreler */
+            hucreler: components["schemas"]["HucreKonumu"][];
+        };
+        /** TasimaHedefi */
+        TasimaHedefi: {
+            /**
+             * Durum
+             * @enum {string}
+             */
+            durum: "uygun" | "uyari" | "engel";
+            /** Gun */
+            gun: number;
+            /** Nedenler */
+            nedenler: string[];
+            /** Saat */
+            saat: number;
+            /** Takas */
+            takas?: string[];
+        };
+        /** TasimaIstegi */
+        TasimaIstegi: {
+            /**
+             * Ders Atama Id
+             * Format: uuid
+             */
+            ders_atama_id: string;
+            /** Gun */
+            gun: number;
+            /** Hedef Gun */
+            hedef_gun: number;
+            /** Hedef Saat */
+            hedef_saat: number;
+            /** Saat */
+            saat: number;
+            /**
+             * Uyarilari Kabul
+             * @default false
+             */
+            uyarilari_kabul: boolean;
         };
         /**
          * TopluOgretmenAta
@@ -3134,6 +3286,142 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProgramFarki"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    degisikligi_geri_al_api_ders_programi_programlar__program_id__geri_al_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ders_kilitle_api_ders_programi_programlar__program_id__kilit_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KilitIstegi"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ders_tasi_api_ders_programi_programlar__program_id__tasi_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TasimaIstegi"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tasima_haritasi_api_ders_programi_programlar__program_id__tasima_get: {
+        parameters: {
+            query: {
+                ders_atama_id: string;
+                gun: number;
+                saat: number;
+            };
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TasimaHaritasi"];
                 };
             };
             /** @description Validation Error */

@@ -622,6 +622,24 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "HucreKonumu": {
+        "properties": {
+          "gun": {
+            "title": "Gun",
+            "type": "integer"
+          },
+          "saat": {
+            "title": "Saat",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "gun",
+          "saat"
+        ],
+        "title": "HucreKonumu",
+        "type": "object"
+      },
       "IstisnaAtlanan": {
         "properties": {
           "ders": {
@@ -722,6 +740,37 @@
           "sifre"
         ],
         "title": "KayitIstegi",
+        "type": "object"
+      },
+      "KilitIstegi": {
+        "properties": {
+          "ders_atama_id": {
+            "format": "uuid",
+            "title": "Ders Atama Id",
+            "type": "string"
+          },
+          "gun": {
+            "minimum": 0.0,
+            "title": "Gun",
+            "type": "integer"
+          },
+          "kilitli": {
+            "title": "Kilitli",
+            "type": "boolean"
+          },
+          "saat": {
+            "minimum": 0.0,
+            "title": "Saat",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ders_atama_id",
+          "gun",
+          "saat",
+          "kilitli"
+        ],
+        "title": "KilitIstegi",
         "type": "object"
       },
       "KisitGuncelle": {
@@ -2069,6 +2118,11 @@
             "title": "Durum",
             "type": "string"
           },
+          "elle_duzeltme": {
+            "default": 0,
+            "title": "Elle Duzeltme",
+            "type": "integer"
+          },
           "eski_veri": {
             "anyOf": [
               {
@@ -2822,6 +2876,117 @@
           "uyari"
         ],
         "title": "SubeIstisnasiYanit",
+        "type": "object"
+      },
+      "TasimaHaritasi": {
+        "description": "Bir dersin taşınabileceği her başlangıç hücresi (7.1). `hucreler`: birlikte taşınan blok.",
+        "properties": {
+          "hedefler": {
+            "items": {
+              "$ref": "#/components/schemas/TasimaHedefi"
+            },
+            "title": "Hedefler",
+            "type": "array"
+          },
+          "hucreler": {
+            "items": {
+              "$ref": "#/components/schemas/HucreKonumu"
+            },
+            "title": "Hucreler",
+            "type": "array"
+          }
+        },
+        "required": [
+          "hucreler",
+          "hedefler"
+        ],
+        "title": "TasimaHaritasi",
+        "type": "object"
+      },
+      "TasimaHedefi": {
+        "properties": {
+          "durum": {
+            "enum": [
+              "uygun",
+              "uyari",
+              "engel"
+            ],
+            "title": "Durum",
+            "type": "string"
+          },
+          "gun": {
+            "title": "Gun",
+            "type": "integer"
+          },
+          "nedenler": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Nedenler",
+            "type": "array"
+          },
+          "saat": {
+            "title": "Saat",
+            "type": "integer"
+          },
+          "takas": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Takas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "gun",
+          "saat",
+          "durum",
+          "nedenler"
+        ],
+        "title": "TasimaHedefi",
+        "type": "object"
+      },
+      "TasimaIstegi": {
+        "properties": {
+          "ders_atama_id": {
+            "format": "uuid",
+            "title": "Ders Atama Id",
+            "type": "string"
+          },
+          "gun": {
+            "minimum": 0.0,
+            "title": "Gun",
+            "type": "integer"
+          },
+          "hedef_gun": {
+            "minimum": 0.0,
+            "title": "Hedef Gun",
+            "type": "integer"
+          },
+          "hedef_saat": {
+            "minimum": 0.0,
+            "title": "Hedef Saat",
+            "type": "integer"
+          },
+          "saat": {
+            "minimum": 0.0,
+            "title": "Saat",
+            "type": "integer"
+          },
+          "uyarilari_kabul": {
+            "default": false,
+            "title": "Uyarilari Kabul",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ders_atama_id",
+          "gun",
+          "saat",
+          "hedef_gun",
+          "hedef_saat"
+        ],
+        "title": "TasimaIstegi",
         "type": "object"
       },
       "TopluOgretmenAta": {
@@ -4543,6 +4708,229 @@
           }
         },
         "summary": "Program Farki",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/ders-programi/programlar/{program_id}/geri-al": {
+      "post": {
+        "description": "Son elle değişikliği geri alır. 409: geri alınacak değişiklik yok.",
+        "operationId": "degisikligi_geri_al_api_ders_programi_programlar__program_id__geri_al_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "program_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Program Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgramYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Degisikligi Geri Al",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/ders-programi/programlar/{program_id}/kilit": {
+      "put": {
+        "operationId": "ders_kilitle_api_ders_programi_programlar__program_id__kilit_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "program_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Program Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KilitIstegi"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgramYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ders Kilitle",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/ders-programi/programlar/{program_id}/tasi": {
+      "post": {
+        "description": "422: zorunlu kuralı çiğner (nedenler mesajda). 409: esnek ölçüyü kötüleştirir ve\n`uyarilari_kabul` verilmedi. Başarıda programın güncel hâli (kalite ölçümü yeniden hesaplanır).",
+        "operationId": "ders_tasi_api_ders_programi_programlar__program_id__tasi_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "program_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Program Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TasimaIstegi"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgramYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ders Tasi",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/ders-programi/programlar/{program_id}/tasima": {
+      "get": {
+        "description": "Elle düzeltme (7.1): dersin (blok dersse bütün bloğun) taşınabileceği her başlangıç hücresi;\nuygun / uyarı (esnek ölçü kötüleşir) / engel (zorunlu kural) ve nedenleri.",
+        "operationId": "tasima_haritasi_api_ders_programi_programlar__program_id__tasima_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "program_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Program Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ders_atama_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Ders Atama Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "gun",
+            "required": true,
+            "schema": {
+              "title": "Gun",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "saat",
+            "required": true,
+            "schema": {
+              "title": "Saat",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TasimaHaritasi"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Tasima Haritasi",
         "tags": [
           "program"
         ]

@@ -282,3 +282,152 @@
   border-radius: 50%;
   background: var(--renk-birincil);
 }
+
+/* --- Elle düzeltme (7.1) -------------------------------------------------------------------- */
+.duzeltme {
+  margin-bottom: var(--bosluk-3);
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border-radius: var(--kose);
+  background: var(--renk-yuzey);
+}
+.duzeltmeSatiri {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bosluk-2) var(--bosluk-3);
+}
+.duzeltmeBaslik,
+.duzeltmeIpucu {
+  margin: 0;
+  flex: 1 1 18rem;
+}
+.duzeltmeIpucu {
+  color: var(--renk-metin-ikincil);
+  font-size: var(--yazi-kucuk);
+}
+.duzeltmeDugmeleri {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--bosluk-2);
+}
+.duzeltmeLejant {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bosluk-1) var(--bosluk-2);
+  margin: var(--bosluk-2) 0 0;
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
+}
+.lejantUygun,
+.lejantUyari,
+.lejantEngel {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  margin-inline-start: var(--bosluk-2);
+}
+.lejantUygun {
+  background: var(--renk-basari-zemin);
+  outline: 2px solid var(--renk-basari-metin);
+}
+.lejantUyari {
+  background: var(--renk-uyari-zemin);
+  outline: 2px dashed var(--renk-uyari-metin);
+}
+.lejantEngel {
+  background: repeating-linear-gradient(135deg, transparent 0 0.2rem, color-mix(in srgb, var(--renk-tehlike) 35%, transparent) 0.2rem 0.3rem);
+  outline: 1px solid var(--renk-kenar-alan);
+}
+.hedefAciklamasi {
+  margin: var(--bosluk-1) 0 0;
+  font-size: var(--yazi-kucuk);
+  min-height: 1.2em;
+}
+.hedefAciklamasi:empty {
+  display: none;
+}
+.uyariListesi {
+  margin: var(--bosluk-2) 0 0;
+  padding-inline-start: var(--bosluk-5);
+}
+
+/* Hücre düğmesi: hücrenin bütün alanı; görünüm hücrenin kendisinde kalır. */
+.hucreDugmesi {
+  /* Düğme içeriği tarayıcıda dikeyde ortalanır; blok hücresinde (rowSpan) çip üstte kalmalı. */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 3rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.blok .hucreDugmesi {
+  justify-content: flex-start;
+}
+.hucreDugmesi[draggable="true"] {
+  cursor: grab;
+}
+.gunDolu[data-dugmeli],
+.gunBos[data-dugmeli] {
+  padding: 0;
+  display: block;
+}
+.gunDugmesi {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: 3.5rem;
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border: none;
+  border-radius: var(--kose);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Kilitli ders: kalın kenar ve köşede kilit. */
+.kilitli {
+  position: relative;
+  box-shadow: inset 0 0 0 2px var(--renk-metin-ikincil) !important;
+}
+.kilitIkonu {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  width: 0.85rem;
+  height: 0.85rem;
+  color: var(--renk-metin-ikincil);
+}
+[data-secili] {
+  box-shadow: inset 0 0 0 3px var(--renk-birincil) !important;
+}
+
+/* Taşıma modunda hedefler: renk + desen (renk körü kullanıcı için), engel soluk. */
+[data-hedef="uygun"] {
+  background: var(--renk-basari-zemin) !important;
+  box-shadow: inset 0 0 0 2px var(--renk-basari-metin) !important;
+}
+[data-hedef="uyari"] {
+  background: var(--renk-uyari-zemin) !important;
+  outline: 2px dashed var(--renk-uyari-metin) !important;
+  outline-offset: -2px !important;
+}
+[data-hedef="engel"] {
+  background-image: repeating-linear-gradient(135deg, transparent 0 0.4rem,
+    color-mix(in srgb, var(--renk-tehlike) 28%, transparent) 0.4rem 0.5rem) !important;
+  opacity: 0.75;
+}

@@ -7,14 +7,17 @@ export function KaliteOzeti({ program, baslikDuzeyi = 2 }: { program: Program; b
   const maddeler = kaliteMaddeleri(program.olcumler, Boolean(program.temel_program_id));
   if (maddeler.length === 0) return null;
   const Baslik = baslikDuzeyi === 2 ? "h2" : "h3";
-  const aciklama = cozumAciklamasi(program.cozum_durumu);
+  // Elle düzeltilmiş programda çözücünün "en iyisi" sözü artık geçerli değil; ölçüler düzeltilmiş hâlin.
+  const aciklama = program.elle_duzeltme
+    ? `Program elle düzeltildi (${program.elle_duzeltme} değişiklik); ölçüler düzeltilmiş hâline göredir.`
+    : cozumAciklamasi(program.cozum_durumu);
   return (
     <section aria-labelledby={`kalite-${program.id}`} className={stil.kalite}>
       <Baslik id={`kalite-${program.id}`}>Programın kalitesi</Baslik>
       {aciklama && (
         <p className={stil.kaliteAciklama}>
           {aciklama}
-          {program.sure_sn != null && ` Üretim ${sureMetni(program.sure_sn)} sürdü.`}
+          {program.sure_sn != null && !program.elle_duzeltme && ` Üretim ${sureMetni(program.sure_sn)} sürdü.`}
         </p>
       )}
       <ul className={stil.kaliteListesi}>

@@ -382,6 +382,8 @@ class ProgramYanit(_Yanit):
     sure_sn: float | None
     # Hazır programda: üretildiği andaki veri şimdikinden farklı mı (6.3). None: bilinmiyor.
     eski_veri: bool | None = None
+    # Elle düzeltme (7.1): geri alınabilir değişiklik sayısı (0: program üretildiği gibi).
+    elle_duzeltme: int = 0
 
 
 class ProgramAdi(BaseModel):
@@ -408,6 +410,43 @@ class ProgramFarki(BaseModel):
     degisen: int
     subeler: list[SubeFarki]
     hucreler: list[FarkHucresi]
+
+
+class HucreKonumu(BaseModel):
+    gun: int
+    saat: int
+
+
+class TasimaHedefi(BaseModel):
+    gun: int
+    saat: int
+    durum: Literal["uygun", "uyari", "engel"]
+    nedenler: list[str]
+    # Hedefte duran ve yer değiştirecek aynı şube dersleri ("9-A Fizik").
+    takas: list[str] = Field(default_factory=list)
+
+
+class TasimaHaritasi(BaseModel):
+    """Bir dersin taşınabileceği her başlangıç hücresi (7.1). `hucreler`: birlikte taşınan blok."""
+
+    hucreler: list[HucreKonumu]
+    hedefler: list[TasimaHedefi]
+
+
+class TasimaIstegi(BaseModel):
+    ders_atama_id: uuid.UUID
+    gun: int = Field(ge=0)
+    saat: int = Field(ge=0)
+    hedef_gun: int = Field(ge=0)
+    hedef_saat: int = Field(ge=0)
+    uyarilari_kabul: bool = False
+
+
+class KilitIstegi(BaseModel):
+    ders_atama_id: uuid.UUID
+    gun: int = Field(ge=0)
+    saat: int = Field(ge=0)
+    kilitli: bool
 
 
 class YerlesimYanit(_Yanit):

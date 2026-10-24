@@ -267,3 +267,28 @@ class Yerlesim(OkulaAitMixin, Base):
     gun: Mapped[int]
     saat: Mapped[int]
     kilitli: Mapped[bool] = mapped_column(default=False, server_default="false")
+
+
+ISLEM_TURLERI = ("tasima", "kilit")
+
+
+class ProgramIslemi(OkulaAitMixin, Base):
+    """Hazır bir programda yapılan elle değişiklik (7.1): taşıma ya da kilit. Geri alma sondan
+    başa (en büyük `sira`) tersine çevirir. Program silinince işlemleri de silinir.
+
+    `veri`: taşımada `{"ders_atama_id", "eski": [[gün, saat]...], "yeni": [...]}`, kilitte
+    `{"ders_atama_id", "hucreler": [...], "kilitli": bool}`.
+    """
+
+    __tablename__ = "program_islemi"
+    _tablo_kisitlari = (
+        okul_ici_fk("program_id", "program", ondelete="CASCADE"),
+        CheckConstraint(f"tur IN ({_liste(ISLEM_TURLERI)})", name="tur"),
+        CheckConstraint("sira > 0", name="sira"),
+        UniqueConstraint("program_id", "sira"),
+    )
+
+    program_id: Mapped[uuid.UUID]
+    sira: Mapped[int]
+    tur: Mapped[str] = mapped_column(String(10))
+    veri: Mapped[dict[str, Any]] = mapped_column(JSONB)

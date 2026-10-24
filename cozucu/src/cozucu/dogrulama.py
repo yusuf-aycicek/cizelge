@@ -40,8 +40,10 @@ def dogrula(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> list[str]:
     return [i.teknik for i in ihlaller(girdi, yerlesimler)]
 
 
-def ihlaller(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> list[Ihlal]:
-    """Zorunlu kısıt ihlalleri, yapılandırılmış. Boş liste = program geçerli."""
+def ihlaller(girdi: CozumGirdisi, yerlesimler: list[Yerlesim], bloklar: BlokHesabi | None = None) -> list[Ihlal]:
+    """Zorunlu kısıt ihlalleri, yapılandırılmış. Boş liste = program geçerli.
+
+    `bloklar`: aynı girdiyle tekrar tekrar doğrulayan çağıran (elle taşıma) hesabı paylaşabilir."""
     hatalar: list[Ihlal] = []
     ad = Anlatim(girdi)
 
@@ -133,7 +135,7 @@ def ihlaller(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> list[Ihlal]:
 
     # Blok deseni: her gün en çok bir kesintisiz parça, öğle arasını kesmeden; parça boyları desen.
     # Hangi desenin geçerli olduğu tek kaynaktan (cozucu.blok), yerleşimin ona uyması burada denetlenir.
-    bloklar = BlokHesabi(girdi)
+    bloklar = bloklar or BlokHesabi(girdi)
     gun_saatleri: dict[tuple[str, int], list[int]] = defaultdict(list)
     for y in gecerli:
         gun_saatleri[y.ders_atama_id, y.gun].append(y.saat)
