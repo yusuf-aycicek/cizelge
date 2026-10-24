@@ -54,8 +54,22 @@ const METIN_CIFTLERI: [string, string][] = [
   ["renk-ust-metin", "renk-ust-zemin"],
   ["renk-ust-metin", "renk-ust-vurgu"],
   ["renk-menu-metin", "renk-menu-zemin"],
+  ["renk-menu-metin", "renk-menu-zemin-alt"],
   ["renk-menu-metin", "renk-menu-vurgu"],
   ["renk-menu-aktif-metin", "renk-menu-aktif-zemin"],
+  ["renk-menu-aktif-metin", "renk-menu-aktif-zemin-2"],
+  // Sayfa başlığı bandı: geçişin her durağında beyaz yazı okunaklı.
+  ...["baslangic", "orta", "bitis"].flatMap((d): [string, string][] => [
+    ["renk-bant-metin", `renk-bant-${d}`],
+    ["renk-bant-metin-ikincil", `renk-bant-${d}`],
+  ]),
+  ["renk-birincil-koyu", "renk-zemin"], // bandın üstündeki beyaz düğmenin yazısı
+  // Sayı kartları: pastel zeminde sayı, ad ve ikon.
+  ...[1, 2, 3, 4].flatMap((i): [string, string][] => [
+    ["renk-metin", `renk-kart-${i}`],
+    ["renk-metin-ikincil", `renk-kart-${i}`],
+    [`renk-kart-${i}-vurgu`, `renk-kart-${i}`],
+  ]),
   ...[1, 2, 3, 4, 5, 6, 7, 8].map((i): [string, string] => ["renk-cip-metin", `renk-rozet-${i}`]),
 ];
 

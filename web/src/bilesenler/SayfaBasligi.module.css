@@ -1,17 +1,16 @@
+/* Dolu geçişli bant, beyaz yazı. İkincil metin rengi bant içinde yerel olarak açık tona çevrilir. */
 .alan {
+  --renk-metin-ikincil: var(--renk-bant-metin-ikincil);
   display: flex;
   align-items: flex-start;
   gap: var(--bosluk-4);
   padding: var(--bosluk-5) var(--bosluk-5);
   margin-bottom: var(--bosluk-5);
   border-radius: var(--kose-buyuk);
-  border: 1px solid var(--renk-kenar);
-  background: linear-gradient(
-    115deg,
-    color-mix(in srgb, var(--renk-birincil) 12%, var(--renk-zemin)) 0%,
-    var(--renk-zemin) 70%
-  );
-  box-shadow: var(--golge-kart);
+  background: linear-gradient(110deg, var(--renk-bant-baslangic), var(--renk-bant-orta) 55%, var(--renk-bant-bitis));
+  color: var(--renk-bant-metin);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--renk-bant-baslangic) 25%, transparent);
+  overflow-wrap: anywhere; /* uzun okul ya da şube adı dar ekranda bandı taşırmasın */
 }
 
 .ikon {
@@ -21,9 +20,9 @@
   width: 3rem;
   height: 3rem;
   border-radius: var(--kose);
-  background: var(--renk-birincil);
-  color: var(--renk-birincil-metin);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--renk-birincil) 35%, transparent);
+  background: rgb(255 255 255 / 0.16);
+  color: var(--renk-bant-metin);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28);
 }
 .ikon svg {
   width: 1.5rem;
@@ -43,10 +42,24 @@
   color: var(--renk-metin-ikincil);
 }
 
+/* Yazdırırken mürekkep harcamasın: düz zemin, koyu yazı. */
+@media print {
+  .alan {
+    --renk-metin-ikincil: var(--renk-metin);
+    background: none;
+    color: var(--renk-metin);
+    box-shadow: none;
+    border: 1px solid var(--renk-kenar);
+  }
+}
+
 @media (max-width: 48rem) {
   .alan {
     padding: var(--bosluk-4);
     gap: var(--bosluk-3);
+  }
+  .baslik {
+    font-size: var(--yazi-baslik);
   }
   .ikon {
     width: 2.5rem;

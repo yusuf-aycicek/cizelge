@@ -1,17 +1,18 @@
 /* --- karşılama bandı ve ilerleme halkası ------------------------------------------------ */
 
+/* Sayfa başlığıyla aynı dolu bant (SayfaBasligi.module.css); içindeki ikincil metin açık tonda. */
 .karsilama {
+  --renk-metin-ikincil: var(--renk-bant-metin-ikincil);
   display: flex;
   align-items: center;
   gap: var(--bosluk-6);
   padding: var(--bosluk-6);
   margin-bottom: var(--bosluk-5);
   border-radius: var(--kose-buyuk);
-  border: 1px solid var(--renk-kenar);
-  background:
-    radial-gradient(28rem 14rem at 100% 0%, color-mix(in srgb, var(--renk-birincil) 20%, transparent), transparent),
-    linear-gradient(120deg, color-mix(in srgb, var(--renk-birincil) 10%, var(--renk-zemin)), var(--renk-zemin));
-  box-shadow: var(--golge-kart);
+  background: linear-gradient(110deg, var(--renk-bant-baslangic), var(--renk-bant-orta) 55%, var(--renk-bant-bitis));
+  color: var(--renk-bant-metin);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--renk-bant-baslangic) 25%, transparent);
+  overflow-wrap: anywhere;
 }
 .karsilamaMetni {
   flex: 1;
@@ -36,14 +37,15 @@
   min-height: var(--dokunma-hedefi);
   padding: var(--bosluk-2) var(--bosluk-4);
   border-radius: var(--kose);
-  background: var(--renk-birincil);
-  color: var(--renk-birincil-metin);
+  /* Turuncu bandın üstünde beyaz düğme, koyu kiremit yazı. */
+  background: var(--renk-zemin);
+  color: var(--renk-birincil-koyu);
   font-weight: var(--yazi-kalin);
   text-decoration: none;
   transition: background-color var(--sure-kisa) var(--egri), box-shadow var(--sure-kisa) var(--egri);
 }
 .sonProgram:hover {
-  background: var(--renk-birincil-koyu);
+  background: var(--renk-yuzey);
   box-shadow: var(--golge-uzerine);
 }
 .sonProgram svg {
@@ -67,16 +69,17 @@
   fill: none;
   stroke-width: 12;
 }
+/* Halka bandın üstünde: soluk beyaz iz, beyaz dolu kısım. Tamamlanınca da beyaz (yüzde yazısı söyler). */
 .halkaZemin {
-  stroke: var(--renk-yuzey-vurgu);
+  stroke: rgb(255 255 255 / 0.25);
 }
 .halkaDolu {
-  stroke: var(--renk-birincil);
+  stroke: var(--renk-bant-metin);
   stroke-linecap: round;
   animation: halkaDol 900ms var(--egri);
 }
 .halkaTamam {
-  stroke: var(--renk-basari-metin);
+  stroke-width: 14;
 }
 @keyframes halkaDol {
   from {
@@ -118,21 +121,31 @@
   align-items: center;
   padding: var(--bosluk-4) var(--bosluk-5);
   border-radius: var(--kose-buyuk);
-  border: 1px solid var(--renk-kenar);
-  background: var(--renk-zemin);
-  box-shadow: var(--golge-kart);
+  /* Her kart kendi pastel tonunda (aşağıdaki --kart-zemin / --kart-vurgu). */
+  background: var(--kart-zemin, var(--renk-zemin));
+  box-shadow: 0 2px 6px rgb(60 40 20 / 0.08);
   color: var(--renk-metin);
   text-decoration: none;
   transition: transform var(--sure) var(--egri), box-shadow var(--sure) var(--egri);
   animation: kartGir var(--sure-uzun) var(--egri) backwards;
 }
-.sayilar li:nth-child(2) .sayiKarti {
+.sayilar li:nth-child(4n + 1) .sayiKarti {
+  --kart-zemin: var(--renk-kart-1);
+  --kart-vurgu: var(--renk-kart-1-vurgu);
+}
+.sayilar li:nth-child(4n + 2) .sayiKarti {
+  --kart-zemin: var(--renk-kart-2);
+  --kart-vurgu: var(--renk-kart-2-vurgu);
   animation-delay: 40ms;
 }
-.sayilar li:nth-child(3) .sayiKarti {
+.sayilar li:nth-child(4n + 3) .sayiKarti {
+  --kart-zemin: var(--renk-kart-3);
+  --kart-vurgu: var(--renk-kart-3-vurgu);
   animation-delay: 80ms;
 }
-.sayilar li:nth-child(4) .sayiKarti {
+.sayilar li:nth-child(4n + 4) .sayiKarti {
+  --kart-zemin: var(--renk-kart-4);
+  --kart-vurgu: var(--renk-kart-4-vurgu);
   animation-delay: 120ms;
 }
 .sayiKarti:hover {
@@ -151,8 +164,8 @@
   height: 2.75rem;
   padding: 0.65rem;
   border-radius: var(--kose);
-  background: color-mix(in srgb, var(--renk-birincil) 14%, var(--renk-zemin));
-  color: var(--renk-birincil);
+  background: rgb(255 255 255 / 0.55);
+  color: var(--kart-vurgu, var(--renk-birincil));
 }
 .sayi {
   font-size: 1.75rem;

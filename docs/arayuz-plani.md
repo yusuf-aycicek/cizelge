@@ -767,7 +767,17 @@ Kullanım limiti dolabileceği için her alt parça ayrı commit edilir; yarıda
 | K6d | Öğretmen haftalık yük uyarısı (ADR 0023): eşikler `haftalik_yuk` uyarı kuralı (`alt`, `ust`; 0 = kapalı; okul ve öğretmene özel; modele bir şey eklemez; alt > üst reddedilir). Metin tek yerde (`YukHesabi.ogretmen_yuk_uyarisi`): dağılım özetinde `yuk_uyarisi`, `GET /on-kontrol` yanıtında ayrı `uyarilar` listesi (üretimi engellemez). Arayüz: öğretmen kartında turuncu uyarı, program sayfasında "Uyarılar (programı engellemez)". Mutasyon 5/5 (ilk turda eşiğe eşit yük kaçtı, sınır testi eklendi) | Bitti |
 | K6e | Arayüz: "Özel ayar ekle"de dört yeni kural (saat tercihi: "yalnızca seçilen saatlerde olsun" / "seçilen saatlerde olmasın" ve saat kutuları, öğle arasından hemen sonraki saat adıyla, "sabah saatlerini seç" kısayolu; en az ders: sayı; yayılım: açık/kapalı; yük: alt ve üst eşik). Özel ayarların özetinde sade cümleler ("5., 6. saatlerde olmasın", "haftada en az 15 saat"). Okul ayarları "Gelişmiş: kuralların önemi ve ikincil kurallar": yeni kuralların önemi, "geldiği günde en az kaç ders", "bütün derslerde açık" kutusu, yük eşikleri; tek "Gelişmiş ayarları kaydet". Kalite özetinde "az dersli gün", "art arda gün" ve (yalnızca sıfırdan büyükse) "saat tercihi". Testler: 5 yeni web testi | Bitti |
 | K6f | Örnek okulda deneme ve gerçekçi sette ölçüm (aşağıda "K6'dan notlar"; docs/olcumler.md "İkincil kurallar") | Bitti |
-| T | Tasarım rötuşu: iki seçenek, 6 ekran görüntüsü; kullanıcı seçecek | Sırada |
+| K6g | Yayılım okul genelinde kapalı, yalnızca derse (ders + şube/grup) özel açılır (ADR 0024). "Gelişmiş"te kutu yerine yönlendirme ve çatışma cümlesi; API okul geneli açmayı reddeder; kalite özetinde "art arda gün" yalnızca sıfırdan büyükse. Yeniden ölçüm: docs/olcumler.md | Bitti |
+| T | Tasarım rötuşu: iki seçenek gösterildi, kullanıcı A'yı seçti. Koyu espresso menü, seçili öğede kiremitten turuncuya geçiş, sayfa başlığında ve karşılamada dolu geçişli bant ve beyaz yazı, #efe4d6 zemin, pastel sayı kartları. Hepsi belirteçlerle (stil/belirtecler.css), kontrast testi yeni çiftlerle | Bitti |
+
+Tasarım rötuşundan notlar:
+- Önizlemedeki bandın sarı-turuncu ucu (#f59e0b) ve seçili menünün açık turuncu ucu (#ea580c)
+  beyaz yazıyla 4.5:1'i tutmuyordu (2.1 ve 3.6). Uçlar koyulaştırıldı (#b44c0b, #c44c0e; bandın açık ikincil yazısı da 4.5:1 tutsun diye).
+- Zemin #efe4d6'ya koyulaşınca eski birincil renk (#c2410c) bu zeminde bağlantı yazısı olarak 4.1:1
+  kalıyordu; birincil renk bir ton koyulaştırıldı (#b53c0b).
+- Bant içindeki ikincil metin, rengini CSS değişkeninin yerel olarak yeniden tanımlanmasıyla alır
+  (`--renk-metin-ikincil` bant içinde açık ton); bileşenler değişmedi. Yazdırırken bant düz zemine
+  döner. PDF ve Excel sunucuda üretildiği için bu değişiklikten etkilenmez.
 
 K6'dan notlar:
 - **Deneme (örnek okul, mini set, 5 gün × 6 saat, "Hızlı" 30 sn; API ve worker yeni imajla):**
@@ -781,7 +791,9 @@ K6'dan notlar:
 - **Geri alma:** veritabanı önce `pg_dump` ile yedeklendi; betik özel ayarları ve okul değerlerini
   kaldırdı, 5 deneme programını sildi; kurallar ve program listesi başlangıçla birebir aynı.
 - **Ölçüm:** sınıf boşluğu her tohumda 0, ama yayılım kuralı öğretmen konforunu kötüleştiriyor
-  (pencere 8 → 23, eksik boş gün 11 → 19); varsayılan önemi kullanıcıya soruldu.
+  (pencere 8 → 23, eksik boş gün 11 → 19). Kullanıcı kararıyla yayılım okul genelinde kapatıldı
+  (K6g, ADR 0024); yeniden ölçümde eski ölçüler 156 → 123 (P1: 69). Kalan fark için "günde en az
+  ders" kuralının ayrıca ölçülmesi açık bir soru.
 
 ## 8. Açık sorular
 

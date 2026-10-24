@@ -15,17 +15,36 @@
   --renk-metin-ikincil: #6b5849;
   --renk-kenar: #ecdfd0;          /* süs çizgileri (bilgi taşımaz) */
   --renk-kenar-alan: #8f7a67;     /* form alanı ve düğme sınırı: zeminde en az 3:1 */
-  --renk-sayfa: #fbf6ef;          /* içerik alanının zemini; kartlar bunun üstünde durur */
+  --renk-sayfa: #efe4d6;          /* içerik alanının zemini; kartlar bunun üstünde durur */
 
-  /* --- renkler: çerçeve (üst çubuk ve menü) --- */
-  --renk-ust-zemin: #fbf6ef;
+  /* --- renkler: çerçeve (üst çubuk ve koyu menü) --- */
+  --renk-ust-zemin: #efe4d6;
   --renk-ust-metin: #2d241c;
-  --renk-ust-vurgu: #f1e4d4;      /* üst çubukta üzerine gelinen düğme */
-  --renk-menu-zemin: #fbf6ef;
-  --renk-menu-metin: #4a3a2c;
-  --renk-menu-vurgu: #f3e6d6;     /* üzerine gelinen menü öğesi */
-  --renk-menu-aktif-zemin: #c2410c;
+  --renk-ust-vurgu: #e4d3bf;      /* üst çubukta üzerine gelinen düğme */
+  --renk-menu-zemin: #33251c;     /* koyu espresso; aşağı doğru --renk-menu-zemin-alt'a koyulaşır */
+  --renk-menu-zemin-alt: #241a14;
+  --renk-menu-metin: #ecdcc9;
+  --renk-menu-vurgu: #46352a;     /* üzerine gelinen menü öğesi */
+  --renk-menu-aktif-zemin: #a83a0d; /* seçili öğe: kiremitten turuncuya geçiş */
+  --renk-menu-aktif-zemin-2: #c44c0e;
   --renk-menu-aktif-metin: #ffffff;
+
+  /* --- renkler: sayfa başlığı bandı (dolu geçiş, beyaz yazı). Her durakta yazı en az 4.5:1. --- */
+  --renk-bant-baslangic: #9a3412;
+  --renk-bant-orta: #c2410c;
+  --renk-bant-bitis: #b44c0b;
+  --renk-bant-metin: #ffffff;
+  --renk-bant-metin-ikincil: #fdf0e3;
+
+  /* --- renkler: ana sayfanın sayı kartları (pastel zemin, koyu ikon) --- */
+  --renk-kart-1: #fde3d3;         /* şeftali */
+  --renk-kart-1-vurgu: #9a3412;
+  --renk-kart-2: #dcebd9;         /* adaçayı */
+  --renk-kart-2-vurgu: #2f6b3a;
+  --renk-kart-3: #d9e7f3;         /* gök mavisi */
+  --renk-kart-3-vurgu: #1e4a8a;
+  --renk-kart-4: #e8def3;         /* lavanta */
+  --renk-kart-4-vurgu: #5b3a99;
   --renk-cip-metin: #ffffff;
   /* öğretmen rozetleri: baş harfler beyaz (--renk-cip-metin); kimlikten kararlı seçilir */
   --renk-rozet-1: #9a3412;
@@ -39,7 +58,7 @@
   --renk-menu-aktif-cizgi: transparent;
 
   /* --- renkler: anlam --- */
-  --renk-birincil: #c2410c;
+  --renk-birincil: #b53c0b;       /* koyulaşan sayfa zemininde (#efe4d6) bağlantı yazısı 4.5:1 kalsın */
   --renk-birincil-koyu: #9a3412;
   --renk-birincil-metin: #ffffff;
   --renk-tehlike: #b42318;

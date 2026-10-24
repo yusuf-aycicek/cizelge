@@ -119,9 +119,8 @@
 
 .menu {
   grid-area: menu;
-  background: var(--renk-menu-zemin);
+  background: linear-gradient(180deg, var(--renk-menu-zemin), var(--renk-menu-zemin-alt));
   color: var(--renk-menu-metin);
-  border-inline-end: 1px solid var(--renk-kenar);
   padding: var(--bosluk-4) var(--bosluk-3);
 }
 .menu ul {
@@ -158,10 +157,10 @@
   transform: scale(0.98);
 }
 .baglanti[aria-current="page"] {
-  background: var(--renk-menu-aktif-zemin);
+  background: linear-gradient(90deg, var(--renk-menu-aktif-zemin), var(--renk-menu-aktif-zemin-2));
   color: var(--renk-menu-aktif-metin);
   font-weight: var(--yazi-kalin);
-  box-shadow: inset 3px 0 0 var(--renk-menu-aktif-cizgi);
+  box-shadow: inset 3px 0 0 var(--renk-menu-aktif-cizgi), 0 2px 8px rgb(0 0 0 / 0.35);
 }
 
 .icerik {
@@ -201,8 +200,6 @@
   }
   .menu {
     display: none;
-    border-inline-end: none;
-    border-bottom: 1px solid var(--renk-kenar);
   }
   .menu.acik {
     display: block;
