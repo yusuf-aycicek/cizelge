@@ -26,6 +26,15 @@ from cozucu.model import (
     MusaitlikDurumu,
     TemelYerlesim,
 )
+from cozucu.tercihler import (
+    EN_AZ_DERS_TURU,
+    SAAT_TERCIHI_TURU,
+    VARSAYILAN_GUNLUK_EN_AZ_DERS,
+    YAYILIM_TURU,
+    cezali_saatler,
+    gunluk_en_az_ders,
+    yayilsin,
+)
 from cozucu.yuk import bos_gun_hedefi
 
 
@@ -186,6 +195,108 @@ class BosGun(EsnekKural):
                 eksik = baglam.model.new_int_var(0, gun_sayisi, "")
                 baglam.model.add(eksik >= hedef.gun - sum(gun_var))
                 cezalar.append((eksik, self.agirlik))
+        return cezalar
+
+
+@kaydet
+class DersSaatTercihi(EsnekKural):
+    """Dersin saat tercihi: tercih edilen saatlerin dışına ya da kaçınılan saate konan her ders saati
+    için ceza (ör. Matematik sabah; Beden Eğitimi öğle arasından hemen sonra değil).
+
+    Okul geneli tanımın tercihi yoktur (yalnızca ağırlık); değer derse ya da ders + şubeye/gruba
+    özeldir. Cezalı saatler `tercihler.cezali_saatler`dan (kalite ölçümüyle aynı).
+    """
+
+    tur = SAAT_TERCIHI_TURU
+    kapsamlar = frozenset({"ders", "sube", "sube_grubu"})
+    zorunlu_eksenler = frozenset({"ders"})
+
+    def __init__(self, saatler: list[int] | tuple[int, ...] = (), kacin: list[int] | tuple[int, ...] = ()) -> None:
+        if any(isinstance(s, bool) or not isinstance(s, int) or s < 0 for s in [*saatler, *kacin]):
+            raise ValueError(f"saatler 0 ya da büyük tam sayı olmalı: {saatler}, {kacin}")
+        self.saatler = list(saatler)
+        self.kacin = list(kacin)
+
+    def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
+        cezalar: list[CezaTerimi] = []
+        for (sinif_id, ders_id), atamalar in sinif_ders_gruplari(baglam).items():
+            cezali = cezali_saatler(baglam.girdi, sinif_id, ders_id)
+            for g in baglam.gunler:
+                for s in cezali:
+                    if baglam.girdi.ayar.aralikta(g, s):
+                        cezalar.append((baglam.dolu(atamalar, g, s), self.agirlik))
+        return cezalar
+
+
+@kaydet
+class GunlukEnAzDers(EsnekKural):
+    """Öğretmen geldiği günde en az k ders vermeli ("bir saat için gelmem"): dersi olup k'dan az
+    olan her gün için ceza.
+
+    k okul geneli ya da öğretmene özel; öğretmenin yükü ve günlük olanağıyla sınırlanır
+    (`tercihler.gunluk_en_az_ders`), ders saati yetmeyene ceza yazılmaz. Gün başına:
+        k * az + ders sayısı >= k * geldi
+    1..k-1 ders verilen günde `az` 1 olmak zorundadır; k ve üstünde ya da hiç dersi yoksa 0 olabilir.
+    """
+
+    tur = EN_AZ_DERS_TURU
+    kapsamlar = frozenset({"ogretmen"})
+
+    def __init__(self, k: int = VARSAYILAN_GUNLUK_EN_AZ_DERS) -> None:
+        if k < 0:
+            raise ValueError(f"k negatif olamaz: {k}")
+        self.k = k
+
+    def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
+        cezalar: list[CezaTerimi] = []
+        for ogretmen_id, atamalar in baglam.ogretmen_atamalari.items():
+            yuk = sum(a.haftalik_saat for a in atamalar)
+            k = gunluk_en_az_ders(baglam.girdi, ogretmen_id, yuk)
+            if k <= 1:
+                continue
+            for g in baglam.gunler:
+                dolu = [baglam.dolu(atamalar, g, s) for s in baglam.saatler]
+                geldi = baglam.model.new_bool_var("")
+                for d in dolu:
+                    baglam.model.add(geldi >= d)
+                az = baglam.model.new_bool_var("")
+                baglam.model.add(k * az + sum(dolu) >= k * geldi)
+                cezalar.append((az, self.agirlik))
+        return cezalar
+
+
+@kaydet
+class DersYayilimi(EsnekKural):
+    """Aynı dersin günlere yayılması: bir şubenin aynı dersi art arda iki günde varsa ceza
+    (pazartesi ve salı yerine pazartesi ve perşembe).
+
+    (şube, ders) çifti başına, ders verilen art arda gün çifti sayısı. Derse, şubeye ya da gruba
+    özel kapatılabilir (`yayilsin: false`).
+    """
+
+    tur = YAYILIM_TURU
+    kapsamlar = frozenset({"ders", "sube", "sube_grubu"})
+
+    def __init__(self, yayilsin: bool = True) -> None:
+        if not isinstance(yayilsin, bool):
+            raise ValueError(f"yayilsin açık ya da kapalı olmalı: {yayilsin}")
+        self.yayilsin = yayilsin
+
+    def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
+        cezalar: list[CezaTerimi] = []
+        for (sinif_id, ders_id), atamalar in sinif_ders_gruplari(baglam).items():
+            if sum(a.haftalik_saat for a in atamalar) < 2 or not yayilsin(baglam.girdi, sinif_id, ders_id):
+                continue
+            var = []
+            for g in baglam.gunler:
+                v = baglam.model.new_bool_var("")
+                for s in baglam.saatler:
+                    baglam.model.add(v >= baglam.dolu(atamalar, g, s))
+                var.append(v)
+            for g in list(baglam.gunler)[:-1]:
+                ardisik = baglam.model.new_bool_var("")
+                baglam.model.add(ardisik >= var[g] + var[g + 1] - 1)
+                cezalar.append((ardisik, self.agirlik))
         return cezalar
 
 

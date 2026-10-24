@@ -16,10 +16,11 @@ from cozucu.model import (
     CozumGirdisi,
     KisitTanimi,
 )
+from cozucu.tercihler import EN_AZ_DERS_TURU, SAAT_TERCIHI_TURU, VARSAYILAN_GUNLUK_EN_AZ_DERS, YAYILIM_TURU
 
 # Okul hiçbir şey tanımlamazsa uygulanan okul geneli kurallar. Ağırlıklar plan kararı 3 ve 7.
 # Öncelik: sınıf boşluğu (30) > değişiklik (8) > tercih etmez (5) > boş gün (4) > pencere (3)
-# > bölünmüş ders (2).
+# > bölünmüş ders (2). İkincil kurallar (K6): saat tercihi (3), günde en az ders (3), yayılım (2).
 VARSAYILAN_KISITLAR: tuple[KisitTanimi, ...] = (
     KisitTanimi(GUNLUK_DERS_SINIRI_TURU, {"n": VARSAYILAN_GUNLUK_DERS_SINIRI}, zorunlu=True),
     KisitTanimi(OGRETMEN_GUNLUK_SINIRI_TURU, {"m": VARSAYILAN_OGRETMEN_GUNLUK_SINIRI}, zorunlu=True),
@@ -30,6 +31,10 @@ VARSAYILAN_KISITLAR: tuple[KisitTanimi, ...] = (
     KisitTanimi("sinif_boslugu", zorunlu=False, agirlik=30),  # diğer bütün esnek kurallardan baskın
     KisitTanimi("ardisik_ders", zorunlu=False, agirlik=2),
     KisitTanimi(BOS_GUN_TURU, {"hedef_bos_gun": VARSAYILAN_HEDEF_BOS_GUN}, zorunlu=False, agirlik=4),
+    # İkincil kurallar (K6). Saat tercihinin okul geneli değeri yoktur: derse özel ayarla çalışır.
+    KisitTanimi(SAAT_TERCIHI_TURU, zorunlu=False, agirlik=3),
+    KisitTanimi(EN_AZ_DERS_TURU, {"k": VARSAYILAN_GUNLUK_EN_AZ_DERS}, zorunlu=False, agirlik=3),
+    KisitTanimi(YAYILIM_TURU, {"yayilsin": True}, zorunlu=False, agirlik=2),
     # Yalnızca temel program varsa etkili. Öğretmen konforu kurallarından ağır, sınıf boşluğundan hafif.
     KisitTanimi("degisiklik", zorunlu=False, agirlik=8),
 )

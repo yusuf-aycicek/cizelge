@@ -40,6 +40,9 @@ ONEM_KARSILIKLARI: dict[str, dict[str, int]] = {
     "bos_gun": {"onemsiz": 1, "onemli": 4, "cok_onemli": 10},
     "ogretmen_penceresi": {"onemsiz": 1, "onemli": 3, "cok_onemli": 8},
     "ardisik_ders": {"onemsiz": 1, "onemli": 2, "cok_onemli": 5},
+    "ders_saat_tercihi": {"onemsiz": 1, "onemli": 3, "cok_onemli": 8},
+    "gunluk_en_az_ders": {"onemsiz": 1, "onemli": 3, "cok_onemli": 8},
+    "ders_yayilimi": {"onemsiz": 1, "onemli": 2, "cok_onemli": 5},
 }
 
 # Arayüzde gösterim sırası ve metinler. Esnekler varsayılan önem sırasıyla (ağır olan önce).
@@ -82,15 +85,34 @@ KURAL_METINLERI: dict[str, tuple[str, str]] = {
         "Bir dersin saatleri arka arkaya",
         "Bir dersin aynı gündeki saatleri arka arkaya konmaya çalışılır.",
     ),
+    "ders_saat_tercihi": (
+        "Dersin saat tercihi",
+        "Bir ders istenen saatlere konmaya, istenmeyen saatlerden uzak tutulmaya çalışılır (ör. "
+        "Matematik sabah, Beden Eğitimi öğle arasından hemen sonra değil). Okul genelinde tercih yoktur; "
+        "derse özel ayarlanır.",
+    ),
+    "gunluk_en_az_ders": (
+        "Öğretmen bir iki saat için gelmesin",
+        "Öğretmen okula geldiği günde en az bu kadar derse girer (\"bir saat için gelmem\"). Haftalık "
+        "dersi buna yetmeyen öğretmen için zorlanmaz.",
+    ),
+    "ders_yayilimi": (
+        "Aynı ders günlere yayılsın",
+        "Bir şubenin aynı dersi art arda günlere konmamaya çalışılır (pazartesi ve salı yerine "
+        "pazartesi ve perşembe).",
+    ),
 }
 
 VARSAYILANLAR: dict[str, KisitTanimi] = {t.tur: t for t in VARSAYILAN_KISITLAR}
 
 # Parametrelerin en küçük değerleri: kullanıcının diliyle hata için (çözücü de ayrıca denetler).
-PARAMETRE_ALT_SINIRLARI = {"n": 1, "m": 1, "hedef_bos_gun": 0}
+PARAMETRE_ALT_SINIRLARI = {"n": 1, "m": 1, "hedef_bos_gun": 0, "k": 0}
 # Okul tanımında verilmesi gerekmeyen parametreler ve özel ayarın okul tanımından farklı adları.
 ISTEGE_BAGLI_PARAMETRELER: dict[str, set[str]] = {BLOK_DESENI_TURU: {"varsayilanlar"}}
-OZEL_PARAMETRELER: dict[str, set[str]] = {BLOK_DESENI_TURU: {"desen"}}
+OZEL_PARAMETRELER: dict[str, set[str]] = {BLOK_DESENI_TURU: {"desen"}, "ders_saat_tercihi": set()}
+# Özel ayarda verilebilen ama gerekmeyen parametreler (saat tercihinde ikisinden biri yeter).
+OZEL_ISTEGE_BAGLI: dict[str, set[str]] = {"ders_saat_tercihi": {"saatler", "kacin"}}
+SAAT_LISTELERI = {"saatler", "kacin"}
 DESEN_ORNEGI = "Dağılım şekli \"2+2+1\" gibi olmalı; her blok 1-8 saat"
 
 
@@ -201,16 +223,20 @@ class KurallarServisi:
         """Parametre adlarını ve değerlerini denetler; tek gösterime getirilmiş parametreleri döner."""
         v = VARSAYILANLAR[tur]
         gereken = OZEL_PARAMETRELER.get(tur, set(v.parametreler)) if ozel else set(v.parametreler)
-        olabilen = gereken | (set() if ozel else ISTEGE_BAGLI_PARAMETRELER.get(tur, set()))
+        olabilen = gereken | (OZEL_ISTEGE_BAGLI if ozel else ISTEGE_BAGLI_PARAMETRELER).get(tur, set())
         if not gereken <= set(parametreler) <= olabilen:
             raise GecersizVeri(f"Bu kuralın ayarları: {', '.join(sorted(olabilen)) or 'yok'}")
         sonuc = dict(parametreler)
         for ad, deger in parametreler.items():
             if ad == "desen":
                 sonuc[ad] = _desen(deger)
-            elif ad == "otomatik":
+            elif ad in ("otomatik", "yayilsin"):
                 if not isinstance(deger, bool):
-                    raise GecersizVeri("otomatik açık ya da kapalı (true/false) olmalı")
+                    raise GecersizVeri(f"{ad} açık ya da kapalı (true/false) olmalı")
+            elif ad in SAAT_LISTELERI:
+                if not isinstance(deger, list) or any(isinstance(x, bool) or not isinstance(x, int) or not 0 <= x < 40 for x in deger):
+                    raise GecersizVeri("Saatler 1. ders 0 olmak üzere sayı listesi olmalı, ör. [0, 1, 2]")
+                sonuc[ad] = sorted(set(deger))
             elif ad == "varsayilanlar":
                 if not isinstance(deger, dict):
                     raise GecersizVeri("Saate göre dağılım şekilleri {\"4\": [2, 1, 1]} biçiminde olmalı")
@@ -228,6 +254,8 @@ class KurallarServisi:
                 raise GecersizVeri(f"{KURAL_METINLERI[tur][0]}: bir sayı olmalı")
             elif deger < PARAMETRE_ALT_SINIRLARI.get(ad, 0):
                 raise GecersizVeri(f"{KURAL_METINLERI[tur][0]}: en az {PARAMETRE_ALT_SINIRLARI.get(ad, 0)} olmalı")
+        if tur == "ders_saat_tercihi" and ozel and not (sonuc.get("saatler") or sonuc.get("kacin")):
+            raise GecersizVeri("Dersin saat tercihi için istenen ya da istenmeyen en az bir saat seçin")
         return sonuc
 
     def ayarla(self, tur: str, parametreler: dict[str, int] | None, onem: str | None) -> dict[str, Any]:

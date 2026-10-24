@@ -105,7 +105,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Doğrulama: {'geçti' if not hatalar else f'{len(hatalar)} HATA: ' + hatalar[0]}")
     print(
         f"Ölçüler: sınıf boşluğu {o.sinif_boslugu}, öğretmen penceresi {o.ogretmen_penceresi}, "
-        f"bölünmüş ders {o.bolunmus_ders}, tercih etmez {o.tercih_etmez}, eksik boş gün {o.eksik_bos_gun}"
+        f"bölünmüş ders {o.bolunmus_ders}, tercih etmez {o.tercih_etmez}, eksik boş gün {o.eksik_bos_gun}, "
+        f"saat tercihi {o.saat_tercihi}, az dersli gün {o.az_dersli_gun}, art arda gün {o.art_arda_gun}"
         + (f", değişen hücre {o.degisen_yerlesim}/{len(set(girdi.temel_yerlesimler))}" if girdi.temel_yerlesimler else "")
     )
 

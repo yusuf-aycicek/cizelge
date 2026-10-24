@@ -17,6 +17,14 @@ from cozucu.model import (
     MusaitlikDurumu,
     Yerlesim,
 )
+from cozucu.tercihler import (
+    EN_AZ_DERS_TURU,
+    SAAT_TERCIHI_TURU,
+    YAYILIM_TURU,
+    cezali_saatler,
+    gunluk_en_az_ders,
+    yayilsin,
+)
 from cozucu.yuk import bos_gun_hedefi
 
 
@@ -29,6 +37,9 @@ OLCU_KURAL_TURU = {
     "eksik_bos_gun": BOS_GUN_TURU,
     "fazla_bos_gun": BOS_GUN_TURU,
     "degisen_yerlesim": "degisiklik",
+    "saat_tercihi": SAAT_TERCIHI_TURU,
+    "az_dersli_gun": EN_AZ_DERS_TURU,
+    "art_arda_gun": YAYILIM_TURU,
 }
 
 
@@ -47,6 +58,10 @@ class KaliteOlcumu:
     # Hedefi kendisine özel olan öğretmenlerin hedeften fazla boş günleri (ör. hedef 0, bir gün boş).
     fazla_bos_gun: int
     degisen_yerlesim: int  # temel programdaki hücrelerden yeni programda olmayanlar (temel yoksa 0)
+    # İkincil kurallar (K6). Varsayılanı 0: bu ölçüler eklenmeden önce kaydedilmiş programlar için.
+    saat_tercihi: int = 0  # dersin tercih edilen saatleri dışına ya da kaçınılan saate konan ders saati
+    az_dersli_gun: int = 0  # öğretmenin geldiği ama en az ders sayısının altında kaldığı gün
+    art_arda_gun: int = 0  # bir şubenin aynı dersinin art arda iki günde olduğu gün çifti
 
 
 def olc(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> KaliteOlcumu:
@@ -82,6 +97,9 @@ def olc(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> KaliteOlcumu:
         eksik_bos_gun=eksik,
         fazla_bos_gun=fazla,
         degisen_yerlesim=degisen,
+        saat_tercihi=_saat_tercihi(girdi, ders_gun),
+        az_dersli_gun=_az_dersli_gun(girdi, ogretmen_gun),
+        art_arda_gun=_art_arda_gun(girdi, ders_gun),
     )
 
 
@@ -116,6 +134,28 @@ def _bos_gun_sapmasi(girdi: CozumGirdisi, ogretmen_gun: dict[tuple[str, int], se
         if hedef.iki_yonlu:
             fazla += max(0, hedef.gun - calisilan[o])
     return eksik, fazla
+
+
+def _az_dersli_gun(girdi: CozumGirdisi, ogretmen_gun: dict[tuple[str, int], set[int]]) -> int:
+    """Öğretmenin dersi olup en az ders sayısının (`tercihler.gunluk_en_az_ders`) altında kaldığı günler."""
+    yuk: dict[str, int] = defaultdict(int)
+    for a in girdi.atamalar:
+        if a.ogretmen_id is not None:
+            yuk[a.ogretmen_id] += a.haftalik_saat
+    k = {o: gunluk_en_az_ders(girdi, o, saat) for o, saat in yuk.items()}
+    return sum(1 for (o, _g), saatler in ogretmen_gun.items() if len(saatler) < k[o])
+
+
+def _art_arda_gun(girdi: CozumGirdisi, ders_gun: dict[tuple[str, str, int], set[int]]) -> int:
+    """Aynı (şube, ders) art arda iki günde: yayılım kuralı açık olan çiftlerde gün çifti sayısı."""
+    acik = {(s, d): yayilsin(girdi, s, d) for s, d, _g in ders_gun}
+    return sum(1 for s, d, g in ders_gun if (s, d, g + 1) in ders_gun and acik[s, d])
+
+
+def _saat_tercihi(girdi: CozumGirdisi, ders_gun: dict[tuple[str, str, int], set[int]]) -> int:
+    """Dersin cezalı saatlerine (`tercihler.cezali_saatler`) konan ders saati sayısı."""
+    cezali = {(s, d): cezali_saatler(girdi, s, d) for s, d, _g in ders_gun}
+    return sum(len(saatler & cezali[s, d]) for (s, d, _g), saatler in ders_gun.items())
 
 
 def _blok_sayisi(saatler: set[int], girdi: CozumGirdisi, gun: int) -> int:

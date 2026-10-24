@@ -45,7 +45,9 @@ def test_mini_set_siniflarda_ara_bosluk_yok(girdi, sonuc):
 
 def test_mini_set_en_az_degisiklikle_guncelleme(girdi, sonuc):
     # Mehmet temel programda en çok ders verdiği gün artık gelemiyor. O günkü k dersi kaymak
-    # zorunda (alt sınır k). Temel programla yapılan güncelleme alt sınıra yakın kalmalı.
+    # zorunda (alt sınır k). Temel programla yapılan güncelleme alt sınıra yakın kalmalı. Pay 6:
+    # kayan dersler günlere yayılım ve "günde en az ders" kurallarını da korumak için birkaç dersi
+    # daha kaydırabilir (K6 öncesi pay 4'tü).
     from collections import Counter
     from dataclasses import replace
 
@@ -63,7 +65,7 @@ def test_mini_set_en_az_degisiklikle_guncelleme(girdi, sonuc):
     yeni = CpSatCozucu().coz(yeni_girdi, sure_siniri_sn=30)
     assert yeni.basarili and dogrula(yeni_girdi, yeni.yerlesimler) == []
     degisen = olc(yeni_girdi, yeni.yerlesimler).degisen_yerlesim
-    assert k <= degisen <= k + 4, (k, degisen)
+    assert k <= degisen <= k + 6, (k, degisen)
 
 
 def test_mini_set_iki_asamali_ve_tek_asamali_ayni_en_iyi_cezayi_bulur(girdi, sonuc):

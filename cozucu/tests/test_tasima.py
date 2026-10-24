@@ -23,6 +23,8 @@ GIRDI = girdi_kur(
         Musaitlik("o-ayse", 1, 3, MusaitlikDurumu.GELEMEZ),
         Musaitlik("o-mehmet", 2, 0, MusaitlikDurumu.TERCIH_ETMEZ),
     ],
+    # "Günde en az ders" (K6) bu senaryonun konusu değil: Ayşe'nin tek saatlik günleri uyarı vermesin.
+    kisitlar=[KisitTanimi("gunluk_en_az_ders", zorunlu=False, agirlik=0)],
 )
 # 9-A: Matematik pazartesi 1-2, Fizik salı 1. 9-B: Kimya pazartesi 3.
 PROGRAM = [

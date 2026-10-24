@@ -93,18 +93,19 @@ def tablo(calistirmalar: list[Calistirma]) -> str:
     """Markdown tablo: her tohum ve kontrol noktası bir satır."""
     satirlar = [
         "| Tohum | Saniye | Gerçek ceza | Model ceza | Sınıf boşluğu | Pencere | Bölünmüş | "
-        "Tercih etmez | Eksik boş gün |",
-        "|---|---|---|---|---|---|---|---|---|",
+        "Tercih etmez | Eksik boş gün | Saat tercihi | Az dersli gün | Art arda gün |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for c in calistirmalar:
         for k in c.noktalar:
             if k.olcum is None:
-                satirlar.append(f"| {c.tohum} | {k.saniye:g} | çözüm yok | | | | | | |")
+                satirlar.append(f"| {c.tohum} | {k.saniye:g} | çözüm yok | | | | | | | | | |")
                 continue
             o = k.olcum
             satirlar.append(
                 f"| {c.tohum} | {k.saniye:g} | {k.gercek_ceza} | {k.model_ceza} | {o.sinif_boslugu} | "
-                f"{o.ogretmen_penceresi} | {o.bolunmus_ders} | {o.tercih_etmez} | {o.eksik_bos_gun} |"
+                f"{o.ogretmen_penceresi} | {o.bolunmus_ders} | {o.tercih_etmez} | {o.eksik_bos_gun} | "
+                f"{o.saat_tercihi} | {o.az_dersli_gun} | {o.art_arda_gun} |"
             )
     ozet = [
         f"- Tohum {c.tohum}: ilk çözüm {c.ilk_cozum_sn:.1f} sn, {c.iyilesme_sayisi} iyileşme, "

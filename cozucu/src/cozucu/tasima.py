@@ -40,6 +40,9 @@ OLCU_ADLARI = {
     "eksik_bos_gun": "Eksik boş gün",
     "fazla_bos_gun": "Hedeften fazla boş gün",
     "degisen_yerlesim": "Temel programdan değişen ders saati",
+    "saat_tercihi": "Dersin istenmeyen saate konması",
+    "az_dersli_gun": "Öğretmenin az ders için geldiği gün",
+    "art_arda_gun": "Aynı dersin art arda günlerde olması",
 }
 
 
