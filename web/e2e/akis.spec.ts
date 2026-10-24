@@ -92,11 +92,15 @@ test("örnek okul: müsaitlik ve boş gün hedefi verilir, program üretilir, ç
     await page.goto("/program");
     await page.getByLabel("Programın adı").fill(`Uçtan uca ${bilgi.project.name}`);
     await page.getByRole("radio", { name: /Hızlı/ }).check();
+    // Üretilen programın kimliği isteğin cevabından: sayfada daha önceki bir programın bağlantısı da
+    // olabilir, yalnızca bu programın hazır olması beklenir.
+    const uretim = page.waitForResponse((y) => y.url().endsWith(`${DP}/programlar`) && y.request().method() === "POST");
     await bas(telefon, page.getByRole("button", { name: "Programı oluştur" }));
-    const ac = page.getByRole("link", { name: "Haftalık çizelgeyi aç" }).first();
+    const { id: programId } = (await (await uretim).json()) as { id: string };
+    const ac = page.locator(`a[href="/program/${programId}"]`).filter({ hasText: "Haftalık çizelgeyi aç" });
     await expect(ac).toBeVisible({ timeout: 150_000 });
     await bas(telefon, ac);
-    await expect(page).toHaveURL(/\/program\/[0-9a-f-]+/);
+    await expect(page).toHaveURL(new RegExp(`/program/${programId}`));
 
     // 4. Çizelge: öğretmen görünümünde "gelemez" saati boş
     await bas(telefon, page.getByRole("tab", { name: "Öğretmene göre" }));

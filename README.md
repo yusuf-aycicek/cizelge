@@ -186,6 +186,14 @@ Denetimler: tip denetimi, lint ve testler (Vitest + Testing Library + MSW; API g
 cd web && npm run denetim
 ```
 
+Uçtan uca test (Playwright, bilgisayardaki Edge; çalışan sisteme ve örnek okula karşı, masaüstü ve
+telefon boyutunda). Test dokunduğu veriyi iş bitince geri alır. API kodu değiştiyse önce
+`docker compose up -d --build api worker` (API imajı kodu içine kopyalar):
+
+```bash
+cd web && npm run e2e
+```
+
 API değişince arayüzün tipleri yenilenir. Yenilenmezse iki test (api ve web) kırılır:
 
 ```bash

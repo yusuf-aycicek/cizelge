@@ -855,6 +855,71 @@ AKISLAR["k5"] = async (tarayici, kaydet) => {
   }
 };
 
+// 5.6: kullanıcılar, özel ayar ekleme, telefonda "Toplu seç", gün gün çizelge, kart tablo.
+// Örnek okulda hazır bir program olmalı. Özel ayar ekranının etkisini göstermek için geçici bir
+// "Matematik" özel ayarı açılır ve iş bitince kaldırılır (hiçbir şey kaydedilmez).
+AKISLAR["5.6"] = async (tarayici, kaydet) => {
+  const { baglam, s } = await ornekGiris(tarayici, MASAUSTU);
+  const koken = { Origin: ADRES };
+  const dersler = await (await s.request.get(ADRES + "/api/dersler")).json();
+  const siniflar = await (await s.request.get(ADRES + "/api/siniflar")).json();
+  const mat = dersler.find((d) => d.ad === "Matematik");
+  const sinif = siniflar.find((x) => x.ad === "9-A");
+  const N = ADRES + "/api/ders-programi/kurallar/gunluk_ders_siniri/ozel";
+  await s.request.put(N, { headers: koken, data: { kapsam: { ders_id: mat.id }, parametreler: { n: 3 } } });
+  try {
+    await s.goto(ADRES + "/kullanicilar");
+    await s.getByText(/Okulda tek müdür var/).waitFor();
+    await kaydet(s, "01-kullanicilar.png", true);
+
+    await s.goto(ADRES + "/okul");
+    await s.getByRole("button", { name: "Özel ayar ekle" }).click();
+    const form = s.getByRole("form", { name: "Özel ayar ekle" });
+    await form.getByLabel("Kural").selectOption("gunluk_ders_siniri");
+    await form.getByLabel("Nerede geçerli").selectOption("ders_sube");
+    await form.getByLabel("Şube", { exact: true }).selectOption(sinif.id);
+    await form.getByLabel("Ders", { exact: true }).selectOption(mat.id);
+    await form.getByRole("status", { name: "Bu ayarın etkisi" }).waitFor();
+    await s.getByRole("region", { name: "Özel ayarlar" }).scrollIntoViewIfNeeded();
+    await s.evaluate(() => document.querySelector("#ozel-ayarlar")?.scrollIntoView({ block: "start" }));
+    await kaydet(s, "02-ozel-ayar-ekle.png");
+  } finally {
+    await s.request.delete(`${N}?ders_id=${mat.id}`, { headers: koken });
+    await baglam.close();
+  }
+
+  // Telefon: dokunmatik bağlam ("Toplu seç" düğmesi yalnızca dokunmatik ekranda görünür).
+  const tb = await tarayici.newContext({ viewport: TELEFON, locale: "tr-TR", hasTouch: true, isMobile: true });
+  const t = await tb.newPage();
+  await t.goto(ADRES + "/giris");
+  await t.getByLabel("E-posta").fill("mudur@ornek.test");
+  await t.getByLabel("Parola").fill("ornek-okul-parolasi");
+  await t.getByRole("button", { name: "Giriş yap" }).tap();
+  await t.getByRole("img", { name: /Kurulum:/ }).waitFor();
+  const ogretmenler = await (await t.request.get(ADRES + "/api/ogretmenler")).json();
+  await t.goto(ADRES + "/ogretmenler/" + ogretmenler[0].id);
+  await t.getByRole("button", { name: "Toplu seç" }).tap();
+  await t.getByText(/Toplu seçim açık/).scrollIntoViewIfNeeded();
+  await t.evaluate(() => window.scrollBy(0, -80));
+  await kaydet(t, "03-telefon-toplu-sec.png");
+
+  await t.goto(ADRES + "/program");
+  await t.getByRole("link", { name: "Haftalık çizelgeyi aç" }).first().tap();
+  const gunler = t.getByRole("group", { name: "Gün" });
+  await gunler.getByRole("button", { name: "Salı" }).tap();
+  await gunler.evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await t.evaluate(() => window.scrollBy(0, -140));
+  await t.waitForTimeout(700);
+  await kaydet(t, "04-telefon-gun-gun.png");
+
+  await t.goto(ADRES + "/ders-dagilimi");
+  await t.getByRole("table").first().waitFor();
+  await t.getByRole("heading", { name: /şubesinin dersleri/ }).evaluate((e) => e.scrollIntoView({ block: "start" }));
+  await t.evaluate(() => window.scrollBy(0, -80));
+  await kaydet(t, "05-telefon-ders-dagilimi.png");
+  await tb.close();
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {
