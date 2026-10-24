@@ -134,8 +134,14 @@ def _haftalik_tablo(cizelge: Cizelge, hafta: Hafta, genislik: float, yukseklik: 
             h = cizelge.hucre(g, s)
             if h:
                 alt = getattr(h, ikinci)
-                satirlar[r][c] = [_p(h.ders, _stil(9, True)), _p(alt, _stil(7.5, renk=SOLUK))] if alt else _p(h.ders, _stil(9, True))
                 son = satir_no[s + h.uzunluk - 1]
+                if cizelge.tur == "ogretmen":
+                    # Aynı dersin farklı şubelerdeki art arda saatleri tek blok gibi görünmesin:
+                    # şube adı kalın ve her hücrenin üstünde, altında koyu ayraç.
+                    satirlar[r][c] = [_p(h.sube, _stil(9.5, True)), _p(h.ders, _stil(7.5, renk=SOLUK))]
+                    stil += [("LINEABOVE", (c, r), (c, r), 1.2, KOYU), ("LINEBELOW", (c, son), (c, son), 1.2, KOYU)]
+                else:
+                    satirlar[r][c] = [_p(h.ders, _stil(9, True)), _p(alt, _stil(7.5, renk=SOLUK))] if alt else _p(h.ders, _stil(9, True))
                 stil += [("SPAN", (c, r), (c, son)), ("BACKGROUND", (c, r), (c, son), _ton(h.renk)),
                          ("LINEBEFORE", (c, r), (c, son), 3, colors.HexColor(h.renk))]
             elif not hafta.var(g, s) and not cizelge.ortulen(g, s):

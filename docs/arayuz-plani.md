@@ -743,6 +743,18 @@ Kullanım limiti dolabileceği için her alt parça ayrı commit edilir; yarıda
 | 7.2f | İzolasyon testi (başka okul her uçta 404, oturumsuz 401); bir kez bozuldu (yabancı programa boş çıktı): yakalandı. Büyük okul ölçümü ADR 0020'de (hepsi 2,5 sn altında; istek içinde üretim yeterli) | Bitti |
 | 7.2g | Arayüz: `IndirMenusu` (açılır kutu, disclosure deseni: `aria-expanded`, Escape ve dışarı tıklama kapatır) program sayfasının "hazır" panelinde ve çizelgede; seçili şube/öğretmenin tek sayfalık PDF'i, "Okul Müdürü" imza alanı seçeneği. Satır başlığı arayüzle aynı: "1. saat". Ekran: docs/ekranlar/7.2/ (menü ve 3 PDF sayfası; akış `node scripts/ekran-goruntusu.mjs 7.2` menüden gerçekten indirir ve dosya adını denetler, örnek okula geçici açılan zil saatleri geri yazılır; PDF sayfaları pypdfium2 ile PNG'ye çevrildi, proje bağımlılığı değil) | Bitti |
 
+### 8 planı (içe aktarma, yayın ve paylaşım linki)
+
+Kullanım limiti dolabileceği için her alt parça ayrı commit edilir; yarıda kalırsa buradan devam edilir.
+
+| # | Alt parça | Durum |
+|---|---|---|
+| 8.0 | Öğretmen PDF'inde aynı dersin farklı şubelerdeki art arda saatleri ayrı görünür: şube adı her hücrede kalın ve üstte, hücreler arasında koyu ayraç | Bitti |
+| 8a | Excel'den içe aktarma: şablon, önizleme (eklenecek / güncellenecek / hatalı), tek işlemde kayıt, Türkçe ad eşleştirme, sınırlar, izolasyon; arayüz | Sırada |
+| 8b-1 | Yayın: anlık görüntü (snapshot), atama silinince yayınlanmış program eksilmez; "eski verilerle" uyarısı | Bekliyor |
+| 8b-2 | Paylaşım linkleri (okul, öğretmen, şube): tahmin edilemez, iptal, yenileme; SECURITY DEFINER ile okuma; ADR; güvenlik testleri ve mutasyon | Bekliyor |
+| 8b-3 | Paylaşım sayfası (telefonda gün gün, PDF indirme) ve yayın yönetimi arayüzü | Bekliyor |
+
 ## 8. Açık sorular
 
 Kararlar (kullanıcı, 2026-10-15):

@@ -14,8 +14,8 @@ from openpyxl import load_workbook
 from pypdf import PdfReader
 
 from conftest import DP, okul_basligi
-from okulapi.moduller.ders_programi.cikti.model import Hafta
-from okulapi.moduller.ders_programi.cikti.pdf import carsaf_gun_gruplari
+from okulapi.moduller.ders_programi.cikti.model import Cizelge, Hafta, Hucre
+from okulapi.moduller.ders_programi.cikti.pdf import _haftalik_tablo, _yazitiplerini_kaydet, carsaf_gun_gruplari
 from test_program_uretimi import okul, program_ekle, uret, worker_calistir  # noqa: F401  (okul: fikstür)
 
 
@@ -80,6 +80,20 @@ def test_ogretmen_pdfi_haftalik_toplamla(istemci, okul, hazir_program):
                  if y["ders_atama_id"] in {okul["harita"][k] for k in okul["harita"] if k.endswith("-mat")})
     assert f"Haftalık toplam: {toplam} ders saati" in ayse
     assert "9-A" in ayse and "Okul Müdürü" not in ayse
+
+
+def test_ogretmen_tablosunda_farkli_subelerin_art_arda_saatleri_ayri_hucre():
+    """Aynı ders, 9-A ve 9-B art arda: iki hücre, ikisinde de şube adı, aralarında koyu ayraç."""
+    hafta = Hafta(gun_adlari=["Pazartesi"], gun_saatleri=[4], saat_sayisi=4, ogle_arasi_sonra=None,
+                  zil=None, ogle_zili=None)
+    hucreler = [Hucre(gun=0, saat=s, uzunluk=1, ders="Matematik", kisa_ad="MAT", renk="#2563eb", sube=sube,
+                      ogretmen="Ayşe Yılmaz") for s, sube in [(0, "9-A"), (1, "9-B")]]
+    _yazitiplerini_kaydet()
+    tablo = _haftalik_tablo(Cizelge(ad="Ayşe Yılmaz", tur="ogretmen", hucreler=hucreler), hafta, 500, 300)
+    cizgiler = {(k[0], k[1], k[2]) for k in tablo._linecmds if k[0] in ("LINEABOVE", "LINEBELOW")}  # noqa: SLF001
+    assert ("LINEBELOW", (1, 1), (1, 1)) in cizgiler and ("LINEABOVE", (1, 2), (1, 2)) in cizgiler
+    metinler = [p.text for p in tablo._cellvalues[1][1] + tablo._cellvalues[2][1]]  # noqa: SLF001
+    assert "9-A" in metinler and "9-B" in metinler
 
 
 def test_tek_sube_ve_tek_ogretmen_imza_alaniyla(istemci, okul, hazir_program):
