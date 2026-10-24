@@ -15,6 +15,7 @@ import { Sekmeler } from "../bilesenler/Sekmeler";
 import { useAtamalar } from "../dagilim/veri";
 import { DersCipi } from "../dersler/DersCipi";
 import { useBen } from "../kimlik/oturum";
+import { IndirMenusu } from "./IndirMenusu";
 import { ogleArasiSonrasi, saatVar, zilMetni, type ZilSaati } from "../okul/zaman";
 import { dersKaynagi, ogretmenKaynagi, sinifKaynagi, type Ders, type Ogretmen, type Sinif } from "../listeler/kaynaklar";
 import { turkceSirala } from "../metin";
@@ -158,11 +159,14 @@ export function CizelgeSayfasi() {
   return (
     <>
       {baslik}
-      <p className={stil.geri}>
-        <Link to="/program">
-          <ArrowLeft aria-hidden="true" /> Program sayfası
-        </Link>
-      </p>
+      <div className={stil.ustSatir}>
+        <p className={stil.geri}>
+          <Link to="/program">
+            <ArrowLeft aria-hidden="true" /> Program sayfası
+          </Link>
+        </p>
+        <IndirMenusu programId={program.data.id} secili={secili && { tur: gorunum, id: secili.id, ad: secili.ad }} />
+      </div>
       <EskiVeriUyarisi program={program.data} />
       <FarkOzeti program={program.data} cizelgeBaglantisi={false} />
       {program.data.temel_program_id && (

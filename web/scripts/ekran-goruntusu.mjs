@@ -4,7 +4,7 @@
 //
 //   node scripts/ekran-goruntusu.mjs 5.1
 import { spawnSync } from "node:child_process";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium } from "playwright-core";
 import { denemeOkullariniTemizle } from "./deneme-temizle.mjs";
@@ -1020,6 +1020,44 @@ AKISLAR["7.1"] = async (tarayici, kaydet) => {
     if (yeni) await s.request.delete(`${DP}/programlar/${yeni.id}`, { headers: koken });
     await s.request.put(`${DP}/ogretmenler/${ogretmen}/musaitlik`, { headers: koken,
       data: { degisiklikler: eklenen.map((h) => ({ ...h, durum: "musait" })) } });
+    await baglam.close();
+  }
+};
+
+// 7.2: "İndir" menüsü ve çıktılar. Örnek okula zil saatleri ve öğle arası geçici olarak açılır
+// (çıktıda görünsünler), iş bitince eski ayar geri yazılır. Menüden gerçekten indirilir (dosya
+// adı denetlenir); PDF'ler `CIKTI_DIZINI`ne yazılır, sayfaları PNG'ye çevirmek ayrı adımdır
+// (api/.venv ile pypdfium2; bkz. docs/arayuz-plani.md 7.2g).
+AKISLAR["7.2"] = async (tarayici, kaydet) => {
+  const { baglam, s } = await ornekGiris(tarayici, MASAUSTU);
+  const koken = { Origin: ADRES };
+  const DP = ADRES + "/api/ders-programi";
+  const dizin = process.env.CIKTI_DIZINI ?? hedef;
+  const okul = await (await s.request.get(ADRES + "/api/okul")).json();
+  const eski = { ilk_ders_baslangic: okul.ilk_ders_baslangic, ogle_arasi_sonra: okul.ogle_arasi_sonra };
+  try {
+    await s.request.patch(ADRES + "/api/okul", { headers: koken, data: { ilk_ders_baslangic: "08:30", ogle_arasi_sonra: 4 } });
+    const program = (await (await s.request.get(DP + "/programlar")).json()).find((p) => p.durum === "hazir");
+    await s.goto(`${ADRES}/program/${program.id}`);
+    await s.getByRole("table").first().waitFor();
+    await s.getByRole("button", { name: /İndir/ }).click();
+    await s.getByRole("link", { name: /^Şube programları/ }).waitFor();
+    await kaydet(s, "01-indir-menusu.png");
+
+    const indirme = s.waitForEvent("download");
+    await s.getByRole("link", { name: /^Şube programları/ }).click();
+    const dosya = await indirme;
+    if (dosya.suggestedFilename() !== "Şube programları.pdf") throw new Error(`Dosya adı: ${dosya.suggestedFilename()}`);
+    console.log("indirildi:", dosya.suggestedFilename());
+    for (const [ad, yol] of [["subeler.pdf", "subeler.pdf?imza=true"], ["ogretmenler.pdf", "ogretmenler.pdf"],
+      ["carsaf.pdf", "carsaf.pdf?satir=ogretmen"], ["program.xlsx", "program.xlsx"]]) {
+      const yanit = await s.request.get(`${DP}/programlar/${program.id}/cikti/${yol}`);
+      if (!yanit.ok()) throw new Error(`${yol}: ${yanit.status()}`);
+      writeFileSync(resolve(dizin, ad), await yanit.body());
+      console.log(resolve(dizin, ad));
+    }
+  } finally {
+    await s.request.patch(ADRES + "/api/okul", { headers: koken, data: eski });
     await baglam.close();
   }
 };

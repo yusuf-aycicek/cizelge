@@ -1,0 +1,107 @@
+.kok {
+  position: relative;
+  display: inline-block;
+}
+
+.dugme {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  min-height: var(--dokunma-hedefi);
+  padding: 0 var(--bosluk-4);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose);
+  background: var(--renk-yuzey);
+  color: var(--renk-metin);
+  font: inherit;
+  font-weight: var(--yazi-kalin);
+  cursor: pointer;
+  transition: background var(--sure-kisa) var(--egri);
+}
+.dugme:hover {
+  background: var(--renk-yuzey-vurgu);
+}
+.dugme:focus-visible {
+  outline: none;
+  box-shadow: var(--odak-halkasi);
+}
+.dugme svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.dugme[aria-expanded="true"] .ok {
+  transform: rotate(180deg);
+}
+.ok {
+  transition: transform var(--sure-kisa) var(--egri);
+}
+
+.kutu {
+  position: absolute;
+  z-index: 20;
+  right: 0;
+  top: calc(100% + var(--bosluk-1));
+  width: min(22rem, calc(100vw - 2 * var(--bosluk-4)));
+  padding: var(--bosluk-2);
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-buyuk);
+  background: var(--renk-yuzey);
+  box-shadow: var(--golge-pencere);
+}
+
+.liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.oge {
+  display: flex;
+  gap: var(--bosluk-3);
+  align-items: flex-start;
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border-radius: var(--kose);
+  color: var(--renk-metin);
+  text-decoration: none;
+}
+.oge:hover,
+.oge:focus-visible {
+  background: var(--renk-yuzey-vurgu);
+}
+.oge:focus-visible {
+  outline: none;
+  box-shadow: var(--odak-halkasi);
+}
+.oge svg {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.1rem;
+  color: var(--renk-birincil);
+}
+.ad {
+  display: block;
+  font-weight: var(--yazi-kalin);
+}
+.aciklama {
+  display: block;
+  color: var(--renk-metin-ikincil);
+  font-size: var(--yazi-kucuk);
+}
+
+.imza {
+  display: flex;
+  gap: var(--bosluk-2);
+  align-items: flex-start;
+  margin-top: var(--bosluk-2);
+  padding: var(--bosluk-3) var(--bosluk-3) var(--bosluk-1);
+  border-top: 1px solid var(--renk-kenar);
+  font-size: var(--yazi-kucuk);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ok,
+  .dugme {
+    transition: none;
+  }
+}

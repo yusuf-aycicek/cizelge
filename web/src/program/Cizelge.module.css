@@ -431,3 +431,16 @@
     color-mix(in srgb, var(--renk-tehlike) 28%, transparent) 0.4rem 0.5rem) !important;
   opacity: 0.75;
 }
+
+/* Geri bağlantısı solda, "İndir" menüsü sağda (dar ekranda alt alta). */
+.ustSatir {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bosluk-3);
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 var(--bosluk-3);
+}
+.ustSatir .geri {
+  margin: 0;
+}

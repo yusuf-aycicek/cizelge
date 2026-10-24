@@ -64,7 +64,7 @@ class Hafta:
 
     def saat_basligi(self, saat: int) -> str:
         z = self.zil[saat] if self.zil and saat < len(self.zil) else None
-        return f"{saat + 1}. ders" + (f"\n{z.metin}" if z else "")
+        return f"{saat + 1}. saat" + (f"\n{z.metin}" if z else "")
 
 
 @dataclass(frozen=True)

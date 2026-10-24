@@ -557,3 +557,12 @@ ul.celiskiGrubu {
   border-radius: var(--kose);
   font: inherit;
 }
+
+/* Hazır programın eylemleri: çizelge bağlantısı ve "İndir" menüsü. */
+.hazirEylemleri {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bosluk-3);
+  align-items: center;
+  margin-left: auto;
+}

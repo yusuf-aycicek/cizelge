@@ -16,6 +16,7 @@ import { ogretmenKaynagi, sinifKaynagi } from "../listeler/kaynaklar";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
 import { ASAMALAR, asamaBul, celiskileriGrupla, etkinMi, sureMetni, type Celiski, type Program } from "./aciklama";
 import { KaliteOzeti } from "./KaliteOzeti";
+import { IndirMenusu } from "./IndirMenusu";
 import { EskiVeriUyarisi, FarkOzeti, ProgramlarTablosu, tarih } from "./ProgramYonetimi";
 import stil from "./Program.module.css";
 import { sonHazirProgram, sonProgram, useOnKontrol, useProgramlar, useProgramUret } from "./veri";
@@ -287,9 +288,12 @@ function HazirPaneli({ program, onTemelAl }: { program: Program; onTemelAl: (p: 
           <h2 id="hazir-baslik">“{program.ad}” hazır</h2>
           <p className={stil.hazirZaman}>{program.bitis && tarih(program.bitis)}</p>
         </div>
-        <Link to={`/program/${program.id}`} className={stil.cizelgeBaglantisi}>
-          <TableProperties aria-hidden="true" /> Haftalık çizelgeyi aç
-        </Link>
+        <div className={stil.hazirEylemleri}>
+          <Link to={`/program/${program.id}`} className={stil.cizelgeBaglantisi}>
+            <TableProperties aria-hidden="true" /> Haftalık çizelgeyi aç
+          </Link>
+          <IndirMenusu programId={program.id} />
+        </div>
       </div>
       <EskiVeriUyarisi program={program} onTemelAl={onTemelAl} />
       <FarkOzeti program={program} />

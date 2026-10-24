@@ -95,7 +95,7 @@ def _haftalik_sekme(ws: Worksheet, cikti: ProgramCiktisi, cizelgeler: list[Cizel
             satir_no[s] = r
             ws.row_dimensions[r].height = 34
             z = hafta.zil[s] if hafta.zil and s < len(hafta.zil) else None
-            ws.cell(r, 1, f"{s + 1}. ders").style = _baslik(ws)
+            ws.cell(r, 1, f"{s + 1}. saat").style = _baslik(ws)
             ws.cell(r, 2, z.metin if z else "").style = _baslik(ws)
             for g in range(gunler):
                 ws.cell(r, 3 + g).style = _bos(ws, hafta.var(g, s) or c.ortulen(g, s))
