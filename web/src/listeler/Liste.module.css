@@ -70,6 +70,10 @@
   max-width: 12rem;
 }
 
+.grupFormu {
+  margin-top: var(--bosluk-4);
+}
+
 .soluk {
   color: var(--renk-metin-ikincil);
 }

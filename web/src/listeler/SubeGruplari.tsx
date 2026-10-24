@@ -184,7 +184,7 @@ export function SubeGruplariBolumu({ siniflar }: { siniflar: Sinif[] }) {
           ]}
         />
       )}
-      <form onSubmit={ekleGonder} className={stil.ekleFormu} noValidate>
+      <form onSubmit={ekleGonder} className={`${stil.ekleFormu} ${stil.grupFormu}`} noValidate>
         <MetinAlani etiket="Grubun adı" placeholder="11 Sayısal" value={yeni.ad} hata={hata} maxLength={100}
           onChange={(o) => setYeni({ ...yeni, ad: o.target.value })} />
         <SecimAlani etiket="Seviye" value={yeni.seviye} onChange={(o) => setYeni({ ...yeni, seviye: o.target.value })}>
