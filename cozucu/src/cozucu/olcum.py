@@ -133,18 +133,28 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--tohum", type=int, nargs="+", default=[0, 1, 2])
     p.add_argument("--noktalar", type=float, nargs="+", default=list(VARSAYILAN_NOKTALAR))
     p.add_argument("--bloksuz", action="store_true", help="blok dersleri kapat (K4 öncesiyle karşılaştırmak için)")
+    p.add_argument("--tek-asamali", action="store_true", help="iki aşamalı çözümü kapat (ADR 0018 öncesi)")
+    p.add_argument("--pay", type=float, help="ilk aşamaya ayrılan en fazla süre payı (0-1)")
     a = p.parse_args(argv)
     girdi = girdi_oku(a.veri)
     if a.bloksuz:
         girdi = replace(girdi, kisitlar=[*girdi.kisitlar, KisitTanimi(BLOK_DESENI_TURU, {"otomatik": False})])
+    secenek = {} if a.pay is None else {"uygunluk_payi": a.pay}
+
+    def fabrika(tohum: int, gozlemci) -> CpSatCozucu:
+        return CpSatCozucu(tohum=tohum, gozlemci=gozlemci, iki_asamali=not a.tek_asamali, **secenek)
+
     hesap = BlokHesabi(girdi)
     desenler = Counter(d.metin for d in map(hesap.desen, girdi.atamalar) if d is not None)
     baslangic = time.perf_counter()
-    print(f"## {a.veri}{' (bloksuz)' if a.bloksuz else ''}\n", flush=True)
+    kip = [ad for ad, acik in (("bloksuz", a.bloksuz), ("tek aşamalı", a.tek_asamali)) if acik]
+    if a.pay is not None:
+        kip.append(f"ilk aşama payı {a.pay:g}")
+    print(f"## {a.veri}{' (' + ', '.join(kip) + ')' if kip else ''}\n", flush=True)
     print(f"Bloklu atama: {sum(desenler.values())} / {len(girdi.atamalar)} {dict(desenler.most_common())}\n", flush=True)
     calistirmalar = []
     for t in a.tohum:  # her çalıştırma bitince yazılır: ölçüm yarıda kalırsa sonuçlar kaybolmaz
-        calistirmalar.append(olc_zamana_gore(girdi, t, a.noktalar))
+        calistirmalar.append(olc_zamana_gore(girdi, t, a.noktalar, fabrika))
         print(f"### Tohum {t}\n\n{tablo(calistirmalar[-1:])}\n", flush=True)
     print(f"### Hepsi\n\n{tablo(calistirmalar)}")
     print(f"\nToplam ölçüm süresi: {time.perf_counter() - baslangic:.0f} sn")

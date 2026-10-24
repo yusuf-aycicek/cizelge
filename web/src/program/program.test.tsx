@@ -161,6 +161,49 @@ describe("program oluşturma", () => {
     expect(screen.queryByText(/Son deneme/)).toBeNull();
   });
 
+  it("süre yetmediyse (bilinmiyor) anlaşılır mesaj ve tek tıkla daha uzun süreyle yeniden deneme", async () => {
+    hazirVeri();
+    const govdeler = programApisi([[program({
+      durum: "basarisiz", cozum_durumu: "bilinmiyor", sure_siniri_sn: 30, temel_program_id: "p0",
+      hata_mesaji: "Kurallara uyan bir program var, ama 30 sn içinde bulunamadı.",
+    })]]);
+    const { kullanici } = uygulamayiCiz("/program");
+    const panel = await screen.findByRole("region", { name: "“Program 1” oluşturulamadı" });
+    expect(panel).toHaveTextContent("Seçilen süre yetmedi.");
+    expect(panel).toHaveTextContent("Bu süre okulunuz için yetmedi. 30 saniye içinde kurallara uyan bir program bulunamadı");
+    await kullanici.click(within(panel).getByRole("button", { name: "2 dakika ile yeniden dene" }));
+    await waitFor(() => expect(govdeler).toEqual([{ ad: "Program 1", sure_siniri_sn: 120, temel_program_id: "p0" }]));
+  });
+
+  it("en uzun seçenek de yetmediyse 10 dakika önerilir; hazır program varken uyarı da süreyi söyler", async () => {
+    hazirVeri();
+    programApisi([[HAZIR, program({ id: "p2", ad: "Program 2", durum: "basarisiz", cozum_durumu: "bilinmiyor", sure_siniri_sn: 300 })]]);
+    const { kullanici } = uygulamayiCiz("/program");
+    const uyari = await screen.findByRole("region", { name: /Son deneme “Program 2” oluşturulamadı/ });
+    expect(uyari).toHaveTextContent("seçilen süre yetmedi, daha uzun bir süreyle yeniden deneyebilirsiniz");
+    await kullanici.click(within(uyari).getByText("Nedenini göster"));
+    expect(within(uyari).getByRole("button", { name: "10 dakika ile yeniden dene" })).toBeVisible();
+  });
+
+  it("büyük okulda Hızlı seçeneğinin yanında yetmeyebileceği söylenir", async () => {
+    hazirVeri();
+    programApisi([[]]);
+    const siniflar = Array.from({ length: 36 }, (_, i) => ({ id: `s${i}`, ad: `Şube ${i}`, seviye: 9, sube_grubu_id: null }));
+    sunucu.use(http.get("/api/siniflar", () => HttpResponse.json(siniflar)));
+    uygulamayiCiz("/program");
+    const hizli = await screen.findByRole("radio", { name: /Hızlı/ });
+    await waitFor(() => expect(hizli.closest("label")).toHaveTextContent("Okulunuzda 36 şube var; bu süre program bulmaya yetmeyebilir."));
+    expect(screen.getByRole("radio", { name: /Dengeli/ }).closest("label")).not.toHaveTextContent("yetmeyebilir");
+  });
+
+  it("küçük okulda Hızlı için uyarı yok", async () => {
+    hazirVeri();
+    programApisi([[]]);
+    uygulamayiCiz("/program");
+    expect(await screen.findByText(/Ön kontrol tamam/)).toBeInTheDocument();
+    expect(screen.queryByText(/yetmeyebilir/)).toBeNull();
+  });
+
   it("çelişki listesi yoksa sunucunun mesajı satır satır gösterilir", async () => {
     hazirVeri();
     programApisi([[program({ durum: "basarisiz", hata_mesaji: "Süre yetmedi.\nDaha uzun süre deneyin." })]]);

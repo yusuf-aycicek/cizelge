@@ -3,6 +3,7 @@
 // (Playwright'ın ayrı tarayıcı indirmesine gerek kalmaz).
 //
 //   node scripts/ekran-goruntusu.mjs 5.1
+import { spawnSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium } from "playwright-core";
@@ -704,6 +705,36 @@ AKISLAR["k4"] = async (tarayici, kaydet) => {
     console.log("Deneme özel ayarları geri alındı.");
     await baglam.close();
   }
+};
+
+// P1: süre yetmedi. Geçici bir deneme okulu (36 şube, "Hızlı" uyarısı) ve ona veritabanından elle
+// yazılmış "bilinmiyor" sonuçlu bir deneme. Okul, betik bitince deneme temizliğiyle silinir.
+AKISLAR["p1"] = async (tarayici, kaydet) => {
+  const baglam = await tarayici.newContext({ viewport: MASAUSTU, locale: "tr-TR" });
+  const kayit = await baglam.request.post(ADRES + "/api/kayit", {
+    headers: { Origin: ADRES },
+    data: { okul: { ad: "Büyük Anadolu Lisesi" }, ad: "Deneme Müdür", email: `ekran-${Date.now()}@ornek.test`, sifre: "ekran-goruntusu-parolasi" },
+  });
+  if (!kayit.ok()) throw new Error(`Deneme okulu kaydı: ${kayit.status()}`);
+  for (let i = 0; i < 36; i++) {
+    const sv = 9 + (i % 4);
+    await baglam.request.post(ADRES + "/api/siniflar", { headers: { Origin: ADRES }, data: { ad: `${sv}-${String.fromCharCode(65 + Math.floor(i / 4))}`, seviye: sv } });
+  }
+  const okul = await (await baglam.request.get(ADRES + "/api/okul")).json();
+  const sql = `INSERT INTO program (id, okul_id, ad, durum, hata_mesaji, sure_siniri_sn, baslama, bitis, cozum_durumu, celiskiler, sure_sn)
+    VALUES (gen_random_uuid(), '${okul.id}', 'Program 1', 'basarisiz',
+      'Kurallara uyan bir program var, ama 30 sn içinde bulunamadı. Daha uzun bir süre sınırıyla yeniden deneyin.',
+      30, now() - interval '2 minutes', now() - interval '1 minute', 'bilinmiyor', '[]', 101.5)`;
+  const psql = spawnSync("docker", ["exec", "-i", "ders-programi-db-1", "psql", "-U", "okul_sahip", "-d", "okul", "-v", "ON_ERROR_STOP=1"],
+    { input: sql, encoding: "utf-8" });
+  if (psql.status !== 0) throw new Error(`Deneme programı yazılamadı: ${psql.stderr}`);
+  const s = await baglam.newPage();
+  await s.goto(ADRES + "/program");
+  await s.getByText("Bu süre okulunuz için yetmedi.").waitFor();
+  await s.getByText(/36 şube var/).waitFor();
+  await s.waitForTimeout(800);
+  await kaydet(s, "01-sure-yetmedi.png", true);
+  await baglam.close();
 };
 
 const liste = GORUNUMLER[adim];

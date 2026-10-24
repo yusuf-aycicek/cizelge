@@ -46,7 +46,8 @@ export function useYerlesimler(id: string, hazir: boolean) {
 export function useProgramUret() {
   const istemci = useQueryClient();
   return useMutation({
-    mutationFn: (d: { ad: string; sure_siniri_sn: number }) => cagir(api.POST("/api/ders-programi/programlar", { body: d })),
+    mutationFn: (d: { ad: string; sure_siniri_sn: number; temel_program_id?: string }) =>
+      cagir(api.POST("/api/ders-programi/programlar", { body: d })),
     onSuccess: (program: Program) => {
       // Yeni programı hemen listeye koy (sorgulama bu sayede başlar), sonra sunucudan tazele.
       istemci.setQueryData<Program[]>(PROGRAMLAR, (eski) => [...(eski ?? []), program]);

@@ -182,3 +182,100 @@ Yalnızca zorunlu kurallarla (bütün esnek ağırlıklar 0) büyük set, bloklu
   yerleşim başlangıç ipucu olarak verilip iyileştirilir (CLAUDE.md bölüm 7'de anılan
   iyileştirme). Ayrıca büyük okullarda (≥ 35 şube) varsayılan sürenin 180 sn olması ölçülerek
   değerlendirilebilir.
+
+**Düzeltme (2026-10-24):** bu bölümdeki tek aşamalı sayılar sakin makinede tekrarlanamadı (aşağıda,
+"İki aşamalı çözüm"). Bloksuz büyük setteki "kötüleşme" ve bloklu büyük setteki 44-72 sn'lik ilk
+çözüm büyük olasılıkla ölçüm sırasında makinede çalışan başka işlerden (testler) geliyordu.
+
+## Bloksuz büyük set: kötüleşme yok (2026-10-24)
+
+K4b'de bloksuz büyük set 120. saniyede 1530 ceza ve 8 / 3 / 0 sınıf boşluğu vermişti (2026-10-14'te
+897, 0 / 0 / 0). Neden aranırken her commit'in çözücüsü ayrı ayrı, aynı veriyle, sakin makinede
+ölçüldü (3 tohum, 120 sn; `scripts/sonuclar/p1-bisect.md`):
+
+| Commit | Değişiklik | İlk çözüm | 120 sn ceza (ort.) | 120 sn sınıf boşluğu |
+|---|---|---|---|---|
+| 6c66448 | 2026-10-14 ölçümü | 8,8-13,3 sn | 789 | 0 / 0 / 0 |
+| d96e3e7 | K1 kapsam | 9,4-13,0 sn | 753 | 0 / 0 / 0 |
+| 8f6ac07 | K2a iki yönlü boş gün | 9,0-14,3 sn | 742 | 0 / 0 / 0 |
+| 0957d0b | K2e boş gün hedefi | 7,6-13,7 sn | 773 | 0 / 0 / 0 |
+| b17d4f8 | K3a gün uzunluğu, öğle arası | 8,5-13,2 sn | 755 | 0 / 0 / 0 |
+| 550323b | K4a blok (bloksuz kipte) | 8,8-11,9 sn | 805 | 0 / 0 / 0 |
+
+Hiçbir model değişikliği kötüleştirmedi; 120 sn'de her commit her tohumda sınıf boşluğunu
+sıfırlıyor. K4b'deki fark ölçüm ortamındandı. Ders: ölçüm sırasında makinede başka iş
+çalıştırılmaz (CLAUDE.md bölüm 7'ye eklendi).
+
+## İki aşamalı çözüm (P1, 2026-10-24)
+
+Önce yalnızca zorunlu kısıtlarla, amaçsız ve ilk programda durarak bir program bulunur; sonra o
+program tam ipucu olarak verilip esnek kurallarla kalan sürede iyileştirilir (ADR 0018). Aynı
+makine, sakin; 3 tohum, 8 iş parçacığı. "Sınır" sütunları süre sınırı o değerle **ayrı ayrı**
+çalıştırılarak ölçüldü (iki aşamalıda aşama 1'in payı süre sınırına göre olduğu için). Tek aşamalı
+satırlarda 30 ve 60 sn, 120 sn'lik çalıştırmanın o anki durumudur (tek aşamalıda ikisi aynıdır).
+Hücre: ortalama gerçek ceza (sınıf boşluğu, tohum 0 / 1 / 2). Ham sonuçlar: `scripts/sonuclar/p1-*.md`.
+
+### İlk aşamanın payı
+
+Büyük set, bloklu. Aşama 1 ilk programda durduğu için pay yalnızca ilk program geç gelirse sınırlar.
+
+| Pay | Sınır 120 sn: ilk çözüm | 120 sn | Sınır 30 sn: ilk çözüm | 30 sn |
+|---|---|---|---|---|
+| 0,25 | 9,5-24,9 sn | 234 (0 / 0 / 0) | | |
+| 0,5 | 10,1-23,6 sn | 242 (0 / 0 / 0) | 1 tohumda **program yok** | 1536 (16 / yok / 16) |
+| 0,75 | | | 10,7-23,9 sn | 1927 (20 / 30 / 14) |
+| 1 | 10,0-24,9 sn | 258 (0 / 0 / 0) | 10,1-24,4 sn | 1645 (12 / 30 / 0) |
+
+**Karar: pay 1** (`cpsat.UYGUNLUK_PAYI`). 120 sn'de paylar arasında fark yok (aşama 1 her tohumda
+25 sn içinde bitiyor); 30 sn'de 0,5 bir tohumda programsız bıraktı. Aşama 1 zaten ilk programda
+durduğu için ona bütün süreyi tanımak, "hiç program yok" olasılığını en aza indirir; kalan süre
+iyileştirmeye gider.
+
+### Önceki ölçümlerle karşılaştırma
+
+| Set | Kip | Yöntem | İlk çözüm | 30 sn | 60 sn | 120 sn |
+|---|---|---|---|---|---|---|
+| Gerçekçi | bloksuz | 2026-10-14 (tek) | 4,4-8,0 sn | | 448 (0) | 285 (0 / 0 / 0) |
+| Gerçekçi | bloksuz | K4b (tek) | 5,1-9,5 sn | 869 (0 / 0 / 0) | 592 (0 / 0 / 0) | 432 (0 / 0 / 0) |
+| Gerçekçi | bloksuz | **iki aşamalı** | **2,2-3,3 sn** | 617 (0 / 0 / 0) | 384 (0 / 0 / 0) | **240** (0 / 0 / 0) |
+| Gerçekçi | bloklu | K4b (tek) | 4,3-20,4 sn | 473 (0 / 6 / 0) | 186 (0 / 0 / 0) | 88 (0 / 0 / 0) |
+| Gerçekçi | bloklu | bugün, tek | 4,3-14,1 sn | 305 (0 / 2 / 0) | 140 (0 / 0 / 0) | 67 (0 / 0 / 0) |
+| Gerçekçi | bloklu | **iki aşamalı** | 5,2-8,9 sn | 296 (3 / 0 / 0) | 161 (0 / 0 / 0) | 69 (0 / 0 / 0) |
+| Büyük | bloksuz | 2026-10-14 (tek) | 5,5-15,5 sn | | 1419 (2 / 3 / 0) | 897 (0 / 0 / 0) |
+| Büyük | bloksuz | K4b (tek) | 14,8-29,0 sn | 3077 (33 / 18 / 23) | 2285 (21 / 11 / 0) | 1530 (8 / 3 / 0) |
+| Büyük | bloksuz | bugün, tek (K4a) | 8,8-11,9 sn | 2130 (13 / 16 / 0) | 1217 (1 / 0 / 0) | 805 (0 / 0 / 0) |
+| Büyük | bloksuz | **iki aşamalı** | **3,9-5,2 sn** | 1812 (3 / 0 / 0) | 1299 (4 / 0 / 0) | **737** (0 / 0 / 0) |
+| Büyük | bloklu | K4b (tek) | 43,6-72,2 sn | program yok | 1 tohumda: 1483 (16) | 834 (0 / 4 / 9) |
+| Büyük | bloklu | bugün, tek | 23,5-29,2 sn | 1864 (24 / 18 / 18) | 749 (6 / 7 / 3) | 268 (0 / 2 / 0) |
+| Büyük | bloklu | **iki aşamalı** | **9,2-25,5 sn** | 1889 (17 / 30 / 16) | **625** (1 / 5 / 0) | **253** (1 / 0 / 0) |
+
+Büyük set, bloklu, iki aşamalı, sınır 180 sn: 120. saniyede 264 (0 / 0 / 0), 180. saniyede
+**150** (0 / 0 / 0).
+
+**Yorum:**
+- K4b'nin kötü sayıları büyük ölçüde ölçüm ortamındandı: sakin makinede tek aşamalı çözüm de büyük
+  bloklu sette 120 sn'de 268 ceza veriyor (K4b'de 834).
+- İki aşamalı çözüm **ilk programı daha erken** verir: bloksuz büyük sette 9-12 sn → 4-5 sn, bloklu
+  büyük sette 23-29 sn → 9-25 sn. Bu en çok kısa sürede önemli: 30 sn'lik sınırda tek aşamalıda
+  ilk program 24-29 sn'de, yani sınırın hemen önünde geliyordu.
+- **Kalite** 120 sn'de iki yöntemde benzer (gerçekçi bloklu 67 / 69, büyük bloklu 268 / 253);
+  bloksuz setlerde iki aşamalı belirgin iyi (432 → 240, 805 → 737). Büyük bloklu sette 60 sn'de
+  ceza 749 → 625.
+- Pay 1 ile aşama 1 hiç bitmezse aşama 2'ye süre kalmaz. Bu durumda zaten hiç program yoktur;
+  tek aşamalı model aynı sürede daha zor bir problemi çözmeye çalışırdı.
+
+### Varsayılan süre
+
+**Karar: 120 sn kalır, büyük okullar için de artırılmaz.** İki aşamalı çözümle büyük bloklu sette
+120 sn'lik 15 çalıştırmanın (pay ölçümleri dahil) 14'ünde sınıf boşluğu 0; birinde 1 saat. Gerçekçi
+sette hepsi 0. 180 sn cezayı yarıya yakın düşürüyor (264 → 150) ama sınıf boşluğu zaten 0; bu fark
+öğretmen pencerelerindedir. Daha iyi sonuç isteyen büyük okul için "Uzun" (5 dk) seçeneği vardır.
+Süre yetmezse arayüz tek tıkla daha uzun süreyle yeniden denemeyi önerir (ADR 0018).
+
+### "Hızlı" uyarısının eşiği
+
+Gerçekçi sette (24 şube, bloklu) 30 sn'lik sınırda ilk program her tohumda 9 sn içinde geldi; büyük
+sette (40 şube) 10-25 sn'de, sınıf boşluğu 16-30 saatle. Arayüz **30 ve daha çok şubesi** olan
+okulda "Hızlı" seçeneğinin yanında "bu süre program bulmaya yetmeyebilir" der
+(`ProgramSayfasi.HIZLI_YETMEYEBILIR_SUBE`): ilk programın sürenin yarısını (15 sn) geçtiği yer
+ölçülen iki noktanın arasındadır. Okulun sunucusu bu makineden yavaşsa sınır daha erken aşılır.

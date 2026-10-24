@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { CalendarRange, Check, CircleAlert, CircleX, LoaderCircle, Sparkles, TableProperties, WandSparkles } from "lucide-react";
+import {
+  CalendarRange, Check, CircleAlert, CircleX, Hourglass, LoaderCircle, RotateCcw, Sparkles, TableProperties, WandSparkles,
+} from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { hataMetni } from "../api/hata";
@@ -22,6 +24,19 @@ const SURELER = [
   { sn: 120, ad: "Dengeli", aciklama: "2 dakika. Çoğu okul için önerilen." },
   { sn: 300, ad: "Uzun", aciklama: "5 dakika. Büyük okullarda daha iyi sonuç." },
 ] as const;
+
+/** "Süre yetmedi"den sonra önerilen daha uzun süreler (en uzun seçenekten sonra 10 dakika). */
+const YENIDEN_DENEME_SURELERI = [...SURELER.map((s) => s.sn), 600];
+
+/**
+ * Bu kadar ve daha çok şubesi olan okulda "Hızlı" (30 sn) yetmeyebilir. Ölçüm (docs/olcumler.md,
+ * "İki aşamalı çözüm"): gerçekçi sette (24 şube, bloklu) ilk program her tohumda 9 sn içinde; büyük
+ * sette (40 şube) 10-25 sn'de, yani 30 sn'ye yakın (yük altında ya da daha yavaş bir sunucuda aşar).
+ * Eşik ikisinin arasında, ilk programın sürenin yarısını (15 sn) geçtiği yerde.
+ */
+export const HIZLI_YETMEYEBILIR_SUBE = 30;
+
+export const dahaUzunSure = (sn: number) => YENIDEN_DENEME_SURELERI.find((s) => s > sn);
 
 const tarih = (iso: string) =>
   new Date(iso).toLocaleString("tr-TR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
@@ -85,6 +100,8 @@ function OlusturKarti({ sira, yeniden }: { sira: number; yeniden: boolean }) {
   // özeti "tamam" deyip üretimin ön kontrolde takılması bu yüzden olamaz.
   const onKontrol = useOnKontrol();
   const atamalar = useAtamalar();
+  const siniflar = useQuery({ queryKey: sinifKaynagi.anahtar, queryFn: sinifKaynagi.listele });
+  const subeSayisi = siniflar.data?.length ?? 0;
   const uret = useProgramUret();
   const bildirim = useBildirim();
   const [ad, setAd] = useState(`Program ${sira}`);
@@ -144,6 +161,11 @@ function OlusturKarti({ sira, yeniden }: { sira: number; yeniden: boolean }) {
                 <span>
                   <strong>{s.ad}</strong>
                   <span className={stil.sureAciklama}>{s.aciklama}</span>
+                  {s.sn === 30 && subeSayisi >= HIZLI_YETMEYEBILIR_SUBE && (
+                    <span className={stil.sureUyarisi}>
+                      Okulunuzda {subeSayisi} şube var; bu süre program bulmaya yetmeyebilir.
+                    </span>
+                  )}
                 </span>
               </label>
             ))}
@@ -310,13 +332,16 @@ function CeliskiGruplari({ celiskiler }: { celiskiler: readonly Celiski[] }) {
 }
 
 function BasarisizPaneli({ program }: { program: Program }) {
+  const sureYetmedi = program.cozum_durumu === "bilinmiyor";
   return (
     <section aria-labelledby="basarisiz-baslik" className={stil.basarisiz}>
       <div className={stil.hazirUst}>
         <CircleX aria-hidden="true" className={stil.basarisizIkonu} />
         <div>
           <h2 id="basarisiz-baslik">“{program.ad}” oluşturulamadı</h2>
-          <p className={stil.hazirZaman}>Aşağıdaki sorunları düzeltip yeniden deneyin.</p>
+          <p className={stil.hazirZaman}>
+            {sureYetmedi ? "Seçilen süre yetmedi." : "Aşağıdaki sorunları düzeltip yeniden deneyin."}
+          </p>
         </div>
       </div>
       <BasarisizNedeni program={program} />
@@ -324,8 +349,46 @@ function BasarisizPaneli({ program }: { program: Program }) {
   );
 }
 
+/**
+ * Süre içinde ne program bulundu ne de olmadığı kanıtlandı (`bilinmiyor`). Bu bir veri hatası
+ * değil: kural çelişkisi görülmedi, daha uzun süre büyük olasılıkla yeter. Tek tıkla aynı adla, bir
+ * sonraki uzun süreyle (ve aynı temel programla) yeniden üretilir.
+ */
+function SureYetmedi({ program }: { program: Program }) {
+  const uret = useProgramUret();
+  const bildirim = useBildirim();
+  const yeni = dahaUzunSure(program.sure_siniri_sn);
+  return (
+    <div className={stil.sureYetmedi}>
+      <p>
+        <Hourglass aria-hidden="true" className={stil.sureYetmediIkonu} />
+        <span>
+          <strong>Bu süre okulunuz için yetmedi.</strong> {sureMetni(program.sure_siniri_sn)} içinde kurallara uyan bir
+          program bulunamadı; kuralların çeliştiği de görülmedi. Daha uzun bir süreyle yeniden deneyin.
+        </span>
+      </p>
+      {yeni && (
+        <Dugme
+          ikon={<RotateCcw />}
+          yukleniyor={uret.isPending}
+          yukleniyorMetni="Gönderiliyor..."
+          onClick={() =>
+            uret.mutate(
+              { ad: program.ad, sure_siniri_sn: yeni, ...(program.temel_program_id ? { temel_program_id: program.temel_program_id } : {}) },
+              { onError: (hata) => bildirim("hata", hataMetni(hata)) },
+            )
+          }
+        >
+          {sureMetni(yeni)} ile yeniden dene
+        </Dugme>
+      )}
+    </div>
+  );
+}
+
 /** Başarısız üretimin nedeni: çelişkiler gruplu; yoksa sunucunun mesajı satır satır. */
 function BasarisizNedeni({ program }: { program: Program }) {
+  if (program.cozum_durumu === "bilinmiyor") return <SureYetmedi program={program} />;
   return (program.celiskiler ?? []).length > 0 ? (
     <CeliskiGruplari celiskiler={program.celiskiler ?? []} />
   ) : (
@@ -348,7 +411,10 @@ function SonDenemeUyarisi({ program }: { program: Program }) {
         <CircleAlert aria-hidden="true" />
         <span>
           Son deneme “{program.ad}” oluşturulamadı{program.bitis ? ` (${tarih(program.bitis)})` : ""}. Hazır program
-          yukarıda; yeni bir deneme için aşağıdaki sorunları düzeltin.
+          yukarıda;{" "}
+          {program.cozum_durumu === "bilinmiyor"
+            ? "seçilen süre yetmedi, daha uzun bir süreyle yeniden deneyebilirsiniz."
+            : "yeni bir deneme için aşağıdaki sorunları düzeltin."}
         </span>
       </p>
       <details className={stil.sonDenemeAyrinti}>

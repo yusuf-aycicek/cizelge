@@ -17,8 +17,12 @@ from cozucu import (
     Ogretmen,
     Sinif,
     Yerlesim,
+    dogrula,
+    olc,
 )
 from cozucu.celiski import celiskileri_bul
+from cozucu.kalite import agirlikli_ceza
+from cozucu.kisitlar import etkin_agirliklar
 from cozucu.on_kontrol import on_kontrol
 
 OGRETMENLER = [
@@ -214,13 +218,24 @@ from ortools.sat.python import cp_model  # noqa: E402
 
 
 class _SuresiYetmeyen(CpSatCozucu):
-    """Ana çözümün süre içinde hiçbir şey bulamadığı durumu taklit eder."""
+    """Ana çözümün süre içinde hiçbir şey bulamadığı durumu taklit eder.
 
-    def __init__(self, ikinci=None):
-        super().__init__()
+    İki aşamalı çözümde ilk aşama da süre içinde sonuç vermemiş sayılır (`ilk_de=True`).
+    """
+
+    def __init__(self, ikinci=None, ilk_de=True, **secenek):
+        super().__init__(**secenek)
         self._ikinci = ikinci
+        self._ilk_de = ilk_de
+        self.ana_cagrildi = False
+
+    def _ilk_asama(self, girdi, sure, baslangic):
+        if self._ilk_de:
+            return cp_model.UNKNOWN, None
+        return super()._ilk_asama(girdi, sure, baslangic)
 
     def _ana_cozum(self, baglam, sure, baslangic):
+        self.ana_cagrildi = True
         return cp_model.UNKNOWN, None
 
     def _uygunluk_kontrolu(self, girdi, sure):
@@ -259,3 +274,62 @@ def test_ikinci_kontrol_de_sonuc_vermezse_durum_acikca_soylenir():
     sonuc = _SuresiYetmeyen(ikinci=cp_model.UNKNOWN).coz(g, sure_siniri_sn=5)
     assert sonuc.durum is CozumDurumu.BILINMIYOR
     assert "ne program bulunabildi ne de programın olmadığı kanıtlanabildi" in sonuc.mesajlar[0]
+
+
+def test_tek_asamali_cozumde_de_ikinci_kontrol_yapilir():
+    sonuc = _SuresiYetmeyen(iki_asamali=False).coz(_iki_sinif_cakismasi(), sure_siniri_sn=5)
+    assert sonuc.durum is CozumDurumu.COZUMSUZ
+
+
+# --- iki aşamalı çözüm (ADR 0018) ------------------------------------------------------------
+
+
+def test_ikinci_asama_sonuc_vermezse_ilk_asamanin_programi_doner():
+    # Ayşe'nin her saati "tercih etmez": her ders saati 5 ceza, toplam ceza bağımsız ölçümle aynı.
+    tercih_etmez = [Musaitlik("o-ayse", gun, saat, MusaitlikDurumu.TERCIH_ETMEZ) for gun in range(5) for saat in range(6)]
+    g = girdi(atamalar=[DersAtama("a-mat", "s-9a", "d-mat", "o-ayse", 4)], musaitlikler=tercih_etmez)
+    sonuc = _SuresiYetmeyen(ilk_de=False).coz(g, sure_siniri_sn=5)
+    assert sonuc.durum is CozumDurumu.UYGUN
+    assert len(sonuc.yerlesimler) == 4 and dogrula(g, sonuc.yerlesimler) == []
+    assert sonuc.toplam_ceza == agirlikli_ceza(olc(g, sonuc.yerlesimler), etkin_agirliklar(g)) >= 20
+    assert "iyileştirmeye süre kalmadı" in sonuc.mesajlar[0]
+
+
+def test_ilk_asamaya_sure_payi_kadar_verilir_ikinciye_kalani():
+    sureler = []
+
+    class Olcen(CpSatCozucu):
+        def _ilk_asama(self, girdi, sure, baslangic):
+            sureler.append(("ilk", sure))
+            return super()._ilk_asama(girdi, sure, baslangic)
+
+        def _ana_cozum(self, baglam, sure, baslangic):
+            sureler.append(("ana", sure))
+            return super()._ana_cozum(baglam, sure, baslangic)
+
+    g = girdi(atamalar=[DersAtama("a-mat", "s-9a", "d-mat", "o-ayse", 4)])
+    assert Olcen(uygunluk_payi=0.25).coz(g, sure_siniri_sn=8).basarili
+    (ad1, ilk), (ad2, ana) = sureler
+    assert (ad1, ilk, ad2) == ("ilk", 2.0, "ana")
+    assert 7.0 < ana < 8.0  # ilk aşama erken bitti: kalan süre ikinci aşamanın
+
+
+def test_ilk_asama_cozumsuzlugu_kanitlarsa_ikinci_asama_calismaz():
+    cozucu = _SuresiYetmeyen(ilk_de=False)
+    sonuc = cozucu.coz(_iki_sinif_cakismasi(), sure_siniri_sn=5)
+    assert sonuc.durum is CozumDurumu.COZUMSUZ and not cozucu.ana_cagrildi
+    assert [c.tur for c in sonuc.celiskiler] == ["celiski"]
+
+
+def test_ilk_asamanin_programi_ikinci_asamaya_tam_ipucu_olur():
+    ipuclari = []
+
+    class Bakan(CpSatCozucu):
+        def _ana_cozum(self, baglam, sure, baslangic):
+            ipucu = baglam.model.proto.solution_hint
+            ipuclari.append((len(ipucu.vars), len(baglam.x), sum(ipucu.values)))
+            return super()._ana_cozum(baglam, sure, baslangic)
+
+    g = girdi(atamalar=[DersAtama("a-mat", "s-9a", "d-mat", "o-ayse", 4)])
+    assert Bakan().coz(g, sure_siniri_sn=5).basarili
+    assert ipuclari == [(30, 30, 4)]  # her hücre ipucunda; ilk aşamanın 4 ders saati 1

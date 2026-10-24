@@ -64,3 +64,23 @@ def test_mini_set_en_az_degisiklikle_guncelleme(girdi, sonuc):
     assert yeni.basarili and dogrula(yeni_girdi, yeni.yerlesimler) == []
     degisen = olc(yeni_girdi, yeni.yerlesimler).degisen_yerlesim
     assert k <= degisen <= k + 4, (k, degisen)
+
+
+def test_mini_set_iki_asamali_ve_tek_asamali_ayni_en_iyi_cezayi_bulur(girdi, sonuc):
+    tek = CpSatCozucu(iki_asamali=False).coz(girdi, sure_siniri_sn=30)
+    assert tek.durum is CozumDurumu.OPTIMAL and sonuc.durum is CozumDurumu.OPTIMAL
+    assert tek.toplam_ceza == sonuc.toplam_ceza
+
+
+def test_mini_set_veri_degismediyse_temel_program_ve_kilit_korunur(girdi, sonuc):
+    # İki aşamalı akışta temel program ilk aşamaya ipucu, ilk aşamanın programı ikinci aşamaya
+    # ipucu olur; kilitler iki aşamada da zorunludur.
+    from dataclasses import replace
+
+    from cozucu import temel_program
+
+    yeni_girdi = replace(girdi, temel_yerlesimler=temel_program(girdi.atamalar, sonuc.yerlesimler))
+    yeni = CpSatCozucu().coz(yeni_girdi, sure_siniri_sn=30)
+    assert yeni.durum is CozumDurumu.OPTIMAL and dogrula(yeni_girdi, yeni.yerlesimler) == []
+    assert olc(yeni_girdi, yeni.yerlesimler).degisen_yerlesim == 0
+    assert ("a-9a-mat", 1, 0) in {(y.ders_atama_id, y.gun, y.saat) for y in yeni.yerlesimler if y.kilitli}

@@ -224,9 +224,16 @@ ve öncelik sırası:
 ### Davranış
 - Süre sınırı parametredir (varsayılan 120 saniye). Süre dolunca bulunan en iyi çözüm döner.
   120 sn, ölçülen süreler içinde iki test setinde de sınıf boşluğunu her tohumda sıfırlayan en
-  kısa süredir (`docs/olcumler.md`). Üretim kuyrukta çalıştığı için arayüzü bekletmez.
-- Ana çözüm süre içinde ne çözüm ne de çözümsüzlük kanıtı bulursa, yalnızca zorunlu kısıtlarla
-  ikinci bir kontrol yapılır. Çözüm yoksa çelişkiler açıklanır, varsa "süre yetmedi" denir.
+  kısa süredir (`docs/olcumler.md`; bloklarla ve iki aşamalı çözümle yeniden ölçüldü, büyük okullar
+  için artırmak gerekmedi). Üretim kuyrukta çalıştığı için arayüzü bekletmez.
+- **İki aşamalı çözüm (ADR 0018):** önce yalnızca zorunlu kısıtlarla, amaçsız, ilk programda
+  durarak bir program aranır; sonra o program tam başlangıç ipucu olarak verilip esnek kurallarla
+  kalan sürede iyileştirilir. İlk aşama çözümsüzlüğü kanıtlarsa doğrudan çelişki analizine geçilir;
+  ikinci aşama daha iyisini bulamazsa ilk aşamanın programı döner. Temel program ilk aşamaya da
+  ipucudur; kilitler iki aşamada da zorunludur.
+- Süre içinde ne çözüm ne de çözümsüzlük kanıtı bulunursa yalnızca zorunlu kısıtlarla ikinci bir
+  kontrol yapılır. Çözüm yoksa çelişkiler açıklanır, varsa "süre yetmedi" denir; arayüz tek
+  tıkla daha uzun süreyle yeniden denemeyi önerir.
 - Çözücü çağrılmadan önce ön kontroller yapılır ve anlaşılır hata verilir: öğretmeni seçilmemiş
   atama, bir sınıfın toplam saati haftalık kapasiteyi aşıyor, bir öğretmenin toplam saati müsait
   olduğu saatlerden fazla (her gün için müsait saat ile M'nin küçüğü sayılır), bir sınıfın
@@ -249,8 +256,8 @@ kısıtların hepsi sağlanmış.
 
 Gerçekçi ve büyük setlerde yalnızca toplam süre değil, zamana göre kalite de ölçülür: 10, 30, 60
 ve 120. saniyede toplam ceza ve her esnek ölçü. 60 saniyedeki kalite yetersizse iyileştirmeler
-(ör. önce yalnızca zorunlu kısıtlarla çözüp sonucu başlangıç ipucu olarak vermek) ölçülerek
-değerlendirilir.
+ölçülerek değerlendirilir (iki aşamalı çözüm böyle seçildi, ADR 0018). Ölçüm sırasında makinede
+başka iş (test, derleme) çalışmaz: K4b ölçümü bu yüzden yanıltıcı çıktı.
 
 ## 8. Yapım sırası
 

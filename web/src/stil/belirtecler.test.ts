@@ -45,6 +45,8 @@ const METIN_CIFTLERI: [string, string][] = [
   ["renk-basari-metin", "renk-basari-zemin"],
   ["renk-hata-metin", "renk-hata-zemin"],
   ["renk-uyari-metin", "renk-uyari-zemin"],
+  ["renk-uyari-metin", "renk-yuzey"], // süre seçeneğindeki ve şube istisnasındaki uyarı satırı
+  ["renk-uyari-metin", "renk-zemin"],
   ["renk-bilgi-metin", "renk-bilgi-zemin"],
   ["renk-metin", "renk-sayfa"],
   ["renk-metin-ikincil", "renk-sayfa"],
