@@ -214,7 +214,9 @@ Her ders ataması, gün ve saat üçlüsü için bir boolean değişken: "bu ata
   dışına konan her ders saati ceza. Okul genelinde tercih yoktur.
 - Öğretmenin geldiği günde en az k ders (varsayılan 2; öğretmene özel olabilir): dersi olup k'dan
   az olan her gün ceza. k, öğretmenin yüküyle ve bir günde verebileceği en çok dersle sınırlanır.
-- Aynı dersin günlere yayılması: bir şubenin aynı dersi art arda iki günde olursa ceza.
+- Aynı dersin günlere yayılması: bir şubenin aynı dersi art arda iki günde olursa ceza. Okul
+  genelinde kapalıdır, yalnızca derse (ya da ders + şubeye/gruba) özel açılır; bütün derslerde
+  açıkken boş gün ve pencereyle çatışıp öğretmen konforunu bozduğu ölçüldü (ADR 0024).
 - En az değişiklik (yalnızca temel program verildiğinde): temel programdaki bir yerleşim yeni
   programda yoksa ceza.
 
@@ -230,7 +232,7 @@ ve öncelik sırası:
 | Öğretmen penceresi | 3 | |
 | Dersin saat tercihi | 3 | Yalnızca derse özel ayar varsa etkili |
 | Öğretmenin geldiği günde en az ders | 3 | |
-| Aynı dersin günlere yayılması | 2 | |
+| Aynı dersin günlere yayılması | 2 | Yalnızca derse özel açıldıysa etkili (ADR 0024) |
 | Bölünmüş (ardışık olmayan) ders | 2 | |
 
 ### Davranış
@@ -352,7 +354,7 @@ ne yapıldığını söyler. Öğretmen, ders ve şube bazında istisnalar için
 | Şubeye özel "bu dersi almaz / ek alır" | Yok | Var (K5): ders dağılımında; şablon yeniden uygulanınca korunur, raporda görünür |
 | Dersin saat tercihi (ör. Matematik sabah) | Yok | Var (K6): derse, ders + şubeye/gruba özel (Özel ayar ekle) |
 | Öğretmenin geldiği günde en az ders | 2, esnek ("bir saat için gelmem") | Var (K6): okul geneli (Gelişmiş) ve öğretmene özel |
-| Aynı dersin günlere yayılması | Açık, "Önemli" | Var (K6): okul geneli ve derse/şubeye/gruba özel kapatma |
+| Aynı dersin günlere yayılması | Okul genelinde kapalı; derse özel açılır ("Önemli") | Var (K6, ADR 0024): derse ya da ders + şubeye/gruba özel açma ve kapatma |
 | Öğretmenin haftalık yük eşikleri (maaş karşılığı, ek ders üst sınırı) | Kapalı; okul girerse uyarı | Var (K6, ADR 0023): okul geneli ve öğretmene özel; dağılımda ve ön kontrolde uyarı |
 | Esnek kuralların önemi | "Önemli" = bölüm 7'deki ağırlıklar | Var ("Önemsiz / Önemli / Çok önemli") |
 | Program üretme süre sınırı | 120 sn | Var |

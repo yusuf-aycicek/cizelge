@@ -96,10 +96,12 @@ export function kaliteMaddeleri(o: Record<string, number> | null | undefined, te
       (n) => `Aynı gündeki ders saatleri ${n} yerde arka arkaya değil.`),
     m("az_dersli_gun", o.az_dersli_gun, "Hiçbir öğretmen okula bir iki ders için gelmiyor.",
       (n) => `Öğretmenler ${n} gün, geldikleri günde en az ders sayısının altında kaldı.`),
-    m("art_arda_gun", o.art_arda_gun, "Hiçbir şubede aynı ders art arda günlere konmadı.",
-      (n) => `Aynı ders ${n} yerde art arda iki güne kondu (ör. pazartesi ve salı).`),
   ];
-  // Yalnızca derse özel saat tercihi olan okulda anlamlı (okul genelinde tercih yok).
+  // Yalnızca derse özel açılan kurallar (okul genelinde yok; yayılım: ADR 0024): sıfırsa söylenmez.
+  if (o.art_arda_gun) {
+    maddeler.push(m("art_arda_gun", o.art_arda_gun, "",
+      (n) => `Aynı ders ${n} yerde art arda iki güne kondu (ör. pazartesi ve salı).`));
+  }
   if (o.saat_tercihi) {
     maddeler.push(m("saat_tercihi", o.saat_tercihi, "",
       (n) => `${n} ders saati, dersin istenmeyen saatine kondu (dersin saat tercihi).`));

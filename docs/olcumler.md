@@ -301,6 +301,23 @@ Saat tercihi okul genelinde yoktur, ceza getirmez. Ham sonuç: `scripts/sonuclar
   sıkıştırmak aynı dersi art arda günlere iter; 3 bloklu (2+2+2, 2+2+1) bir ders 5 günlük haftada
   ancak pazartesi-çarşamba-cuma ile yayılabilir.
 - "Günde en az ders" ucuz: her tohumda 1 gün kalıyor, boş gün hedefiyle aynı yönde çalışıyor.
-- **Kullanıcıya soruldu:** yayılımın varsayılan önemi "Önemli" (2) yerine "Önemsiz" (1) mi olsun,
-  yoksa kural yalnızca açıkça istenen derslerde mi çalışsın. Karar verilene kadar CLAUDE.md'deki
-  varsayılan (açık, "Önemli") uygulanıyor.
+- **Kullanıcı kararı:** yayılım okul genelinde kapalı, yalnızca derse özel açılır (ADR 0024).
+  Yeniden ölçüm aşağıda.
+
+### Yayılım okul genelinde kapalı (ADR 0024, 2026-10-24)
+
+Aynı koşullar (gerçekçi set, bloklu, iki aşamalı, 3 tohum, sakin makine). Ham sonuç:
+`scripts/sonuclar/k6-yayilim-kapali.md`. "Eski ölçüler" = pencere × 3 + tercih etmez × 5 + eksik
+boş gün × 4 (üç ölçümde de aynı ağırlıklar, doğrudan karşılaştırılabilir).
+
+| 120 sn | Toplam ceza | Eski ölçüler (ort.) | Sınıf boşluğu | Pencere | Tercih etmez | Eksik boş gün | Az dersli gün | Art arda gün |
+|---|---|---|---|---|---|---|---|---|
+| P1 (K6 öncesi) | 82 / 67 / 58 | 69 | 0 / 0 / 0 | 10 / 9 / 6 | 0 / 0 / 0 | 13 / 10 / 10 | — | — |
+| K6 (yayılım açık) | 337 / 269 / 247 | 156 | 0 / 0 / 0 | 34 / 18 / 18 | 2 / 4 / 0 | 24 / 17 / 16 | 1 / 1 / 1 | 63 / 62 / 63 |
+| ADR 0024 (yayılım kapalı) | 136 / 122 / 114 | 123 | 0 / 0 / 0 | 24 / 16 / 15 | 0 / 3 / 1 | 16 / 14 / 16 | 0 / 1 / 0 | 0 / 0 / 0 |
+
+- Sınıf boşluğu her tohumda 60 ve 120 sn'de 0; ilk program 5,5-8,5 sn. Süre sınırı kararı değişmez.
+- Eski ölçüler 156'dan 123'e indi, ama P1'in (69) üstünde kaldı: pencere ortalama 8 → 18,
+  eksik boş gün 11 → 15. Açık kalan K6 kuralı "günde en az ders" (her tohumda 0-1 gün kalıyor,
+  yani çözücü ona uyuyor). Farkın büyük olasılıkla bu kuraldan ve modelin büyümesinden geldiği
+  düşünülüyor; kural kapatılarak ayrıca ölçülmedi.

@@ -58,5 +58,5 @@ def gunluk_en_az_ders(girdi: CozumGirdisi, ogretmen_id: str, yuk: int) -> int:
 
 
 def yayilsin(girdi: CozumGirdisi, sinif_id: str, ders_id: str) -> bool:
-    """Bu şubenin bu dersi art arda günlere yığılmasın mı (varsayılan: evet)."""
-    return bool(girdi.parametre(YAYILIM_TURU, "yayilsin", True, sinif_id=sinif_id, ders_id=ders_id))
+    """Bu şubenin bu dersi art arda günlere yığılmasın mı (varsayılan: hayır, ADR 0024)."""
+    return bool(girdi.parametre(YAYILIM_TURU, "yayilsin", False, sinif_id=sinif_id, ders_id=ders_id))

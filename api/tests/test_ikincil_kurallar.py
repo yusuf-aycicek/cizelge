@@ -25,7 +25,8 @@ def test_kurallar_listede_kapsamlariyla(istemci, okul):
     k = {x["tur"]: x for x in istemci.get(f"{DP}/kurallar", headers=okul["b"]).json()}
     assert (k[SAAT]["kapsamlar"], k[SAAT]["zorunlu_eksenler"], k[SAAT]["parametreler"]) == (["ders", "sube", "sube_grubu"], ["ders"], {})
     assert (k[EN_AZ]["kapsamlar"], k[EN_AZ]["parametreler"], k[EN_AZ]["seviye"]) == (["ogretmen"], {"k": 2}, "onemli")
-    assert (k[YAYILIM]["kapsamlar"], k[YAYILIM]["parametreler"]) == (["ders", "sube", "sube_grubu"], {"yayilsin": True})
+    assert (k[YAYILIM]["kapsamlar"], k[YAYILIM]["zorunlu_eksenler"], k[YAYILIM]["parametreler"]) == (
+        ["ders", "sube", "sube_grubu"], ["ders"], {"yayilsin": False})
 
 
 def test_ders_saat_tercihi_ozel_ayari(istemci, okul):
@@ -54,11 +55,18 @@ def test_en_az_ders_ve_yayilim(istemci, okul):
     b = okul["b"]
     assert istemci.put(f"{DP}/kurallar/{EN_AZ}", json={"parametreler": {"k": 3}}, headers=b).status_code == 200
     assert ozel_yaz(istemci, b, EN_AZ, {"ogretmen_id": okul["ayse"]}, {"k": 1}).status_code == 200
-    assert ozel_yaz(istemci, b, YAYILIM, {"ders_id": okul["mat"]}, {"yayilsin": False}).status_code == 200
+    assert ozel_yaz(istemci, b, YAYILIM, {"ders_id": okul["mat"]}, {"yayilsin": True}).status_code == 200
+    assert ozel_yaz(istemci, b, YAYILIM, {"ders_id": okul["mat"], "sinif_id": okul["sube"]}, {"yayilsin": False}).status_code == 200
+    yanit = ozel_yaz(istemci, b, YAYILIM, {"sinif_id": okul["sube"]}, {"yayilsin": True})
+    assert (yanit.status_code, yanit.json()["detail"]) == (422, "'ders_yayilimi' özel ayarında ders belirtilmeli")
     yanit = ozel_yaz(istemci, b, YAYILIM, {"ders_id": okul["mat"]}, {"yayilsin": 0})
     assert (yanit.status_code, yanit.json()["detail"]) == (422, "yayilsin açık ya da kapalı (true/false) olmalı")
     yanit = istemci.put(f"{DP}/kurallar/{YAYILIM}", json={"seviye": "cok_onemli"}, headers=b).json()
     assert yanit["agirlik"] == 5
+    # ADR 0024: okul genelinde açılamaz, yalnızca derse özel.
+    yanit = istemci.put(f"{DP}/kurallar/{YAYILIM}", json={"parametreler": {"yayilsin": True}}, headers=b)
+    assert (yanit.status_code, yanit.json()["detail"]) == (
+        422, "Aynı dersin günlere yayılması okul genelinde açılamaz; Özel ayar ekle ile derse özel açın")
     assert kural(istemci, b, EN_AZ)["parametreler"] == {"k": 3}
 
 

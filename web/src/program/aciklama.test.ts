@@ -58,7 +58,7 @@ describe("kalite maddeleri", () => {
     const m = kaliteMaddeleri(OLCUM);
     expect(m.map((x) => [x.anahtar, x.iyi])).toEqual([
       ["sinif_boslugu", true], ["ogretmen_penceresi", false], ["eksik_bos_gun", false], ["tercih_etmez", true], ["bolunmus_ders", false],
-      ["az_dersli_gun", true], ["art_arda_gun", true],
+      ["az_dersli_gun", true],
     ]);
     expect(m[0]!.metin).toBe("Şubelerde gün ortasında boş saat yok.");
     expect(m[1]!.metin).toBe("Öğretmenlerin toplam 7 pencere saati var (iki dersi arasında boş bekledikleri saat).");
@@ -69,12 +69,12 @@ describe("kalite maddeleri", () => {
     expect(kaliteMaddeleri(OLCUM, true).at(-1)?.metin).toBe("Temel programa göre 4 hücre değişti.");
   });
 
-  it("ikincil kurallar (K6): saat tercihi yalnızca sıfırdan büyükse söylenir", () => {
+  it("ikincil kurallar (K6): saat tercihi ve art arda gün yalnızca sıfırdan büyükse söylenir", () => {
     const m = kaliteMaddeleri({ ...OLCUM, az_dersli_gun: 3, art_arda_gun: 2, saat_tercihi: 1 });
     expect(m.find((x) => x.anahtar === "az_dersli_gun")?.metin).toBe("Öğretmenler 3 gün, geldikleri günde en az ders sayısının altında kaldı.");
     expect(m.find((x) => x.anahtar === "art_arda_gun")?.metin).toBe("Aynı ders 2 yerde art arda iki güne kondu (ör. pazartesi ve salı).");
     expect(m.find((x) => x.anahtar === "saat_tercihi")?.metin).toBe("1 ders saati, dersin istenmeyen saatine kondu (dersin saat tercihi).");
-    expect(kaliteMaddeleri(OLCUM).some((x) => x.anahtar === "saat_tercihi")).toBe(false);
+    expect(kaliteMaddeleri(OLCUM).some((x) => x.anahtar === "saat_tercihi" || x.anahtar === "art_arda_gun")).toBe(false);
   });
 
   it("ölçü yoksa boş", () => {

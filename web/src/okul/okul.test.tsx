@@ -308,7 +308,10 @@ describe("gelişmiş: kuralların önemi", () => {
     expect(k).toHaveValue(2);
     await kullanici.clear(k);
     await kullanici.type(k, "3");
-    await kullanici.click(within(screen.getByRole("group", { name: "Aynı ders günlere yayılsın" })).getByRole("checkbox"));
+    // Yayılım okul genelinde açılamaz (ADR 0024): onay kutusu yok, yalnızca yönlendirme.
+    const yayilim = screen.getByRole("group", { name: "Aynı ders günlere yayılsın" });
+    expect(within(yayilim).queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(within(yayilim).getByText(/Hangi derste açık olacağı/)).toBeInTheDocument();
     const yuk = screen.getByRole("group", { name: "Öğretmenin haftalık ders yükü" });
     const alt = within(yuk).getByRole("spinbutton", { name: "Alt eşik (saat)" });
     await kullanici.clear(alt);
@@ -317,7 +320,6 @@ describe("gelişmiş: kuralların önemi", () => {
     expect(await screen.findByText("Gelişmiş ayarlar kaydedildi.")).toBeInTheDocument();
     expect(govdeler).toEqual([
       { tur: "gunluk_en_az_ders", govde: { parametreler: { k: 3 } } },
-      { tur: "ders_yayilimi", govde: { parametreler: { yayilsin: false } } },
       { tur: "haftalik_yuk", govde: { parametreler: { alt: 15, ust: 0 } } },
     ]);
   });

@@ -9,7 +9,7 @@ import pytest
 from cozucu import CozumDurumu, CpSatCozucu, DersAtama, Kapsam, KisitTanimi, OkulAyari, dogrula, olc
 from cozucu.kalite import agirlikli_ceza
 from cozucu.kisitlar import KAYIT_DEFTERI, GirdiHatasi, etkin_agirliklar, kural_olustur
-from cozucu.tercihler import cezali_saatler, gunluk_en_az_ders
+from cozucu.tercihler import cezali_saatler, gunluk_en_az_ders, yayilsin
 from yardimci import girdi_kur
 
 from test_esnek_kisitlar import BLOKSUZ, atama, gelemez, kilit, yalniz
@@ -42,6 +42,7 @@ def test_kapsamlar():
     assert KAYIT_DEFTERI[SAAT].zorunlu_eksenler == {"ders"}
     assert KAYIT_DEFTERI[EN_AZ].kapsamlar == {"ogretmen"}
     assert KAYIT_DEFTERI[YAYILIM].kapsamlar == {"ders", "sube", "sube_grubu"}
+    assert KAYIT_DEFTERI[YAYILIM].zorunlu_eksenler == {"ders"}
 
 
 def test_saat_tercihi_dersiz_ozel_ayar_reddedilir():
@@ -142,10 +143,25 @@ def test_ogretmene_ozel_en_az_ders():
 
 # --- aynı dersin günlere yayılması (h) --------------------------------------------------------
 
+N1 = KisitTanimi("gunluk_ders_siniri", {"n": 1})
+MAT_YAYILSIN = ozel(YAYILIM, {"yayilsin": True}, ders_id="mat")
+
+
+def test_okul_genelinde_yayilim_kapali():
+    # ADR 0024: okul ayarı olmadan art arda günler (kilitle zorlanmış) ceza getirmez.
+    kilitler = [kilit("mat", 0, 0), kilit("mat", 1, 0)]
+    girdi = girdi_kur(ayar=OkulAyari(5, 2), atamalar=[atama("mat", saat=2)], kilitli_yerlesimler=kilitler,
+                      kisitlar=yalniz(YAYILIM) + [BLOKSUZ, N1])
+    assert not yayilsin(girdi, "s1", "mat")
+    sonuc = coz(girdi)
+    assert olc(girdi, sonuc.yerlesimler).art_arda_gun == 0
+    assert sonuc.toplam_ceza == 0
+
+
 def test_ayni_ders_art_arda_gunlere_yigilmaz():
-    # 2 saat, günde en fazla 1 (N=1), 5 gün: art arda olmayan iki gün seçilir.
-    n1 = KisitTanimi("gunluk_ders_siniri", {"n": 1})
-    girdi = girdi_kur(ayar=OkulAyari(5, 2), atamalar=[atama("mat", saat=2)], kisitlar=yalniz(YAYILIM) + [BLOKSUZ, n1])
+    # Derse özel açık; 2 saat, günde en fazla 1 (N=1), 5 gün: art arda olmayan iki gün seçilir.
+    girdi = girdi_kur(ayar=OkulAyari(5, 2), atamalar=[atama("mat", saat=2)],
+                      kisitlar=yalniz(YAYILIM) + [BLOKSUZ, N1, MAT_YAYILSIN])
     sonuc = coz(girdi)
     g1, g2 = sorted(g for g, _s in saatler(sonuc, "mat"))
     assert g2 - g1 >= 2
@@ -154,21 +170,30 @@ def test_ayni_ders_art_arda_gunlere_yigilmaz():
 
 def test_kacinilamayan_yigilma_cezasi():
     # 3 gün, 3 saat, günde 1: üç gün de dolu, iki art arda çift × ağırlık 2.
-    n1 = KisitTanimi("gunluk_ders_siniri", {"n": 1})
-    girdi = girdi_kur(ayar=OkulAyari(3, 2), atamalar=[atama("mat", saat=3)], kisitlar=yalniz(YAYILIM) + [BLOKSUZ, n1])
+    girdi = girdi_kur(ayar=OkulAyari(3, 2), atamalar=[atama("mat", saat=3)],
+                      kisitlar=yalniz(YAYILIM) + [BLOKSUZ, N1, MAT_YAYILSIN])
     sonuc = coz(girdi)
     assert olc(girdi, sonuc.yerlesimler).art_arda_gun == 2
     assert sonuc.toplam_ceza == 4
 
 
-def test_derse_ozel_kapatilabilir():
-    n1 = KisitTanimi("gunluk_ders_siniri", {"n": 1})
-    kilitler = [kilit("mat", 0, 0), kilit("mat", 1, 0)]
-    girdi = girdi_kur(ayar=OkulAyari(5, 2), atamalar=[atama("mat", saat=2)], kilitli_yerlesimler=kilitler,
-                      kisitlar=yalniz(YAYILIM) + [BLOKSUZ, n1, ozel(YAYILIM, {"yayilsin": False}, ders_id="mat")])
+def test_ders_sube_ayari_derse_ozel_acmayi_ezer():
+    # Matematik okulda yayılsın; 9-B'de kapalı (ders + şube daha özel): 9-B'nin art arda günleri cezasız.
+    kilitler = [kilit("b", 0, 0), kilit("b", 1, 0)]
+    girdi = girdi_kur(ayar=OkulAyari(5, 2), kilitli_yerlesimler=kilitler,
+                      atamalar=[atama("a", sinif="9A", ders="mat", saat=2), atama("b", sinif="9B", ders="mat", ogretmen="o2", saat=2)],
+                      kisitlar=yalniz(YAYILIM) + [BLOKSUZ, N1, MAT_YAYILSIN,
+                                                  ozel(YAYILIM, {"yayilsin": False}, ders_id="mat", sinif_id="9B")])
+    assert (yayilsin(girdi, "9A", "mat"), yayilsin(girdi, "9B", "mat")) == (True, False)
     sonuc = coz(girdi)
-    assert olc(girdi, sonuc.yerlesimler).art_arda_gun == 0
+    g1, g2 = sorted(g for g, _s in saatler(sonuc, "a"))
+    assert g2 - g1 >= 2
     assert sonuc.toplam_ceza == 0
+
+
+def test_yayilim_dersiz_ozel_ayar_reddedilir():
+    with pytest.raises(GirdiHatasi, match="ders belirtilmeli"):
+        kural_olustur(KisitTanimi(YAYILIM, zorunlu=False, agirlik=2), [ozel(YAYILIM, {"yayilsin": True}, sinif_id="s1")])
 
 
 # --- öğretmenin haftalık yük uyarısı (i) ------------------------------------------------------

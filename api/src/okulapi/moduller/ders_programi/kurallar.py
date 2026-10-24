@@ -105,7 +105,8 @@ KURAL_METINLERI: dict[str, tuple[str, str]] = {
     "ders_yayilimi": (
         "Aynı ders günlere yayılsın",
         "Bir şubenin aynı dersi art arda günlere konmamaya çalışılır (pazartesi ve salı yerine "
-        "pazartesi ve perşembe).",
+        "pazartesi ve perşembe). Okul genelinde kapalıdır; derse özel açılır, çünkü öğretmenlerin "
+        "boş gününü ve boş saatlerini zorlaştırabilir.",
     ),
 }
 
@@ -262,6 +263,9 @@ class KurallarServisi:
                 raise GecersizVeri(f"{KURAL_METINLERI[tur][0]}: en az {PARAMETRE_ALT_SINIRLARI.get(ad, 0)} olmalı")
         if tur == "haftalik_yuk" and sonuc.get("alt") and sonuc.get("ust") and sonuc["alt"] > sonuc["ust"]:
             raise GecersizVeri("Alt eşik üst eşikten büyük olamaz")
+        if tur == "ders_yayilimi" and not ozel and sonuc.get("yayilsin"):
+            # ADR 0024: okul geneli açık yayılım boş gün ve pencereyle çatışır.
+            raise GecersizVeri("Aynı dersin günlere yayılması okul genelinde açılamaz; Özel ayar ekle ile derse özel açın")
         if tur == "ders_saat_tercihi" and ozel and not (sonuc.get("saatler") or sonuc.get("kacin")):
             raise GecersizVeri("Dersin saat tercihi için istenen ya da istenmeyen en az bir saat seçin")
         return sonuc

@@ -32,9 +32,10 @@ VARSAYILAN_KISITLAR: tuple[KisitTanimi, ...] = (
     KisitTanimi("ardisik_ders", zorunlu=False, agirlik=2),
     KisitTanimi(BOS_GUN_TURU, {"hedef_bos_gun": VARSAYILAN_HEDEF_BOS_GUN}, zorunlu=False, agirlik=4),
     # İkincil kurallar (K6). Saat tercihinin okul geneli değeri yoktur: derse özel ayarla çalışır.
+    # Yayılım okul genelinde kapalı, derse özel açılır (ADR 0024).
     KisitTanimi(SAAT_TERCIHI_TURU, zorunlu=False, agirlik=3),
     KisitTanimi(EN_AZ_DERS_TURU, {"k": VARSAYILAN_GUNLUK_EN_AZ_DERS}, zorunlu=False, agirlik=3),
-    KisitTanimi(YAYILIM_TURU, {"yayilsin": True}, zorunlu=False, agirlik=2),
+    KisitTanimi(YAYILIM_TURU, {"yayilsin": False}, zorunlu=False, agirlik=2),
     # Uyarı kuralı: öğretmenin haftalık yük eşikleri; ikisi de kapalı (0). Modele bir şey eklemez.
     KisitTanimi(HAFTALIK_YUK_TURU, {"alt": 0, "ust": 0}, zorunlu=True),
     # Yalnızca temel program varsa etkili. Öğretmen konforu kurallarından ağır, sınıf boşluğundan hafif.

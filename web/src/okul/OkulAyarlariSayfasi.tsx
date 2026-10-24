@@ -394,7 +394,7 @@ function KurallarBolumu({ okul, kurallar }: { okul: Okul; kurallar: Kural[] }) {
 // --- gelişmiş: esnek kuralların önemi ---------------------------------------------------------
 
 /** Gelişmiş bölümde önemin yanında okul değeri ayarlanan ikincil kurallar (K6) ve yük eşikleri. */
-type IkincilDegerler = { k: string; yayilsin: boolean; alt: string; ust: string };
+type IkincilDegerler = { k: string; alt: string; ust: string };
 
 function ikincilDegerler(kurallar: Kural[], varsayilan = false): IkincilDegerler {
   const p = (tur: string) => {
@@ -403,7 +403,6 @@ function ikincilDegerler(kurallar: Kural[], varsayilan = false): IkincilDegerler
   };
   return {
     k: String(p("gunluk_en_az_ders").k ?? 2),
-    yayilsin: p("ders_yayilimi").yayilsin !== false,
     alt: String(p("haftalik_yuk").alt ?? 0),
     ust: String(p("haftalik_yuk").ust ?? 0),
   };
@@ -413,7 +412,6 @@ function ikincilDegerler(kurallar: Kural[], varsayilan = false): IkincilDegerler
 function ikincilDegisiklikler(once: IkincilDegerler, simdi: IkincilDegerler): Record<string, Record<string, number | boolean>> {
   const sonuc: Record<string, Record<string, number | boolean>> = {};
   if (simdi.k !== once.k) sonuc.gunluk_en_az_ders = { k: Number(simdi.k) };
-  if (simdi.yayilsin !== once.yayilsin) sonuc.ders_yayilimi = { yayilsin: simdi.yayilsin };
   if (simdi.alt !== once.alt || simdi.ust !== once.ust) sonuc.haftalik_yuk = { alt: Number(simdi.alt), ust: Number(simdi.ust) };
   return sonuc;
 }
@@ -497,10 +495,7 @@ function OnemBolumu({ kurallar, gunlukDersSaati }: { kurallar: Kural[]; gunlukDe
               </div>
             )}
             {k.tur === "ders_yayilimi" && (
-              <label className={stil.secenek}>
-                <input type="checkbox" checked={ikincil.yayilsin} onChange={(o) => setIkincil({ ...ikincil, yayilsin: o.target.checked })} />
-                Bütün derslerde açık (bir derste kapatmak için: Özel ayarlar)
-              </label>
+              <p className={stil.aciklama}>Hangi derste açık olacağı Özel ayarlar bölümünde, "Özel ayar ekle" ile seçilir.</p>
             )}
             {k.tur === "ders_saat_tercihi" && (
               <p className={stil.aciklama}>Hangi dersin hangi saatlerde olacağı Özel ayarlar bölümünde, "Özel ayar ekle" ile seçilir.</p>

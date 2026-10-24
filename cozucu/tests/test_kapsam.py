@@ -335,10 +335,8 @@ def test_bos_gun_hedefi_ozel_m_ile_hesaplanir():
         ayar=OkulAyari(3, 4),
         atamalar=[atama("a", sinif="s1", saat=3), atama("b", sinif="s2", saat=3)],
         # Sınıf boşluğu kapalı: iki şubeden biri her gün 2. saatte başlamak zorunda, ceza toplamı
-        # yalnızca boş gün kuralını ölçsün. Günlere yayılım da kapalı: N = 1 ile 3 saatlik ders üç güne
-        # yayılmak zorunda (art arda günler kaçınılmaz).
-        kisitlar=[KisitTanimi(N, {"n": 1}), ozel(M, 2, ogretmen_id="o1"), KisitTanimi("sinif_boslugu", zorunlu=False, agirlik=0),
-                  KisitTanimi("ders_yayilimi", zorunlu=False, agirlik=0)],
+        # yalnızca boş gün kuralını ölçsün.
+        kisitlar=[KisitTanimi(N, {"n": 1}), ozel(M, 2, ogretmen_id="o1"), KisitTanimi("sinif_boslugu", zorunlu=False, agirlik=0)],
     )
     sonuc = coz(girdi)
     assert sonuc.basarili

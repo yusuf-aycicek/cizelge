@@ -270,14 +270,16 @@ class DersYayilimi(EsnekKural):
     """Aynı dersin günlere yayılması: bir şubenin aynı dersi art arda iki günde varsa ceza
     (pazartesi ve salı yerine pazartesi ve perşembe).
 
-    (şube, ders) çifti başına, ders verilen art arda gün çifti sayısı. Derse, şubeye ya da gruba
-    özel kapatılabilir (`yayilsin: false`).
+    (şube, ders) çifti başına, ders verilen art arda gün çifti sayısı. Okul genelinde kapalıdır
+    (ADR 0024: boş gün ve pencereyle çatışır); derse ya da ders + şubeye/gruba özel açılır
+    (`yayilsin: true`). Okul geneli değer çözücüde açılabilir (ölçüm için), API izin vermez.
     """
 
     tur = YAYILIM_TURU
     kapsamlar = frozenset({"ders", "sube", "sube_grubu"})
+    zorunlu_eksenler = frozenset({"ders"})
 
-    def __init__(self, yayilsin: bool = True) -> None:
+    def __init__(self, yayilsin: bool = False) -> None:
         if not isinstance(yayilsin, bool):
             raise ValueError(f"yayilsin açık ya da kapalı olmalı: {yayilsin}")
         self.yayilsin = yayilsin
