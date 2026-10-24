@@ -920,6 +920,110 @@ AKISLAR["5.6"] = async (tarayici, kaydet) => {
   await tb.close();
 };
 
+// 6.3 + 7.1: programlar listesi, fark, elle düzeltme. Geçici veri API ile açılır ve iş bitince
+// silinir: bir öğretmene bir günlük "gelemez", o veriyle mevcut programı temel alan ikinci program.
+// Elle düzeltme yalnızca bu geçici programda yapılır (silinince taşımaları ve kilitleri de gider).
+AKISLAR["7.1"] = async (tarayici, kaydet) => {
+  const { baglam, s } = await ornekGiris(tarayici, MASAUSTU);
+  const koken = { Origin: ADRES };
+  const DP = ADRES + "/api/ders-programi";
+  const al = async (yol) => (await s.request.get(DP + yol)).json();
+  const programlar = await al("/programlar");
+  const temel = programlar.find((p) => p.durum === "hazir");
+  const atamalar = await al("/atamalar");
+  const yerlesimler = await al(`/programlar/${temel.id}/yerlesimler`);
+  // Bir öğretmenin ders verdiği ilk gün: o gün bütün gün gelemez olsun.
+  const ilk = yerlesimler.find((y) => atamalar.find((a) => a.id === y.ders_atama_id)?.ogretmen_id);
+  const ogretmen = atamalar.find((a) => a.id === ilk.ders_atama_id).ogretmen_id;
+  const musaitlik = await al(`/ogretmenler/${ogretmen}/musaitlik`);
+  const eklenen = Array.from({ length: 6 }, (_, saat) => ({ gun: ilk.gun, saat, durum: "gelemez" }))
+    .filter((h) => !musaitlik.hucreler.some((m) => m.gun === h.gun && m.saat === h.saat));
+  await s.request.put(`${DP}/ogretmenler/${ogretmen}/musaitlik`, { headers: koken, data: { degisiklikler: eklenen } });
+  let yeni;
+  try {
+    yeni = await (await s.request.post(`${DP}/programlar`, { headers: koken,
+      data: { ad: "Kasım (güncel)", sure_siniri_sn: 30, temel_program_id: temel.id } })).json();
+    for (let i = 0; i < 60 && (await al(`/programlar/${yeni.id}`)).durum !== "hazir"; i++) await s.waitForTimeout(1000);
+
+    await s.goto(ADRES + "/program");
+    await s.getByRole("status", { name: "Temel programa göre değişiklik" }).waitFor();
+    await s.waitForTimeout(600);
+    await kaydet(s, "01-programlar.png", true);
+
+    await s.goto(`${ADRES}/program/${yeni.id}?fark=1`);
+    await s.locator("[data-degisti]").first().waitFor();
+    await s.waitForTimeout(900);
+    await s.locator("[data-degisti]").first().scrollIntoViewIfNeeded();
+    await s.evaluate(() => window.scrollBy(0, -260));
+    await kaydet(s, "02-fark-cizelge.png");
+
+    await s.goto(`${ADRES}/program/${yeni.id}`);
+    const tablo = s.getByRole("table").first();
+    await tablo.waitFor();
+    await s.waitForTimeout(900);
+    // Uyarılı hedefi olan ilk ders seçilir.
+    const dugmeler = tablo.locator("td[data-kilitli], td").filter({ has: s.locator("button") });
+    let secildi = false;
+    for (let i = 0; i < (await dugmeler.count()) && !secildi; i++) {
+      const td = dugmeler.nth(i);
+      if (!(await td.textContent())?.trim()) continue;
+      await td.locator("button").click();
+      await s.getByRole("button", { name: "Taşı" }).click();
+      await s.locator('td[data-hedef]').first().waitFor();
+      await s.waitForTimeout(300);
+      if ((await s.locator('td[data-hedef="uyari"], td[data-hedef="uygun"]').count()) > 0) secildi = true;
+      else await s.getByRole("button", { name: "Vazgeç" }).click();
+    }
+    const hedef = s.locator('td[data-hedef="uyari"]').first();
+    await hedef.locator("button").hover();
+    await s.getByRole("region", { name: "Elle düzeltme" }).scrollIntoViewIfNeeded();
+    await s.evaluate(() => window.scrollBy(0, -60));
+    await kaydet(s, "03-tasima-haritasi.png");
+
+    await hedef.locator("button").click();
+    await s.getByRole("dialog").waitFor();
+    await kaydet(s, "04-uyari-onayi.png");
+    await s.getByRole("button", { name: "Yine de taşı" }).click();
+    await s.getByText(/saate taşındı/).waitFor();
+    // Bir dersi kilitle: kilit simgesi ve "Geri al (2)".
+    const dolu = tablo.locator("td").filter({ hasText: /\S/ }).filter({ has: s.locator("button") }).nth(2);
+    await dolu.locator("button").click();
+    await s.getByRole("button", { name: "Kilitle" }).click();
+    await s.getByText(/kilitlendi/).waitFor();
+    await s.getByRole("button", { name: "Kapat", exact: true }).click();
+    await s.waitForTimeout(400);
+    await s.locator("[data-kilitli]").first().scrollIntoViewIfNeeded();
+    await s.evaluate(() => window.scrollBy(0, -200));
+    await kaydet(s, "05-kilitli-ve-geri-al.png");
+
+    const tb = await tarayici.newContext({ viewport: TELEFON, locale: "tr-TR", hasTouch: true, isMobile: true });
+    const t = await tb.newPage();
+    await t.goto(ADRES + "/giris");
+    await t.getByLabel("E-posta").fill("mudur@ornek.test");
+    await t.getByLabel("Parola").fill("ornek-okul-parolasi");
+    await t.getByRole("button", { name: "Giriş yap" }).tap();
+    await t.getByRole("img", { name: /Kurulum:/ }).waitFor();
+    await t.goto(`${ADRES}/program/${yeni.id}`);
+    const gunler = t.getByRole("group", { name: "Gün" });
+    await gunler.getByRole("button", { name: "Pazartesi" }).tap();
+    const liste = t.getByRole("list", { name: /Pazartesi/ });
+    await liste.getByRole("listitem").filter({ has: t.locator("button") }).first().locator("button").tap();
+    await t.getByRole("button", { name: "Taşı" }).tap();
+    await t.locator("li[data-hedef]").first().waitFor();
+    await gunler.getByRole("button", { name: "Salı" }).tap();
+    await t.waitForTimeout(500);
+    await t.getByRole("region", { name: "Elle düzeltme" }).evaluate((e) => e.scrollIntoView({ block: "start" }));
+    await t.evaluate(() => window.scrollBy(0, -70));
+    await kaydet(t, "06-telefon-tasima.png");
+    await tb.close();
+  } finally {
+    if (yeni) await s.request.delete(`${DP}/programlar/${yeni.id}`, { headers: koken });
+    await s.request.put(`${DP}/ogretmenler/${ogretmen}/musaitlik`, { headers: koken,
+      data: { degisiklikler: eklenen.map((h) => ({ ...h, durum: "musait" })) } });
+    await baglam.close();
+  }
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {
