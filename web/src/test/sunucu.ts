@@ -26,11 +26,11 @@ export const ORNEK_KURALLAR: Kural[] = [
   sayili("gunluk_ders_siniri", "Aynı dersin günlük sınırı", "Aynı ders bir sınıfa günde en fazla bu kadar saat konur.", "n", 2),
   sayili("ogretmen_gunluk_siniri", "Öğretmenin günlük ders sınırı", "Bir öğretmen günde en fazla bu kadar saat derse girer.", "m", 8),
   { ...sayili("blok_deseni", "Dağılım şekli (blok dersler)", "Bir dersin haftalık saatleri art arda bloklara bölünür.", "otomatik", 0),
-    parametreler: { otomatik: true }, varsayilan_parametreler: { otomatik: true }, kapsamlar: ["ders", "sube"] },
+    parametreler: { otomatik: true }, varsayilan_parametreler: { otomatik: true }, kapsamlar: ["ders", "sube", "sube_grubu"], zorunlu_eksenler: ["ders"] },
   esnek("sinif_boslugu", "Sınıfların boş saati olmasın", 30),
   esnek("degisiklik", "Mevcut programa bağlılık", 8),
   esnek("tercih_etmez", "Öğretmenin tercih etmediği saatler", 5),
-  { ...esnek("bos_gun", "Öğretmene boş gün", 4), parametreler: { hedef_bos_gun: 1 }, varsayilan_parametreler: { hedef_bos_gun: 1 } },
+  { ...esnek("bos_gun", "Öğretmene boş gün", 4), parametreler: { hedef_bos_gun: 1 }, varsayilan_parametreler: { hedef_bos_gun: 1 }, kapsamlar: ["ogretmen"] },
   esnek("ogretmen_penceresi", "Öğretmenin boş (pencere) saatleri", 3),
   esnek("ardisik_ders", "Bir dersin saatleri arka arkaya", 2),
 ];
@@ -38,12 +38,12 @@ export const ORNEK_KURALLAR: Kural[] = [
 function sayili(tur: string, ad: string, aciklama: string, p: string, v: number): Kural {
   return { tur, ad, aciklama, zorunlu: true, parametreler: { [p]: v }, varsayilan_parametreler: { [p]: v },
     agirlik: null, seviye: null, varsayilan_seviye: null, varsayilan: true,
-    kapsamlar: tur === "gunluk_ders_siniri" ? ["ders", "sube"] : ["ogretmen"], ozel_ayarlar: [] };
+    kapsamlar: tur === "gunluk_ders_siniri" ? ["ders", "sube", "sube_grubu"] : ["ogretmen"], zorunlu_eksenler: [], ozel_ayarlar: [] };
 }
 
 function esnek(tur: string, ad: string, agirlik: number): Kural {
   return { tur, ad, aciklama: `${ad} açıklaması.`, zorunlu: false, parametreler: {}, varsayilan_parametreler: {},
-    agirlik, seviye: "onemli", varsayilan_seviye: "onemli", varsayilan: true, kapsamlar: [], ozel_ayarlar: [] };
+    agirlik, seviye: "onemli", varsayilan_seviye: "onemli", varsayilan: true, kapsamlar: [], zorunlu_eksenler: [], ozel_ayarlar: [] };
 }
 
 /** API'nin paletinin başı (cekirdek/ders_renkleri.py ile aynı sırada). */

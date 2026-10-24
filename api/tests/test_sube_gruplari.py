@@ -337,3 +337,32 @@ def test_gruba_ozel_ayar_kaldirilir(istemci, okul):
     ozel(istemci, okul, N, {"sube_grubu_id": okul["say"]}, {"n": 3})
     yanit = istemci.delete(f"{DP}/kurallar/{N}/ozel", params={"sube_grubu_id": okul["say"]}, headers=okul["b"])
     assert yanit.status_code == 200 and yanit.json()["ozel_ayarlar"] == []
+
+
+def test_ozel_ayar_etkisi_neyi_ezdigini_ve_neyin_ezdigini_soyler(istemci, okul):
+    """Kaydetmeden önce: "11-A · Matematik" (6) gruba, derse ve şubeye özel ayarları ezer; "Matematik"
+    (4) ise daha özel olan ders + grup ve ders + şube ayarlarının altında kalır. Örtüşmeyenler yok."""
+    b = okul["b"]
+    grupla(istemci, okul, "11-A", okul["say"])
+    ozel(istemci, okul, N, {"sube_grubu_id": okul["say"]}, {"n": 3})
+    ozel(istemci, okul, N, {"ders_id": okul["Matematik"]}, {"n": 2})
+    ozel(istemci, okul, N, {"ders_id": okul["Matematik"], "sube_grubu_id": okul["say"]}, {"n": 3})
+    ozel(istemci, okul, N, {"ders_id": okul["Fizik"]}, {"n": 1})
+    ozel(istemci, okul, N, {"sinif_id": okul["9-A"]}, {"n": 1})
+
+    def etki(**kapsam):
+        yanit = istemci.get(f"{DP}/kurallar/{N}/ozel/etki", params={k: okul[v] for k, v in kapsam.items()}, headers=b)
+        assert yanit.status_code == 200, yanit.text
+        j = yanit.json()
+        return (j["mevcut"] and j["mevcut"]["ad"], [o["ad"] for o in j["ezdikleri"]], [o["ad"] for o in j["ezenler"]])
+
+    assert etki(ders_id="Matematik", sinif_id="11-A") == (
+        None, ["11 Sayısal grubu", "11 Sayısal grubu · Matematik", "Matematik"], [])
+    assert etki(ders_id="Matematik") == ("Matematik", ["11 Sayısal grubu", "9-A"], ["11 Sayısal grubu · Matematik"])
+    # 11-B grupta değil: grubun ayarlarıyla örtüşmez.
+    assert etki(sinif_id="11-B") == (None, [], ["Fizik", "Matematik"])
+
+    yanit = istemci.get(f"{DP}/kurallar/ogretmen_gunluk_siniri/ozel/etki", params={"ders_id": okul["Fizik"]}, headers=b)
+    assert yanit.status_code == 422
+    yanit = istemci.get(f"{DP}/kurallar/{N}/ozel/etki", params={"sinif_id": okul["11-A"], "sube_grubu_id": okul["say"]}, headers=b)
+    assert yanit.status_code == 422 and "birlikte bulunamaz" in yanit.json()["detail"]

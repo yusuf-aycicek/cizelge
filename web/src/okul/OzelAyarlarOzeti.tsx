@@ -1,13 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
+import { useState } from "react";
 import { cagir, hataMetni } from "../api/hata";
 import { api } from "../api/istemci";
 import type { components } from "../api/sema";
 import { useBildirim } from "../bilesenler/Bildirim";
 import { Dugme } from "../bilesenler/Dugme";
 import { FormHatasi } from "../bilesenler/form";
+import { desenMetni } from "../dersler/desen";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
 import stil from "./Okul.module.css";
+import { OzelAyarEkle } from "./OzelAyarEkle";
 
 type Kural = components["schemas"]["KuralYanit"];
 type OzelAyar = components["schemas"]["OzelAyarYanit"];
@@ -21,11 +24,12 @@ export function ozelAyarMetni(tur: string, ozel: OzelAyar): string {
   const k = ozel.kapsam;
   if (tur === "ogretmen_gunluk_siniri") return `günde en çok ${p.m} saat derse girer`;
   if (tur === "gunluk_ders_siniri") {
-    if (k.ders_id && k.sinif_id) return `günde en çok ${p.n} saat`;
+    if (k.ders_id && (k.sinif_id || k.sube_grubu_id)) return `günde en çok ${p.n} saat`;
     if (k.ders_id) return `bir şubeye günde en çok ${p.n} saat konur`;
     return `aynı ders günde en çok ${p.n} saat konur`;
   }
   if (tur === "bos_gun") return `haftada ${p.hedef_bos_gun} boş gün hedeflenir`;
+  if (tur === "blok_deseni" && Array.isArray(p.desen)) return `dağılım şekli ${desenMetni(p.desen)}`;
   return Object.entries(p).map(([ad, deger]) => `${ad} = ${deger}`).join(", ");
 }
 
@@ -41,19 +45,23 @@ function okulDegeri(kural: Kural): string {
  * burada görünür, hiçbir istisna gizli kalmaz. Her biri buradan kaldırılabilir; kaldırılınca o yerde
  * okul değeri geçerli olur.
  */
-export function OzelAyarlarOzeti({ kurallar }: { kurallar: Kural[] }) {
+export function OzelAyarlarOzeti({ kurallar, gunlukDersSaati }: { kurallar: Kural[]; gunlukDersSaati: number }) {
   const istemci = useQueryClient();
+  const [ekleniyor, setEkleniyor] = useState(false);
   const bildirim = useBildirim();
   const satirlar = kurallar.flatMap((kural) => kural.ozel_ayarlar.map((ozel) => ({ kural, ozel })));
 
   const kaldir = useMutation({
     mutationFn: ({ kural, ozel }: { kural: Kural; ozel: OzelAyar }) => {
-      const { ders_id, sinif_id, ogretmen_id } = ozel.kapsam;
+      const { ders_id, sinif_id, sube_grubu_id, ogretmen_id } = ozel.kapsam;
       return cagir(api.DELETE("/api/ders-programi/kurallar/{tur}/ozel", {
         params: {
           path: { tur: kural.tur },
           // Boş eksen sorguya hiç konmaz: "ders_id=null" gibi bir değer gitmesin.
-          query: { ...(ders_id && { ders_id }), ...(sinif_id && { sinif_id }), ...(ogretmen_id && { ogretmen_id }) },
+          query: {
+            ...(ders_id && { ders_id }), ...(sinif_id && { sinif_id }),
+            ...(sube_grubu_id && { sube_grubu_id }), ...(ogretmen_id && { ogretmen_id }),
+          },
         },
       }));
     },
@@ -66,7 +74,7 @@ export function OzelAyarlarOzeti({ kurallar }: { kurallar: Kural[] }) {
     <section className={sayfaStili.kart} aria-labelledby="ozel-ayarlar">
       <h2 id="ozel-ayarlar">Özel ayarlar</h2>
       <p className={stil.aciklama}>
-        Bir öğretmene, derse ya da şubeye okul genelinden farklı bir değer verildiyse burada listelenir.
+        Bir öğretmene, derse, şubeye ya da şube grubuna okul genelinden farklı bir değer verildiyse burada listelenir.
       </p>
       <FormHatasi mesaj={kaldir.error ? hataMetni(kaldir.error) : undefined} />
       {satirlar.length === 0 ? (
@@ -74,7 +82,7 @@ export function OzelAyarlarOzeti({ kurallar }: { kurallar: Kural[] }) {
       ) : (
         <ul className={stil.ozelListe} aria-label="Özel ayarlar">
           {satirlar.map(({ kural, ozel }) => (
-            <li key={`${kural.tur}-${ozel.kapsam.ogretmen_id}-${ozel.kapsam.ders_id}-${ozel.kapsam.sinif_id}`}>
+            <li key={`${kural.tur}-${ozel.kapsam.ogretmen_id}-${ozel.kapsam.ders_id}-${ozel.kapsam.sinif_id}-${ozel.kapsam.sube_grubu_id}`}>
               <span>
                 <strong>{ozel.ad}</strong>: {ozelAyarMetni(kural.tur, ozel)}
                 <span className={stil.ozelKural}>
@@ -88,6 +96,13 @@ export function OzelAyarlarOzeti({ kurallar }: { kurallar: Kural[] }) {
             </li>
           ))}
         </ul>
+      )}
+      {ekleniyor ? (
+        <OzelAyarEkle kurallar={kurallar} gunlukDersSaati={gunlukDersSaati} onKapat={() => setEkleniyor(false)} />
+      ) : (
+        <Dugme tur="ikincil" ikon={<Plus />} className={stil.ozelEkleDugmesi} onClick={() => setEkleniyor(true)}>
+          Özel ayar ekle
+        </Dugme>
       )}
     </section>
   );

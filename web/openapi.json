@@ -1128,6 +1128,19 @@
           "zorunlu": {
             "title": "Zorunlu",
             "type": "boolean"
+          },
+          "zorunlu_eksenler": {
+            "items": {
+              "enum": [
+                "ogretmen",
+                "ders",
+                "sube",
+                "sube_grubu"
+              ],
+              "type": "string"
+            },
+            "title": "Zorunlu Eksenler",
+            "type": "array"
           }
         },
         "required": [
@@ -1142,6 +1155,7 @@
           "varsayilan_seviye",
           "varsayilan",
           "kapsamlar",
+          "zorunlu_eksenler",
           "ozel_ayarlar"
         ],
         "title": "KuralYanit",
@@ -1796,6 +1810,42 @@
           "parametreler"
         ],
         "title": "OzelAyar",
+        "type": "object"
+      },
+      "OzelAyarEtkisi": {
+        "description": "Bir kapsama özel ayar verilirse: aynı kapsamdaki mevcut ayar, ezdiği ve onu ezen özel ayarlar.",
+        "properties": {
+          "ezdikleri": {
+            "items": {
+              "$ref": "#/components/schemas/OzelAyarYanit"
+            },
+            "title": "Ezdikleri",
+            "type": "array"
+          },
+          "ezenler": {
+            "items": {
+              "$ref": "#/components/schemas/OzelAyarYanit"
+            },
+            "title": "Ezenler",
+            "type": "array"
+          },
+          "mevcut": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OzelAyarYanit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "mevcut",
+          "ezdikleri",
+          "ezenler"
+        ],
+        "title": "OzelAyarEtkisi",
         "type": "object"
       },
       "OzelAyarYanit": {
@@ -3701,6 +3751,117 @@
           }
         },
         "summary": "Ozel Ayari Kaydet",
+        "tags": [
+          "kural"
+        ]
+      }
+    },
+    "/api/ders-programi/kurallar/{tur}/ozel/etki": {
+      "get": {
+        "description": "Kaydetmeden önce: bu kapsama verilecek özel ayar hangi özel ayarları ezer, hangileri onu ezer\n(kapsam önceliği, ADR 0016). 422: kural bu kapsamda ayarlanamıyor.",
+        "operationId": "ozel_ayar_etkisi_api_ders_programi_kurallar__tur__ozel_etki_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tur",
+            "required": true,
+            "schema": {
+              "title": "Tur",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ogretmen_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ogretmen Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ders_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ders Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sinif_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sinif Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sube_grubu_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sube Grubu Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OzelAyarEtkisi"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ozel Ayar Etkisi",
         "tags": [
           "kural"
         ]

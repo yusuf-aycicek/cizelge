@@ -69,7 +69,7 @@ export function OkulAyarlariSayfasi() {
           <KurallarBolumu key={JSON.stringify(kurallar.data)} okul={okul.data} kurallar={kurallar.data} />
           <BlokBolumu key={`blok-${JSON.stringify(kurallar.data)}`} kurallar={kurallar.data} okul={okul.data}
             onKaydet={() => kurallar.refetch()} />
-          <OzelAyarlarOzeti kurallar={kurallar.data} />
+          <OzelAyarlarOzeti kurallar={kurallar.data} gunlukDersSaati={okul.data.gunluk_ders_saati} />
           <OnemBolumu key={`onem-${JSON.stringify(kurallar.data)}`} kurallar={kurallar.data} />
         </>
       )}

@@ -20,7 +20,7 @@ from collections import defaultdict
 from typing import Any
 
 from cozucu.blok import BLOK_DESENI_TURU, desen_dogrula
-from cozucu.kapsam import Kapsam
+from cozucu.kapsam import Kapsam, ortusur
 from cozucu.kisitlar import KAYIT_DEFTERI, VARSAYILAN_KISITLAR, GirdiHatasi, kural_olustur
 from cozucu.model import KisitTanimi
 from sqlalchemy import select
@@ -114,6 +114,11 @@ def kapsamlar(tur: str) -> list[str]:
     return [e for e in API_EKSENLERI if e in KAYIT_DEFTERI[tur].kapsamlar]
 
 
+def zorunlu_eksenler(tur: str) -> list[str]:
+    """Özel ayarda dolu olması gereken eksenler (ör. dağılım şekli bir ders ister)."""
+    return [e for e in API_EKSENLERI if e in KAYIT_DEFTERI[tur].zorunlu_eksenler]
+
+
 def _kapsam_eksenleri(kapsam: KapsamSozlugu) -> set[str]:
     return {e for e, sutun in EKSEN_SUTUNLARI.items() if kapsam.get(sutun) is not None}
 
@@ -160,6 +165,7 @@ class KurallarServisi:
             "varsayilan_seviye": None if v.zorunlu else seviye(tur, v.agirlik),
             "varsayilan": kayit is None,
             "kapsamlar": kapsamlar(tur),
+            "zorunlu_eksenler": zorunlu_eksenler(tur),
             "ozel_ayarlar": self._ozel_ayarlar(ozeller),
         }
 
@@ -295,6 +301,31 @@ class KurallarServisi:
             kayit.parametreler = parametreler
         self.oturum.commit()
         return self._kural(tur, okul)
+
+    def ozel_etki(self, tur: str, kapsam: KapsamSozlugu) -> dict[str, Any]:
+        """Bu kapsama özel ayar verilirse neyi ezer, neyin altında kalır (kaydetmeden önce gösterim).
+
+        Örtüşen özel ayarlardan puanı küçük olanları ezer, büyük olanlar onun yerine geçer; puan
+        ve örtüşme `cozucu.kapsam`tan (çözücüyle aynı kural, ADR 0015)."""
+        if tur not in VARSAYILANLAR:
+            raise KayitBulunamadi("Kural")
+        kapsam = _tam_kapsam(kapsam)
+        eksenler = _kapsam_eksenleri(kapsam)
+        if not eksenler or eksenler - set(kapsamlar(tur)):
+            raise GecersizVeri(f"\"{KURAL_METINLERI[tur][0]}\" kuralı bu kapsamda özel ayarlanamaz")
+        try:
+            yeni = Kapsam(**{s: None if d is None else str(d) for s, d in kapsam.items()})
+        except ValueError as hata:
+            raise GecersizVeri(str(hata)) from hata
+        grubu = {str(s.id): None if s.sube_grubu_id is None else str(s.sube_grubu_id) for s in SinifDeposu(self.oturum).listele()}
+        sonuc: dict[str, Any] = {"mevcut": None, "ezdikleri": [], "ezenler": []}
+        for satir in self._kural(tur, None)["ozel_ayarlar"]:
+            k = Kapsam(**{s: None if d is None else str(d) for s, d in satir["kapsam"].items()})
+            if k == yeni:
+                sonuc["mevcut"] = satir
+            elif ortusur(yeni, k, grubu.get):
+                sonuc["ezdikleri" if k.puan < yeni.puan else "ezenler"].append(satir)
+        return sonuc
 
     def ozel_kaldir(self, tur: str, kapsam: KapsamSozlugu) -> dict[str, Any]:
         """Özel ayarı siler: o kapsamda okul değeri geçerli olur. Yoksa bir şey yapmaz."""

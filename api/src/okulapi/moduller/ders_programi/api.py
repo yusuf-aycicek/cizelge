@@ -131,6 +131,17 @@ def ozel_ayari_kaydet(tur: str, veri: semalar.OzelAyar, oturum: OkulOturumu) -> 
     return KurallarServisi(oturum).ozel_ayarla(tur, veri.kapsam.model_dump(), veri.parametreler)
 
 
+@kural_router.get("/{tur}/ozel/etki", response_model=semalar.OzelAyarEtkisi)
+def ozel_ayar_etkisi(
+    tur: str, oturum: OkulOturumu, ogretmen_id: uuid.UUID | None = None, ders_id: uuid.UUID | None = None,
+    sinif_id: uuid.UUID | None = None, sube_grubu_id: uuid.UUID | None = None,
+) -> Any:
+    """Kaydetmeden önce: bu kapsama verilecek özel ayar hangi özel ayarları ezer, hangileri onu ezer
+    (kapsam önceliği, ADR 0016). 422: kural bu kapsamda ayarlanamıyor."""
+    kapsam = {"ders_id": ders_id, "sinif_id": sinif_id, "sube_grubu_id": sube_grubu_id, "ogretmen_id": ogretmen_id}
+    return KurallarServisi(oturum).ozel_etki(tur, kapsam)
+
+
 @kural_router.delete("/{tur}/ozel", response_model=semalar.KuralYanit)
 def ozel_ayari_kaldir(
     tur: str, oturum: OkulOturumu, ogretmen_id: uuid.UUID | None = None, ders_id: uuid.UUID | None = None,

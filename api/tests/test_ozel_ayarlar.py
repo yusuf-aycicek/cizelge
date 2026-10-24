@@ -39,6 +39,9 @@ def test_kurallar_desteklenen_kapsamlari_bildirir(istemci, okul):
     assert k[N]["kapsamlar"] == ["ders", "sube", "sube_grubu"]
     assert k[M]["kapsamlar"] == ["ogretmen"]
     assert k["sinif_boslugu"]["kapsamlar"] == []
+    # Dağılım şekli bir dersin saatine bağlı: özel ayarı ders ister (arayüz kapsam seçeneklerini buradan süzer).
+    assert k["blok_deseni"]["zorunlu_eksenler"] == ["ders"]
+    assert k[N]["zorunlu_eksenler"] == [] and k[M]["zorunlu_eksenler"] == []
     assert all(x["ozel_ayarlar"] == [] for x in k.values())
 
 

@@ -182,3 +182,27 @@
   color: inherit;
   font: inherit;
 }
+
+/* Özel ayar ekleme (5.6) */
+.ozelEkleDugmesi {
+  margin-top: var(--bosluk-4);
+}
+.ozelEkle {
+  margin-top: var(--bosluk-4);
+  padding-top: var(--bosluk-4);
+  border-top: 1px solid var(--renk-kenar);
+  max-width: 44rem;
+}
+.ozelEkle h3 {
+  margin: 0 0 var(--bosluk-3);
+}
+.etkiKutusu {
+  background: var(--renk-yuzey);
+  border-inline-start: 4px solid var(--renk-birincil);
+  border-radius: var(--kose);
+  padding: var(--bosluk-2) var(--bosluk-4);
+  margin-bottom: var(--bosluk-4);
+}
+.etkiKutusu p {
+  margin: var(--bosluk-2) 0;
+}

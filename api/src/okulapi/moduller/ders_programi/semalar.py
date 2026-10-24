@@ -283,6 +283,8 @@ class KuralYanit(BaseModel):
     varsayilan: bool
     # Kuralın özel ayar alabildiği yerler (çözücünün kural sınıfından) ve okuldaki özel ayarlar.
     kapsamlar: list[Literal["ogretmen", "ders", "sube", "sube_grubu"]]
+    # Özel ayarda dolu olması gereken eksenler: dağılım şekli bir dersin saatine bağlı, ders ister.
+    zorunlu_eksenler: list[Literal["ogretmen", "ders", "sube", "sube_grubu"]]
     ozel_ayarlar: list[OzelAyarYanit]
 
 
@@ -310,6 +312,14 @@ class OzelAyarYanit(BaseModel):
     kapsam: KuralKapsami
     ad: str = Field(description="Kapsamın adı: \"Ayşe Yılmaz\", \"9-A · Matematik\"")
     parametreler: dict[str, ParametreDegeri]
+
+
+class OzelAyarEtkisi(BaseModel):
+    """Bir kapsama özel ayar verilirse: aynı kapsamdaki mevcut ayar, ezdiği ve onu ezen özel ayarlar."""
+
+    mevcut: OzelAyarYanit | None
+    ezdikleri: list[OzelAyarYanit]
+    ezenler: list[OzelAyarYanit]
 
 
 class DagilimSekli(BaseModel):

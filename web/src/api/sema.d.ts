@@ -314,6 +314,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ders-programi/kurallar/{tur}/ozel/etki": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ozel Ayar Etkisi
+         * @description Kaydetmeden önce: bu kapsama verilecek özel ayar hangi özel ayarları ezer, hangileri onu ezer
+         *     (kapsam önceliği, ADR 0016). 422: kural bu kapsamda ayarlanamıyor.
+         */
+        get: operations["ozel_ayar_etkisi_api_ders_programi_kurallar__tur__ozel_etki_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ders-programi/musaitlikler": {
         parameters: {
             query?: never;
@@ -1277,6 +1298,8 @@ export interface components {
             varsayilan_seviye: ("onemsiz" | "onemli" | "cok_onemli") | null;
             /** Zorunlu */
             zorunlu: boolean;
+            /** Zorunlu Eksenler */
+            zorunlu_eksenler: ("ogretmen" | "ders" | "sube" | "sube_grubu")[];
         };
         /** MusaitlikCizelgesi */
         MusaitlikCizelgesi: {
@@ -1542,6 +1565,17 @@ export interface components {
                     [key: string]: number[];
                 };
             };
+        };
+        /**
+         * OzelAyarEtkisi
+         * @description Bir kapsama özel ayar verilirse: aynı kapsamdaki mevcut ayar, ezdiği ve onu ezen özel ayarlar.
+         */
+        OzelAyarEtkisi: {
+            /** Ezdikleri */
+            ezdikleri: components["schemas"]["OzelAyarYanit"][];
+            /** Ezenler */
+            ezenler: components["schemas"]["OzelAyarYanit"][];
+            mevcut: components["schemas"]["OzelAyarYanit"] | null;
         };
         /** OzelAyarYanit */
         OzelAyarYanit: {
@@ -2574,6 +2608,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KuralYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ozel_ayar_etkisi_api_ders_programi_kurallar__tur__ozel_etki_get: {
+        parameters: {
+            query?: {
+                ogretmen_id?: string | null;
+                ders_id?: string | null;
+                sinif_id?: string | null;
+                sube_grubu_id?: string | null;
+            };
+            header?: never;
+            path: {
+                tur: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OzelAyarEtkisi"];
                 };
             };
             /** @description Validation Error */

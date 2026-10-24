@@ -101,3 +101,25 @@ def cozumle(adaylar: Iterable[T], varlik: Varlik, kapsam: Callable[[T], Kapsam] 
         if k.puan > en_iyi_puan:
             en_iyi, en_iyi_puan = aday, k.puan
     return en_iyi
+
+
+def ortusur(a: Kapsam, b: Kapsam, sinifin_grubu: Callable[[str], str | None]) -> bool:
+    """İki kapsamın aynı anda uyduğu bir varlık olabilir mi? Arayüz bir özel ayarın neyi ezdiğini ve
+    neyin onu ezdiğini buradan söyler ("9-A · Matematik" hem "Matematik"le hem "9-A"yla örtüşür).
+
+    Aynı eksende iki farklı değer örtüşmez; şube ile şube grubu, şube o gruptaysa örtüşür. Boş eksen
+    her şeyle örtüşür. `sinifin_grubu`: bir şubenin grubunun kimliği (grupsuzsa None).
+    """
+    if a.ders_id and b.ders_id and a.ders_id != b.ders_id:
+        return False
+    if a.ogretmen_id and b.ogretmen_id and a.ogretmen_id != b.ogretmen_id:
+        return False
+    if a.sinif_id and b.sinif_id:
+        return a.sinif_id == b.sinif_id
+    if a.sube_grubu_id and b.sube_grubu_id:
+        return a.sube_grubu_id == b.sube_grubu_id
+    if a.sinif_id and b.sube_grubu_id:
+        return sinifin_grubu(a.sinif_id) == b.sube_grubu_id
+    if b.sinif_id and a.sube_grubu_id:
+        return sinifin_grubu(b.sinif_id) == a.sube_grubu_id
+    return True

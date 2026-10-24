@@ -16,7 +16,7 @@ from cozucu import (
     Yerlesim,
     dogrula,
 )
-from cozucu.kapsam import Varlik, cozumle
+from cozucu.kapsam import Varlik, cozumle, ortusur
 from cozucu.kisitlar import KAYIT_DEFTERI, GirdiHatasi, KisitKurali, kural_olustur, kurallari_hazirla
 from cozucu.kisitlar.temel import kaydet
 from cozucu.on_kontrol import on_kontrol
@@ -377,3 +377,19 @@ def test_parametre_varlik_icin_cozumlenir():
     assert girdi.parametre(N, "n", 2, sinif_id="s1", ders_id="fiz") == 3
     assert girdi.parametre(N, "n", 2, sinif_id="s1", ders_id="mat") == 1
     assert girdi.parametre(N, "n", 2, sinif_id="s9", ders_id="mat") == 2
+
+
+def test_ortusme_eksen_eksen_ve_grup_uyeligiyle():
+    grubu = {"s1": "say", "s2": None}.get
+    mat, fiz = Kapsam(ders_id="mat"), Kapsam(ders_id="fiz")
+    assert ortusur(mat, Kapsam(ders_id="mat", sinif_id="s1"), grubu)
+    assert not ortusur(fiz, Kapsam(ders_id="mat", sinif_id="s1"), grubu)
+    assert ortusur(Kapsam(sinif_id="s1"), Kapsam(sube_grubu_id="say"), grubu)
+    assert ortusur(Kapsam(sube_grubu_id="say"), Kapsam(ders_id="mat", sinif_id="s1"), grubu)
+    assert not ortusur(Kapsam(sinif_id="s2"), Kapsam(sube_grubu_id="say"), grubu)
+    assert not ortusur(Kapsam(sube_grubu_id="say", ders_id="mat"), Kapsam(sinif_id="s2"), grubu)
+    assert not ortusur(Kapsam(sinif_id="s1"), Kapsam(sinif_id="s2"), grubu)
+    assert not ortusur(Kapsam(sube_grubu_id="say"), Kapsam(sube_grubu_id="soz"), grubu)
+    assert ortusur(Kapsam(sinif_id="s1"), mat, grubu)
+    assert ortusur(Kapsam(ogretmen_id="o1"), Kapsam(ogretmen_id="o1"), grubu)
+    assert not ortusur(Kapsam(ogretmen_id="o1"), Kapsam(ogretmen_id="o2"), grubu)
