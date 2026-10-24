@@ -244,6 +244,9 @@ class Program(OkulaAitMixin, Base):
     # Çözücü girdisinin kanonik JSON'unun SHA-256'sı (hex). Çözüm sırasında veri değişti mi
     # sorusunu yanıtlar (docs/api-plani.md bölüm 14).
     girdi_ozeti: Mapped[str | None] = mapped_column(String(64))
+    # Yalnızca okulun verisinin özeti (temel program ve kilitler hariç): şimdiki verininkinden
+    # farklıysa program eski verilerle üretilmiştir (6.3). Eski programlarda boş.
+    veri_ozeti: Mapped[str | None] = mapped_column(String(64))
 
 
 class Yerlesim(OkulaAitMixin, Base):

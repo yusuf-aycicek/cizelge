@@ -489,3 +489,71 @@ ul.celiskiGrubu {
   min-height: var(--dokunma-hedefi);
   display: list-item;
 }
+
+/* --- Programların yönetimi (6.3) ----------------------------------------------------------- */
+.eskiVeri,
+.fark,
+.temelBilgisi {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--bosluk-2) var(--bosluk-3);
+  border-radius: var(--kose);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  margin: var(--bosluk-3) 0;
+}
+.eskiVeri p,
+.fark p,
+.temelBilgisi p {
+  flex: 1 1 18rem;
+  margin: 0;
+}
+.eskiVeri > svg,
+.fark > svg,
+.temelBilgisi > svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  margin-top: 0.15rem;
+}
+.eskiVeri {
+  background: var(--renk-uyari-zemin);
+  color: var(--renk-uyari-metin);
+  border-inline-start: 4px solid currentColor;
+}
+.fark,
+.temelBilgisi {
+  background: var(--renk-yuzey);
+  border-inline-start: 4px solid var(--renk-birincil);
+}
+.eskiRozet {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-1);
+  margin-top: var(--bosluk-1);
+  font-size: var(--yazi-kucuk);
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-uyari-metin);
+}
+.eskiRozet svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+.temelAlDugmesi {
+  margin-top: var(--bosluk-3);
+}
+.islemler {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--bosluk-1) var(--bosluk-2);
+}
+.adKutusu {
+  width: 100%;
+  min-height: var(--dokunma-hedefi);
+  padding: 0 var(--bosluk-2);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose);
+  font: inherit;
+}

@@ -58,6 +58,7 @@ from okulapi.moduller.ders_programi.uretim import (
     URETIM_ISI,
     is_suresi_siniri_sn,
     takili_uretimleri_temizle,
+    veri_ozeti,
 )
 
 
@@ -415,11 +416,72 @@ class ProgramServisi:
 
     def listele(self) -> list[Program]:
         self._temizle()
-        return self.depo.listele()
+        return self._eski_veri(self.depo.listele())
 
     def getir(self, program_id: uuid.UUID) -> Program:
         self._temizle()
-        return self._getir(program_id)
+        return self._eski_veri([self._getir(program_id)])[0]
+
+    def _eski_veri(self, programlar: list[Program]) -> list[Program]:
+        """Hazır programlara `eski_veri` (geçici öznitelik, yanıtta görünür): üretildiği andaki
+        verinin özeti şimdikinden farklı mı. Şimdiki özet istek başına bir kez hesaplanır; özeti
+        olmayan eski programda bilinmiyor (None)."""
+        simdiki: str | None = None
+        for p in programlar:
+            p.eski_veri = None  # type: ignore[attr-defined]
+            if p.durum == "hazir" and p.veri_ozeti is not None:
+                simdiki = simdiki or veri_ozeti(cozum_girdisi_olustur(self.oturum))
+                p.eski_veri = p.veri_ozeti != simdiki  # type: ignore[attr-defined]
+        return programlar
+
+    def yeniden_adlandir(self, program_id: uuid.UUID, ad: str) -> Program:
+        program = self._getir(program_id)
+        program.ad = ad
+        self.oturum.commit()
+        return self.getir(program_id)
+
+    def sil(self, program_id: uuid.UUID) -> None:
+        """Bitmiş programı siler (yerleşimleri de). Üretimi süren program silinemez (409): worker
+        sonucunu yazmaya çalışırdı. Bu programı temel alan programların bağı kopar (SET NULL)."""
+        program = self._getir(program_id)
+        if program.durum in ETKIN_DURUMLAR:
+            raise KayitCakismasi("Üretimi süren program silinemez; bitmesini bekleyin")
+        self.oturum.delete(program)
+        self.oturum.commit()
+
+    def fark(self, program_id: uuid.UUID, ile_id: uuid.UUID | None) -> dict[str, Any]:
+        """Bu programın, başka bir programdan (verilmezse temel programından) farklı hücreleri.
+
+        Hücreler (şube, ders, gün, saat) ile karşılaştırılır: aynı dersin aynı şubede aynı saatte
+        olması "değişmedi" demektir. `degisen`: yeri değişen ders saati sayısı (kalite ölçüsündeki
+        "değişen yerleşim"le aynı tanım); `subeler`: hangi şubede kaç saat."""
+        program = self._getir(program_id)
+        ile_id = ile_id or program.temel_program_id
+        if ile_id is None:
+            raise GecersizVeri("Karşılaştırılacak program yok: bu program bir programı temel almadan üretildi")
+        ile = self._getir(ile_id)
+        atamalar = {a.id: a for a in DersAtamaDeposu(self.oturum).listele()}
+        yerlesimler = YerlesimDeposu(self.oturum)
+
+        def hucre(y: Yerlesim) -> tuple:
+            a = atamalar[y.ders_atama_id]
+            return a.sinif_id, a.ders_id, y.gun, y.saat
+
+        oteki = {hucre(y) for y in yerlesimler.programin(ile.id)}
+        degisen = [y for y in yerlesimler.programin(program.id) if hucre(y) not in oteki]
+        adlar = {s.id: s.ad for s in SinifDeposu(self.oturum).listele()}
+        sayilar: dict[uuid.UUID, int] = {}
+        for y in degisen:
+            sinif = atamalar[y.ders_atama_id].sinif_id
+            sayilar[sinif] = sayilar.get(sinif, 0) + 1
+        return {
+            "ile_id": ile.id,
+            "ile_ad": ile.ad,
+            "degisen": len(degisen),
+            "subeler": sorted(({"sinif_id": k, "ad": adlar.get(k, "?"), "sayi": n} for k, n in sayilar.items()),
+                              key=lambda x: x["ad"]),
+            "hucreler": [{"ders_atama_id": y.ders_atama_id, "gun": y.gun, "saat": y.saat} for y in degisen],
+        }
 
     def _getir(self, program_id: uuid.UUID) -> Program:
         program = self.depo.getir(program_id)

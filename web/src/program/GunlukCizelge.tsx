@@ -5,7 +5,7 @@ import { SigdirilanMetin } from "../bilesenler/SigdirilanMetin";
 import { DersCipi } from "../dersler/DersCipi";
 import { ogleArasiSonrasi, saatVar, zilMetni } from "../okul/zaman";
 import { GUN_ADLARI, GUN_KISA_ADLARI } from "./aciklama";
-import type { CizelgeProps } from "./CizelgeSayfasi";
+import { blokDegisti, type CizelgeProps } from "./CizelgeSayfasi";
 import { birlesikHucreler, hucreAnahtari } from "./cizelge";
 import stil from "./Cizelge.module.css";
 
@@ -22,7 +22,7 @@ function bugun(gunSayisi: number): number {
  */
 export function GunlukCizelge({
   baslik, gunSayisi, saatSayisi, gunSaatleri, ogleArasiSonra, zil, ogleZili, hucreler, gorunum, ders, dersIsareti, sinif,
-  ogretmen,
+  ogretmen, vurgulu,
 }: CizelgeProps) {
   const [gun, setGun] = useState(() => bugun(gunSayisi));
   const birlesik = birlesikHucreler(hucreler, gunSayisi, saatSayisi, ogleArasiSonra);
@@ -41,8 +41,11 @@ export function GunlukCizelge({
     const son = zil?.[s + uzunluk - 1];
     const d = a && ders.get(a.ders_id);
     const o = a?.ogretmen_id ? ogretmen.get(a.ogretmen_id) : undefined;
+    const degisti = Boolean(a) && blokDegisti(vurgulu, gun, s, uzunluk);
     satirlar.push(
-      <li key={s} className={a ? stil.gunDolu : stil.gunBos} style={{ animationDelay: `${s * 40}ms` } as CSSProperties}>
+      <li key={s} className={[a ? stil.gunDolu : stil.gunBos, degisti && stil.degisti].filter(Boolean).join(" ")}
+        style={{ animationDelay: `${s * 40}ms` } as CSSProperties} data-degisti={degisti || undefined}>
+        {degisti && <span className="gorunmez">Temel programa göre değişti: </span>}
         <span className={stil.gunSaat}>
           {saatMetni}
           {bas && son && <span className={stil.zil}>{zilMetni({ baslangic: bas.baslangic, bitis: son.bitis })}</span>}

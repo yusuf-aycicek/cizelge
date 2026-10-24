@@ -380,6 +380,34 @@ class ProgramYanit(_Yanit):
     olcumler: dict[str, int] | None
     celiskiler: list[CeliskiYanit] | None
     sure_sn: float | None
+    # Hazır programda: üretildiği andaki veri şimdikinden farklı mı (6.3). None: bilinmiyor.
+    eski_veri: bool | None = None
+
+
+class ProgramAdi(BaseModel):
+    ad: str = Field(min_length=1, max_length=200)
+
+
+class SubeFarki(BaseModel):
+    sinif_id: uuid.UUID
+    ad: str
+    sayi: int
+
+
+class FarkHucresi(BaseModel):
+    ders_atama_id: uuid.UUID
+    gun: int
+    saat: int
+
+
+class ProgramFarki(BaseModel):
+    """Bu programın başka bir programdan farklı hücreleri (6.3)."""
+
+    ile_id: uuid.UUID
+    ile_ad: str
+    degisen: int
+    subeler: list[SubeFarki]
+    hucreler: list[FarkHucresi]
 
 
 class YerlesimYanit(_Yanit):

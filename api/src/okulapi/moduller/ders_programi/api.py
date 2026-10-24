@@ -179,6 +179,24 @@ def program_getir(program_id: uuid.UUID, oturum: OkulOturumu, kuyruk: Kuyruk) ->
     return ProgramServisi(oturum, kuyruk).getir(program_id)
 
 
+@program_router.patch("/{program_id}", response_model=semalar.ProgramYanit)
+def program_adlandir(program_id: uuid.UUID, veri: semalar.ProgramAdi, oturum: OkulOturumu) -> Any:
+    return ProgramServisi(oturum).yeniden_adlandir(program_id, veri.ad.strip())
+
+
+@program_router.delete("/{program_id}", status_code=204)
+def program_sil(program_id: uuid.UUID, oturum: OkulOturumu) -> Response:
+    """409: üretimi süren program silinemez."""
+    ProgramServisi(oturum).sil(program_id)
+    return Response(status_code=204)
+
+
+@program_router.get("/{program_id}/fark", response_model=semalar.ProgramFarki)
+def program_farki(program_id: uuid.UUID, oturum: OkulOturumu, ile: uuid.UUID | None = None) -> Any:
+    """Bu programın `ile` programından (verilmezse temel programından) farklı hücreleri. 422: karşılaştırılacak program yok."""
+    return ProgramServisi(oturum).fark(program_id, ile)
+
+
 @program_router.get("/{program_id}/yerlesimler", response_model=list[semalar.YerlesimYanit])
 def program_yerlesimleri(program_id: uuid.UUID, oturum: OkulOturumu) -> Any:
     return ProgramServisi(oturum).yerlesimler(program_id)

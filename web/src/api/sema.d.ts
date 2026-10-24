@@ -456,6 +456,31 @@ export interface paths {
         get: operations["program_getir_api_ders_programi_programlar__program_id__get"];
         put?: never;
         post?: never;
+        /**
+         * Program Sil
+         * @description 409: üretimi süren program silinemez.
+         */
+        delete: operations["program_sil_api_ders_programi_programlar__program_id__delete"];
+        options?: never;
+        head?: never;
+        /** Program Adlandir */
+        patch: operations["program_adlandir_api_ders_programi_programlar__program_id__patch"];
+        trace?: never;
+    };
+    "/api/ders-programi/programlar/{program_id}/fark": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Program Farki
+         * @description Bu programın `ile` programından (verilmezse temel programından) farklı hücreleri. 422: karşılaştırılacak program yok.
+         */
+        get: operations["program_farki_api_ders_programi_programlar__program_id__fark_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1096,6 +1121,18 @@ export interface components {
             /** Renk */
             renk: string;
         };
+        /** FarkHucresi */
+        FarkHucresi: {
+            /**
+             * Ders Atama Id
+             * Format: uuid
+             */
+            ders_atama_id: string;
+            /** Gun */
+            gun: number;
+            /** Saat */
+            saat: number;
+        };
         /** FarkliSaat */
         FarkliSaat: {
             /**
@@ -1592,6 +1629,30 @@ export interface components {
                 };
             };
         };
+        /** ProgramAdi */
+        ProgramAdi: {
+            /** Ad */
+            ad: string;
+        };
+        /**
+         * ProgramFarki
+         * @description Bu programın başka bir programdan farklı hücreleri (6.3).
+         */
+        ProgramFarki: {
+            /** Degisen */
+            degisen: number;
+            /** Hucreler */
+            hucreler: components["schemas"]["FarkHucresi"][];
+            /** Ile Ad */
+            ile_ad: string;
+            /**
+             * Ile Id
+             * Format: uuid
+             */
+            ile_id: string;
+            /** Subeler */
+            subeler: components["schemas"]["SubeFarki"][];
+        };
         /** ProgramUret */
         ProgramUret: {
             /** Ad */
@@ -1618,6 +1679,8 @@ export interface components {
             cozum_durumu: string | null;
             /** Durum */
             durum: string;
+            /** Eski Veri */
+            eski_veri?: boolean | null;
             /** Hata Mesaji */
             hata_mesaji: string | null;
             /**
@@ -1791,6 +1854,18 @@ export interface components {
             mesaj: string | null;
             /** Ogretmensiz Atama */
             ogretmensiz_atama: number;
+            /**
+             * Sinif Id
+             * Format: uuid
+             */
+            sinif_id: string;
+        };
+        /** SubeFarki */
+        SubeFarki: {
+            /** Ad */
+            ad: string;
+            /** Sayi */
+            sayi: number;
             /**
              * Sinif Id
              * Format: uuid
@@ -2962,6 +3037,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProgramYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    program_sil_api_ders_programi_programlar__program_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    program_adlandir_api_ders_programi_programlar__program_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProgramAdi"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    program_farki_api_ders_programi_programlar__program_id__fark_get: {
+        parameters: {
+            query?: {
+                ile?: string | null;
+            };
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgramFarki"];
                 };
             };
             /** @description Validation Error */

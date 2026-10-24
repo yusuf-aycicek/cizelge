@@ -252,3 +252,33 @@
   flex: 1;
   border-top: 1px dashed var(--renk-kenar);
 }
+
+/* Temel programa göre değişen ders (6.3): kalın, kesik birincil çerçeve ve köşede nokta. */
+.farkSecimi {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  min-height: var(--dokunma-hedefi);
+  margin-bottom: var(--bosluk-3);
+  font-weight: var(--yazi-kalin);
+  cursor: pointer;
+}
+.farkSecimi input {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+.degisti {
+  position: relative;
+  outline: 2px dashed var(--renk-birincil) !important;
+  outline-offset: -2px !important;
+}
+.degisti::after {
+  content: "";
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--renk-birincil);
+}

@@ -77,3 +77,32 @@ export const sonProgram = (liste: readonly Program[] | undefined) => liste?.at(-
 /** En son hazır program: panodaki "son program" bağlantısı. */
 export const sonHazirProgram = (liste: readonly Program[] | undefined) =>
   liste ? [...liste].reverse().find((p) => p.durum === "hazir") : undefined;
+
+/** İki program farkı (6.3): `ile` verilmezse temel program. Programlar değişmediği sürece sabittir. */
+export function useProgramFarki(id: string, etkin: boolean, ile?: string) {
+  return useQuery({
+    queryKey: [...PROGRAMLAR, id, "fark", ile ?? "temel"],
+    queryFn: () =>
+      cagir(api.GET("/api/ders-programi/programlar/{program_id}/fark", {
+        params: { path: { program_id: id }, query: ile ? { ile } : {} },
+      })),
+    enabled: etkin,
+  });
+}
+
+export function useProgramAdlandir() {
+  const istemci = useQueryClient();
+  return useMutation({
+    mutationFn: (d: { id: string; ad: string }) =>
+      cagir(api.PATCH("/api/ders-programi/programlar/{program_id}", { params: { path: { program_id: d.id } }, body: { ad: d.ad } })),
+    onSuccess: () => istemci.invalidateQueries({ queryKey: PROGRAMLAR }),
+  });
+}
+
+export function useProgramSil() {
+  const istemci = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => cagir(api.DELETE("/api/ders-programi/programlar/{program_id}", { params: { path: { program_id: id } } })),
+    onSuccess: () => istemci.invalidateQueries({ queryKey: PROGRAMLAR }),
+  });
+}

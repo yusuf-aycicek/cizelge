@@ -26,7 +26,7 @@ import json
 import logging
 import time
 import uuid
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from enum import Enum
 
 from cozucu import CozumGirdisi, CozumSonucu, CpSatCozucu, ProgramCozucu, dogrula, olc
@@ -81,6 +81,11 @@ def girdi_ozeti(girdi: CozumGirdisi) -> str:
             veri[anahtar] = sorted(deger, key=lambda x: json.dumps(x, sort_keys=True, ensure_ascii=False))
     metin = json.dumps(veri, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
     return hashlib.sha256(metin.encode("utf-8")).hexdigest()
+
+
+def veri_ozeti(girdi: CozumGirdisi) -> str:
+    """Yalnızca okulun verisinin özeti: temel programın yerleşimleri ve kilitler dışarıda (6.3)."""
+    return girdi_ozeti(replace(girdi, kilitli_yerlesimler=[], temel_yerlesimler=[]))
 
 
 def _kilitle(oturum: Session, program_id: uuid.UUID) -> Program | None:
@@ -147,6 +152,7 @@ def _baslat(fabrika: sessionmaker, okul_id: uuid.UUID, program_id: uuid.UUID,
             program.baslama = func.now()
             girdi = _girdi(oturum, program)
             ozet = program.girdi_ozeti = girdi_ozeti(girdi)
+            program.veri_ozeti = veri_ozeti(girdi)
             sure_siniri_sn = program.sure_siniri_sn
             oturum.commit()
             return girdi, ozet, sure_siniri_sn

@@ -520,6 +520,30 @@
         "title": "DersYanit",
         "type": "object"
       },
+      "FarkHucresi": {
+        "properties": {
+          "ders_atama_id": {
+            "format": "uuid",
+            "title": "Ders Atama Id",
+            "type": "string"
+          },
+          "gun": {
+            "title": "Gun",
+            "type": "integer"
+          },
+          "saat": {
+            "title": "Saat",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ders_atama_id",
+          "gun",
+          "saat"
+        ],
+        "title": "FarkHucresi",
+        "type": "object"
+      },
       "FarkliSaat": {
         "properties": {
           "atama_id": {
@@ -1896,6 +1920,62 @@
         "title": "OzelAyarYanit",
         "type": "object"
       },
+      "ProgramAdi": {
+        "properties": {
+          "ad": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Ad",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ad"
+        ],
+        "title": "ProgramAdi",
+        "type": "object"
+      },
+      "ProgramFarki": {
+        "description": "Bu programın başka bir programdan farklı hücreleri (6.3).",
+        "properties": {
+          "degisen": {
+            "title": "Degisen",
+            "type": "integer"
+          },
+          "hucreler": {
+            "items": {
+              "$ref": "#/components/schemas/FarkHucresi"
+            },
+            "title": "Hucreler",
+            "type": "array"
+          },
+          "ile_ad": {
+            "title": "Ile Ad",
+            "type": "string"
+          },
+          "ile_id": {
+            "format": "uuid",
+            "title": "Ile Id",
+            "type": "string"
+          },
+          "subeler": {
+            "items": {
+              "$ref": "#/components/schemas/SubeFarki"
+            },
+            "title": "Subeler",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ile_id",
+          "ile_ad",
+          "degisen",
+          "subeler",
+          "hucreler"
+        ],
+        "title": "ProgramFarki",
+        "type": "object"
+      },
       "ProgramUret": {
         "properties": {
           "ad": {
@@ -1988,6 +2068,17 @@
           "durum": {
             "title": "Durum",
             "type": "string"
+          },
+          "eski_veri": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eski Veri"
           },
           "hata_mesaji": {
             "anyOf": [
@@ -2514,6 +2605,30 @@
           "mesaj"
         ],
         "title": "SinifYukuYanit",
+        "type": "object"
+      },
+      "SubeFarki": {
+        "properties": {
+          "ad": {
+            "title": "Ad",
+            "type": "string"
+          },
+          "sayi": {
+            "title": "Sayi",
+            "type": "integer"
+          },
+          "sinif_id": {
+            "format": "uuid",
+            "title": "Sinif Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sinif_id",
+          "ad",
+          "sayi"
+        ],
+        "title": "SubeFarki",
         "type": "object"
       },
       "SubeGrubuGuncelle": {
@@ -4243,6 +4358,41 @@
       }
     },
     "/api/ders-programi/programlar/{program_id}": {
+      "delete": {
+        "description": "409: üretimi süren program silinemez.",
+        "operationId": "program_sil_api_ders_programi_programlar__program_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "program_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Program Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Program Sil",
+        "tags": [
+          "program"
+        ]
+      },
       "get": {
         "description": "Programın durumu. Arayüz üretim sürerken bunu birkaç saniyede bir sorar (polling).",
         "operationId": "program_getir_api_ders_programi_programlar__program_id__get",
@@ -4281,6 +4431,118 @@
           }
         },
         "summary": "Program Getir",
+        "tags": [
+          "program"
+        ]
+      },
+      "patch": {
+        "operationId": "program_adlandir_api_ders_programi_programlar__program_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "program_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Program Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgramAdi"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgramYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Program Adlandir",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/ders-programi/programlar/{program_id}/fark": {
+      "get": {
+        "description": "Bu programın `ile` programından (verilmezse temel programından) farklı hücreleri. 422: karşılaştırılacak program yok.",
+        "operationId": "program_farki_api_ders_programi_programlar__program_id__fark_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "program_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Program Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ile",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ile"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgramFarki"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Program Farki",
         "tags": [
           "program"
         ]

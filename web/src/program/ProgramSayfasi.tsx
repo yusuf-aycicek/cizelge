@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  CalendarRange, Check, CircleAlert, CircleX, Hourglass, LoaderCircle, RotateCcw, Sparkles, TableProperties, WandSparkles,
+  CalendarRange, Check, CircleAlert, CircleX, History, Hourglass, LoaderCircle, RotateCcw, Sparkles, TableProperties, WandSparkles,
+  X,
 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router";
@@ -10,12 +11,12 @@ import { useBildirim } from "../bilesenler/Bildirim";
 import { Dugme } from "../bilesenler/Dugme";
 import { Iskelet } from "../bilesenler/Iskelet";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
-import { Tablo } from "../bilesenler/Tablo";
 import { useAtamalar } from "../dagilim/veri";
 import { ogretmenKaynagi, sinifKaynagi } from "../listeler/kaynaklar";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
 import { ASAMALAR, asamaBul, celiskileriGrupla, etkinMi, sureMetni, type Celiski, type Program } from "./aciklama";
 import { KaliteOzeti } from "./KaliteOzeti";
+import { EskiVeriUyarisi, FarkOzeti, ProgramlarTablosu, tarih } from "./ProgramYonetimi";
 import stil from "./Program.module.css";
 import { sonHazirProgram, sonProgram, useOnKontrol, useProgramlar, useProgramUret } from "./veri";
 
@@ -38,16 +39,6 @@ export const HIZLI_YETMEYEBILIR_SUBE = 30;
 
 export const dahaUzunSure = (sn: number) => YENIDEN_DENEME_SURELERI.find((s) => s > sn);
 
-const tarih = (iso: string) =>
-  new Date(iso).toLocaleString("tr-TR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
-
-const DURUM_ADLARI: Record<string, string> = {
-  bekliyor: "Sırada",
-  uretiliyor: "Hazırlanıyor",
-  hazir: "Hazır",
-  basarisiz: "Oluşturulamadı",
-};
-
 /**
  * Program sayfası: oluşturma, bekleme, sonuç ve önceki programlar.
  *
@@ -61,6 +52,13 @@ export function ProgramSayfasi() {
   const programlar = useProgramlar();
   const son = sonProgram(programlar.data);
   const hazir = sonHazirProgram(programlar.data);
+  // "Bu programı temel alarak yeniden üret" (en az değişiklikle güncelleme): seçilen program oluşturma
+  // kartına temel olarak verilir.
+  const [temel, setTemel] = useState<Program | null>(null);
+  const temelAl = (p: Program) => {
+    setTemel(p);
+    requestAnimationFrame(() => document.getElementById("olustur-baslik")?.scrollIntoView?.({ behavior: "smooth", block: "start" }));
+  };
 
   return (
     <>
@@ -80,13 +78,15 @@ export function ProgramSayfasi() {
             <BeklemePaneli program={son} />
           ) : (
             <>
-              {hazir && <HazirPaneli program={hazir} />}
+              {hazir && <HazirPaneli program={hazir} onTemelAl={temelAl} />}
               {son?.durum === "basarisiz" &&
                 (hazir ? <SonDenemeUyarisi program={son} /> : <BasarisizPaneli program={son} />)}
-              <OlusturKarti sira={(programlar.data?.length ?? 0) + 1} yeniden={Boolean(son)} />
+              {/* key: temel değişince form (ad) yeni varsayılanla baştan kurulur. */}
+              <OlusturKarti key={temel?.id ?? "yeni"} sira={(programlar.data?.length ?? 0) + 1} yeniden={Boolean(son)}
+                temel={temel} onTemelKaldir={() => setTemel(null)} />
             </>
           )}
-          {(programlar.data?.length ?? 0) > 0 && <OncekiProgramlar programlar={programlar.data ?? []} />}
+          {(programlar.data?.length ?? 0) > 0 && <ProgramlarTablosu programlar={programlar.data ?? []} onTemelAl={temelAl} />}
         </>
       )}
     </>
@@ -95,7 +95,9 @@ export function ProgramSayfasi() {
 
 // --- oluşturma -----------------------------------------------------------------------------
 
-function OlusturKarti({ sira, yeniden }: { sira: number; yeniden: boolean }) {
+function OlusturKarti({ sira, yeniden, temel, onTemelKaldir }: {
+  sira: number; yeniden: boolean; temel: Program | null; onTemelKaldir: () => void;
+}) {
   // Engeller, üretimdeki ön kontrolün kendisinden gelir (ayrı bir istemci hesabı yok): dağılım
   // özeti "tamam" deyip üretimin ön kontrolde takılması bu yüzden olamaz.
   const onKontrol = useOnKontrol();
@@ -104,7 +106,7 @@ function OlusturKarti({ sira, yeniden }: { sira: number; yeniden: boolean }) {
   const subeSayisi = siniflar.data?.length ?? 0;
   const uret = useProgramUret();
   const bildirim = useBildirim();
-  const [ad, setAd] = useState(`Program ${sira}`);
+  const [ad, setAd] = useState(temel ? `${temel.ad} (güncel)` : `Program ${sira}`);
   const [sure, setSure] = useState<number>(120);
 
   const atamaYok = atamalar.data?.length === 0;
@@ -115,8 +117,8 @@ function OlusturKarti({ sira, yeniden }: { sira: number; yeniden: boolean }) {
   function gonder(olay: FormEvent) {
     olay.preventDefault();
     uret.mutate(
-      { ad: ad.trim() || `Program ${sira}`, sure_siniri_sn: sure },
-      { onError: (hata) => bildirim("hata", hataMetni(hata)) },
+      { ad: ad.trim() || `Program ${sira}`, sure_siniri_sn: sure, ...(temel ? { temel_program_id: temel.id } : {}) },
+      { onSuccess: onTemelKaldir, onError: (hata) => bildirim("hata", hataMetni(hata)) },
     );
   }
 
@@ -147,6 +149,16 @@ function OlusturKarti({ sira, yeniden }: { sira: number; yeniden: boolean }) {
             müsaitliğine ve kurallara (özel ayarlar dahil) sığıyor.
           </p>
         )
+      )}
+      {temel && (
+        <div className={stil.temelBilgisi} role="status">
+          <History aria-hidden="true" />
+          <p>
+            <strong>“{temel.ad}” temel alınıyor.</strong> Yeni program bu programdan yalnızca gerektiği kadar ayrılır
+            (en az değişiklik); kilitli dersler yerinde kalır.
+          </p>
+          <Dugme tur="metin" ikon={<X />} onClick={onTemelKaldir}>Temel almadan üret</Dugme>
+        </div>
       )}
       <form onSubmit={gonder} className={stil.olusturFormu}>
         <div className={stil.adAlani}>
@@ -266,7 +278,7 @@ function HazirlanmaAnimasyonu() {
 
 // --- sonuç ---------------------------------------------------------------------------------
 
-function HazirPaneli({ program }: { program: Program }) {
+function HazirPaneli({ program, onTemelAl }: { program: Program; onTemelAl: (p: Program) => void }) {
   return (
     <section aria-labelledby="hazir-baslik" className={stil.hazir}>
       <div className={stil.hazirUst}>
@@ -279,7 +291,14 @@ function HazirPaneli({ program }: { program: Program }) {
           <TableProperties aria-hidden="true" /> Haftalık çizelgeyi aç
         </Link>
       </div>
+      <EskiVeriUyarisi program={program} onTemelAl={onTemelAl} />
+      <FarkOzeti program={program} />
       <KaliteOzeti program={program} baslikDuzeyi={3} />
+      {!program.eski_veri && (
+        <Dugme tur="ikincil" ikon={<History />} onClick={() => onTemelAl(program)} className={stil.temelAlDugmesi}>
+          Bu programı temel alarak yeniden üret
+        </Dugme>
+      )}
     </section>
   );
 }
@@ -424,42 +443,3 @@ function SonDenemeUyarisi({ program }: { program: Program }) {
     </section>
   );
 }
-
-function OncekiProgramlar({ programlar }: { programlar: Program[] }) {
-  const sirali = [...programlar].reverse();
-  return (
-    <section aria-labelledby="onceki-baslik" className={stil.onceki}>
-      <h2 id="onceki-baslik">Programlar</h2>
-      <Tablo<Program>
-        baslik="Programlar"
-        satirlar={sirali}
-        satirAnahtari={(p) => p.id}
-        sutunlar={[
-          // Uzun ad satır kırar; tablo dar alanda (800 px) yana kaymasın.
-          { baslik: "Ad", hucre: (p) => <span className={stil.sarar}>{p.ad}</span> },
-          {
-            baslik: "Durum",
-            hucre: (p) => <span className={`${stil.durumRozeti} ${stil[`durum_${p.durum}`] ?? ""}`}>{DURUM_ADLARI[p.durum] ?? p.durum}</span>,
-          },
-          {
-            // Oluşturma zamanı ve süre tek sütunda, alt alta: ayrı sütun dar ekranda tabloyu taşırıyordu.
-            baslik: "Oluşturma",
-            hucre: (p) => (
-              <>
-                {tarih(p.olusturma)}
-                {p.sure_sn != null && <span className={stil.ikincilSatir}>{sureMetni(p.sure_sn)} sürdü</span>}
-              </>
-            ),
-          },
-          {
-            baslik: "Çizelge",
-            baslikGizli: true,
-            hizala: "sag",
-            hucre: (p) => (p.durum === "hazir" ? <Link to={`/program/${p.id}`} className={stil.tekSatir}>Çizelgeyi aç</Link> : null),
-          },
-        ]}
-      />
-    </section>
-  );
-}
-

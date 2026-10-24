@@ -24,7 +24,8 @@ import { birlesikHucreler, cizelgeBoyutu, cizelgeHucreleri, hucreAnahtari, yerle
 import stil from "./Cizelge.module.css";
 import { GunlukCizelge } from "./GunlukCizelge";
 import { KaliteOzeti } from "./KaliteOzeti";
-import { useProgram, useYerlesimler } from "./veri";
+import { EskiVeriUyarisi, FarkOzeti } from "./ProgramYonetimi";
+import { useProgram, useProgramFarki, useYerlesimler } from "./veri";
 
 const SEKMELER = [
   { anahtar: "sube", ad: "Şubeye göre" },
@@ -48,6 +49,9 @@ export function CizelgeSayfasi() {
   const ogretmenler = useQuery({ queryKey: ogretmenKaynagi.anahtar, queryFn: ogretmenKaynagi.listele });
   const okul = useBen().data?.okul;
   const telefon = useMedya(TELEFON);
+  // Temel programa göre değişen hücreler (6.3): `?fark=1` ile açılır, adres paylaşılabilir.
+  const farkGoster = parametreler.get("fark") === "1";
+  const fark = useProgramFarki(id, hazir && Boolean(program.data?.temel_program_id) && farkGoster);
 
   const sorgular = [program, atamalar, dersler, siniflar, ogretmenler];
   const hatali = sorgular.find((s) => s.isError) ?? (yerlesimler.isError ? yerlesimler : undefined);
@@ -103,6 +107,11 @@ export function CizelgeSayfasi() {
   const hucreler = cizelgeHucreleri(yerlesimler.data, atamalar.data, gorunum, seciliId);
   const boyut = cizelgeBoyutu(yerlesimler.data, okul.gun_sayisi, okul.gunluk_ders_saati);
   const zil = zilSaatleri(okul, boyut.saat);
+  const vurgulu = new Set(
+    (farkGoster ? fark.data?.hucreler ?? [] : [])
+      .filter((h) => hucreler.get(hucreAnahtari(h.gun, h.saat))?.id === h.ders_atama_id)
+      .map((h) => hucreAnahtari(h.gun, h.saat)),
+  );
   const cizelgeOzellikleri: CizelgeProps | undefined = secili && {
     baslik: `${secili.ad} haftalık programı`,
     gunSayisi: boyut.gun,
@@ -117,6 +126,7 @@ export function CizelgeSayfasi() {
     dersIsareti: dersIsaretleri(dersler.data),
     sinif: new Map(siniflar.data.map((s) => [s.id, s])),
     ogretmen: new Map(ogretmenler.data.map((o) => [o.id, o])),
+    vurgulu,
   };
 
   return (
@@ -127,6 +137,14 @@ export function CizelgeSayfasi() {
           <ArrowLeft aria-hidden="true" /> Program sayfası
         </Link>
       </p>
+      <EskiVeriUyarisi program={program.data} />
+      <FarkOzeti program={program.data} cizelgeBaglantisi={false} />
+      {program.data.temel_program_id && (
+        <label className={stil.farkSecimi}>
+          <input type="checkbox" checked={farkGoster} onChange={(o) => sec({ fark: o.target.checked ? "1" : "0" })} />
+          Temel programdan değişen dersleri vurgula
+        </label>
+      )}
       <Sekmeler etiket="Çizelge türü" sekmeler={SEKMELER} secili={gorunum} onSec={(g) => sec({ gorunum: g })} idOneki="cizelge">
         <div className={stil.secim}>
           <SecimAlani
@@ -157,6 +175,10 @@ export function CizelgeSayfasi() {
   );
 }
 
+/** Bloğun (ilk saatten `uzunluk` saat) herhangi bir hücresi vurgulu mu. */
+export const blokDegisti = (vurgulu: ReadonlySet<string> | undefined, gun: number, saat: number, uzunluk: number) =>
+  Boolean(vurgulu?.size) && Array.from({ length: uzunluk }, (_, i) => hucreAnahtari(gun, saat + i)).some((k) => vurgulu!.has(k));
+
 export type CizelgeProps = {
   baslik: string;
   gunSayisi: number;
@@ -172,6 +194,8 @@ export type CizelgeProps = {
   dersIsareti: Map<string, number>;
   sinif: Map<string, Sinif>;
   ogretmen: Map<string, Ogretmen>;
+  /** Vurgulanacak hücreler (temel programdan değişenler); anahtar `hucreAnahtari`. */
+  vurgulu?: ReadonlySet<string>;
 };
 
 /**
@@ -181,7 +205,7 @@ export type CizelgeProps = {
  */
 function Cizelge({
   baslik, gunSayisi, saatSayisi, gunSaatleri, ogleArasiSonra, zil, ogleZili, hucreler, gorunum, ders, dersIsareti, sinif,
-  ogretmen,
+  ogretmen, vurgulu,
 }: CizelgeProps) {
   const gunler = Array.from({ length: gunSayisi }, (_, g) => GUN_ADLARI[g] ?? `${g + 1}. gün`);
   const birlesik = birlesikHucreler(hucreler, gunSayisi, saatSayisi, ogleArasiSonra);
@@ -233,9 +257,11 @@ function Cizelge({
                   const o = a.ogretmen_id ? ogretmen.get(a.ogretmen_id) : undefined;
                   const gecikme = { animationDelay: `${yerlesmeGecikmesiMs(g, s, saatSayisi)}ms` } as CSSProperties;
                   const uzunluk = birlesik.uzunluk.get(hucreAnahtari(g, s)) ?? 1;
+                  const degisti = blokDegisti(vurgulu, g, s, uzunluk);
                   return (
-                    <td key={g} className={uzunluk > 1 ? `${stil.dolu} ${stil.blok}` : stil.dolu} style={gecikme}
-                      rowSpan={uzunluk > 1 ? uzunluk : undefined}>
+                    <td key={g} className={[stil.dolu, uzunluk > 1 && stil.blok, degisti && stil.degisti].filter(Boolean).join(" ")}
+                      style={gecikme} rowSpan={uzunluk > 1 ? uzunluk : undefined} data-degisti={degisti || undefined}>
+                      {degisti && <span className="gorunmez">Temel programa göre değişti: </span>}
                       {uzunluk > 1 && (
                         // Ekran okuyucu satır başlığı olarak yalnızca ilk saati okur: kaç saat sürdüğü burada.
                         <span className={stil.blokSuresi}>
