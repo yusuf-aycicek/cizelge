@@ -301,7 +301,7 @@ def test_uretim_oncesi_on_kontrol_uretimdekiyle_ayni_sonucu_verir(oturum_fabrika
                     ders_id=harita["d-mat"], sinif_id=harita["s-9a"]))
         o.commit()
         ozet = dagilim_ozeti(o)
-        once = on_kontrol_sonucu(o)
+        once = on_kontrol_sonucu(o)["celiskiler"]
     assert ozet["ogretmensiz_atama"] == 0
     assert not any(x["asim"] for x in ozet["ogretmenler"] + ozet["siniflar"])  # özet "tamam" der
     assert [c["tur"] for c in once] == ["ders_gun_kapasitesi"]
@@ -317,7 +317,7 @@ def test_uretim_oncesi_on_kontrol_uretimdekiyle_ayni_sonucu_verir(oturum_fabrika
 def test_on_kontrol_temizse_uretim_on_kontrolde_takilmaz(oturum_fabrikasi, mini):
     okul_id, _ = mini
     with okul_oturumu(oturum_fabrikasi, okul_id) as o:
-        assert on_kontrol_sonucu(o) == []
+        assert on_kontrol_sonucu(o) == {"celiskiler": [], "uyarilar": []}
     program_id = program_ekle(oturum_fabrikasi, okul_id)
     assert programi_uret(oturum_fabrikasi, okul_id, program_id) is UretimSonucu.HAZIR
 

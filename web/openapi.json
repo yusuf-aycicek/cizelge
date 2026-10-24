@@ -1729,6 +1729,18 @@
             "format": "uuid",
             "title": "Ogretmen Id",
             "type": "string"
+          },
+          "yuk_uyarisi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Haftalık yük okulun eşiklerinin dışındaysa uyarı (hata değil)",
+            "title": "Yuk Uyarisi"
           }
         },
         "required": [
@@ -1999,6 +2011,14 @@
               "$ref": "#/components/schemas/CeliskiYanit"
             },
             "title": "Celiskiler",
+            "type": "array"
+          },
+          "uyarilar": {
+            "description": "Programı engellemeyen uyarılar",
+            "items": {
+              "$ref": "#/components/schemas/CeliskiYanit"
+            },
+            "title": "Uyarilar",
             "type": "array"
           }
         },

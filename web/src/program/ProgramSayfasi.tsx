@@ -151,6 +151,18 @@ function OlusturKarti({ sira, yeniden, temel, onTemelKaldir }: {
           </p>
         )
       )}
+      {(onKontrol.data?.uyarilar ?? []).length > 0 && (
+        <div className={stil.uyarilar} role="note">
+          <p>
+            <strong>Uyarılar</strong> (programı engellemez):
+          </p>
+          <ul>
+            {onKontrol.data!.uyarilar!.map((u) => (
+              <li key={u.mesaj}>{u.mesaj}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       {temel && (
         <div className={stil.temelBilgisi} role="status">
           <History aria-hidden="true" />

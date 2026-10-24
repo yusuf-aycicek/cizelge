@@ -84,7 +84,10 @@ def test_tasima_blogu_butun_tasir_kaliteyi_gunceller_ve_geri_alinir(istemci, oku
     secim = None
     for a, g, s, _k in sorted(once):
         h = harita(istemci, okul, hazir_program, a, g, s)
-        hedef = next((x for x in h["hedefler"] if x["durum"] != "engel" and not x["takas"]), None)
+        kendi = {(c["gun"], c["saat"]) for c in h["hucreler"]}
+        # Bloğun kendi yerine binmeyen hedef: taşınan hücrelerin hepsi yeni olsun.
+        hedef = next((x for x in h["hedefler"] if x["durum"] != "engel" and not x["takas"]
+                      and not {(x["gun"], x["saat"]), (x["gun"], x["saat"] + 1)} & kendi), None)
         if len(h["hucreler"]) == 2 and hedef:
             secim = a, (h["hucreler"][0]["gun"], h["hucreler"][0]["saat"]), hedef
             break

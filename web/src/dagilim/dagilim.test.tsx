@@ -175,6 +175,19 @@ describe("öğretmen görünümü", () => {
   });
 });
 
+describe("öğretmen görünümü: haftalık yük uyarısı (K6)", () => {
+  it("eşiğin dışındaki öğretmenin kartında uyarı, kapasite aşımından ayrı", async () => {
+    const api = dagilimApisiKur();
+    const UYARI = "Şule Kaya haftada 6 saat derse giriyor, alt eşik 15 saat (9 saat eksik).";
+    api.ozet.ogretmenler = api.ozet.ogretmenler.map((o) => (o.ogretmen_id === "o-sule" ? { ...o, yuk_uyarisi: UYARI } : o));
+    uygulamayiCiz("/ders-dagilimi?gorunum=ogretmen");
+    const basliklar = await screen.findAllByRole("heading", { level: 3 });
+    const sule = basliklar.find((b) => b.textContent?.startsWith("Şule"))!.closest("li")!;
+    expect(sule).toHaveTextContent(UYARI);
+    expect(await durumKutusu()).not.toHaveTextContent("kapasitesini aşıyor");
+  });
+});
+
 describe("ders görünümü: birden fazla şubeye aynı öğretmen", () => {
   it("öğretmensizleri işaretle, öğretmeni seç, tek istekle ver", async () => {
     const api = dagilimApisiKur();

@@ -69,6 +69,12 @@ export function OgretmenGorunumu({ veri, git }: { veri: DagilimVerisi; git: Git 
                   {yuk.mesaj}
                 </p>
               )}
+              {yuk?.yuk_uyarisi && (
+                <p className={stil.yukUyarisi}>
+                  <span aria-hidden="true">ⓘ </span>
+                  {yuk.yuk_uyarisi}
+                </p>
+              )}
               {atamalar.length > 0 && (
                 <>
                   <Dugme tur="metin" aria-expanded={acik.has(ogretmen.id)} aria-controls={listeId}

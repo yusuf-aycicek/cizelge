@@ -169,6 +169,7 @@ açıkça tanımlanan derslere uygulanır.
 | f | `ders_saat_tercihi` (yeni) | esnek | ders | `{"saatler": [0, 1, 2, 3]}` tercih edilen saatler, ya da `{"kacin": [4]}`. Dışına düşen her saat ceza |
 | g | `gunluk_en_az_ders` (yeni) | esnek | öğretmen | Öğretmenin geldiği bir günde ders sayısı 1..k-1 ise ceza (k varsayılan 2) |
 | h | `ders_yayilimi` (yeni) | esnek | ders | Aynı (şube, ders) art arda iki günde varsa ceza |
+| i | `haftalik_yuk` (yeni, K6d) | uyarı | öğretmen | `{"alt", "ust"}`, 0 = yok; modele etkisi yok, dağılımda ve ön kontrolde uyarı (ADR 0023; plandaki `okul` sütunlarının yerine) |
 
 ### 4.1 Blok deseni (b)
 

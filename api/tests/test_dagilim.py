@@ -76,7 +76,8 @@ def test_bos_okulun_ozeti(istemci, okul):
     assert oz["ogretmensiz_atama"] == 0
     assert len(oz["ogretmenler"]) == 3 and len(oz["siniflar"]) == 3
     assert ogretmen(oz, okul, "ali") == {"ogretmen_id": okul["ali"], "ders_saati": 0, "musait_saat": 30,
-                                          "kullanilabilir_saat": 30, "asim": False, "mesaj": None}
+                                          "kullanilabilir_saat": 30, "asim": False, "mesaj": None,
+                                          "yuk_uyarisi": None}
 
 
 def test_ogretmen_asimi_ve_ogretmensiz_atama(istemci, okul):

@@ -764,8 +764,8 @@ Kullanım limiti dolabileceği için her alt parça ayrı commit edilir; yarıda
 | # | Alt parça | Durum |
 |---|---|---|
 | K6a-c | Çözücü: `ders_saat_tercihi` (esnek, ders / ders + şube / ders + grup; `saatler` tercih edilen, `kacin` kaçınılan; okul genelinde tercih yok), `gunluk_en_az_ders` (esnek, okul ve öğretmen; k=2; öğretmenin yükü ve en iyi günü yetmezse k küçülür, 1'de kural yok), `ders_yayilimi` (esnek, ders/şube/grup; art arda iki gün dolu → ceza; `yayilsin: false` ile kapanır). Değerler tek kaynakta (`cozucu/tercihler.py`), kalite ölçüleri `saat_tercihi`, `az_dersli_gun`, `art_arda_gun` (eski programlarda 0). Ağırlıklar 3 / 3 / 2. API: metinler, önem karşılıkları, parametre doğrulaması (saat listesi, `yayilsin`). Mutasyon 14/14. Eski testlerden üçü yeni kuralları kapattı (konuları değil), mini setteki "en az değişiklik" payı 4 → 6 | Bitti |
-| K6d | Öğretmen haftalık yük uyarısı: eşikler `haftalik_yuk` kuralı (alt, üst; 0 = kapalı; okul ve öğretmene özel); ders dağılımında ve ön kontrolde uyarı (hata değil) | Sırada |
-| K6e | Arayüz: Özel ayar ekle (saat tercihi, en az ders, yayılım, yük eşikleri), okul ayarları "Gelişmiş" bölümünde parametreler, kalite özetinde yeni ölçüler | |
+| K6d | Öğretmen haftalık yük uyarısı (ADR 0023): eşikler `haftalik_yuk` uyarı kuralı (`alt`, `ust`; 0 = kapalı; okul ve öğretmene özel; modele bir şey eklemez; alt > üst reddedilir). Metin tek yerde (`YukHesabi.ogretmen_yuk_uyarisi`): dağılım özetinde `yuk_uyarisi`, `GET /on-kontrol` yanıtında ayrı `uyarilar` listesi (üretimi engellemez). Arayüz: öğretmen kartında turuncu uyarı, program sayfasında "Uyarılar (programı engellemez)". Mutasyon 5/5 (ilk turda eşiğe eşit yük kaçtı, sınır testi eklendi) | Bitti |
+| K6e | Arayüz: Özel ayar ekle (saat tercihi, en az ders, yayılım, yük eşikleri), okul ayarları "Gelişmiş" bölümünde parametreler, kalite özetinde yeni ölçüler | Sırada |
 | K6f | Örnek okulda deneme (ayarlar yedeklenip geri alınır) ve gerçekçi sette 120 sn ölçümü | |
 | T | Tasarım rötuşu: iki seçenek, 6 ekran görüntüsü; kullanıcı seçecek | |
 

@@ -1968,6 +1968,11 @@ export interface components {
              * Format: uuid
              */
             ogretmen_id: string;
+            /**
+             * Yuk Uyarisi
+             * @description Haftalık yük okulun eşiklerinin dışındaysa uyarı (hata değil)
+             */
+            yuk_uyarisi?: string | null;
         };
         /**
          * OkulGuncelle
@@ -2058,6 +2063,11 @@ export interface components {
         OnKontrolYanit: {
             /** Celiskiler */
             celiskiler: components["schemas"]["CeliskiYanit"][];
+            /**
+             * Uyarilar
+             * @description Programı engellemeyen uyarılar
+             */
+            uyarilar?: components["schemas"]["CeliskiYanit"][];
         };
         /** OzelAyar */
         OzelAyar: {

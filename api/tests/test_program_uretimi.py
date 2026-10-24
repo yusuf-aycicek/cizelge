@@ -364,12 +364,12 @@ def test_on_kontrol_ucu_ozel_ayari_da_denetler(istemci, okul, okul_olustur):
     """Uç, üretimdeki ön kontrolü çalıştırır (özel ayarlar dahil); başka okulun verisini görmez."""
     b, h = okul["baslik"], okul["harita"]
     yanit = istemci.get(f"{DP}/on-kontrol", headers=b)
-    assert yanit.status_code == 200 and yanit.json() == {"celiskiler": []}
+    assert yanit.status_code == 200 and yanit.json() == {"celiskiler": [], "uyarilar": []}
     istemci.put(f"{DP}/kurallar/gunluk_ders_siniri/ozel",
                 json={"kapsam": {"ders_id": h["d-mat"], "sinif_id": h["s-9a"]}, "parametreler": {"n": 1}}, headers=b)
     celiskiler = istemci.get(f"{DP}/on-kontrol", headers=b).json()["celiskiler"]
     assert [c["tur"] for c in celiskiler] == ["ders_gun_kapasitesi"]
     assert "9-A Matematik haftada 6 saat" in celiskiler[0]["mesaj"]
     baska = okul_basligi(okul_olustur("Başka Lise"))
-    assert istemci.get(f"{DP}/on-kontrol", headers=baska).json() == {"celiskiler": []}
+    assert istemci.get(f"{DP}/on-kontrol", headers=baska).json() == {"celiskiler": [], "uyarilar": []}
     assert istemci.get(f"{DP}/on-kontrol").status_code == 401

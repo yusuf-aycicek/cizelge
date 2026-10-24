@@ -72,6 +72,20 @@ describe("program oluşturma", () => {
     expect(screen.getByRole("button", { name: "Programı oluştur" })).toBeDisabled();
   });
 
+  it("haftalık yük uyarısı gösterilir ama programı engellemez (K6)", async () => {
+    hazirVeri();
+    programApisi([[]]);
+    const mesaj = "Ayşe Yılmaz haftada 12 saat derse giriyor, alt eşik 15 saat (3 saat eksik).";
+    sunucu.use(http.get("/api/ders-programi/on-kontrol", () =>
+      HttpResponse.json({ celiskiler: [], uyarilar: [{ tur: "yuk_uyarisi", mesaj, ilgili: [] }] })));
+    uygulamayiCiz("/program");
+    const not = await screen.findByRole("note");
+    expect(not).toHaveTextContent("Uyarılar (programı engellemez):");
+    expect(not).toHaveTextContent(mesaj);
+    expect(await screen.findByText(/Ön kontrol tamam/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Programı oluştur" })).toBeEnabled();
+  });
+
   it("engel yoksa oluşturulur; seçilen süre ve ad gönderilir; bekleme ekranı açılır", async () => {
     hazirVeri();
     const govdeler = programApisi([[], [program()]]);

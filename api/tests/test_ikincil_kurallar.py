@@ -60,3 +60,30 @@ def test_en_az_ders_ve_yayilim(istemci, okul):
     yanit = istemci.put(f"{DP}/kurallar/{YAYILIM}", json={"seviye": "cok_onemli"}, headers=b).json()
     assert yanit["agirlik"] == 5
     assert kural(istemci, b, EN_AZ)["parametreler"] == {"k": 3}
+
+
+def test_haftalik_yuk_uyarisi_dagilimda_ve_on_kontrolde(istemci, okul):
+    b = okul["b"]
+    atama = {"sinif_id": okul["sube"], "ders_id": okul["mat"], "ogretmen_id": okul["ayse"], "haftalik_saat": 4}
+    assert istemci.post(f"{DP}/atamalar", json=atama, headers=b).status_code == 201
+    # Varsayılan: eşik yok.
+    ozet = istemci.get(f"{DP}/dagilim-ozeti", headers=b).json()
+    assert ozet["ogretmenler"][0]["yuk_uyarisi"] is None
+    assert istemci.get(f"{DP}/on-kontrol", headers=b).json()["uyarilar"] == []
+
+    yanit = istemci.put(f"{DP}/kurallar/haftalik_yuk", json={"parametreler": {"alt": 15, "ust": 30}}, headers=b)
+    assert yanit.status_code == 200, yanit.json()
+    mesaj = "Ayşe Yılmaz haftada 4 saat derse giriyor, alt eşik 15 saat (11 saat eksik)."
+    assert istemci.get(f"{DP}/dagilim-ozeti", headers=b).json()["ogretmenler"][0]["yuk_uyarisi"] == mesaj
+    on = istemci.get(f"{DP}/on-kontrol", headers=b).json()
+    assert [u["mesaj"] for u in on["uyarilar"]] == [mesaj]
+    assert on["celiskiler"] == []  # uyarı hata değildir
+
+    # Öğretmene özel eşik okul eşiğini ezer.
+    assert ozel_yaz(istemci, b, "haftalik_yuk", {"ogretmen_id": okul["ayse"]}, {"alt": 4, "ust": 0}).status_code == 200
+    assert istemci.get(f"{DP}/on-kontrol", headers=b).json()["uyarilar"] == []
+
+
+def test_haftalik_yuk_alt_esik_ustten_buyuk_olamaz(istemci, okul):
+    yanit = istemci.put(f"{DP}/kurallar/haftalik_yuk", json={"parametreler": {"alt": 20, "ust": 10}}, headers=okul["b"])
+    assert (yanit.status_code, yanit.json()["detail"]) == (422, "Alt eşik üst eşikten büyük olamaz")

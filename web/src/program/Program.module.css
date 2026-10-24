@@ -20,6 +20,17 @@
   font-weight: var(--yazi-kalin);
 }
 
+.uyarilar {
+  margin-top: var(--bosluk-2);
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border-radius: var(--kose);
+  background: var(--renk-uyari-zemin);
+  color: var(--renk-uyari-metin);
+}
+.uyarilar p,
+.uyarilar ul {
+  margin: 0;
+}
 .hazirNotu {
   display: flex;
   align-items: flex-start;

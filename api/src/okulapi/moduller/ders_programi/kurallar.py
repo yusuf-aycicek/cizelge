@@ -55,6 +55,12 @@ KURAL_METINLERI: dict[str, tuple[str, str]] = {
         "Öğretmenin günlük ders sınırı",
         "Bir öğretmen günde en fazla bu kadar saat derse girer.",
     ),
+    "haftalik_yuk": (
+        "Öğretmenin haftalık ders yükü",
+        "Haftalık ders saati bu eşiklerin dışında kalan öğretmen ders dağılımında ve program "
+        "üretilirken uyarılır (ör. alt eşik maaş karşılığı, üst eşik ek ders sınırı). Uyarıdır, "
+        "programı engellemez. 0: eşik yok.",
+    ),
     BLOK_DESENI_TURU: (
         "Dağılım şekli (blok dersler)",
         "Bir dersin haftalık saatleri art arda bloklara bölünür (ör. 5 saat: 2+2+1); her blok ayrı "
@@ -106,7 +112,7 @@ KURAL_METINLERI: dict[str, tuple[str, str]] = {
 VARSAYILANLAR: dict[str, KisitTanimi] = {t.tur: t for t in VARSAYILAN_KISITLAR}
 
 # Parametrelerin en küçük değerleri: kullanıcının diliyle hata için (çözücü de ayrıca denetler).
-PARAMETRE_ALT_SINIRLARI = {"n": 1, "m": 1, "hedef_bos_gun": 0, "k": 0}
+PARAMETRE_ALT_SINIRLARI = {"n": 1, "m": 1, "hedef_bos_gun": 0, "k": 0, "alt": 0, "ust": 0}
 # Okul tanımında verilmesi gerekmeyen parametreler ve özel ayarın okul tanımından farklı adları.
 ISTEGE_BAGLI_PARAMETRELER: dict[str, set[str]] = {BLOK_DESENI_TURU: {"varsayilanlar"}}
 OZEL_PARAMETRELER: dict[str, set[str]] = {BLOK_DESENI_TURU: {"desen"}, "ders_saat_tercihi": set()}
@@ -254,6 +260,8 @@ class KurallarServisi:
                 raise GecersizVeri(f"{KURAL_METINLERI[tur][0]}: bir sayı olmalı")
             elif deger < PARAMETRE_ALT_SINIRLARI.get(ad, 0):
                 raise GecersizVeri(f"{KURAL_METINLERI[tur][0]}: en az {PARAMETRE_ALT_SINIRLARI.get(ad, 0)} olmalı")
+        if tur == "haftalik_yuk" and sonuc.get("alt") and sonuc.get("ust") and sonuc["alt"] > sonuc["ust"]:
+            raise GecersizVeri("Alt eşik üst eşikten büyük olamaz")
         if tur == "ders_saat_tercihi" and ozel and not (sonuc.get("saatler") or sonuc.get("kacin")):
             raise GecersizVeri("Dersin saat tercihi için istenen ya da istenmeyen en az bir saat seçin")
         return sonuc

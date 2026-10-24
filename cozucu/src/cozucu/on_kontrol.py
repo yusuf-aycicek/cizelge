@@ -36,6 +36,18 @@ def on_kontrol(girdi: CozumGirdisi) -> list[Celiski]:
     return sorunlar + kontrol.sinif_musaitligi(sorunlar)
 
 
+def uyarilar(girdi: CozumGirdisi) -> list[Celiski]:
+    """Programı engellemeyen uyarılar (ör. öğretmenin haftalık yükü eşiklerin dışında). Üretim
+    bunlara rağmen yapılır; ön kontrolle birlikte kullanıcıya gösterilir."""
+    hesap = YukHesabi(girdi)
+    sonuc = []
+    for y in hesap.ogretmen_yukleri():
+        mesaj = hesap.ogretmen_yuk_uyarisi(y)
+        if mesaj:
+            sonuc.append(Celiski("yuk_uyarisi", mesaj, (y.ogretmen_id,)))
+    return sonuc
+
+
 class _Kontrol:
     def __init__(self, girdi: CozumGirdisi) -> None:
         self.girdi = girdi

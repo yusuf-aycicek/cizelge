@@ -355,6 +355,14 @@
   color: var(--renk-hata-metin);
   font-weight: var(--yazi-kalin);
 }
+/* Haftalık yük eşiğin dışında (K6): uyarıdır, kapasite aşımı gibi kırmızı değil. */
+.yukUyarisi {
+  margin: 0 0 var(--bosluk-2);
+  padding: var(--bosluk-1) var(--bosluk-2);
+  border-radius: var(--kose);
+  background: var(--renk-uyari-zemin);
+  color: var(--renk-uyari-metin);
+}
 .dersListesi {
   margin: var(--bosluk-2) 0 0;
   padding-inline-start: var(--bosluk-5);

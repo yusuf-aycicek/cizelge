@@ -97,7 +97,7 @@ def test_ders_sube_ayari_dersin_ayarini_ezer():
 # --- öğretmenin geldiği günde en az ders (g) --------------------------------------------------
 
 def tek_saatlik_dersler(adet, ogretmen="o1"):
-    return [DersAtama(f"t{i}", f"s{i}", f"d{i}", ogretmen, 1) for i in range(adet)]
+    return [DersAtama(f"{ogretmen}-t{i}", f"s{i}", f"d{i}", ogretmen, 1) for i in range(adet)]
 
 
 def test_bir_saat_icin_gelmez():
@@ -110,7 +110,7 @@ def test_bir_saat_icin_gelmez():
 
 
 def test_kilitler_tek_saatlik_gun_birakirsa_ceza():
-    kilitler = [kilit("t0", 0, 0), kilit("t1", 1, 0), kilit("t2", 1, 1)]
+    kilitler = [kilit("o1-t0", 0, 0), kilit("o1-t1", 1, 0), kilit("o1-t2", 1, 1)]
     girdi = girdi_kur(ayar=OkulAyari(2, 4), atamalar=tek_saatlik_dersler(3), kilitli_yerlesimler=kilitler,
                       kisitlar=yalniz(EN_AZ) + [BLOKSUZ])
     sonuc = coz(girdi)
@@ -169,3 +169,48 @@ def test_derse_ozel_kapatilabilir():
     sonuc = coz(girdi)
     assert olc(girdi, sonuc.yerlesimler).art_arda_gun == 0
     assert sonuc.toplam_ceza == 0
+
+
+# --- öğretmenin haftalık yük uyarısı (i) ------------------------------------------------------
+
+YUK = "haftalik_yuk"
+
+
+def yuk_girdisi(*kisitlar):
+    return girdi_kur(ayar=OkulAyari(5, 8), atamalar=tek_saatlik_dersler(12) + tek_saatlik_dersler(20, "o2"),
+                     kisitlar=list(kisitlar))
+
+
+def test_yuk_esikleri_varsayilan_kapali():
+    from cozucu.on_kontrol import uyarilar
+
+    assert uyarilar(yuk_girdisi()) == []
+
+
+def test_yuk_esiklerinin_disindaki_ogretmen_uyarilir():
+    from cozucu.on_kontrol import on_kontrol, uyarilar
+
+    girdi = yuk_girdisi(KisitTanimi(YUK, {"alt": 15, "ust": 18}))
+    assert [(c.tur, c.mesaj, c.ilgili) for c in uyarilar(girdi)] == [
+        ("yuk_uyarisi", "o1 haftada 12 saat derse giriyor, alt eşik 15 saat (3 saat eksik).", ("o1",)),
+        ("yuk_uyarisi", "o2 haftada 20 saat derse giriyor, üst eşik 18 saat (2 saat fazla).", ("o2",)),
+    ]
+    # Uyarı hata değildir: ön kontrol geçer, program üretilir.
+    assert on_kontrol(girdi) == []
+    assert CpSatCozucu().coz(girdi, sure_siniri_sn=10).basarili
+
+
+def test_ogretmene_ozel_esik_ve_yalniz_ust_esik():
+    from cozucu.on_kontrol import uyarilar
+
+    girdi = yuk_girdisi(KisitTanimi(YUK, {"alt": 0, "ust": 18}), ozel(YUK, {"alt": 0, "ust": 22}, ogretmen_id="o2"))
+    assert uyarilar(girdi) == []
+    girdi = yuk_girdisi(KisitTanimi(YUK, {"alt": 0, "ust": 18}), ozel(YUK, {"alt": 13, "ust": 0}, ogretmen_id="o1"))
+    assert [c.ilgili for c in uyarilar(girdi)] == [("o1",), ("o2",)]
+    # Eşiğe tam eşit yük uyarı vermez (o1: 12 saat, alt 12; o2: 20 saat, üst 20).
+    assert uyarilar(yuk_girdisi(KisitTanimi(YUK, {"alt": 12, "ust": 20}))) == []
+
+
+def test_yuk_esigi_alt_ustten_buyuk_olamaz():
+    with pytest.raises(GirdiHatasi):
+        kural_olustur(KisitTanimi(YUK, {"alt": 20, "ust": 10}))

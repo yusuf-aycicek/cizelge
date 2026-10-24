@@ -14,6 +14,7 @@ from collections import Counter, defaultdict
 
 from cozucu.blok import BLOK_DESENI_TURU, BlokHesabi, baslangiclar, desen_dogrula
 from cozucu.kisitlar.temel import Baglam, CezaTerimi, KisitKurali, kaydet
+from cozucu.tercihler import HAFTALIK_YUK_TURU
 from cozucu.model import (
     GUNLUK_DERS_SINIRI_TURU,
     OGRETMEN_GUNLUK_SINIRI_TURU,
@@ -252,3 +253,29 @@ TEMEL_KURALLAR: tuple[type[KisitKurali], ...] = (
     GunUzunlugu,
     KilitliHucre,
 )
+
+
+@kaydet
+class HaftalikYuk(KisitKurali):
+    """Öğretmenin haftalık yük eşikleri (K6, i): **uyarı kuralıdır**, modele hiçbir şey eklemez.
+
+    Okulun belirlediği alt (ör. maaş karşılığı) ve üst (ör. ek ders sınırı) eşiklerin dışında kalan
+    öğretmen ders dağılımında ve ön kontrolde uyarılır, program yine üretilir. 0 = eşik yok
+    (varsayılan: ikisi de kapalı). Öğretmene özel eşik verilebilir. Kural defterde olduğu için aynı
+    `kisit` tablosu, özel ayar ve "en özel kazanır" çözümlemesi kullanılır (ADR 0023); uyarının
+    metni `yuk.YukHesabi.ogretmen_yuk_uyarisi`ndadır.
+    """
+
+    tur = HAFTALIK_YUK_TURU
+    kapsamlar = frozenset({"ogretmen"})
+
+    def __init__(self, alt: int = 0, ust: int = 0) -> None:
+        if alt < 0 or ust < 0:
+            raise ValueError(f"eşikler negatif olamaz: {alt}, {ust}")
+        if alt and ust and alt > ust:
+            raise ValueError(f"alt eşik üst eşikten büyük olamaz: {alt} > {ust}")
+        self.alt = alt
+        self.ust = ust
+
+    def uygula(self, baglam: Baglam) -> list[CezaTerimi]:
+        return []

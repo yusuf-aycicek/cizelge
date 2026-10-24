@@ -20,6 +20,8 @@ from cozucu.model import (
 SAAT_TERCIHI_TURU = "ders_saat_tercihi"
 EN_AZ_DERS_TURU = "gunluk_en_az_ders"
 YAYILIM_TURU = "ders_yayilimi"
+# Öğretmenin haftalık yük eşikleri (uyarı; çözücüyü etkilemez). 0 = eşik yok.
+HAFTALIK_YUK_TURU = "haftalik_yuk"
 # Öğretmen geldiği bir günde en az kaç ders saati vermeli ("bir saat için gelmem").
 VARSAYILAN_GUNLUK_EN_AZ_DERS = 2
 

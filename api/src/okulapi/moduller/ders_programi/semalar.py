@@ -154,6 +154,7 @@ class OgretmenYukuYanit(BaseModel):
     kullanilabilir_saat: int = Field(description="Günlük ders sınırıyla birlikte derse girebileceği en fazla saat")
     asim: bool
     mesaj: str | None = Field(description="Aşım varsa ön kontrolün mesajı")
+    yuk_uyarisi: str | None = Field(default=None, description="Haftalık yük okulun eşiklerinin dışındaysa uyarı (hata değil)")
 
 
 class SinifYukuYanit(BaseModel):
@@ -362,6 +363,7 @@ class CeliskiYanit(BaseModel):
 
 class OnKontrolYanit(BaseModel):
     celiskiler: list[CeliskiYanit]
+    uyarilar: list[CeliskiYanit] = Field(default_factory=list, description="Programı engellemeyen uyarılar")
 
 
 class ProgramYanit(_Yanit):

@@ -97,7 +97,7 @@ def dagilim_ozetini_getir(oturum: OkulOturumu) -> Any:
 def on_kontrolu_getir(oturum: OkulOturumu) -> Any:
     """Program üretilmeden önce, üretimdeki ön kontrolün tamamı (özel ayarlar dahil). `celiskiler`
     boş değilse üretim ön kontrolde başarısız olur; arayüz bu durumda oluşturma düğmesini kapatır."""
-    return {"celiskiler": on_kontrol_sonucu(oturum)}
+    return on_kontrol_sonucu(oturum)
 
 
 @router.get("/ogretmenler/{ogretmen_id}/musaitlik", response_model=semalar.MusaitlikCizelgesi, tags=["müsaitlik"])

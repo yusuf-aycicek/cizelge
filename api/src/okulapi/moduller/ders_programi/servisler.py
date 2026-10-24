@@ -20,6 +20,7 @@ from cozucu.kapsam import cozumle
 from cozucu.kisitlar import GirdiHatasi, kural_olustur
 from cozucu.model import KisitTanimi
 from cozucu.on_kontrol import on_kontrol
+from cozucu.on_kontrol import uyarilar as on_kontrol_uyarilari
 from cozucu.yuk import YukHesabi
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -285,12 +286,21 @@ class DersAtamaServisi(CrudServisi):
         super().sil(kayit_id)
 
 
-def on_kontrol_sonucu(oturum) -> list[dict[str, Any]]:
+def on_kontrol_sonucu(oturum) -> dict[str, list[dict[str, Any]]]:
     """Program üretiminin ön kontrolü, üretmeden. Worker'ın çözücüye verdiği girdi
     (`cozum_girdisi_olustur`) ve çözücünün çağırdığı fonksiyon (`cozucu.on_kontrol.on_kontrol`)
     aynıdır: burada geçen bir okul üretimde ön kontrolde takılmaz, takılan da burada görünür.
     Özel ayarlar, müsaitlik, kurallar dahil (dağılım özeti yalnızca yük hesabını içerir)."""
-    return [{"tur": c.tur, "mesaj": c.mesaj, "ilgili": list(c.ilgili)} for c in on_kontrol(cozum_girdisi_olustur(oturum))]
+    girdi = cozum_girdisi_olustur(oturum)
+    return {
+        "celiskiler": [_celiski(c) for c in on_kontrol(girdi)],
+        # Programı engellemeyen uyarılar (öğretmenin haftalık yükü eşiklerin dışında; K6).
+        "uyarilar": [_celiski(c) for c in on_kontrol_uyarilari(girdi)],
+    }
+
+
+def _celiski(c) -> dict[str, Any]:
+    return {"tur": c.tur, "mesaj": c.mesaj, "ilgili": list(c.ilgili)}
 
 
 # Okul önerisinin bir atamada neden uygulanmadığı, kısaca (ders listesinde gösterilir).
@@ -345,7 +355,8 @@ def dagilim_ozeti(oturum) -> dict[str, Any]:
         "ogretmensiz_atama": sum(y.ogretmensiz_atama for y in siniflar),
         "ogretmenler": [
             {"ogretmen_id": y.ogretmen_id, "ders_saati": y.ders_saati, "musait_saat": y.musait_saat,
-             "kullanilabilir_saat": y.kullanilabilir_saat, "asim": y.asim, "mesaj": hesap.ogretmen_mesaji(y)}
+             "kullanilabilir_saat": y.kullanilabilir_saat, "asim": y.asim, "mesaj": hesap.ogretmen_mesaji(y),
+             "yuk_uyarisi": hesap.ogretmen_yuk_uyarisi(y)}
             for y in hesap.ogretmen_yukleri()
         ],
         "siniflar": [

@@ -20,6 +20,7 @@ from dataclasses import dataclass
 
 from cozucu.anlatim import Anlatim, iyelik
 from cozucu.kapsam import cozumle
+from cozucu.tercihler import HAFTALIK_YUK_TURU
 from cozucu.model import (
     BOS_GUN_TURU,
     GUNLUK_DERS_SINIRI_TURU,
@@ -141,6 +142,21 @@ class YukHesabi:
             f"fazla {self.ogretmen_siniri(yuk.ogretmen_id)} saat derse girebildiği için yalnızca {yuk.kullanilabilir_saat} saati "
             f"kullanılabilir."
         )
+
+    def ogretmen_yuk_uyarisi(self, yuk: OgretmenYuku) -> str | None:
+        """Haftalık yük okulun (ya da öğretmene özel) eşiklerinin dışındaysa uyarı, yoksa None.
+
+        Hata değildir: program yine üretilir (K6, i). Eşik 0 ise o yön denetlenmez.
+        """
+        o = yuk.ogretmen_id
+        alt = self.girdi.parametre(HAFTALIK_YUK_TURU, "alt", 0, ogretmen_id=o)
+        ust = self.girdi.parametre(HAFTALIK_YUK_TURU, "ust", 0, ogretmen_id=o)
+        ad = self.ad.ogretmen(o)
+        if alt and yuk.ders_saati < alt:
+            return f"{ad} haftada {yuk.ders_saati} saat derse giriyor, alt eşik {alt} saat ({alt - yuk.ders_saati} saat eksik)."
+        if ust and yuk.ders_saati > ust:
+            return f"{ad} haftada {yuk.ders_saati} saat derse giriyor, üst eşik {ust} saat ({yuk.ders_saati - ust} saat fazla)."
+        return None
 
     # --- sınıf ---------------------------------------------------------------------------
 
