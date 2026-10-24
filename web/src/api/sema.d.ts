@@ -467,6 +467,86 @@ export interface paths {
         patch: operations["program_adlandir_api_ders_programi_programlar__program_id__patch"];
         trace?: never;
     };
+    "/api/ders-programi/programlar/{program_id}/cikti/carsaf.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Carsaf Pdf
+         * @description Çarşaf liste: bütün okul tek tabloda (A3 yatay); satırlar öğretmenler ya da şubeler.
+         */
+        get: operations["carsaf_pdf_api_ders_programi_programlar__program_id__cikti_carsaf_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/programlar/{program_id}/cikti/ogretmenler.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ogretmenler Pdf
+         * @description Öğretmen programları, her öğretmen ayrı sayfa, haftalık toplam ders saatiyle (A4 yatay).
+         */
+        get: operations["ogretmenler_pdf_api_ders_programi_programlar__program_id__cikti_ogretmenler_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/programlar/{program_id}/cikti/program.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Program Excel
+         * @description Excel: şubeler, öğretmenler, çarşaf listeler ve filtrelenebilir ders listesi sekmeleri.
+         */
+        get: operations["program_excel_api_ders_programi_programlar__program_id__cikti_program_xlsx_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/programlar/{program_id}/cikti/subeler.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Subeler Pdf
+         * @description Şube programları, her şube ayrı sayfa (A4 yatay). `sinif_id`: yalnızca o şube. `imza`: "Okul Müdürü" alanı.
+         */
+        get: operations["subeler_pdf_api_ders_programi_programlar__program_id__cikti_subeler_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ders-programi/programlar/{program_id}/fark": {
         parameters: {
             query?: never;
@@ -3323,6 +3403,186 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ProgramYanit"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    carsaf_pdf_api_ders_programi_programlar__program_id__cikti_carsaf_pdf_get: {
+        parameters: {
+            query?: {
+                satir?: "ogretmen" | "sube";
+            };
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Program, şube ya da öğretmen bu okulda yok */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Program hazır değil */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ogretmenler_pdf_api_ders_programi_programlar__program_id__cikti_ogretmenler_pdf_get: {
+        parameters: {
+            query?: {
+                ogretmen_id?: string | null;
+                imza?: boolean;
+            };
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Program, şube ya da öğretmen bu okulda yok */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Program hazır değil */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    program_excel_api_ders_programi_programlar__program_id__cikti_program_xlsx_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Program, şube ya da öğretmen bu okulda yok */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Program hazır değil */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    subeler_pdf_api_ders_programi_programlar__program_id__cikti_subeler_pdf_get: {
+        parameters: {
+            query?: {
+                sinif_id?: string | null;
+                imza?: boolean;
+            };
+            header?: never;
+            path: {
+                program_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Program, şube ya da öğretmen bu okulda yok */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Program hazır değil */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

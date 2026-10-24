@@ -736,12 +736,12 @@ Kullanım limiti dolabileceği için her alt parça ayrı commit edilir; yarıda
 | # | Alt parça | Durum |
 |---|---|---|
 | 7.2a | Zil saati hesabı tek kaynakta: `api cekirdek/zil.py`; `OkulYanit.zil_saatleri` ve `ogle_arasi_zili` hesaplanmış alanlar; ayar ekranının önizlemesi `POST /api/okul/zil-onizleme` (kaydetmez); arayüzdeki hesap (`zaman.ts`) kaldırıldı | Bitti |
-| 7.2b | Kütüphane seçimi ve ADR 0020; çıktı verisinin tek modeli (şube/öğretmen hücreleri, blok birleşik hücre) | Sırada |
-| 7.2c | Şube ve öğretmen PDF'i (A4 yatay, her biri ayrı sayfa; tek şube/öğretmen; imza alanı isteğe bağlı) | |
-| 7.2d | Çarşaf liste PDF'i (A3 yatay, sığmazsa sayfalara bölünür) | |
-| 7.2e | Excel (şubeler, öğretmenler, çarşaf liste sekmeleri; filtre, yazdırma ayarı) | |
-| 7.2f | Çıktı uçlarında okul izolasyonu testi (bir kez bozularak denenir); büyük okulda süre ölçümü | |
-| 7.2g | Arayüz: program sayfasında ve çizelgede "İndir" menüsü; 3 PDF sayfası PNG | |
+| 7.2b | Kütüphane seçimi (ReportLab, openpyxl, DejaVu Sans gömülü) ve ADR 0020; çıktı modeli `cikti/model.py`, veritabanından dolduran `cikti/veri.py` (blok birleştirme arayüzdekiyle aynı kural) | Bitti |
+| 7.2c | Şube ve öğretmen PDF'i: `GET /programlar/{id}/cikti/subeler.pdf` (`sinif_id`, `imza`), `.../ogretmenler.pdf` (`ogretmen_id`, `imza`); A4 yatay, her biri ayrı sayfa, okul/program/tarih başlığı, zil saatleri, öğle arası satırı, blok birleşik hücre, öğretmende haftalık toplam; 409 hazır olmayan program | Bitti |
+| 7.2d | Çarşaf liste PDF'i `.../carsaf.pdf?satir=` (ogretmen ya da sube): A3 yatay; satırlar bölünür, başlık tekrarlanır; günler sığmazsa gün gruplarına ayrılır | Bitti |
+| 7.2e | Excel `.../program.xlsx`: Şubeler, Öğretmenler (sayfa sonlarıyla), iki çarşaf (filtre, dondurulmuş bölme, başlık tekrarı, A3), Liste (her ders saati bir satır, filtre); adlandırılmış stiller (büyük okulda 4,2 → 2,1 sn) | Bitti |
+| 7.2f | İzolasyon testi (başka okul her uçta 404, oturumsuz 401); bir kez bozuldu (yabancı programa boş çıktı): yakalandı. Büyük okul ölçümü ADR 0020'de (hepsi 2,5 sn altında; istek içinde üretim yeterli) | Bitti |
+| 7.2g | Arayüz: program sayfasında ve çizelgede "İndir" menüsü; 3 PDF sayfası PNG | Sırada |
 
 ## 8. Açık sorular
 

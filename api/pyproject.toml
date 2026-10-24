@@ -19,19 +19,22 @@ dependencies = [
     "redis>=5",
     # Parola özeti (ADR 0012).
     "argon2-cffi>=23.1",
+    # Çıktı: PDF ve Excel (ADR 0020). Yalnızca moduller/ders_programi/cikti içe aktarır.
+    "reportlab>=4.2",
+    "openpyxl>=3.1",
     # Depodaki çözücü paketi (/cozucu). Ders programı modülü onu girdi/çıktı dönüşümü ve kısıt
     # doğrulaması için kullanır; çözücü API'yi bilmez. Geliştirmede: pip install -e ../cozucu
     "cozucu",
 ]
 
 [project.optional-dependencies]
-test = ["pytest>=8", "httpx>=0.27", "fakeredis>=2.26"]
+test = ["pytest>=8", "httpx>=0.27", "fakeredis>=2.26", "pypdf>=5"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-"*" = ["*.mako"]
+"*" = ["*.mako", "*.ttf", "LICENSE_*.txt"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -4782,6 +4782,246 @@
         ]
       }
     },
+    "/api/ders-programi/programlar/{program_id}/cikti/carsaf.pdf": {
+      "get": {
+        "description": "Çarşaf liste: bütün okul tek tabloda (A3 yatay); satırlar öğretmenler ya da şubeler.",
+        "operationId": "carsaf_pdf_api_ders_programi_programlar__program_id__cikti_carsaf_pdf_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "program_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Program Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "satir",
+            "required": false,
+            "schema": {
+              "default": "ogretmen",
+              "enum": [
+                "ogretmen",
+                "sube"
+              ],
+              "title": "Satir",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Program, şube ya da öğretmen bu okulda yok"
+          },
+          "409": {
+            "description": "Program hazır değil"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Carsaf Pdf",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/ders-programi/programlar/{program_id}/cikti/ogretmenler.pdf": {
+      "get": {
+        "description": "Öğretmen programları, her öğretmen ayrı sayfa, haftalık toplam ders saatiyle (A4 yatay).",
+        "operationId": "ogretmenler_pdf_api_ders_programi_programlar__program_id__cikti_ogretmenler_pdf_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "program_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Program Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ogretmen_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ogretmen Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "imza",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Imza",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Program, şube ya da öğretmen bu okulda yok"
+          },
+          "409": {
+            "description": "Program hazır değil"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ogretmenler Pdf",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/ders-programi/programlar/{program_id}/cikti/program.xlsx": {
+      "get": {
+        "description": "Excel: şubeler, öğretmenler, çarşaf listeler ve filtrelenebilir ders listesi sekmeleri.",
+        "operationId": "program_excel_api_ders_programi_programlar__program_id__cikti_program_xlsx_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "program_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Program Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Program, şube ya da öğretmen bu okulda yok"
+          },
+          "409": {
+            "description": "Program hazır değil"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Program Excel",
+        "tags": [
+          "program"
+        ]
+      }
+    },
+    "/api/ders-programi/programlar/{program_id}/cikti/subeler.pdf": {
+      "get": {
+        "description": "Şube programları, her şube ayrı sayfa (A4 yatay). `sinif_id`: yalnızca o şube. `imza`: \"Okul Müdürü\" alanı.",
+        "operationId": "subeler_pdf_api_ders_programi_programlar__program_id__cikti_subeler_pdf_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "program_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Program Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sinif_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sinif Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "imza",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Imza",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Program, şube ya da öğretmen bu okulda yok"
+          },
+          "409": {
+            "description": "Program hazır değil"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Subeler Pdf",
+        "tags": [
+          "program"
+        ]
+      }
+    },
     "/api/ders-programi/programlar/{program_id}/fark": {
       "get": {
         "description": "Bu programın `ile` programından (verilmezse temel programından) farklı hücreleri. 422: karşılaştırılacak program yok.",

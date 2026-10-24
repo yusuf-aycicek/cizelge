@@ -6,11 +6,19 @@ Not: `from __future__ import annotations` yok (FastAPI tip ipuçlarını çalı�
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Request, Response
+from typing import Literal
+from urllib.parse import quote
+
+from fastapi import APIRouter, Query, Request, Response
 
 from okulapi.cekirdek.api import crud_router
 from okulapi.cekirdek.bagimliliklar import Kuyruk, OkulOturumu
+from okulapi.cekirdek.depo import OgretmenDeposu
+from okulapi.cekirdek.servisler import KayitBulunamadi
 from okulapi.moduller.ders_programi import semalar
+from okulapi.moduller.ders_programi.cikti import excel, pdf
+from okulapi.moduller.ders_programi.cikti.model import Cizelge
+from okulapi.moduller.ders_programi.cikti.veri import program_ciktisi
 from okulapi.moduller.ders_programi.elle import ElleDuzeltmeServisi
 from okulapi.moduller.ders_programi.kurallar import KurallarServisi
 from okulapi.moduller.ders_programi.servisler import (
@@ -230,6 +238,69 @@ def degisikligi_geri_al(program_id: uuid.UUID, oturum: OkulOturumu) -> Any:
 @program_router.get("/{program_id}/yerlesimler", response_model=list[semalar.YerlesimYanit])
 def program_yerlesimleri(program_id: uuid.UUID, oturum: OkulOturumu) -> Any:
     return ProgramServisi(oturum).yerlesimler(program_id)
+
+
+PDF = "application/pdf"
+XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+_CIKTI_YANITLARI = {404: {"description": "Program, şube ya da öğretmen bu okulda yok"},
+                    409: {"description": "Program hazır değil"}}
+
+
+def _dosya(icerik: bytes, tur: str, ad: str) -> Response:
+    """İndirilen dosya. Türkçe ad `filename*` ile (RFC 5987), eski tarayıcılar için ASCII yedekle."""
+    ascii_ad = ad.encode("ascii", "ignore").decode() or "program"
+    return Response(icerik, media_type=tur, headers={
+        "Content-Disposition": f"attachment; filename=\"{ascii_ad}\"; filename*=UTF-8''{quote(ad)}"})
+
+
+def _sec(cizelgeler: list[Cizelge], kimlik: uuid.UUID | None, varlik: str) -> list[Cizelge]:
+    """Hepsi ya da yalnızca seçilen şube/öğretmen (404: bu okulda yok)."""
+    if kimlik is None:
+        return cizelgeler
+    secili = [c for c in cizelgeler if c.kimlik == kimlik]
+    if not secili:
+        raise KayitBulunamadi(varlik)
+    return secili
+
+
+@program_router.get("/{program_id}/cikti/subeler.pdf", response_class=Response, responses=_CIKTI_YANITLARI)
+def subeler_pdf(program_id: uuid.UUID, oturum: OkulOturumu, sinif_id: uuid.UUID | None = None,
+                imza: bool = False) -> Response:
+    """Şube programları, her şube ayrı sayfa (A4 yatay). `sinif_id`: yalnızca o şube. `imza`: "Okul Müdürü" alanı."""
+    cikti = program_ciktisi(oturum, program_id)
+    secili = _sec(cikti.subeler, sinif_id, "Şube")
+    ad = f"{secili[0].ad} programı.pdf" if sinif_id else "Şube programları.pdf"
+    return _dosya(pdf.haftalik_pdf(cikti, secili, "Şube programları", imza), PDF, ad)
+
+
+@program_router.get("/{program_id}/cikti/ogretmenler.pdf", response_class=Response, responses=_CIKTI_YANITLARI)
+def ogretmenler_pdf(program_id: uuid.UUID, oturum: OkulOturumu, ogretmen_id: uuid.UUID | None = None,
+                    imza: bool = False) -> Response:
+    """Öğretmen programları, her öğretmen ayrı sayfa, haftalık toplam ders saatiyle (A4 yatay)."""
+    cikti = program_ciktisi(oturum, program_id)
+    ogretmen = OgretmenDeposu(oturum).getir(ogretmen_id) if ogretmen_id else None
+    if ogretmen is not None and not any(c.kimlik == ogretmen.id for c in cikti.ogretmenler):
+        # Programda dersi olmayan öğretmen tek başına istenirse boş haftası verilir.
+        cikti.ogretmenler.append(Cizelge(ad=ogretmen.ad, tur="ogretmen", hucreler=[], kimlik=ogretmen.id))
+    secili = _sec(cikti.ogretmenler, ogretmen_id, "Öğretmen")
+    ad = f"{secili[0].ad} programı.pdf" if ogretmen_id else "Öğretmen programları.pdf"
+    return _dosya(pdf.haftalik_pdf(cikti, secili, "Öğretmen programları", imza), PDF, ad)
+
+
+@program_router.get("/{program_id}/cikti/carsaf.pdf", response_class=Response, responses=_CIKTI_YANITLARI)
+def carsaf_pdf(program_id: uuid.UUID, oturum: OkulOturumu,
+               satir: Literal["ogretmen", "sube"] = Query("ogretmen")) -> Response:
+    """Çarşaf liste: bütün okul tek tabloda (A3 yatay); satırlar öğretmenler ya da şubeler."""
+    cikti = program_ciktisi(oturum, program_id)
+    ad = "Çarşaf liste (öğretmenler).pdf" if satir == "ogretmen" else "Çarşaf liste (şubeler).pdf"
+    return _dosya(pdf.carsaf_pdf(cikti, satir), PDF, ad)
+
+
+@program_router.get("/{program_id}/cikti/program.xlsx", response_class=Response, responses=_CIKTI_YANITLARI)
+def program_excel(program_id: uuid.UUID, oturum: OkulOturumu) -> Response:
+    """Excel: şubeler, öğretmenler, çarşaf listeler ve filtrelenebilir ders listesi sekmeleri."""
+    cikti = program_ciktisi(oturum, program_id)
+    return _dosya(excel.program_xlsx(cikti), XLSX, f"{cikti.program}.xlsx")
 
 
 # Özel yollar (/uygula) CRUD'un /{kayit_id} yollarından önce eklenir.
