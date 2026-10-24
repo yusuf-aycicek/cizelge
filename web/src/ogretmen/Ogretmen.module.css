@@ -209,7 +209,9 @@
   border-radius: var(--kose);
   background: var(--renk-zemin);
   cursor: pointer;
-  touch-action: none;
+  /* Dokunmatikte sayfa kaydırılabilir (çift dokunma yakınlaştırması kapalı); "Toplu seç" modunda
+     kaydırma bu çizelgede durur, parmak hücreler üzerinde seçim yapar (5.6). */
+  touch-action: manipulation;
   transition: background-color var(--sure-kisa) var(--egri), border-color var(--sure-kisa) var(--egri),
     transform var(--sure-kisa) var(--egri);
 }
@@ -310,4 +312,54 @@
   content: "";
   flex: 1;
   border-top: 1px dashed var(--renk-kenar);
+}
+
+/* "Toplu seç" modu (5.6): dokunmatikte sürükleyerek seçim yalnızca bu modda. */
+.topluSatiri {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bosluk-2) var(--bosluk-4);
+  margin-bottom: var(--bosluk-3);
+}
+.topluDugmesi {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  min-height: var(--dokunma-hedefi);
+  padding: 0 var(--bosluk-4);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose);
+  background: var(--renk-zemin);
+  color: var(--renk-metin);
+  font: inherit;
+  font-weight: var(--yazi-kalin);
+  cursor: pointer;
+}
+.topluDugmesi svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.topluDugmesi[aria-pressed="true"] {
+  background: var(--renk-birincil);
+  border-color: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+}
+.topluBilgi {
+  margin: 0;
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
+}
+.cizelgeKutusu[data-toplu] {
+  outline: 2px dashed var(--renk-birincil);
+  outline-offset: 2px;
+}
+.cizelgeKutusu[data-toplu] .hucre {
+  touch-action: none;
+}
+/* Fareyle sürükleme moddan bağımsız çalıştığı için düğme yalnızca dokunmatik ekranda görünür. */
+@media (hover: hover) and (pointer: fine) {
+  .topluSatiri:not(:has([aria-pressed="true"])) {
+    display: none;
+  }
 }

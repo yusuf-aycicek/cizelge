@@ -228,6 +228,40 @@ describe("müsaitlik çizelgesi", () => {
       { gun: 0, saat: 2, durum: "gelemez" }, { gun: 0, saat: 3, durum: "gelemez" }, { gun: 1, saat: 3, durum: "gelemez" }]);
   });
 
+  it("dokunmatik: dokunma tek hücreyi değiştirir, parmakla sürükleme seçim yapmaz (sayfa kayar)", async () => {
+    const { istekler } = apiKur();
+    await ac();
+    // Parmak hücreden hücreye geçse de mod kapalıyken sürükleme başlamaz.
+    fireEvent.pointerDown(hucre("Pazartesi, 3. saat"), { pointerId: 1, pointerType: "touch" });
+    fireEvent.pointerEnter(hucre("Pazartesi, 4. saat"));
+    fireEvent.pointerUp(window);
+    expect(hucre("Pazartesi, 4. saat")).toHaveAttribute("data-durum", "musait");
+    expect(istekler).toHaveLength(0);
+    // Dokunuş (kaydırma değil) click üretir: yalnızca o hücre değişir.
+    fireEvent.pointerDown(hucre("Salı, 2. saat"), { pointerId: 2, pointerType: "touch" });
+    fireEvent.click(hucre("Salı, 2. saat"), { detail: 1 });
+    await waitFor(() => expect(istekler).toHaveLength(1));
+    expect(istekler[0]).toEqual([{ gun: 1, saat: 1, durum: "gelemez" }]);
+  });
+
+  it("dokunmatik: \"Toplu seç\" modunda parmağın geçtiği hücreler tek istekte işaretlenir", async () => {
+    const { istekler } = apiKur();
+    const { kullanici } = await ac();
+    const dugme = screen.getByRole("button", { name: "Toplu seç" });
+    await kullanici.click(dugme);
+    expect(screen.getByRole("button", { name: "Toplu seçimi bitir" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/Toplu seçim açık/)).toHaveAttribute("role", "status");
+    fireEvent.pointerDown(hucre("Pazartesi, 3. saat"), { pointerId: 1, pointerType: "touch" });
+    fireEvent.pointerEnter(hucre("Pazartesi, 4. saat"));
+    fireEvent.pointerUp(window);
+    // Bırakınca gelen click ikinci bir istek göndermez.
+    fireEvent.click(hucre("Pazartesi, 4. saat"), { detail: 1 });
+    await waitFor(() => expect(istekler).toHaveLength(1));
+    expect(istekler[0]).toEqual([{ gun: 0, saat: 2, durum: "gelemez" }, { gun: 0, saat: 3, durum: "gelemez" }]);
+    await kullanici.click(screen.getByRole("button", { name: "Toplu seçimi bitir" }));
+    expect(screen.getByRole("button", { name: "Toplu seç" })).toHaveAttribute("aria-pressed", "false");
+  });
+
   it("müsait saat ders yükünün altına düşünce sunucunun mesajıyla anında uyarı", async () => {
     const mesaj = "Ayşe Yılmaz'ın 18 saat dersi var, müsait olduğu 16 saat var.";
     apiKur({

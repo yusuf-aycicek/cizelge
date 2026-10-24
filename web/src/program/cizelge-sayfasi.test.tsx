@@ -1,7 +1,7 @@
 /** Haftalık çizelge sayfası: şube ve öğretmen görünümü, hücre içeriği, boş saat, kalite özeti. */
 import { screen, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { dagilimApisiKur } from "../test/dagilimApisi";
 import { BEN_ORNEK, sunucu } from "../test/sunucu";
 import { uygulamayiCiz } from "../test/yardimcilar";
@@ -139,5 +139,31 @@ describe("haftalık çizelge: blok dersler (K4)", () => {
     expect(within(ikinci).getAllByRole("cell")).toHaveLength(4);
     // Tek saatlik ders birleşmez.
     expect(hucre(tablo, "Salı", "3. saat")).not.toHaveAttribute("rowspan");
+  });
+
+  describe("telefonda gün gün", () => {
+    afterEach(() => vi.unstubAllGlobals());
+
+    it("bir gün seçilir, o günün dersleri alt alta; blok tek satır, boş saat \"Boş\"", async () => {
+      // Dar ekran: medya sorgusu eşleşir (jsdom'da matchMedia yok, masaüstü sayılır).
+      vi.stubGlobal("matchMedia", (q: string) => ({ matches: q.includes("max-width"), addEventListener: () => {}, removeEventListener: () => {} }));
+      kur();
+      const { kullanici } = uygulamayiCiz("/program/p1?gorunum=sube&sinif=s-9a");
+      const gunler = await screen.findByRole("group", { name: "Gün" });
+      expect(screen.queryByRole("table")).toBeNull();
+      expect(within(gunler).getAllByRole("button").map((b) => b.textContent)).toEqual(["Pzt", "Sal", "Çar", "Per", "Cum"]);
+
+      await kullanici.click(within(gunler).getByRole("button", { name: "Pazartesi" }));
+      expect(within(gunler).getByRole("button", { name: "Pazartesi" })).toHaveAttribute("aria-pressed", "true");
+      const liste = screen.getByRole("list", { name: "9-A haftalık programı, Pazartesi" });
+      const satirlar = within(liste).getAllByRole("listitem").map((l) => l.textContent);
+      expect(satirlar).toEqual([
+        "1.-2. saatMatematikŞule Kaya", "3. saatBoş", "4. saatBoş", "5. saatBoş", "6. saatBoş", "7. saatBoş", "8. saatBoş",
+      ]);
+
+      await kullanici.click(within(gunler).getByRole("button", { name: "Salı" }));
+      const sali = screen.getByRole("list", { name: "9-A haftalık programı, Salı" });
+      expect(within(sali).getAllByRole("listitem")[2]).toHaveTextContent("3. saatFizikZeynep Demir");
+    });
   });
 });

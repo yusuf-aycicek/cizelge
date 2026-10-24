@@ -8,6 +8,7 @@ import { SecimAlani } from "../bilesenler/Alan";
 import { kisaKisiAdi } from "../bilesenler/darAlan";
 import { SigdirilanMetin } from "../bilesenler/SigdirilanMetin";
 import { Iskelet } from "../bilesenler/Iskelet";
+import { TELEFON, useMedya } from "../bilesenler/medya";
 import { OgretmenRozeti } from "../bilesenler/OgretmenRozeti";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
 import { Sekmeler } from "../bilesenler/Sekmeler";
@@ -21,6 +22,7 @@ import sayfaStili from "../sayfalar/Sayfa.module.css";
 import { GUN_ADLARI } from "./aciklama";
 import { birlesikHucreler, cizelgeBoyutu, cizelgeHucreleri, hucreAnahtari, yerlesmeGecikmesiMs, type Atama, type CizelgeTuru } from "./cizelge";
 import stil from "./Cizelge.module.css";
+import { GunlukCizelge } from "./GunlukCizelge";
 import { KaliteOzeti } from "./KaliteOzeti";
 import { useProgram, useYerlesimler } from "./veri";
 
@@ -31,7 +33,8 @@ const SEKMELER = [
 
 /**
  * Haftalık çizelge: bir programın şube ya da öğretmen bazında gün × saat görünümü. Seçili görünüm
- * ve kişi adres çubuğunda (`?gorunum=ogretmen&ogretmen=...`): bağlantı paylaşılabilir.
+ * ve kişi adres çubuğunda (`?gorunum=ogretmen&ogretmen=...`): bağlantı paylaşılabilir. Telefonda
+ * (dar ekran) tablo yerine gün gün liste (5.6).
  */
 export function CizelgeSayfasi() {
   const { id = "" } = useParams();
@@ -44,6 +47,7 @@ export function CizelgeSayfasi() {
   const siniflar = useQuery({ queryKey: sinifKaynagi.anahtar, queryFn: sinifKaynagi.listele });
   const ogretmenler = useQuery({ queryKey: ogretmenKaynagi.anahtar, queryFn: ogretmenKaynagi.listele });
   const okul = useBen().data?.okul;
+  const telefon = useMedya(TELEFON);
 
   const sorgular = [program, atamalar, dersler, siniflar, ogretmenler];
   const hatali = sorgular.find((s) => s.isError) ?? (yerlesimler.isError ? yerlesimler : undefined);
@@ -98,6 +102,22 @@ export function CizelgeSayfasi() {
 
   const hucreler = cizelgeHucreleri(yerlesimler.data, atamalar.data, gorunum, seciliId);
   const boyut = cizelgeBoyutu(yerlesimler.data, okul.gun_sayisi, okul.gunluk_ders_saati);
+  const zil = zilSaatleri(okul, boyut.saat);
+  const cizelgeOzellikleri: CizelgeProps | undefined = secili && {
+    baslik: `${secili.ad} haftalık programı`,
+    gunSayisi: boyut.gun,
+    saatSayisi: boyut.saat,
+    gunSaatleri: okul.gun_saatleri,
+    ogleArasiSonra: okul.ogle_arasi_sonra,
+    zil,
+    ogleZili: ogleArasiZili(okul, zil),
+    hucreler,
+    gorunum,
+    ders: new Map(dersler.data.map((d) => [d.id, d])),
+    dersIsareti: dersIsaretleri(dersler.data),
+    sinif: new Map(siniflar.data.map((s) => [s.id, s])),
+    ogretmen: new Map(ogretmenler.data.map((o) => [o.id, o])),
+  };
 
   return (
     <>
@@ -122,25 +142,13 @@ export function CizelgeSayfasi() {
           </SecimAlani>
           <p className={stil.ozet}>{hucreler.size} ders saati</p>
         </div>
-        {secili && (
-          // key: başka şube ya da öğretmen seçilince tablo yeniden kurulur, hücreler yeniden yerleşir.
-          <Cizelge
-            key={`${gorunum}-${seciliId}`}
-            baslik={`${secili.ad} haftalık programı`}
-            gunSayisi={boyut.gun}
-            saatSayisi={boyut.saat}
-            gunSaatleri={okul.gun_saatleri}
-            ogleArasiSonra={okul.ogle_arasi_sonra}
-            zil={zilSaatleri(okul, boyut.saat)}
-            ogleZili={ogleArasiZili(okul, zilSaatleri(okul, boyut.saat))}
-            hucreler={hucreler}
-            gorunum={gorunum}
-            ders={new Map(dersler.data.map((d) => [d.id, d]))}
-            dersIsareti={dersIsaretleri(dersler.data)}
-            sinif={new Map(siniflar.data.map((s) => [s.id, s]))}
-            ogretmen={new Map(ogretmenler.data.map((o) => [o.id, o]))}
-          />
-        )}
+        {/* key: başka şube ya da öğretmen seçilince çizelge yeniden kurulur, hücreler yeniden yerleşir. */}
+        {cizelgeOzellikleri &&
+          (telefon ? (
+            <GunlukCizelge key={`${gorunum}-${seciliId}`} {...cizelgeOzellikleri} />
+          ) : (
+            <Cizelge key={`${gorunum}-${seciliId}`} {...cizelgeOzellikleri} />
+          ))}
       </Sekmeler>
       <div className={sayfaStili.kart}>
         <KaliteOzeti program={program.data} />
@@ -149,7 +157,7 @@ export function CizelgeSayfasi() {
   );
 }
 
-type CizelgeProps = {
+export type CizelgeProps = {
   baslik: string;
   gunSayisi: number;
   saatSayisi: number;

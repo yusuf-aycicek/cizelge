@@ -15,7 +15,7 @@ const ADRES = process.env.WEB_ADRES ?? "http://localhost:5173";
 // (programlar tablosu burada taşıyordu, kullanıcı bildirdi).
 const BOYUTLAR = [["masaüstü", { width: 1366, height: 820 }], ["800 px", { width: 800, height: 900 }],
   ["telefon", { width: 390, height: 844 }]];
-const SAYFALAR = ["/", "/hesabim", "/okul", "/ogretmenler", "/siniflar", "/dersler", "/seviye-sablonu",
+const SAYFALAR = ["/", "/hesabim", "/okul", "/ogretmenler", "/siniflar", "/dersler", "/seviye-sablonu", "/kullanicilar",
   "/ders-dagilimi", "/ders-dagilimi?gorunum=ogretmen", "/ders-dagilimi?gorunum=ders", "/program"];
 // Hazır bir programın çizelgesi de denetlenir; yolu program üretilince eklenir.
 

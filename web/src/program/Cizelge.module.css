@@ -166,3 +166,89 @@
   font-weight: var(--yazi-kalin);
   color: var(--renk-metin-ikincil);
 }
+
+/* --- Telefonda gün gün görünüm (5.6) ------------------------------------------------------ */
+
+.gunluk {
+  margin-bottom: var(--bosluk-5);
+}
+.gunSecici {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--bosluk-1);
+  padding: var(--bosluk-1);
+  border-radius: var(--kose-buyuk);
+  background: var(--renk-yuzey);
+  margin-bottom: var(--bosluk-3);
+}
+.gunSecici button {
+  min-height: var(--dokunma-hedefi);
+  border: none;
+  border-radius: var(--kose);
+  background: transparent;
+  color: var(--renk-metin-ikincil);
+  font: inherit;
+  font-weight: var(--yazi-kalin);
+  cursor: pointer;
+  transition: background-color var(--sure-kisa) var(--egri), color var(--sure-kisa) var(--egri);
+}
+.gunSecici button[aria-pressed="true"] {
+  background: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+}
+.gunListesi {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-2);
+}
+.gunDolu,
+.gunBos {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--bosluk-3);
+  min-height: 3.5rem;
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border-radius: var(--kose);
+  animation: yerles var(--sure-uzun) var(--egri) backwards;
+}
+.gunDolu {
+  background: var(--renk-yuzey);
+  box-shadow: inset 0 0 0 1px var(--renk-kenar);
+}
+.gunBos {
+  outline: 1px dashed var(--renk-kenar);
+  outline-offset: -1px;
+}
+.gunSaat {
+  font-size: var(--yazi-kucuk);
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-metin-ikincil);
+}
+.gunDers {
+  min-width: 0;
+}
+.gunBosMetin {
+  color: var(--renk-metin-ikincil);
+  font-size: var(--yazi-kucuk);
+}
+.gunOgle span {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  font-size: 0.7rem;
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-metin-ikincil);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.gunOgle span::before,
+.gunOgle span::after {
+  content: "";
+  flex: 1;
+  border-top: 1px dashed var(--renk-kenar);
+}

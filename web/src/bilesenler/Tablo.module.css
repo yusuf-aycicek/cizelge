@@ -100,3 +100,50 @@
     padding-inline: var(--bosluk-2);
   }
 }
+
+/* Telefon (5.6): dar kutuda satır karta dönüşür, sütun adı hücrenin solunda. Tablo yana kaymaz;
+   ders dağılımında öğretmen sütunu artık kaydırmadan görünür. */
+@container (max-width: 30rem) {
+  .tablo thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .tablo,
+  .tablo tbody,
+  .tablo tr,
+  .tablo td {
+    display: block;
+  }
+  .tablo tbody tr {
+    padding: var(--bosluk-3) var(--bosluk-4);
+    border-bottom: 1px solid var(--renk-kenar);
+  }
+  .tablo tbody tr:last-child {
+    border-bottom: none;
+  }
+  .tablo td,
+  .tablo tbody tr:hover td {
+    border-bottom: none;
+    padding: var(--bosluk-1) 0;
+    background: transparent;
+  }
+  .tablo td[data-etiket] {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    align-items: center;
+    justify-items: start; /* çip ve kutular içerikleri kadar; satırı doldurmaz */
+    gap: var(--bosluk-3);
+  }
+  .tablo td[data-etiket]::before {
+    content: attr(data-etiket);
+    font-size: var(--yazi-kucuk);
+    font-weight: var(--yazi-kalin);
+    color: var(--renk-metin-ikincil);
+  }
+  .tablo .sag {
+    text-align: left !important;
+  }
+}

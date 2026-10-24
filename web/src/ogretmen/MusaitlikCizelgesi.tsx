@@ -1,9 +1,9 @@
-import { Ban, Waves } from "lucide-react";
+import { Ban, BoxSelect, Waves } from "lucide-react";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { hataMetni } from "../api/hata";
 import { useBildirim } from "../bilesenler/Bildirim";
 import { ogleArasiSonrasi, ogleArasiZili, saatVar, zilMetni, zilSaatleri, type Hafta } from "../okul/zaman";
-import { GUN_ADLARI } from "../program/aciklama";
+import { GUN_ADLARI, GUN_KISA_ADLARI } from "../program/aciklama";
 import {
   DURUM_ADLARI,
   anahtar,
@@ -39,6 +39,10 @@ function DurumIkonu({ durum }: { durum: Durum }) {
  * - **Toplu:** gün ya da saat başlığına tıklamak o satırı/sütunu birlikte döndürür; hücrelerin
  *   üzerinden sürüklemek, geçilen her hücreyi ilk hücrenin yeni durumuna getirir. Her işlem **tek
  *   istektir**; sunucu birini reddederse hiçbiri değişmez.
+ * - **Dokunmatik (5.6):** parmakla çizelgenin üstünde sayfa kaydırılabilir; dokunmak tek hücreyi
+ *   değiştirir. Sürükleyerek toplu seçim yalnızca "Toplu seç" modunda: mod açıkken bu çizelgede
+ *   sayfa kaymaz (`touch-action: none`), parmağın geçtiği hücreler seçilir. Fareyle sürükleme
+ *   moddan bağımsız, her zaman çalışır.
  * - **İyimser güncelleme:** hücre sunucunun cevabını beklemeden döner; hata olursa geri alınır.
  * - **Klavye:** çizelgeye Tab ile bir kez girilir (roving tabindex: yalnızca odaktaki hücre
  *   sekme sırasındadır), oklar/Home/End ile gezilir, Enter ya da boşluk durumu değiştirir.
@@ -54,6 +58,10 @@ export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi, haft
   const [odak, setOdak] = useState<Konum>({ gun: 0, saat: 0 });
   const [surukleme, setSurukleme] = useState<Surukleme | null>(null);
   const suruklemeRef = useRef<Surukleme | null>(null);
+  const [topluSecim, setTopluSecim] = useState(false);
+  // Son basış parmakla (ya da kalemle) mı: dokunuşta tek hücre "click" olayında değişir; parmak
+  // sayfayı kaydırırsa tarayıcı click üretmez, hücre de değişmez.
+  const dokunus = useRef(false);
   const hucreRefleri = useRef(new Map<string, HTMLButtonElement>());
 
   const harita = durumHaritasi(cizelge.data?.hucreler ?? []);
@@ -92,6 +100,9 @@ export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi, haft
 
   function basla(olay: ReactPointerEvent<HTMLButtonElement>, k: Konum) {
     if (olay.button > 0) return; // yalnızca birincil tuş (sağ ve orta tuş değil)
+    dokunus.current = olay.pointerType === "touch" || olay.pointerType === "pen";
+    // Dokunuşta mod kapalıysa sürükleme başlamaz: parmak sayfayı kaydırabilsin.
+    if (dokunus.current && !topluSecim) return;
     // Dokunmatik ekranda tarayıcı işaretçiyi ilk öğeye bağlar (pointer capture); bırakılmazsa
     // parmak başka hücreye geçtiğinde o hücre haberdar olmaz.
     olay.currentTarget.releasePointerCapture?.(olay.pointerId);
@@ -142,9 +153,20 @@ export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi, haft
     <section aria-labelledby="musaitlik-baslik" className={stil.kart}>
       <h2 id="musaitlik-baslik">Müsaitlik</h2>
       <p className={stil.aciklama}>
-        Hücreye tıkladıkça değişir: müsait → gelemez → tercih etmez. Birçok hücre için üzerlerinden sürükleyin ya da
-        gün veya saat başlığına tıklayın. Değişiklikler hemen kaydedilir.
+        Hücreye tıkladıkça değişir: müsait → gelemez → tercih etmez. Birçok hücre için üzerlerinden sürükleyin
+        (dokunmatik ekranda önce &quot;Toplu seç&quot;) ya da gün veya saat başlığına tıklayın. Değişiklikler hemen kaydedilir.
       </p>
+      <div className={stil.topluSatiri}>
+        <button type="button" className={stil.topluDugmesi} aria-pressed={topluSecim} onClick={() => setTopluSecim(!topluSecim)}>
+          <BoxSelect aria-hidden="true" />
+          {topluSecim ? "Toplu seçimi bitir" : "Toplu seç"}
+        </button>
+        {topluSecim && (
+          <p className={stil.topluBilgi} role="status">
+            Toplu seçim açık: parmağınızı hücrelerin üzerinden kaydırın. Bu çizelgede sayfa kaymaz.
+          </p>
+        )}
+      </div>
       <ul className={stil.lejant} aria-label="Lejant">
         {(["musait", "gelemez", "tercih_etmez"] as const).map((d) => (
           <li key={d}>
@@ -158,7 +180,7 @@ export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi, haft
       {cizelge.isError ? (
         <p role="alert">{hataMetni(cizelge.error)}</p>
       ) : (
-        <div className={stil.cizelgeKutusu} data-kaydirilabilir>
+        <div className={stil.cizelgeKutusu} data-kaydirilabilir data-toplu={topluSecim || undefined}>
           <table className={stil.cizelge} aria-label={`${ad} müsaitlik çizelgesi`} aria-busy={cizelge.isPending}>
             <thead>
               <tr>
@@ -172,7 +194,7 @@ export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi, haft
                       aria-label={`${g}: bütün günü birlikte değiştir`}>
                       {/* Dar ekranda kısa ad (Pzt); erişilebilir ad zaten tam. */}
                       <span className={stil.uzunAd}>{g}</span>
-                      <span className={stil.kisaAd}>{g.slice(0, 3)}</span>
+                      <span className={stil.kisaAd}>{GUN_KISA_ADLARI[gun] ?? g}</span>
                     </button>
                   </th>
                 ))}
@@ -216,8 +238,11 @@ export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi, haft
                             aria-label={`${g}, ${saat + 1}. saat: ${DURUM_ADLARI[d]}`}
                             onPointerDown={(o) => basla(o, k)}
                             onPointerEnter={() => gec(k)}
-                            // Klavye ve ekran okuyucunun "tıklaması" işaretçi olayı üretmez (detail 0).
-                            onClick={(o) => o.detail === 0 && kaydet([k], sonrakiDurum(durumu(harita, k)))}
+                            // Klavye ve ekran okuyucunun "tıklaması" işaretçi olayı üretmez (detail 0). Dokunuşta
+                            // (mod kapalı) tek hücre burada değişir; fare ve toplu seçim bırakınca kaydeder.
+                            onClick={(o) => {
+                              if (o.detail === 0 || (dokunus.current && !topluSecim)) kaydet([k], sonrakiDurum(durumu(harita, k)));
+                            }}
                             onKeyDown={(o) => tusla(o, k)}
                             onFocus={() => setOdak(k)}
                           >

@@ -7,6 +7,8 @@ import type { components } from "../api/sema";
 export type Program = components["schemas"]["ProgramYanit"];
 
 export const GUN_ADLARI = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
+/** Dar alan için yerleşik kısaltmalar ("Paz" Pazar'la karışırdı). */
+export const GUN_KISA_ADLARI = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
 
 export const etkinMi = (p: Pick<Program, "durum">) => p.durum === "bekliyor" || p.durum === "uretiliyor";
 

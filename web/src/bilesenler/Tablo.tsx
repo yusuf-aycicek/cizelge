@@ -32,7 +32,9 @@ type Props<T> = {
  * Genel (generic) bir bileşendir: `T` satırın tipidir. `<Tablo<Ogretmen> ... />` yazıldığında
  * TypeScript, `hucre` fonksiyonlarının bir öğretmen aldığını bilir.
  *
- * Dar ekranda tablo kendi kutusunda yatay kayar; sayfa kaymaz.
+ * Dar kutuda (telefon) her satır bir karta dönüşür: hücre alt alta, solunda sütunun adı
+ * (`data-etiket`, CSS). Kartta tablo öğeleri `display: block` olur; bazı tarayıcılar o zaman tablo
+ * anlamını ekran okuyucudan siler, bu yüzden roller (`role="row"`, `"cell"`) açıkça yazılır.
  */
 export function Tablo<T>({
   baslik,
@@ -46,12 +48,12 @@ export function Tablo<T>({
 }: Props<T>) {
   return (
     <div className={stil.kutu}>
-      <table className={stil.tablo}>
+      <table className={stil.tablo} role="table">
         <caption className={baslikGorunur ? stil.baslik : "gorunmez"}>{baslik}</caption>
         <thead>
-          <tr>
+          <tr role="row">
             {sutunlar.map((s) => (
-              <th key={s.baslik} scope="col" className={s.hizala === "sag" ? stil.sag : undefined}>
+              <th key={s.baslik} scope="col" role="columnheader" className={s.hizala === "sag" ? stil.sag : undefined}>
                 {s.baslikIcerik ?? <span className={s.baslikGizli ? "gorunmez" : undefined}>{s.baslik}</span>}
               </th>
             ))}
@@ -59,8 +61,8 @@ export function Tablo<T>({
         </thead>
         <tbody>
           {satirlar.length === 0 ? (
-            <tr>
-              <td colSpan={sutunlar.length} className={stil.bos}>
+            <tr role="row">
+              <td colSpan={sutunlar.length} role="cell" className={stil.bos}>
                 {bosMesaj ?? "Henüz kayıt yok."}
               </td>
             </tr>
@@ -70,12 +72,14 @@ export function Tablo<T>({
             satirlar.map((satir) => (
               <tr
                 key={satirAnahtari(satir)}
+                role="row"
                 className={[satirSinifi?.(satir), cikanlar?.has(satirAnahtari(satir)) ? stil.cikiyor : ""]
                   .filter(Boolean)
                   .join(" ") || undefined}
               >
                 {sutunlar.map((s) => (
-                  <td key={s.baslik} className={s.hizala === "sag" ? stil.sag : undefined}>
+                  <td key={s.baslik} role="cell" data-etiket={s.baslikGizli ? undefined : s.baslik}
+                    className={s.hizala === "sag" ? stil.sag : undefined}>
                     {s.hucre(satir)}
                   </td>
                 ))}
