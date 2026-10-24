@@ -1,0 +1,78 @@
+/* Excel'den içe aktarma sayfası: önizleme tabloları. Hatalı satırlar en üstte ve vurgulu. */
+.metin {
+  max-width: 44rem;
+  color: var(--renk-metin-ikincil);
+}
+
+.baglanti {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-birincil-koyu);
+}
+.baglanti svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.dosyaEtiketi {
+  display: block;
+  font-weight: var(--yazi-kalin);
+  margin-bottom: var(--bosluk-2);
+}
+.dosya {
+  max-width: 100%;
+}
+
+.ozet {
+  font-size: var(--yazi-buyuk);
+  font-weight: var(--yazi-kalin);
+}
+
+.sayfa {
+  border-top: 1px solid var(--renk-kenar);
+  padding-top: var(--bosluk-4);
+  margin-bottom: var(--bosluk-4);
+}
+.sayfa h3 {
+  margin-bottom: var(--bosluk-3);
+}
+
+.tablo {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--bosluk-4);
+}
+.tablo caption {
+  text-align: start;
+  font-weight: var(--yazi-kalin);
+  padding-bottom: var(--bosluk-2);
+}
+.tablo th,
+.tablo td {
+  text-align: start;
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border-bottom: 1px solid var(--renk-kenar);
+  vertical-align: top;
+}
+.tablo th {
+  background: var(--renk-yuzey);
+}
+.no {
+  width: 4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hatali .tablo caption {
+  color: var(--renk-hata-metin);
+}
+.hatali .tablo td {
+  background: var(--renk-hata-zemin);
+  color: var(--renk-hata-metin);
+}
+
+.not {
+  color: var(--renk-metin-ikincil);
+  margin: 0;
+}

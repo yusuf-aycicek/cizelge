@@ -9,6 +9,7 @@ import { SeviyeSablonuSayfasi } from "./dagilim/SeviyeSablonuSayfasi";
 import { GirisSayfasi } from "./kimlik/GirisSayfasi";
 import { HesabimSayfasi } from "./kimlik/HesabimSayfasi";
 import { KayitSayfasi } from "./kimlik/KayitSayfasi";
+import { IceAktarmaSayfasi } from "./iceaktarma/IceAktarmaSayfasi";
 import { KullanicilarSayfasi } from "./kimlik/KullanicilarSayfasi";
 import { KimlikCercevesi } from "./kimlik/KimlikCercevesi";
 import { KorumaliAlan } from "./kimlik/KorumaliAlan";
@@ -55,6 +56,7 @@ export function Uygulama({ sorguIstemcisi }: { sorguIstemcisi: QueryClient }) {
               <Route path="program" element={<ProgramSayfasi />} />
               <Route path="program/:id" element={<CizelgeSayfasi />} />
               <Route path="kullanicilar" element={<KullanicilarSayfasi />} />
+              <Route path="ice-aktarma" element={<IceAktarmaSayfasi />} />
               {MENU.filter((m) => !HAZIR_SAYFALAR.has(m.yol)).map((m) => (
                 <Route key={m.yol} path={m.yol.slice(1)} element={<YapimAsamasinda baslik={m.ad} />} />
               ))}

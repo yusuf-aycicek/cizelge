@@ -9,13 +9,14 @@ from typing import Any
 from typing import Literal
 from urllib.parse import quote
 
-from fastapi import APIRouter, Query, Request, Response
+from fastapi import APIRouter, HTTPException, Query, Request, Response
+from fastapi.concurrency import run_in_threadpool
 
 from okulapi.cekirdek.api import crud_router
-from okulapi.cekirdek.bagimliliklar import Kuyruk, OkulOturumu
+from okulapi.cekirdek.bagimliliklar import AktifOkulId, Kuyruk, OkulOturumu
 from okulapi.cekirdek.depo import OgretmenDeposu
 from okulapi.cekirdek.servisler import KayitBulunamadi
-from okulapi.moduller.ders_programi import semalar
+from okulapi.moduller.ders_programi import ice_aktarma, semalar
 from okulapi.moduller.ders_programi.cikti import excel, pdf
 from okulapi.moduller.ders_programi.cikti.model import Cizelge
 from okulapi.moduller.ders_programi.cikti.veri import program_ciktisi
@@ -303,11 +304,51 @@ def program_excel(program_id: uuid.UUID, oturum: OkulOturumu) -> Response:
     return _dosya(excel.program_xlsx(cikti), XLSX, f"{cikti.program}.xlsx")
 
 
+ice_router = APIRouter(prefix="/ice-aktarma", tags=["içe aktarma"])
+_XLSX_GOVDE = {"requestBody": {"required": True, "content": {XLSX: {"schema": {"type": "string", "format": "binary"}}}}}
+
+
+async def _yuklenen_dosya(istek: Request) -> bytes:
+    """İstek gövdesi dosyanın kendisidir (multipart değil). Sınırı aşan dosya sonuna kadar okunmaz (413)."""
+    parcalar, boyut = [], 0
+    async for parca in istek.stream():
+        boyut += len(parca)
+        if boyut > ice_aktarma.MAKS_BOYUT:
+            raise HTTPException(413, f"Dosya çok büyük: en çok {ice_aktarma.MAKS_BOYUT // (1024 * 1024)} MB yüklenebilir")
+        parcalar.append(parca)
+    return b"".join(parcalar)
+
+
+@ice_router.get("/sablon.xlsx", response_class=Response,
+                responses={200: {"content": {XLSX: {}}, "description": "Boş şablon"}})
+def ice_aktarma_sablonu(_okul_id: AktifOkulId) -> Response:
+    """Öğretmenler, Sınıflar, Dersler, Ders dağılımı sayfaları; her birinde açıklama ve örnek satır."""
+    return _dosya(ice_aktarma.sablon_xlsx(), XLSX, "İçe aktarma şablonu.xlsx")
+
+
+@ice_router.post("/onizleme", response_model=semalar.IceAktarmaOnizleme, openapi_extra=_XLSX_GOVDE,
+                 responses={413: {"description": "Dosya çok büyük"}, 422: {"description": "Dosya okunamadı"}})
+async def ice_aktarma_onizleme(istek: Request, oturum: OkulOturumu) -> Any:
+    """Dosyayı okur, her satırda ne olacağını söyler (eklenecek, güncellenecek, hatalı). Kaydetmez."""
+    icerik = await _yuklenen_dosya(istek)
+    return (await run_in_threadpool(ice_aktarma.onizle, oturum, icerik)).yanit()
+
+
+@ice_router.post("", response_model=semalar.IceAktarmaSonucu, openapi_extra=_XLSX_GOVDE,
+                 responses={409: {"description": "Veri önizlemeden sonra değişti"},
+                            413: {"description": "Dosya çok büyük"}, 422: {"description": "Hatalı satır var"}})
+async def ice_aktar(istek: Request, oturum: OkulOturumu, ozet: str = Query(max_length=64)) -> Any:
+    """Önizlenen dosyayı tek işlemde kaydeder; hatalı satır varsa hiçbiri. `ozet`: önizlemenin özeti."""
+    icerik = await _yuklenen_dosya(istek)
+    return await run_in_threadpool(ice_aktarma.kaydet, oturum, icerik, ozet)
+
+
 # Özel yollar (/uygula) CRUD'un /{kayit_id} yollarından önce eklenir.
 router.include_router(sablon_router)
 router.include_router(atama_router)
 router.include_router(kural_router)
 router.include_router(istisna_router)
+router.include_router(ice_router)
 for alt in (
     crud_router("/seviye-sablonlari", SeviyeSablonuServisi, semalar.SeviyeSablonuOlustur,
                 semalar.SeviyeSablonuGuncelle, semalar.SeviyeSablonuYanit, "seviye şablonu"),

@@ -458,3 +458,35 @@ class YerlesimYanit(_Yanit):
 
 
 KuralYanit.model_rebuild()
+
+
+# --- Excel'den içe aktarma (8a, ADR 0021) --------------------------------------------
+
+
+class IceAktarmaSatiri(_Yanit):
+    satir: int  # Excel'deki satır numarası
+    ad: str  # "Ayşe Yılmaz" ya da "9-A · Matematik"
+    ayrinti: str  # ne değişecek ya da (hatalı satırda) neden
+
+
+class IceAktarmaSayfasi(_Yanit):
+    sayfa: Literal["ogretmen", "sinif", "ders", "dagilim"]
+    baslik: str
+    eklenecek: list[IceAktarmaSatiri]
+    guncellenecek: list[IceAktarmaSatiri]
+    hatali: list[IceAktarmaSatiri]
+    degismeyen: int
+    atlanan_ornek: int  # şablondaki değiştirilmemiş örnek satır
+
+
+class IceAktarmaOnizleme(_Yanit):
+    sayfalar: list[IceAktarmaSayfasi]
+    eklenecek_sayisi: int
+    guncellenecek_sayisi: int
+    hata_sayisi: int
+    ozet: str = Field(description="Planın parmak izi; kaydederken geri verilir")
+
+
+class IceAktarmaSonucu(BaseModel):
+    eklenen: int
+    guncellenen: int

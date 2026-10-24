@@ -164,6 +164,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ders-programi/ice-aktarma": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ice Aktar
+         * @description Önizlenen dosyayı tek işlemde kaydeder; hatalı satır varsa hiçbiri. `ozet`: önizlemenin özeti.
+         */
+        post: operations["ice_aktar_api_ders_programi_ice_aktarma_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/ice-aktarma/onizleme": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ice Aktarma Onizleme
+         * @description Dosyayı okur, her satırda ne olacağını söyler (eklenecek, güncellenecek, hatalı). Kaydetmez.
+         */
+        post: operations["ice_aktarma_onizleme_api_ders_programi_ice_aktarma_onizleme_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/ice-aktarma/sablon.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ice Aktarma Sablonu
+         * @description Öğretmenler, Sınıflar, Dersler, Ders dağılımı sayfaları; her birinde açıklama ve örnek satır.
+         */
+        get: operations["ice_aktarma_sablonu_api_ders_programi_ice_aktarma_sablon_xlsx_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ders-programi/istisnalar": {
         parameters: {
             query?: never;
@@ -1353,6 +1413,58 @@ export interface components {
             gun: number;
             /** Saat */
             saat: number;
+        };
+        /** IceAktarmaOnizleme */
+        IceAktarmaOnizleme: {
+            /** Eklenecek Sayisi */
+            eklenecek_sayisi: number;
+            /** Guncellenecek Sayisi */
+            guncellenecek_sayisi: number;
+            /** Hata Sayisi */
+            hata_sayisi: number;
+            /**
+             * Ozet
+             * @description Planın parmak izi; kaydederken geri verilir
+             */
+            ozet: string;
+            /** Sayfalar */
+            sayfalar: components["schemas"]["IceAktarmaSayfasi"][];
+        };
+        /** IceAktarmaSatiri */
+        IceAktarmaSatiri: {
+            /** Ad */
+            ad: string;
+            /** Ayrinti */
+            ayrinti: string;
+            /** Satir */
+            satir: number;
+        };
+        /** IceAktarmaSayfasi */
+        IceAktarmaSayfasi: {
+            /** Atlanan Ornek */
+            atlanan_ornek: number;
+            /** Baslik */
+            baslik: string;
+            /** Degismeyen */
+            degismeyen: number;
+            /** Eklenecek */
+            eklenecek: components["schemas"]["IceAktarmaSatiri"][];
+            /** Guncellenecek */
+            guncellenecek: components["schemas"]["IceAktarmaSatiri"][];
+            /** Hatali */
+            hatali: components["schemas"]["IceAktarmaSatiri"][];
+            /**
+             * Sayfa
+             * @enum {string}
+             */
+            sayfa: "ogretmen" | "sinif" | "ders" | "dagilim";
+        };
+        /** IceAktarmaSonucu */
+        IceAktarmaSonucu: {
+            /** Eklenen */
+            eklenen: number;
+            /** Guncellenen */
+            guncellenen: number;
         };
         /** IstisnaAtlanan */
         IstisnaAtlanan: {
@@ -2604,6 +2716,111 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DagilimSekli"][];
+                };
+            };
+        };
+    };
+    ice_aktar_api_ders_programi_ice_aktarma_post: {
+        parameters: {
+            query: {
+                ozet: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IceAktarmaSonucu"];
+                };
+            };
+            /** @description Veri önizlemeden sonra değişti */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dosya çok büyük */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Hatalı satır var */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ice_aktarma_onizleme_api_ders_programi_ice_aktarma_onizleme_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IceAktarmaOnizleme"];
+                };
+            };
+            /** @description Dosya çok büyük */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dosya okunamadı */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ice_aktarma_sablonu_api_ders_programi_ice_aktarma_sablon_xlsx_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Boş şablon */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": unknown;
                 };
             };
         };

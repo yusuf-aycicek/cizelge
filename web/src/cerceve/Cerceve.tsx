@@ -4,6 +4,7 @@ import {
   CalendarRange,
   CalendarDays,
   ClipboardList,
+  FileUp,
   GraduationCap,
   House,
   Layers,
@@ -32,6 +33,7 @@ export const MENU = [
   { yol: "/dersler", ad: "Dersler", Ikon: BookOpen },
   { yol: "/seviye-sablonu", ad: "Seviye şablonu", Ikon: Layers },
   { yol: "/ders-dagilimi", ad: "Ders dağılımı", Ikon: ClipboardList },
+  { yol: "/ice-aktarma", ad: "Excel'den aktar", Ikon: FileUp },
   { yol: "/program", ad: "Program", Ikon: CalendarRange },
   { yol: "/kullanicilar", ad: "Kullanıcılar", Ikon: UserCog },
 ] as const;

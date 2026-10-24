@@ -750,8 +750,8 @@ Kullanım limiti dolabileceği için her alt parça ayrı commit edilir; yarıda
 | # | Alt parça | Durum |
 |---|---|---|
 | 8.0 | Öğretmen PDF'inde aynı dersin farklı şubelerdeki art arda saatleri ayrı görünür: şube adı her hücrede kalın ve üstte, hücreler arasında koyu ayraç | Bitti |
-| 8a | Excel'den içe aktarma: şablon, önizleme (eklenecek / güncellenecek / hatalı), tek işlemde kayıt, Türkçe ad eşleştirme, sınırlar, izolasyon; arayüz | Sırada |
-| 8b-1 | Yayın: anlık görüntü (snapshot), atama silinince yayınlanmış program eksilmez; "eski verilerle" uyarısı | Bekliyor |
+| 8a | Excel'den içe aktarma (ADR 0021): `GET /ice-aktarma/sablon.xlsx` (4 sayfa; açıklama, başlık, "(örnek)" işaretli örnek satır, seviye/saat doğrulaması), `POST /ice-aktarma/onizleme` (kaydetmez; sayfa başına eklenecek / güncellenecek / hatalı (satır no + neden) / değişmeyen), `POST /ice-aktarma?ozet=` (plan yeniden hesaplanır; hatalı satır 422, veri arada değiştiyse 409; tek işlem). Ad eşleştirme Türkçe anahtarla (İ/ı, boşluk, tire çevresi); boş hücre değiştirmez; gruplar şube satırından açılır. Sınırlar: 2 MB (akışta 413), açık 40 MB, 2000 kayıt/sayfa. Testler: 9 API (izolasyon dahil), 3 web. Arayüz: menüde "Excel'den aktar" (`/ice-aktarma`) | Bitti |
+| 8b-1 | Yayın: anlık görüntü (snapshot), atama silinince yayınlanmış program eksilmez; "eski verilerle" uyarısı | Sırada |
 | 8b-2 | Paylaşım linkleri (okul, öğretmen, şube): tahmin edilemez, iptal, yenileme; SECURITY DEFINER ile okuma; ADR; güvenlik testleri ve mutasyon | Bekliyor |
 | 8b-3 | Paylaşım sayfası (telefonda gün gün, PDF indirme) ve yayın yönetimi arayüzü | Bekliyor |
 

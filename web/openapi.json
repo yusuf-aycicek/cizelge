@@ -640,6 +640,142 @@
         "title": "HucreKonumu",
         "type": "object"
       },
+      "IceAktarmaOnizleme": {
+        "properties": {
+          "eklenecek_sayisi": {
+            "title": "Eklenecek Sayisi",
+            "type": "integer"
+          },
+          "guncellenecek_sayisi": {
+            "title": "Guncellenecek Sayisi",
+            "type": "integer"
+          },
+          "hata_sayisi": {
+            "title": "Hata Sayisi",
+            "type": "integer"
+          },
+          "ozet": {
+            "description": "Planın parmak izi; kaydederken geri verilir",
+            "title": "Ozet",
+            "type": "string"
+          },
+          "sayfalar": {
+            "items": {
+              "$ref": "#/components/schemas/IceAktarmaSayfasi"
+            },
+            "title": "Sayfalar",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sayfalar",
+          "eklenecek_sayisi",
+          "guncellenecek_sayisi",
+          "hata_sayisi",
+          "ozet"
+        ],
+        "title": "IceAktarmaOnizleme",
+        "type": "object"
+      },
+      "IceAktarmaSatiri": {
+        "properties": {
+          "ad": {
+            "title": "Ad",
+            "type": "string"
+          },
+          "ayrinti": {
+            "title": "Ayrinti",
+            "type": "string"
+          },
+          "satir": {
+            "title": "Satir",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "satir",
+          "ad",
+          "ayrinti"
+        ],
+        "title": "IceAktarmaSatiri",
+        "type": "object"
+      },
+      "IceAktarmaSayfasi": {
+        "properties": {
+          "atlanan_ornek": {
+            "title": "Atlanan Ornek",
+            "type": "integer"
+          },
+          "baslik": {
+            "title": "Baslik",
+            "type": "string"
+          },
+          "degismeyen": {
+            "title": "Degismeyen",
+            "type": "integer"
+          },
+          "eklenecek": {
+            "items": {
+              "$ref": "#/components/schemas/IceAktarmaSatiri"
+            },
+            "title": "Eklenecek",
+            "type": "array"
+          },
+          "guncellenecek": {
+            "items": {
+              "$ref": "#/components/schemas/IceAktarmaSatiri"
+            },
+            "title": "Guncellenecek",
+            "type": "array"
+          },
+          "hatali": {
+            "items": {
+              "$ref": "#/components/schemas/IceAktarmaSatiri"
+            },
+            "title": "Hatali",
+            "type": "array"
+          },
+          "sayfa": {
+            "enum": [
+              "ogretmen",
+              "sinif",
+              "ders",
+              "dagilim"
+            ],
+            "title": "Sayfa",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sayfa",
+          "baslik",
+          "eklenecek",
+          "guncellenecek",
+          "hatali",
+          "degismeyen",
+          "atlanan_ornek"
+        ],
+        "title": "IceAktarmaSayfasi",
+        "type": "object"
+      },
+      "IceAktarmaSonucu": {
+        "properties": {
+          "eklenen": {
+            "title": "Eklenen",
+            "type": "integer"
+          },
+          "guncellenen": {
+            "title": "Guncellenen",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "eklenen",
+          "guncellenen"
+        ],
+        "title": "IceAktarmaSonucu",
+        "type": "object"
+      },
       "IstisnaAtlanan": {
         "properties": {
           "ders": {
@@ -3580,6 +3716,117 @@
         "summary": "Dagilim Sekillerini Getir",
         "tags": [
           "ders atama"
+        ]
+      }
+    },
+    "/api/ders-programi/ice-aktarma": {
+      "post": {
+        "description": "Önizlenen dosyayı tek işlemde kaydeder; hatalı satır varsa hiçbiri. `ozet`: önizlemenin özeti.",
+        "operationId": "ice_aktar_api_ders_programi_ice_aktarma_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "ozet",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "title": "Ozet",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IceAktarmaSonucu"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "description": "Veri önizlemeden sonra değişti"
+          },
+          "413": {
+            "description": "Dosya çok büyük"
+          },
+          "422": {
+            "description": "Hatalı satır var"
+          }
+        },
+        "summary": "Ice Aktar",
+        "tags": [
+          "içe aktarma"
+        ]
+      }
+    },
+    "/api/ders-programi/ice-aktarma/onizleme": {
+      "post": {
+        "description": "Dosyayı okur, her satırda ne olacağını söyler (eklenecek, güncellenecek, hatalı). Kaydetmez.",
+        "operationId": "ice_aktarma_onizleme_api_ders_programi_ice_aktarma_onizleme_post",
+        "requestBody": {
+          "content": {
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IceAktarmaOnizleme"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "413": {
+            "description": "Dosya çok büyük"
+          },
+          "422": {
+            "description": "Dosya okunamadı"
+          }
+        },
+        "summary": "Ice Aktarma Onizleme",
+        "tags": [
+          "içe aktarma"
+        ]
+      }
+    },
+    "/api/ders-programi/ice-aktarma/sablon.xlsx": {
+      "get": {
+        "description": "Öğretmenler, Sınıflar, Dersler, Ders dağılımı sayfaları; her birinde açıklama ve örnek satır.",
+        "operationId": "ice_aktarma_sablonu_api_ders_programi_ice_aktarma_sablon_xlsx_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+            },
+            "description": "Boş şablon"
+          }
+        },
+        "summary": "Ice Aktarma Sablonu",
+        "tags": [
+          "içe aktarma"
         ]
       }
     },
