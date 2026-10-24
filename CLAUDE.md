@@ -307,6 +307,17 @@ olduğu için bu sıra çözücüyü eksik veriyle çalıştırmaz. Ayrıntı ve
   önce dosyaya yazılır, çıkış kodu ayrıca okunur. Commit ancak bütün denetimlerin çıkış kodu 0
   ise yapılır. (Bu kural, başarısız bir testin iki kez commit edilmesinden sonra eklendi.)
 - Kapsam dışı bir özelliği sormadan ekleme.
+
+### Tasarruf kuralları (kullanım limiti kısıtlı; kullanıcı kararı 2026-10-24)
+
+- Geliştirme sırasında yalnızca değişen kısımla ilgili testler çalıştırılır; tam test takımı
+  yalnızca commit'ten önce bir kez çalıştırılır.
+- Mutasyon denemesi yalnızca kritik yerlerde yapılır: çözücü, veritabanı kısıtları, okul
+  izolasyonu, kimlik doğrulama. Arayüz ve basit CRUD değişikliklerinde yapılmaz.
+- Ekran görüntüleri her alt parçada değil, yalnızca adımın sonunda ve en fazla 5-6 tane alınır.
+- Büyük dosyalar baştan sona okunmaz; ilgili bölümleri okunur.
+- Ara mesajlar kısa tutulur; ayrıntılı özet yalnızca adımın sonunda verilir.
+- Ölçüm sırasında makinede başka iş çalıştırılmaz (bölüm 7).
 - Bu dosyadaki bir kararın yanlış olduğunu düşünürsen uygulamadan önce söyle.
 
 ## 10. Okuldan okula değişen konular (ayarlanabilir olmalı)
