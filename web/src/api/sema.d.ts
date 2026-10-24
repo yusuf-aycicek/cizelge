@@ -164,6 +164,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ders-programi/istisnalar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Istisnalari Listele
+         * @description Şubelerin şablondan ayrıldığı dersler; ders dağılımıyla tutarsız olanlar `uyari` taşır.
+         */
+        get: operations["istisnalari_listele_api_ders_programi_istisnalar_get"];
+        put?: never;
+        /**
+         * Istisna Ekle
+         * @description "Almaz": şubenin o dersi kaldırılır ve şablon yeniden uygulansa da geri gelmez. "Ek": ders
+         *     şubede yoksa istisnadaki saatle eklenir. 409: bu şubenin bu ders için zaten istisnası var.
+         */
+        post: operations["istisna_ekle_api_ders_programi_istisnalar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/istisnalar/{istisna_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Istisna Kaldir
+         * @description İstisnayı kaldırır; "almaz" kalkınca ders şubenin şablonundaysa geri eklenir.
+         */
+        delete: operations["istisna_kaldir_api_ders_programi_istisnalar__istisna_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ders-programi/kisitlar": {
         parameters: {
             query?: never;
@@ -775,6 +820,43 @@ export interface paths {
         patch: operations["guncelle_api_siniflar__kayit_id__patch"];
         trace?: never;
     };
+    "/api/sube-gruplari": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listele */
+        get: operations["listele_api_sube_gruplari_get"];
+        put?: never;
+        /** Olustur */
+        post: operations["olustur_api_sube_gruplari_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sube-gruplari/{kayit_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Getir */
+        get: operations["getir_api_sube_gruplari__kayit_id__get"];
+        put?: never;
+        post?: never;
+        /** Sil */
+        delete: operations["sil_api_sube_gruplari__kayit_id__delete"];
+        options?: never;
+        head?: never;
+        /** Guncelle */
+        patch: operations["guncelle_api_sube_gruplari__kayit_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -797,6 +879,16 @@ export interface components {
         AyarEtkisiYanit: {
             /** Etkiler */
             etkiler: string[];
+        };
+        /** BaskaSablonlu */
+        BaskaSablonlu: {
+            /**
+             * Sablon
+             * @description Şubenin kullandığı şablon: "11 Sayısal" ya da "11. sınıflar"
+             */
+            sablon: string;
+            /** Sinif */
+            sinif: string;
         };
         /** BenYanit */
         BenYanit: {
@@ -864,10 +956,10 @@ export interface components {
             haftalik_saat: number;
             /**
              * Kaynak
-             * @description ders_sube / ders: özel ayar; okul: okulun önerisi; yok: blok yok
+             * @description ders_sube / ders_grup / ders: özel ayar; okul: okulun önerisi; yok: blok yok
              * @enum {string}
              */
-            kaynak: "ders_sube" | "ders" | "okul" | "yok";
+            kaynak: "ders_sube" | "ders_grup" | "ders" | "okul" | "yok";
             /**
              * Metin
              * @description "2+2+1" ya da "blok yok"
@@ -1018,6 +1110,35 @@ export interface components {
             /** Detail */
             detail: string;
         };
+        /** IstisnaAtlanan */
+        IstisnaAtlanan: {
+            /** Ders */
+            ders: string;
+            /** Sinif */
+            sinif: string;
+        };
+        /** IstisnaEk */
+        IstisnaEk: {
+            /** Ders */
+            ders: string;
+            /**
+             * Eklendi
+             * @description false: ders şubede zaten vardı
+             */
+            eklendi: boolean;
+            /** Haftalik Saat */
+            haftalik_saat: number;
+            /** Sinif */
+            sinif: string;
+        };
+        /** IstisnaKaldirmaSonucu */
+        IstisnaKaldirmaSonucu: {
+            /**
+             * Geri Eklenen Saat
+             * @description "Almaz" kalkınca ders şablondan geri eklendiyse haftalık saati
+             */
+            geri_eklenen_saat: number | null;
+        };
         /** KayitIstegi */
         KayitIstegi: {
             /** Ad */
@@ -1109,7 +1230,8 @@ export interface components {
         };
         /**
          * KuralKapsami
-         * @description Özel ayarın yeri. Öğretmen tek başına; ders ve şube tek başına ya da birlikte (ADR 0016).
+         * @description Özel ayarın yeri. Öğretmen tek başına; ders, şube ve şube grubu tek başına ya da ders ile
+         *     birlikte (ders + şube, ders + şube grubu). Şube ile şube grubu birlikte olamaz (ADR 0016).
          */
         KuralKapsami: {
             /** Ders Id */
@@ -1118,6 +1240,8 @@ export interface components {
             ogretmen_id?: string | null;
             /** Sinif Id */
             sinif_id?: string | null;
+            /** Sube Grubu Id */
+            sube_grubu_id?: string | null;
         };
         /** KuralYanit */
         KuralYanit: {
@@ -1128,7 +1252,7 @@ export interface components {
             /** Agirlik */
             agirlik: number | null;
             /** Kapsamlar */
-            kapsamlar: ("ogretmen" | "ders" | "sube")[];
+            kapsamlar: ("ogretmen" | "ders" | "sube" | "sube_grubu")[];
             /** Ozel Ayarlar */
             ozel_ayarlar: components["schemas"]["OzelAyarYanit"][];
             /** Parametreler */
@@ -1497,18 +1621,30 @@ export interface components {
         SablonUygula: {
             /** Seviye */
             seviye: number;
+            /** Sube Grubu Id */
+            sube_grubu_id?: string | null;
         };
         /**
          * SablonUygulamaSonucu
-         * @description Şablon uygulandı: oluşturulan atamalar, zaten var olanlar, saati şablondan farklı olanlar.
+         * @description Şablon uygulandı: oluşturulan atamalar, zaten var olanlar, saati şablondan farklı olanlar,
+         *     şube istisnaları (atlanan "almaz" dersleri, eklenen "ek" dersleri) ve bu seviyede başka bir
+         *     şablonu kullandığı için dokunulmayan şubeler.
          */
         SablonUygulamaSonucu: {
+            /** Baska Sablonlu */
+            baska_sablonlu: components["schemas"]["BaskaSablonlu"][];
             /** Farkli Saatli */
             farkli_saatli: components["schemas"]["FarkliSaat"][];
+            /** Istisna Atlanan */
+            istisna_atlanan: components["schemas"]["IstisnaAtlanan"][];
+            /** Istisna Ek */
+            istisna_ek: components["schemas"]["IstisnaEk"][];
             /** Olusturulan */
             olusturulan: number;
             /** Sube Sayisi */
             sube_sayisi: number;
+            /** Subeler */
+            subeler: string[];
             /** Zaten Var */
             zaten_var: number;
         };
@@ -1543,6 +1679,8 @@ export interface components {
             haftalik_saat: number;
             /** Seviye */
             seviye: number;
+            /** Sube Grubu Id */
+            sube_grubu_id?: string | null;
         };
         /** SeviyeSablonuYanit */
         SeviyeSablonuYanit: {
@@ -1560,6 +1698,8 @@ export interface components {
             id: string;
             /** Seviye */
             seviye: number;
+            /** Sube Grubu Id */
+            sube_grubu_id: string | null;
         };
         /** SifreBelirle */
         SifreBelirle: {
@@ -1579,6 +1719,8 @@ export interface components {
             ad?: string | null;
             /** Seviye */
             seviye?: number | null;
+            /** Sube Grubu Id */
+            sube_grubu_id?: string | null;
         };
         /** SinifOlustur */
         SinifOlustur: {
@@ -1586,6 +1728,8 @@ export interface components {
             ad: string;
             /** Seviye */
             seviye: number;
+            /** Sube Grubu Id */
+            sube_grubu_id?: string | null;
         };
         /** SinifYanit */
         SinifYanit: {
@@ -1598,6 +1742,8 @@ export interface components {
             id: string;
             /** Seviye */
             seviye: number;
+            /** Sube Grubu Id */
+            sube_grubu_id: string | null;
         };
         /** SinifYukuYanit */
         SinifYukuYanit: {
@@ -1616,6 +1762,103 @@ export interface components {
              * Format: uuid
              */
             sinif_id: string;
+        };
+        /**
+         * SubeGrubuGuncelle
+         * @description Yalnızca ad değişir: grubun seviyesi şubelerinin ve şablonunun seviyesidir.
+         */
+        SubeGrubuGuncelle: {
+            /** Ad */
+            ad?: string | null;
+        };
+        /** SubeGrubuOlustur */
+        SubeGrubuOlustur: {
+            /**
+             * Ad
+             * @example 11 Sayısal
+             */
+            ad: string;
+            /** Seviye */
+            seviye: number;
+        };
+        /** SubeGrubuYanit */
+        SubeGrubuYanit: {
+            /** Ad */
+            ad: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Seviye */
+            seviye: number;
+        };
+        /** SubeIstisnasiOlustur */
+        SubeIstisnasiOlustur: {
+            /**
+             * Ders Id
+             * Format: uuid
+             */
+            ders_id: string;
+            /**
+             * Haftalik Saat
+             * @description Yalnızca "ek" için
+             */
+            haftalik_saat?: number | null;
+            /**
+             * Sinif Id
+             * Format: uuid
+             */
+            sinif_id: string;
+            /**
+             * Tur
+             * @enum {string}
+             */
+            tur: "almaz" | "ek";
+        };
+        /** SubeIstisnasiYanit */
+        SubeIstisnasiYanit: {
+            /**
+             * Atanmis
+             * @description Şubeye bu ders atanmış mı
+             */
+            atanmis: boolean;
+            /** Ders Adi */
+            ders_adi: string;
+            /**
+             * Ders Id
+             * Format: uuid
+             */
+            ders_id: string;
+            /** Haftalik Saat */
+            haftalik_saat: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Sablonda
+             * @description Ders şubenin kullandığı şablonda var mı
+             */
+            sablonda: boolean;
+            /** Sinif Adi */
+            sinif_adi: string;
+            /**
+             * Sinif Id
+             * Format: uuid
+             */
+            sinif_id: string;
+            /**
+             * Tur
+             * @enum {string}
+             */
+            tur: "almaz" | "ek";
+            /**
+             * Uyari
+             * @description İstisna ile ders dağılımı tutarsızsa açıklama (otomatik düzeltilmez)
+             */
+            uyari: string | null;
         };
         /**
          * TopluOgretmenAta
@@ -1955,6 +2198,90 @@ export interface operations {
             };
         };
     };
+    istisnalari_listele_api_ders_programi_istisnalar_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubeIstisnasiYanit"][];
+                };
+            };
+        };
+    };
+    istisna_ekle_api_ders_programi_istisnalar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubeIstisnasiOlustur"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubeIstisnasiYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    istisna_kaldir_api_ders_programi_istisnalar__istisna_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                istisna_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IstisnaKaldirmaSonucu"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     listele_api_ders_programi_kisitlar_get: {
         parameters: {
             query?: never;
@@ -2230,6 +2557,7 @@ export interface operations {
                 ogretmen_id?: string | null;
                 ders_id?: string | null;
                 sinif_id?: string | null;
+                sube_grubu_id?: string | null;
             };
             header?: never;
             path: {
@@ -3576,6 +3904,154 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SinifYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listele_api_sube_gruplari_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubeGrubuYanit"][];
+                };
+            };
+        };
+    };
+    olustur_api_sube_gruplari_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubeGrubuOlustur"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubeGrubuYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getir_api_sube_gruplari__kayit_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kayit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubeGrubuYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sil_api_sube_gruplari__kayit_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kayit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    guncelle_api_sube_gruplari__kayit_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kayit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubeGrubuGuncelle"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubeGrubuYanit"];
                 };
             };
             /** @description Validation Error */

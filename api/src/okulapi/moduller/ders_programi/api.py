@@ -19,6 +19,7 @@ from okulapi.moduller.ders_programi.servisler import (
     MusaitlikServisi,
     ProgramServisi,
     SeviyeSablonuServisi,
+    SubeIstisnasiServisi,
     dagilim_ozeti,
     dagilim_sekilleri,
     on_kontrol_sonucu,
@@ -32,7 +33,29 @@ sablon_router = APIRouter(prefix="/seviye-sablonlari", tags=["seviye şablonu"])
 @sablon_router.post("/uygula", response_model=semalar.SablonUygulamaSonucu)
 def sablonu_uygula(veri: semalar.SablonUygula, oturum: OkulOturumu) -> Any:
     """Seviyenin şablonunu o seviyedeki her şubeye uygular (öğretmeni boş atamalar)."""
-    return SeviyeSablonuServisi(oturum).uygula(veri.seviye)
+    return SeviyeSablonuServisi(oturum).uygula(veri.seviye, veri.sube_grubu_id)
+
+
+istisna_router = APIRouter(prefix="/istisnalar", tags=["şube istisnası"])
+
+
+@istisna_router.get("", response_model=list[semalar.SubeIstisnasiYanit])
+def istisnalari_listele(oturum: OkulOturumu) -> Any:
+    """Şubelerin şablondan ayrıldığı dersler; ders dağılımıyla tutarsız olanlar `uyari` taşır."""
+    return SubeIstisnasiServisi(oturum).listele()
+
+
+@istisna_router.post("", response_model=semalar.SubeIstisnasiYanit, status_code=201)
+def istisna_ekle(veri: semalar.SubeIstisnasiOlustur, oturum: OkulOturumu) -> Any:
+    """"Almaz": şubenin o dersi kaldırılır ve şablon yeniden uygulansa da geri gelmez. "Ek": ders
+    şubede yoksa istisnadaki saatle eklenir. 409: bu şubenin bu ders için zaten istisnası var."""
+    return SubeIstisnasiServisi(oturum).olustur(veri.sinif_id, veri.ders_id, veri.tur, veri.haftalik_saat)
+
+
+@istisna_router.delete("/{istisna_id}", response_model=semalar.IstisnaKaldirmaSonucu)
+def istisna_kaldir(istisna_id: uuid.UUID, oturum: OkulOturumu) -> Any:
+    """İstisnayı kaldırır; "almaz" kalkınca ders şubenin şablonundaysa geri eklenir."""
+    return SubeIstisnasiServisi(oturum).sil(istisna_id)
 
 
 atama_router = APIRouter(prefix="/atamalar", tags=["ders atama"])
@@ -105,17 +128,17 @@ def ozel_ayari_kaydet(tur: str, veri: semalar.OzelAyar, oturum: OkulOturumu) -> 
     422: kural bu kapsamda ayarlanamıyor (ör. sınıf boşluğu öğretmene özel olamaz), kayıt bu
     okulda yok ya da değer geçersiz.
     """
-    k = veri.kapsam
-    return KurallarServisi(oturum).ozel_ayarla(tur, k.ders_id, k.sinif_id, k.ogretmen_id, veri.parametreler)
+    return KurallarServisi(oturum).ozel_ayarla(tur, veri.kapsam.model_dump(), veri.parametreler)
 
 
 @kural_router.delete("/{tur}/ozel", response_model=semalar.KuralYanit)
 def ozel_ayari_kaldir(
     tur: str, oturum: OkulOturumu, ogretmen_id: uuid.UUID | None = None, ders_id: uuid.UUID | None = None,
-    sinif_id: uuid.UUID | None = None,
+    sinif_id: uuid.UUID | None = None, sube_grubu_id: uuid.UUID | None = None,
 ) -> Any:
     """Özel ayarı kaldırır: o kapsamda yeniden okul değeri geçerli olur."""
-    return KurallarServisi(oturum).ozel_kaldir(tur, ders_id, sinif_id, ogretmen_id)
+    kapsam = {"ders_id": ders_id, "sinif_id": sinif_id, "sube_grubu_id": sube_grubu_id, "ogretmen_id": ogretmen_id}
+    return KurallarServisi(oturum).ozel_kaldir(tur, kapsam)
 
 
 program_router = APIRouter(prefix="/programlar", tags=["program"])
@@ -154,6 +177,7 @@ def program_yerlesimleri(program_id: uuid.UUID, oturum: OkulOturumu) -> Any:
 router.include_router(sablon_router)
 router.include_router(atama_router)
 router.include_router(kural_router)
+router.include_router(istisna_router)
 for alt in (
     crud_router("/seviye-sablonlari", SeviyeSablonuServisi, semalar.SeviyeSablonuOlustur,
                 semalar.SeviyeSablonuGuncelle, semalar.SeviyeSablonuYanit, "seviye şablonu"),

@@ -13,7 +13,7 @@ from typing import Generic, TypeVar
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from okulapi.cekirdek.modeller import Ders, Okul, OkulaAitMixin, Ogretmen, Sinif
+from okulapi.cekirdek.modeller import Ders, Okul, OkulaAitMixin, Ogretmen, Sinif, SubeGrubu
 
 T = TypeVar("T", bound=OkulaAitMixin)
 
@@ -51,6 +51,10 @@ class SinifDeposu(OkulaAitDepo[Sinif]):
 
 class DersDeposu(OkulaAitDepo[Ders]):
     model = Ders
+
+
+class SubeGrubuDeposu(OkulaAitDepo[SubeGrubu]):
+    model = SubeGrubu
 
 
 class OkulDeposu:

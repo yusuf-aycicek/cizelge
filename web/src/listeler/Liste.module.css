@@ -58,6 +58,27 @@
   border: 2px solid var(--renk-tehlike);
 }
 
+/* Satırda kaydeden küçük seçim kutusu (ör. şubenin grubu). */
+.satirSecimi {
+  min-height: 2.25rem;
+  padding: var(--bosluk-1) var(--bosluk-2);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose);
+  background: var(--renk-yuzey);
+  color: inherit;
+  font: inherit;
+  max-width: 12rem;
+}
+
+.soluk {
+  color: var(--renk-metin-ikincil);
+}
+
+.kartAciklamasi {
+  color: var(--renk-metin-ikincil);
+  max-width: 48rem;
+}
+
 .satirHatasi {
   font-size: var(--yazi-kucuk);
   font-weight: var(--yazi-kalin);

@@ -18,10 +18,12 @@ export type SablonRaporu = Sema["SablonUygulamaSonucu"];
 export type DagilimOzeti = Sema["DagilimOzeti"];
 export type OgretmenYuku = Sema["OgretmenYukuYanit"];
 export type SinifYuku = Sema["SinifYukuYanit"];
+export type Istisna = Sema["SubeIstisnasiYanit"];
 
 export const ATAMALAR = ["atamalar"] as const;
 export const SABLON = ["seviye-sablonlari"] as const;
 export const OZET = ["dagilim-ozeti"] as const;
+export const ISTISNALAR = ["istisnalar"] as const;
 
 const yol = (kayit_id: string) => ({ params: { path: { kayit_id } } });
 
@@ -40,8 +42,36 @@ export const sablonApi = {
   guncelle: (id: string, haftalik_saat: number) =>
     cagir(api.PATCH("/api/ders-programi/seviye-sablonlari/{kayit_id}", { ...yol(id), body: { haftalik_saat } })),
   sil: (id: string) => cagir(api.DELETE("/api/ders-programi/seviye-sablonlari/{kayit_id}", yol(id))),
-  uygula: (seviye: number) => cagir(api.POST("/api/ders-programi/seviye-sablonlari/uygula", { body: { seviye } })),
+  uygula: (seviye: number, sube_grubu_id?: string) =>
+    cagir(api.POST("/api/ders-programi/seviye-sablonlari/uygula", {
+      body: sube_grubu_id ? { seviye, sube_grubu_id } : { seviye },
+    })),
 };
+
+export const istisnaApi = {
+  listele: () => cagir(api.GET("/api/ders-programi/istisnalar")),
+  olustur: (body: Sema["SubeIstisnasiOlustur"]) => cagir(api.POST("/api/ders-programi/istisnalar", { body })),
+  sil: (id: string) =>
+    cagir(api.DELETE("/api/ders-programi/istisnalar/{istisna_id}", { params: { path: { istisna_id: id } } })),
+};
+
+export function useIstisnalar() {
+  return useQuery({ queryKey: ISTISNALAR, queryFn: istisnaApi.listele });
+}
+
+export function useSablon() {
+  return useQuery({ queryKey: SABLON, queryFn: sablonApi.listele });
+}
+
+/**
+ * Şubenin kullandığı şablonun dersleri (ders_id -> haftalık saat): grubunun şablonunda ders varsa
+ * grubunki, yoksa seviyesininki. Sunucudaki `sablon_kaynaklari` ile aynı kural.
+ */
+export function subeninSablonu(sinif: { seviye: number; sube_grubu_id: string | null }, sablon: SablonSatiri[]) {
+  const grubunki = sinif.sube_grubu_id ? sablon.filter((s) => s.sube_grubu_id === sinif.sube_grubu_id) : [];
+  const satirlar = grubunki.length > 0 ? grubunki : sablon.filter((s) => s.seviye === sinif.seviye && !s.sube_grubu_id);
+  return new Map(satirlar.map((s) => [s.ders_id, s.haftalik_saat]));
+}
 
 export function useAtamalar() {
   return useQuery({ queryKey: ATAMALAR, queryFn: atamaApi.listele });
@@ -80,6 +110,7 @@ export function useAtamalarDegisti() {
     await Promise.all([
       istemci.invalidateQueries({ queryKey: ATAMALAR }),
       istemci.invalidateQueries({ queryKey: OZET }),
+      istemci.invalidateQueries({ queryKey: ISTISNALAR }),
     ]);
     if (!ogretmenId) return undefined;
     return istemci.getQueryData<DagilimOzeti>(OZET)?.ogretmenler.find((y) => y.ogretmen_id === ogretmenId);

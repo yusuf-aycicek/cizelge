@@ -122,9 +122,9 @@ describe("ekleme", () => {
     const { kullanici } = uygulamayiCiz("/siniflar");
     await kullanici.type(await screen.findByLabelText(/Sınıf seviyesi/), "13");
     await kullanici.click(screen.getByRole("button", { name: "Ekle" }));
-    expect(screen.getByLabelText(/Şube/)).toHaveAccessibleDescription("Boş bırakılamaz");
+    expect(screen.getByRole("textbox", { name: /^Şube/ })).toHaveAccessibleDescription("Boş bırakılamaz");
     expect(screen.getByLabelText(/Sınıf seviyesi/)).toHaveAccessibleDescription("1 ile 12 arasında bir sayı girin");
-    expect(screen.getByLabelText(/Şube/)).toHaveFocus();
+    expect(screen.getByRole("textbox", { name: /^Şube/ })).toHaveFocus();
     expect(istek).toBe(0);
   });
 

@@ -55,7 +55,7 @@ def ozel(istemci, okul, kapsam, desen):
 def test_kural_listede_okul_onerisi_acik(istemci, okul):
     k = next(x for x in istemci.get(f"{DP}/kurallar", headers=okul["b"]).json() if x["tur"] == B)
     assert (k["ad"], k["zorunlu"], k["parametreler"], k["kapsamlar"]) == (
-        "Dağılım şekli (blok dersler)", True, {"otomatik": True}, ["ders", "sube"])
+        "Dağılım şekli (blok dersler)", True, {"otomatik": True}, ["ders", "sube", "sube_grubu"])
 
 
 def test_okul_onerisi_ve_dusen_oneri_nedeniyle(istemci, okul):

@@ -21,12 +21,12 @@ from sqlalchemy.exc import DBAPIError
 from conftest import TEST_UYGULAMA_URL, okul_basligi, oturum_kaydet
 from okulapi.cekirdek.kimlik.servis import jeton_ozeti, jeton_uret
 from okulapi.cekirdek.kiraci import okul_oturumu, okulsuz_oturum
-from okulapi.cekirdek.modeller import Ders, Kullanici, Ogretmen, Oturum, Sinif
+from okulapi.cekirdek.modeller import Ders, Kullanici, Ogretmen, Oturum, Sinif, SubeGrubu
 from okulapi.cekirdek.servisler import OkulServisi
 from okulapi.cekirdek.veritabani import Base, motor_olustur, oturum_fabrikasi as fabrika_olustur
 from okulapi.main import uygulama_olustur
 from okulapi.moduller.ders_programi.modeller import (
-    DersAtama, Kisit, Musaitlik, Program, SeviyeSablonu, Yerlesim,
+    DersAtama, Kisit, Musaitlik, Program, SeviyeSablonu, SubeDersIstisnasi, Yerlesim,
 )
 
 RLS_IHLALI = "42501"  # insufficient_privilege: "new row violates row-level security policy"
@@ -44,7 +44,10 @@ def _okul_verisi(fabrika, ad: str) -> tuple[uuid.UUID, dict[str, set[uuid.UUID]]
         okul_id = OkulServisi(oturum).olustur({"ad": ad}).id
     with okul_oturumu(fabrika, okul_id) as o:
         ogretmen, ogretmen2 = Ogretmen(ad=f"{ad} Öğretmen 1"), Ogretmen(ad=f"{ad} Öğretmen 2")
-        sinif, ders = Sinif(ad="9-A", seviye=9), Ders(ad="Matematik", kisa_ad="MAT")
+        grup = SubeGrubu(ad="9 Fen", seviye=9)
+        o.add(grup)
+        o.flush()
+        sinif, ders = Sinif(ad="9-A", seviye=9, sube_grubu_id=grup.id), Ders(ad="Matematik", kisa_ad="MAT")
         mudur = Kullanici(email=f"mudur@{uuid.uuid4().hex}.test", sifre_hash="x", ad="Müdür", rol="mudur")
         o.add_all([ogretmen, ogretmen2, sinif, ders, mudur])
         o.flush()
@@ -56,7 +59,8 @@ def _okul_verisi(fabrika, ad: str) -> tuple[uuid.UUID, dict[str, set[uuid.UUID]]
         program = Program(ad="Eylül")
         o.add_all([atama, program, SeviyeSablonu(seviye=9, ders_id=ders.id, haftalik_saat=6),
                    Musaitlik(ogretmen_id=ogretmen.id, gun=0, saat=0, durum="gelemez"),
-                   Kisit(tur="gunluk_ders_siniri", parametreler={"n": 2}, zorunlu=True)])
+                   Kisit(tur="gunluk_ders_siniri", parametreler={"n": 2}, zorunlu=True),
+                   SubeDersIstisnasi(sinif_id=sinif.id, ders_id=ders.id, tur="ek", haftalik_saat=2)])
         o.flush()
         o.add(Yerlesim(program_id=program.id, ders_atama_id=atama.id, gun=1, saat=0, kilitli=True))
         o.commit()
@@ -137,6 +141,7 @@ LISTE_YOLLARI = {
     "ogretmen": "/api/ogretmenler",
     "sinif": "/api/siniflar",
     "ders": "/api/dersler",
+    "sube_grubu": "/api/sube-gruplari",
     "seviye_sablonu": "/api/ders-programi/seviye-sablonlari",
     "ders_atama": "/api/ders-programi/atamalar",
     "musaitlik": "/api/ders-programi/musaitlikler",

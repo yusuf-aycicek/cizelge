@@ -7,14 +7,29 @@ import uuid
 from sqlalchemy import select
 
 from okulapi.cekirdek.depo import OkulaAitDepo
-from okulapi.moduller.ders_programi.modeller import DersAtama, Kisit, Musaitlik, Program, SeviyeSablonu, Yerlesim
+from okulapi.moduller.ders_programi.modeller import (
+    DersAtama,
+    Kisit,
+    Musaitlik,
+    Program,
+    SeviyeSablonu,
+    SubeDersIstisnasi,
+    Yerlesim,
+)
 
 
 class SeviyeSablonuDeposu(OkulaAitDepo[SeviyeSablonu]):
     model = SeviyeSablonu
 
-    def seviyenin(self, seviye: int) -> list[SeviyeSablonu]:
-        return list(self.oturum.scalars(select(SeviyeSablonu).where(SeviyeSablonu.seviye == seviye)))
+    def sablonun(self, seviye: int, sube_grubu_id: uuid.UUID | None = None) -> list[SeviyeSablonu]:
+        """Seviyenin şablonu (grup boş) ya da grubun şablonu."""
+        grup = SeviyeSablonu.sube_grubu_id
+        return list(self.oturum.scalars(select(SeviyeSablonu).where(
+            SeviyeSablonu.seviye == seviye, grup.is_(None) if sube_grubu_id is None else grup == sube_grubu_id)))
+
+
+class SubeIstisnasiDeposu(OkulaAitDepo[SubeDersIstisnasi]):
+    model = SubeDersIstisnasi
 
 
 class DersAtamaDeposu(OkulaAitDepo[DersAtama]):

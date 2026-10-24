@@ -93,14 +93,35 @@ class OgretmenYanit(_Yanit):
 class SinifOlustur(BaseModel):
     ad: str = Field(min_length=1, max_length=50)
     seviye: int = Field(ge=1, le=12)
+    # Şubenin grubu (ör. "11 Sayısal"); grubun seviyesi şubeninkiyle aynı olmalı. Boş = grupsuz.
+    sube_grubu_id: uuid.UUID | None = None
 
 
 class SinifGuncelle(BaseModel):
     ad: str | None = Field(default=None, min_length=1, max_length=50)
     seviye: int | None = Field(default=None, ge=1, le=12)
+    sube_grubu_id: uuid.UUID | None = None  # null gönderilirse şube gruptan çıkar
 
 
 class SinifYanit(_Yanit):
+    id: uuid.UUID
+    ad: str
+    seviye: int
+    sube_grubu_id: uuid.UUID | None
+
+
+class SubeGrubuOlustur(BaseModel):
+    ad: str = Field(min_length=1, max_length=100, examples=["11 Sayısal"])
+    seviye: int = Field(ge=1, le=12)
+
+
+class SubeGrubuGuncelle(BaseModel):
+    """Yalnızca ad değişir: grubun seviyesi şubelerinin ve şablonunun seviyesidir."""
+
+    ad: str | None = Field(default=None, min_length=1, max_length=100)
+
+
+class SubeGrubuYanit(_Yanit):
     id: uuid.UUID
     ad: str
     seviye: int

@@ -140,17 +140,41 @@ class Ogretmen(OkulaAitMixin, Base):
     brans: Mapped[str] = mapped_column(String(100), default="", server_default="")
 
 
-class Sinif(OkulaAitMixin, Base):
-    """Şube, ör. 9-A."""
+class SubeGrubu(OkulaAitMixin, Base):
+    """Aynı seviyedeki şubelerin bir grubu, ör. "11 Sayısal" (K5, migration cekirdek_0007).
 
-    __tablename__ = "sinif"
+    Grubun şubeleri seviye şablonu yerine grubun şablonunu kullanabilir; kurallar gruba özel
+    ayarlanabilir (ADR 0016). Grup silinince şubeleri grupsuz kalır (`SET NULL`).
+    """
+
+    __tablename__ = "sube_grubu"
     _tablo_kisitlari = (
         UniqueConstraint("okul_id", "ad"),
         CheckConstraint("seviye BETWEEN 1 AND 12", name="seviye"),
     )
 
+    ad: Mapped[str] = mapped_column(String(100))
+    seviye: Mapped[int]
+
+
+class Sinif(OkulaAitMixin, Base):
+    """Şube, ör. 9-A. `sube_grubu_id`: şubenin grubu (boş = grupsuz); grubun seviyesi şubeninkiyle
+    aynıdır (servis denetler)."""
+
+    __tablename__ = "sinif"
+    _tablo_kisitlari = (
+        UniqueConstraint("okul_id", "ad"),
+        CheckConstraint("seviye BETWEEN 1 AND 12", name="seviye"),
+        # Bileşik FK: grup aynı okulda olmalı. Grup silinince yalnızca grup sütunu boşalır
+        # (PostgreSQL 15+ sütun listeli SET NULL; okul_id'ye dokunmaz).
+        ForeignKeyConstraint(["okul_id", "sube_grubu_id"], ["sube_grubu.okul_id", "sube_grubu.id"],
+                             ondelete="SET NULL (sube_grubu_id)"),
+        Index(None, "okul_id", "sube_grubu_id"),
+    )
+
     ad: Mapped[str] = mapped_column(String(50))
     seviye: Mapped[int]
+    sube_grubu_id: Mapped[uuid.UUID | None]
 
 
 class Ders(OkulaAitMixin, Base):

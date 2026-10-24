@@ -24,7 +24,7 @@ from cozucu.yuk import YukHesabi
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
-from okulapi.cekirdek.depo import DersDeposu, OgretmenDeposu, OkulDeposu, SinifDeposu
+from okulapi.cekirdek.depo import DersDeposu, OgretmenDeposu, OkulDeposu, SinifDeposu, SubeGrubuDeposu
 from okulapi.cekirdek.kiraci import oturumun_okulu
 from okulapi.cekirdek.kuyruk import IsKuyrugu, KuyrukHatasi
 from okulapi.cekirdek.servisler import (
@@ -42,9 +42,17 @@ from okulapi.moduller.ders_programi.depo import (
     MusaitlikDeposu,
     ProgramDeposu,
     SeviyeSablonuDeposu,
+    SubeIstisnasiDeposu,
     YerlesimDeposu,
 )
-from okulapi.moduller.ders_programi.modeller import ETKIN_DURUMLAR, DersAtama, Musaitlik, Program, Yerlesim
+from okulapi.moduller.ders_programi.modeller import (
+    ETKIN_DURUMLAR,
+    DersAtama,
+    Musaitlik,
+    Program,
+    SubeDersIstisnasi,
+    Yerlesim,
+)
 from okulapi.moduller.ders_programi.uretim import (
     URETIM_BASARISIZ,
     URETIM_ISI,
@@ -59,40 +67,187 @@ def _bu_okulda_olmali(depo, kayit_id: uuid.UUID | None, varlik: str) -> None:
         raise GecersizVeri(f"{varlik} bu okulda bulunamadı")
 
 
+def sablon_kaynaklari(oturum) -> dict[uuid.UUID, uuid.UUID | None]:
+    """Her şubenin kullandığı şablon: şubenin grubunun şablonunda en az bir ders varsa grubun
+    kimliği, yoksa None (seviyenin şablonu). Tek kaynak: uygulama, istisna listesi ve arayüz aynı
+    kuralı buradan alır."""
+    dolu_gruplar = {s.sube_grubu_id for s in SeviyeSablonuDeposu(oturum).listele() if s.sube_grubu_id}
+    return {s.id: s.sube_grubu_id if s.sube_grubu_id in dolu_gruplar else None
+            for s in SinifDeposu(oturum).listele()}
+
+
+def sube_sablonu(oturum, sinif) -> dict[uuid.UUID, int]:
+    """Şubenin kullandığı şablonun dersleri: ders_id -> haftalık saat."""
+    grup = sablon_kaynaklari(oturum).get(sinif.id)
+    return {s.ders_id: s.haftalik_saat for s in SeviyeSablonuDeposu(oturum).sablonun(sinif.seviye, grup)}
+
+
 class SeviyeSablonuServisi(CrudServisi):
+    """Seviyenin ya da bir şube grubunun şablonu (`sube_grubu_id`; K5)."""
+
     depo_sinifi = SeviyeSablonuDeposu
     varlik = "Seviye şablonu satırı"
-    cakisma_mesaji = "Bu seviyenin şablonunda bu ders zaten var"
+    cakisma_mesaji = "Bu şablonda bu ders zaten var"
 
     def _dogrula(self, alanlar: dict[str, Any], nesne=None) -> None:
         _bu_okulda_olmali(DersDeposu(self.oturum), alanlar.get("ders_id"), "Ders")
+        if alanlar.get("sube_grubu_id") is not None:
+            grup = self._grup(alanlar["sube_grubu_id"])
+            if grup.seviye != alanlar.get("seviye"):
+                raise GecersizVeri(f"\"{grup.ad}\" {grup.seviye}. sınıfların grubu; şablonu {grup.seviye}. sınıf olmalı")
 
-    def uygula(self, seviye: int) -> dict[str, Any]:
-        """Şablonu bu seviyedeki her şubeye uygular: eksik (sınıf, ders) için öğretmeni boş atama
+    def _grup(self, grup_id: uuid.UUID):
+        grup = SubeGrubuDeposu(self.oturum).getir(grup_id)
+        if grup is None:
+            raise GecersizVeri("Şube grubu bu okulda bulunamadı")
+        return grup
+
+    def uygula(self, seviye: int, sube_grubu_id: uuid.UUID | None = None) -> dict[str, Any]:
+        """Şablonu, onu kullanan şubelere uygular: eksik (sınıf, ders) için öğretmeni boş atama
         oluşturur. Var olan atamalar çoğaltılmaz ve değiştirilmez; saati şablondan farklı olanlar
-        raporlanır (kullanıcı bilerek farklı tutmuş olabilir)."""
-        sablon = self.depo.seviyenin(seviye)
-        siniflar = [s for s in SinifDeposu(self.oturum).listele() if s.seviye == seviye]
+        raporlanır (kullanıcı bilerek farklı tutmuş olabilir).
+
+        - Grubun şablonu grubun şubelerine; seviyenin şablonu o seviyede kendi grubunun şablonunu
+          kullanmayan şubelere uygulanır (`sablon_kaynaklari`). Ötekiler raporda adıyla geçer.
+        - Şube istisnaları: `almaz` dersi eklenmez (silinmiş ders geri gelmez), `ek` dersi
+          şablonda olmasa da istisnadaki saatle eklenir. İkisi de raporda listelenir.
+        """
+        if sube_grubu_id is not None and self._grup(sube_grubu_id).seviye != seviye:
+            raise GecersizVeri("Şube grubu bu seviyede değil")
+        sablon = self.depo.sablonun(seviye, sube_grubu_id)
+        kaynak = sablon_kaynaklari(self.oturum)
+        seviyedekiler = [s for s in SinifDeposu(self.oturum).listele() if s.seviye == seviye]
+        siniflar = [s for s in seviyedekiler if kaynak[s.id] == sube_grubu_id]
+        gruplar = {g.id: g.ad for g in SubeGrubuDeposu(self.oturum).listele()}
         dersler = {d.id: d.ad for d in DersDeposu(self.oturum).listele()}
         atama_deposu = DersAtamaDeposu(self.oturum)
         var_olan = {(a.sinif_id, a.ders_id): a for a in atama_deposu.siniflarin([s.id for s in siniflar])}
+        istisnalar = {(i.sinif_id, i.ders_id): i for i in SubeIstisnasiDeposu(self.oturum).listele()}
 
-        olusturulan, zaten_var, farkli = 0, 0, []
+        olusturulan, zaten_var, farkli, atlanan, ek = 0, 0, [], [], []
+
+        def ekle(sinif, ders_id: uuid.UUID, saat: int) -> None:
+            atama_deposu.ekle(DersAtama(sinif_id=sinif.id, ders_id=ders_id, ogretmen_id=None, haftalik_saat=saat))
+
         for sinif in siniflar:
+            sablondaki = set()
             for satir in sablon:
+                sablondaki.add(satir.ders_id)
+                istisna = istisnalar.get((sinif.id, satir.ders_id))
                 atama = var_olan.get((sinif.id, satir.ders_id))
+                if istisna is not None and istisna.tur == "almaz":
+                    atlanan.append({"sinif": sinif.ad, "ders": dersler[satir.ders_id]})
+                    continue
                 if atama is None:
-                    atama_deposu.ekle(DersAtama(sinif_id=sinif.id, ders_id=satir.ders_id, ogretmen_id=None,
-                                                haftalik_saat=satir.haftalik_saat))
+                    ekle(sinif, satir.ders_id, satir.haftalik_saat)
                     olusturulan += 1
                     continue
                 zaten_var += 1
                 if atama.haftalik_saat != satir.haftalik_saat:
                     farkli.append({"atama_id": atama.id, "sinif": sinif.ad, "ders": dersler[satir.ders_id],
                                    "atamadaki_saat": atama.haftalik_saat, "sablondaki_saat": satir.haftalik_saat})
+            for (sinif_id, ders_id), istisna in istisnalar.items():
+                if sinif_id != sinif.id or istisna.tur != "ek" or ders_id in sablondaki:
+                    continue
+                eklendi = (sinif.id, ders_id) not in var_olan
+                if eklendi:
+                    ekle(sinif, ders_id, istisna.haftalik_saat)
+                ek.append({"sinif": sinif.ad, "ders": dersler[ders_id], "haftalik_saat": istisna.haftalik_saat,
+                           "eklendi": eklendi})
         self.oturum.commit()
-        return {"sube_sayisi": len(siniflar), "olusturulan": olusturulan, "zaten_var": zaten_var,
-                "farkli_saatli": farkli}
+        siralama = lambda d: (d["sinif"].casefold(), d["ders"].casefold())  # noqa: E731
+        return {
+            "sube_sayisi": len(siniflar), "subeler": sorted(s.ad for s in siniflar), "olusturulan": olusturulan,
+            "zaten_var": zaten_var, "farkli_saatli": farkli,
+            "istisna_atlanan": sorted(atlanan, key=siralama), "istisna_ek": sorted(ek, key=siralama),
+            "baska_sablonlu": sorted(
+                ({"sinif": s.ad, "sablon": gruplar[kaynak[s.id]] if kaynak[s.id] else f"{seviye}. sınıflar"}
+                 for s in seviyedekiler if s not in siniflar),
+                key=lambda d: d["sinif"].casefold(),
+            ),
+        }
+
+
+class SubeIstisnasiServisi:
+    """Şubenin şablondan ayrıldığı dersler (K5): "bu şube bu dersi almaz" ve "ek olarak alır".
+
+    İstisna ders dağılımını da hemen değiştirir, kullanıcı iki ayrı iş yapmasın:
+    - `almaz` konunca şubenin o dersi (varsa) kaldırılır; istisna kaldırılınca ders şubenin
+      şablonundaysa şablondaki saatle (öğretmeni boş) geri eklenir.
+    - `ek` konunca ders şubede yoksa istisnadaki saatle eklenir. `ek` kaldırılınca ders şubede
+      kalır (silmek veri kaybı olurdu); dersi kaldırmak ders dağılımından yapılır.
+    """
+
+    def __init__(self, oturum) -> None:
+        self.oturum = oturum
+        self.depo = SubeIstisnasiDeposu(oturum)
+
+    def listele(self) -> list[dict[str, Any]]:
+        """İstisnalar, şablon ve atamalarla karşılaştırılmış: tutarsız olan (ör. "almaz" ama
+        dersi atanmış) kullanıcıya söylenir; otomatik düzeltilmez."""
+        siniflar = {s.id: s for s in SinifDeposu(self.oturum).listele()}
+        dersler = {d.id: d.ad for d in DersDeposu(self.oturum).listele()}
+        atamalar = {(a.sinif_id, a.ders_id) for a in DersAtamaDeposu(self.oturum).listele()}
+        kaynak = sablon_kaynaklari(self.oturum)
+        sablonlar = {(s.seviye, s.sube_grubu_id, s.ders_id) for s in SeviyeSablonuDeposu(self.oturum).listele()}
+        satirlar = []
+        for i in self.depo.listele():
+            sinif, ders = siniflar[i.sinif_id], dersler[i.ders_id]
+            sablonda = (sinif.seviye, kaynak[sinif.id], i.ders_id) in sablonlar
+            atanmis = (i.sinif_id, i.ders_id) in atamalar
+            uyari = None
+            if i.tur == "almaz" and atanmis:
+                uyari = f"{sinif.ad} için \"{ders} almaz\" istisnası var, ama {sinif.ad}'ye {ders} atanmış."
+            elif i.tur == "ek" and not atanmis:
+                uyari = f"{ders} {sinif.ad}'nin ek dersi, ama şubede yok; şablonu uygulayınca eklenir."
+            satirlar.append({"id": i.id, "sinif_id": i.sinif_id, "ders_id": i.ders_id, "tur": i.tur,
+                             "haftalik_saat": i.haftalik_saat, "sinif_adi": sinif.ad, "ders_adi": ders,
+                             "sablonda": sablonda, "atanmis": atanmis, "uyari": uyari})
+        return sorted(satirlar, key=lambda s: (s["sinif_adi"].casefold(), s["ders_adi"].casefold()))
+
+    def olustur(self, sinif_id: uuid.UUID, ders_id: uuid.UUID, tur: str, haftalik_saat: int | None) -> dict[str, Any]:
+        sinif = SinifDeposu(self.oturum).getir(sinif_id)
+        if sinif is None:
+            raise GecersizVeri("Şube bu okulda bulunamadı")
+        _bu_okulda_olmali(DersDeposu(self.oturum), ders_id, "Ders")
+        if tur == "almaz" and haftalik_saat is not None:
+            raise GecersizVeri("\"Almaz\" istisnasında haftalık saat olmaz")
+        if tur == "ek" and haftalik_saat is None:
+            raise GecersizVeri("Ek ders için haftalık saat girin")
+        atama_deposu = DersAtamaDeposu(self.oturum)
+        atama = next((a for a in atama_deposu.siniflarin([sinif_id]) if a.ders_id == ders_id), None)
+        try:
+            istisna = self.depo.ekle(SubeDersIstisnasi(sinif_id=sinif_id, ders_id=ders_id, tur=tur,
+                                                       haftalik_saat=haftalik_saat))
+            if tur == "almaz" and atama is not None:
+                atama_deposu.sil(atama)  # eski programlardaki yerleşimleri de gider (CASCADE)
+            elif tur == "ek" and atama is None:
+                atama_deposu.ekle(DersAtama(sinif_id=sinif_id, ders_id=ders_id, ogretmen_id=None,
+                                            haftalik_saat=haftalik_saat))
+            self.oturum.commit()
+        except IntegrityError as hata:
+            self.oturum.rollback()
+            raise KayitCakismasi("Bu şubenin bu ders için zaten bir istisnası var") from hata
+        return next(s for s in self.listele() if s["id"] == istisna.id)
+
+    def sil(self, istisna_id: uuid.UUID) -> dict[str, Any]:
+        """İstisnayı kaldırır. `almaz` kalkınca ders şubenin şablonundaysa geri eklenir."""
+        istisna = self.depo.getir(istisna_id)
+        if istisna is None:
+            raise KayitBulunamadi("Şube istisnası")
+        geri_eklenen = None
+        if istisna.tur == "almaz":
+            sinif = SinifDeposu(self.oturum).getir(istisna.sinif_id)
+            saat = sube_sablonu(self.oturum, sinif).get(istisna.ders_id)
+            atama_deposu = DersAtamaDeposu(self.oturum)
+            var = any(a.ders_id == istisna.ders_id for a in atama_deposu.siniflarin([sinif.id]))
+            if saat is not None and not var:
+                atama_deposu.ekle(DersAtama(sinif_id=sinif.id, ders_id=istisna.ders_id, ogretmen_id=None,
+                                            haftalik_saat=saat))
+                geri_eklenen = saat
+        self.depo.sil(istisna)
+        self.oturum.commit()
+        return {"geri_eklenen_saat": geri_eklenen}
 
 
 class DersAtamaServisi(CrudServisi):
@@ -118,6 +273,14 @@ class DersAtamaServisi(CrudServisi):
             return atamalar
 
         return self._kaydet(uygula)
+
+    def sil(self, kayit_id: uuid.UUID) -> None:
+        """Şubenin ek dersi kaldırılınca "ek" istisnası da kalkar: şablon uygulanınca geri gelmesin."""
+        atama = self.getir(kayit_id)
+        for i in SubeIstisnasiDeposu(self.oturum).listele():
+            if (i.sinif_id, i.ders_id, i.tur) == (atama.sinif_id, atama.ders_id, "ek"):
+                self.oturum.delete(i)
+        super().sil(kayit_id)
 
 
 def on_kontrol_sonucu(oturum) -> list[dict[str, Any]]:
@@ -149,7 +312,7 @@ def dagilim_sekilleri(oturum) -> list[dict[str, Any]]:
         istenen, desen = hesap.istenen(a), hesap.desen(a)
         ozel = cozumle(hesap._ozeller, girdi.varlik(sinif_id=a.sinif_id, ders_id=a.ders_id))
         if ozel is not None:
-            kaynak = "ders_sube" if ozel.kapsam.sinif_id else "ders"
+            kaynak = "ders_sube" if ozel.kapsam.sinif_id else "ders_grup" if ozel.kapsam.sube_grubu_id else "ders"
         else:
             kaynak = "okul" if desen is not None else "yok"
         dusen = istenen is not None and not istenen.ozel and desen is None

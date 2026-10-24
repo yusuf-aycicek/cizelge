@@ -18,6 +18,8 @@ class _Yanit(BaseModel):
 
 class SeviyeSablonuOlustur(BaseModel):
     seviye: int = Field(ge=1, le=12)
+    # Doluysa satır bu şube grubunun şablonundadır (seviye grubun seviyesi olmalı); boşsa seviyenin.
+    sube_grubu_id: uuid.UUID | None = None
     ders_id: uuid.UUID
     haftalik_saat: int = Field(ge=1)
 
@@ -29,12 +31,15 @@ class SeviyeSablonuGuncelle(BaseModel):
 class SeviyeSablonuYanit(_Yanit):
     id: uuid.UUID
     seviye: int
+    sube_grubu_id: uuid.UUID | None
     ders_id: uuid.UUID
     haftalik_saat: int
 
 
 class SablonUygula(BaseModel):
     seviye: int = Field(ge=1, le=12)
+    # Verilirse grubun şablonu grubun şubelerine uygulanır; yoksa seviyenin şablonu.
+    sube_grubu_id: uuid.UUID | None = None
 
 
 class FarkliSaat(BaseModel):
@@ -45,13 +50,64 @@ class FarkliSaat(BaseModel):
     sablondaki_saat: int
 
 
+class IstisnaAtlanan(BaseModel):
+    sinif: str
+    ders: str
+
+
+class IstisnaEk(BaseModel):
+    sinif: str
+    ders: str
+    haftalik_saat: int
+    eklendi: bool = Field(description="false: ders şubede zaten vardı")
+
+
+class BaskaSablonlu(BaseModel):
+    sinif: str
+    sablon: str = Field(description="Şubenin kullandığı şablon: \"11 Sayısal\" ya da \"11. sınıflar\"")
+
+
 class SablonUygulamaSonucu(BaseModel):
-    """Şablon uygulandı: oluşturulan atamalar, zaten var olanlar, saati şablondan farklı olanlar."""
+    """Şablon uygulandı: oluşturulan atamalar, zaten var olanlar, saati şablondan farklı olanlar,
+    şube istisnaları (atlanan "almaz" dersleri, eklenen "ek" dersleri) ve bu seviyede başka bir
+    şablonu kullandığı için dokunulmayan şubeler."""
 
     sube_sayisi: int
+    subeler: list[str]
     olusturulan: int
     zaten_var: int
     farkli_saatli: list[FarkliSaat]
+    istisna_atlanan: list[IstisnaAtlanan]
+    istisna_ek: list[IstisnaEk]
+    baska_sablonlu: list[BaskaSablonlu]
+
+
+# --- şube istisnaları -------------------------------------------------------------------
+
+
+class SubeIstisnasiOlustur(BaseModel):
+    sinif_id: uuid.UUID
+    ders_id: uuid.UUID
+    tur: Literal["almaz", "ek"]
+    haftalik_saat: int | None = Field(default=None, ge=1, description="Yalnızca \"ek\" için")
+
+
+class SubeIstisnasiYanit(BaseModel):
+    id: uuid.UUID
+    sinif_id: uuid.UUID
+    ders_id: uuid.UUID
+    tur: Literal["almaz", "ek"]
+    haftalik_saat: int | None
+    sinif_adi: str
+    ders_adi: str
+    sablonda: bool = Field(description="Ders şubenin kullandığı şablonda var mı")
+    atanmis: bool = Field(description="Şubeye bu ders atanmış mı")
+    uyari: str | None = Field(description="İstisna ile ders dağılımı tutarsızsa açıklama (otomatik düzeltilmez)")
+
+
+class IstisnaKaldirmaSonucu(BaseModel):
+    geri_eklenen_saat: int | None = Field(
+        description="\"Almaz\" kalkınca ders şablondan geri eklendiyse haftalık saati")
 
 
 # --- ders atama -------------------------------------------------------------------------
@@ -226,7 +282,7 @@ class KuralYanit(BaseModel):
     varsayilan_seviye: OnemSeviyesi | None
     varsayilan: bool
     # Kuralın özel ayar alabildiği yerler (çözücünün kural sınıfından) ve okuldaki özel ayarlar.
-    kapsamlar: list[Literal["ogretmen", "ders", "sube"]]
+    kapsamlar: list[Literal["ogretmen", "ders", "sube", "sube_grubu"]]
     ozel_ayarlar: list[OzelAyarYanit]
 
 
@@ -236,11 +292,13 @@ class KuralAyari(BaseModel):
 
 
 class KuralKapsami(BaseModel):
-    """Özel ayarın yeri. Öğretmen tek başına; ders ve şube tek başına ya da birlikte (ADR 0016)."""
+    """Özel ayarın yeri. Öğretmen tek başına; ders, şube ve şube grubu tek başına ya da ders ile
+    birlikte (ders + şube, ders + şube grubu). Şube ile şube grubu birlikte olamaz (ADR 0016)."""
 
     ogretmen_id: uuid.UUID | None = None
     ders_id: uuid.UUID | None = None
     sinif_id: uuid.UUID | None = None
+    sube_grubu_id: uuid.UUID | None = None
 
 
 class OzelAyar(BaseModel):
@@ -264,8 +322,8 @@ class DagilimSekli(BaseModel):
     haftalik_saat: int
     desen: list[int] | None = Field(description="Uygulanacak bloklar, büyükten küçüğe; None: blok yok")
     metin: str = Field(description="\"2+2+1\" ya da \"blok yok\"")
-    kaynak: Literal["ders_sube", "ders", "okul", "yok"] = Field(
-        description="ders_sube / ders: özel ayar; okul: okulun önerisi; yok: blok yok")
+    kaynak: Literal["ders_sube", "ders_grup", "ders", "okul", "yok"] = Field(
+        description="ders_sube / ders_grup / ders: özel ayar; okul: okulun önerisi; yok: blok yok")
     # Okul önerisi bu atamada uygulanamadıysa önerilen şekil ve neden(ler) (kaynak "yok" olur).
     dusen_oneri: str | None
     nedenler: list[str]

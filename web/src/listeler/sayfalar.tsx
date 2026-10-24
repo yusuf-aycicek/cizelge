@@ -15,6 +15,7 @@ import { api } from "../api/istemci";
 import { KURALLAR_ANAHTARI } from "../okul/OkulAyarlariSayfasi";
 import { dersKaynagi, ogretmenKaynagi, sinifKaynagi, type Ders, type Ogretmen, type Sinif } from "./kaynaklar";
 import { ListeSayfasi, type ListeAlani } from "./ListeSayfasi";
+import { SubeGrubuSecici, SubeGruplariBolumu, useSubeGruplari } from "./SubeGruplari";
 
 // Alan listeleri bileşenin dışında sabit: her çizimde yeni dizi oluşmasın (useMemo bağımlılığı).
 const OGRETMEN_ALANLARI: ListeAlani[] = [
@@ -59,11 +60,21 @@ export function OgretmenlerSayfasi() {
 }
 
 export function SiniflarSayfasi() {
+  // Aynı önbellek (sınıflar) ListeSayfasi'yle paylaşılır: ek istek gitmez.
+  const siniflar = useQuery({ queryKey: sinifKaynagi.anahtar, queryFn: sinifKaynagi.listele });
+  const gruplar = useSubeGruplari();
   return (
     <ListeSayfasi<Sinif, { ad: string; seviye: number }>
+      ekSutunlar={[
+        {
+          baslik: "Şube grubu",
+          hucre: (sinif) => <SubeGrubuSecici sinif={sinif} gruplar={gruplar.data ?? []} />,
+        },
+      ]}
+      ekBolum={<SubeGruplariBolumu siniflar={siniflar.data ?? []} />}
       ikon={School}
       baslik="Sınıflar"
-      aciklama="Okulunuzdaki şubeler. Seviye, seviye şablonunu aynı seviyedeki bütün şubelere uygulamak için kullanılır."
+      aciklama="Okulunuzdaki şubeler. Seviye, seviye şablonunu aynı seviyedeki bütün şubelere uygulamak için kullanılır. Aynı seviyede farklı dersler okuyan şubeleri (ör. 11 Sayısal, 11 Sözel) aşağıda gruplayabilirsiniz."
       tekil="Sınıf"
       bos={{
         baslik: "Henüz sınıf eklenmedi",

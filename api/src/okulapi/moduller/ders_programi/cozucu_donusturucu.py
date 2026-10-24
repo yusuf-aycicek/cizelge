@@ -60,7 +60,9 @@ def cozum_girdisi_olustur(
         ayar=cm.OkulAyari(gun_sayisi=okul.gun_sayisi, gunluk_ders_saati=okul.gunluk_ders_saati,
                           gun_saatleri=tuple(okul.gun_saatleri or ()), ogle_arasi_sonra=okul.ogle_arasi_sonra),
         ogretmenler=[cm.Ogretmen(id=str(o.id), ad=o.ad, brans=o.brans) for o in OgretmenDeposu(oturum).listele()],
-        siniflar=[cm.Sinif(id=str(s.id), ad=s.ad, seviye=s.seviye) for s in SinifDeposu(oturum).listele()],
+        siniflar=[cm.Sinif(id=str(s.id), ad=s.ad, seviye=s.seviye,
+                           sube_grubu_id=None if s.sube_grubu_id is None else str(s.sube_grubu_id))
+                  for s in SinifDeposu(oturum).listele()],
         dersler=[cm.Ders(id=str(d.id), ad=d.ad, kisa_ad=d.kisa_ad) for d in DersDeposu(oturum).listele()],
         atamalar=atamalar,
         musaitlikler=[
@@ -79,4 +81,5 @@ def _kapsam(k) -> Kapsam:
     def metin(deger: uuid.UUID | None) -> str | None:
         return None if deger is None else str(deger)
 
-    return Kapsam(ders_id=metin(k.ders_id), sinif_id=metin(k.sinif_id), ogretmen_id=metin(k.ogretmen_id))
+    return Kapsam(ders_id=metin(k.ders_id), sinif_id=metin(k.sinif_id), sube_grubu_id=metin(k.sube_grubu_id),
+                  ogretmen_id=metin(k.ogretmen_id))

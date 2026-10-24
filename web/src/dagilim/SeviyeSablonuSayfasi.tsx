@@ -18,13 +18,27 @@ import { turkceSirala } from "../metin";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
 import stil from "./Dagilim.module.css";
 import { SaatGirdisi } from "./SaatGirdisi";
+import { useSubeGruplari, type SubeGrubu } from "../listeler/SubeGruplari";
 import { atamaApi, sablonApi, SABLON, useAtamalarDegisti, useDagilimOzeti, type SablonRaporu, type SablonSatiri } from "./veri";
+
+/**
+ * Hangi şube hangi şablonu kullanır: grubunun şablonunda ders varsa grubunkini, yoksa seviyenin.
+ * Sunucudaki `sablon_kaynaklari` ile aynı kural (şablon uygulanırken o kullanılır).
+ */
+export function kullananSubeler(siniflar: Sinif[], sablon: SablonSatiri[], seviye: number, grupId: string | null): Sinif[] {
+  const doluGruplar = new Set(sablon.flatMap((s) => (s.sube_grubu_id ? [s.sube_grubu_id] : [])));
+  const kaynak = (s: Sinif) => (s.sube_grubu_id && doluGruplar.has(s.sube_grubu_id) ? s.sube_grubu_id : null);
+  return turkceSirala(siniflar.filter((s) => s.seviye === seviye && kaynak(s) === grupId), (s) => s.ad);
+}
 
 /**
  * Seviye şablonu: bir seviyenin dersleri ve haftalık saatleri bir kez girilir, o seviyedeki bütün
  * şubelere uygulanır. Uygulama yalnızca **eksik** dersleri ekler (öğretmeni boş); şubede zaten olan
  * ders değişmez. Saati şablondan farklı olanlar raporda listelenir, kullanıcı isterse tek
  * tıklamayla şablondaki saate çeker.
+ *
+ * Şablon bir seviyeye ("11. sınıflar") ya da bir şube grubuna ("11 Sayısal") ait olabilir (K5).
+ * Grubun şablonunda ders varsa grubun şubeleri onu kullanır, seviyenin şablonu onlara uygulanmaz.
  */
 export function SeviyeSablonuSayfasi() {
   const [parametreler, setParametreler] = useSearchParams();
@@ -32,8 +46,9 @@ export function SeviyeSablonuSayfasi() {
   const dersler = useQuery({ queryKey: dersKaynagi.anahtar, queryFn: dersKaynagi.listele });
   const sablon = useQuery({ queryKey: SABLON, queryFn: sablonApi.listele });
   const ozet = useDagilimOzeti();
+  const gruplar = useSubeGruplari();
 
-  const sorgular = [siniflar, dersler, sablon, ozet];
+  const sorgular = [siniflar, dersler, sablon, ozet, gruplar];
   const hatali = sorgular.find((s) => s.isError);
 
   let icerik;
@@ -46,7 +61,7 @@ export function SeviyeSablonuSayfasi() {
         </Dugme>
       </div>
     );
-  } else if (!siniflar.data || !dersler.data || !sablon.data || !ozet.data) {
+  } else if (!siniflar.data || !dersler.data || !sablon.data || !ozet.data || !gruplar.data) {
     icerik = <Iskelet satir={6} kart />;
   } else if (siniflar.data.length === 0 || dersler.data.length === 0) {
     icerik = (
@@ -68,27 +83,56 @@ export function SeviyeSablonuSayfasi() {
     const istenen = Number(parametreler.get("seviye"));
     // Şube var (yukarıda denetlendi), yani en az bir seviye var; `?? 1` yalnızca tip için.
     const seviye = seviyeler.includes(istenen) ? istenen : (seviyeler[0] ?? 1);
-    const subeler = (sv: number) => turkceSirala(siniflar.data.filter((s) => s.seviye === sv), (s) => s.ad);
+    const seviyeGruplari = (sv: number) => turkceSirala(gruplar.data.filter((g) => g.seviye === sv), (g) => g.ad);
+    const grup = seviyeGruplari(seviye).find((g) => g.id === parametreler.get("grup"));
+    const grupId = grup?.id ?? null;
+    // Grubun şablonu boşken grubun şubeleri seviyenin şablonunu kullanır; grubun sayfasında yine
+    // grubun şubeleri gösterilir (ilk ders eklenince bu şablona geçerler).
+    const subeler = (sv: number, g: SubeGrubu | null) =>
+      g && !sablon.data.some((s) => s.sube_grubu_id === g.id)
+        ? turkceSirala(siniflar.data.filter((s) => s.sube_grubu_id === g.id), (s) => s.ad)
+        : kullananSubeler(siniflar.data, sablon.data, sv, g?.id ?? null);
+    const deger = (sv: number, g: SubeGrubu | null) => (g ? `${sv}:${g.id}` : String(sv));
 
     icerik = (
       <>
         <div className={stil.dersSecimi}>
-          <SecimAlani etiket="Sınıf seviyesi" value={String(seviye)}
-            onChange={(o) => setParametreler({ seviye: o.target.value })}>
-            {seviyeler.map((sv) => (
-              <option key={sv} value={sv}>
-                {sv}. sınıflar ({subeler(sv).length} şube)
-              </option>
-            ))}
+          <SecimAlani etiket="Şablon" value={deger(seviye, grup ?? null)}
+            aciklama="Seviyenin ya da bir şube grubunun (ör. 11 Sayısal) şablonu."
+            onChange={(o) => {
+              const [sv, g] = o.target.value.split(":");
+              setParametreler(g ? { seviye: sv ?? "", grup: g } : { seviye: sv ?? "" });
+            }}>
+            {seviyeler.map((sv) =>
+              seviyeGruplari(sv).length === 0 ? (
+                <option key={sv} value={deger(sv, null)}>
+                  {sv}. sınıflar ({subeler(sv, null).length} şube)
+                </option>
+              ) : (
+                <optgroup key={sv} label={`${sv}. sınıf`}>
+                  <option value={deger(sv, null)}>
+                    {sv}. sınıflar ({subeler(sv, null).length} şube)
+                  </option>
+                  {seviyeGruplari(sv).map((g) => (
+                    <option key={g.id} value={deger(sv, g)}>
+                      {g.ad} grubu ({subeler(sv, g).length} şube)
+                    </option>
+                  ))}
+                </optgroup>
+              ),
+            )}
           </SecimAlani>
         </div>
-        {/* key: seviye değişince ekleme formu ve rapor sıfırlansın. */}
+        {/* key: şablon değişince ekleme formu ve rapor sıfırlansın. */}
         <SeviyeSablonu
-          key={seviye}
+          key={deger(seviye, grup ?? null)}
           seviye={seviye}
-          satirlar={sablon.data.filter((s) => s.seviye === seviye)}
+          grup={grup ?? null}
+          satirlar={sablon.data.filter((s) => s.seviye === seviye && (s.sube_grubu_id ?? null) === grupId)}
           dersler={dersler.data}
-          subeler={subeler(seviye)}
+          subeler={subeler(seviye, grup ?? null)}
+          baskaSablonlu={grup ? [] : siniflar.data.filter((s) => s.seviye === seviye && !subeler(seviye, null).includes(s))}
+          gruplar={gruplar.data}
           haftalikKapasite={ozet.data.haftalik_kapasite}
         />
       </>
@@ -108,13 +152,19 @@ export function SeviyeSablonuSayfasi() {
 
 type SablonProps = {
   seviye: number;
+  /** Doluysa grubun şablonu; boşsa seviyenin. */
+  grup: SubeGrubu | null;
   satirlar: SablonSatiri[];
   dersler: Ders[];
+  /** Bu şablonu kullanan şubeler. */
   subeler: Sinif[];
+  /** Seviyenin şablonunda: kendi grubunun şablonunu kullandığı için bu şablonun uygulanmadığı şubeler. */
+  baskaSablonlu: Sinif[];
+  gruplar: SubeGrubu[];
   haftalikKapasite: number;
 };
 
-function SeviyeSablonu({ seviye, satirlar, dersler, subeler, haftalikKapasite }: SablonProps) {
+function SeviyeSablonu({ seviye, grup, satirlar, dersler, subeler, baskaSablonlu, gruplar, haftalikKapasite }: SablonProps) {
   const istemci = useQueryClient();
   const bildirim = useBildirim();
   const atamalarDegisti = useAtamalarDegisti();
@@ -129,10 +179,11 @@ function SeviyeSablonu({ seviye, satirlar, dersler, subeler, haftalikKapasite }:
   const tazele = () => istemci.invalidateQueries({ queryKey: SABLON });
 
   const ekle = useMutation({
-    mutationFn: (d: { ders_id: string; haftalik_saat: number }) => sablonApi.olustur({ seviye, ...d }),
+    mutationFn: (d: { ders_id: string; haftalik_saat: number }) =>
+      sablonApi.olustur({ seviye, ...(grup ? { sube_grubu_id: grup.id } : {}), ...d }),
     onSuccess: async (s) => {
       await tazele();
-      bildirim("basari", `${dersAdi(s.ders_id)} ${seviye}. sınıf şablonuna eklendi.`);
+      bildirim("basari", `${dersAdi(s.ders_id)} ${sablonAdi}na eklendi.`);
       setYeni({ ders_id: "", saat: "" });
     },
     onError: (hata) => setYeniHatasi(hataMetni(hata)),
@@ -157,7 +208,7 @@ function SeviyeSablonu({ seviye, satirlar, dersler, subeler, haftalikKapasite }:
   });
 
   const uygula = useMutation({
-    mutationFn: () => sablonApi.uygula(seviye),
+    mutationFn: () => sablonApi.uygula(seviye, grup?.id),
     onSuccess: async (sonuc) => {
       await atamalarDegisti();
       setRapor(sonuc);
@@ -175,16 +226,36 @@ function SeviyeSablonu({ seviye, satirlar, dersler, subeler, haftalikKapasite }:
   }
 
   const subeAdlari = subeler.map((s) => s.ad).join(", ");
+  // "9. sınıf şablonuna" / "11 Sayısal grubunun şablonuna"
+  const sablonAdi = grup ? `${grup.ad} grubunun şablonu` : `${seviye}. sınıf şablonu`;
+  const grupAdi = (id: string | null | undefined) => gruplar.find((g) => g.id === id)?.ad;
 
   return (
     <>
       <section aria-labelledby="sablon-baslik" className={sayfaStili.kart}>
-        <h2 id="sablon-baslik">{seviye}. sınıfların dersleri</h2>
+        <h2 id="sablon-baslik">{grup ? `${grup.ad} grubunun dersleri` : `${seviye}. sınıfların dersleri`}</h2>
+        <p className={stil.aciklama}>
+          {grup ? (
+            <>
+              Bu şablon <strong>{grup.ad}</strong> grubuna ait
+              {subeler.length > 0 ? ` (${subeAdlari})` : "; grupta henüz şube yok (Sınıflar sayfasından ekleyin)"}.
+              {sirali.length === 0 && ` Şablon boşken grubun şubeleri ${seviye}. sınıfların şablonunu kullanır.`}
+            </>
+          ) : (
+            <>
+              Bu şablon <strong>{seviye}. sınıflara</strong> ait.
+              {baskaSablonlu.length > 0 &&
+                ` ${baskaSablonlu.map((s) => `${s.ad} (${grupAdi(s.sube_grubu_id)})`).join(", ")} kendi grubunun şablonunu kullanır.`}
+            </>
+          )}
+        </p>
         {sirali.length === 0 ? (
-          <p className={stil.aciklama}>Bu seviyenin şablonunda henüz ders yok. Aşağıdan ekleyin.</p>
+          <p className={stil.aciklama}>
+            {grup ? "Bu grubun şablonunda henüz ders yok. Aşağıdan ekleyin." : "Bu seviyenin şablonunda henüz ders yok. Aşağıdan ekleyin."}
+          </p>
         ) : (
           <Tablo<SablonSatiri>
-            baslik={`${seviye}. sınıf şablonu`}
+            baslik={grup ? `${grup.ad} grubunun şablonu` : `${seviye}. sınıf şablonu`}
             satirlar={sirali}
             satirAnahtari={(s) => s.id}
             sutunlar={[
@@ -243,17 +314,21 @@ function SeviyeSablonu({ seviye, satirlar, dersler, subeler, haftalikKapasite }:
       <section aria-labelledby="uygula-baslik" className={sayfaStili.kart}>
         <h2 id="uygula-baslik">Şubelere uygula</h2>
         {subeler.length === 0 ? (
-          <p className={stil.aciklama}>Okulda {seviye}. sınıf şubesi yok. Şube eklenince şablon uygulanabilir.</p>
+          <p className={stil.aciklama}>
+            {grup
+              ? `${grup.ad} grubunda şube yok. Sınıflar sayfasından şubeleri bu gruba alınca şablon uygulanabilir.`
+              : `Okulda bu şablonu kullanan ${seviye}. sınıf şubesi yok. Şube eklenince şablon uygulanabilir.`}
+          </p>
         ) : (
           <>
             <p className={stil.aciklama}>
               Şablondaki dersler {subeler.length} şubeye ({subeAdlari}) öğretmeni boş olarak eklenir. Şubede zaten olan
               dersler değiştirilmez; saati farklı olanlar size gösterilir. Şablonda olmayan dersler şubelerden
-              kaldırılmaz.
+              kaldırılmaz. Bir şubenin almadığı ders (ders dağılımında “Bu şube almaz”) eklenmez.
             </p>
             <Dugme ikon={<WandSparkles />} disabled={sirali.length === 0} yukleniyor={uygula.isPending} yukleniyorMetni="Uygulanıyor..."
               onClick={() => uygula.mutate()}>
-              {seviye}. sınıf şubelerine uygula
+              {grup ? `${grup.ad} şubelerine uygula` : `${seviye}. sınıf şubelerine uygula`}
             </Dugme>
           </>
         )}
@@ -320,6 +395,23 @@ function UygulamaRaporu({
           )}
         </li>
         {rapor.zaten_var > 0 && <li>{rapor.zaten_var} ders şubelerde zaten vardı; değiştirilmedi.</li>}
+        {rapor.istisna_atlanan.length > 0 && (
+          <li>
+            Şubenin almadığı {rapor.istisna_atlanan.length} ders eklenmedi (istisna):{" "}
+            {rapor.istisna_atlanan.map((i) => `${i.sinif} ${i.ders}`).join(", ")}.
+          </li>
+        )}
+        {rapor.istisna_ek.length > 0 && (
+          <li>
+            Şubelerin ek dersleri: {rapor.istisna_ek.map((i) => `${i.sinif} ${i.ders} (${i.haftalik_saat} saat${i.eklendi ? ", eklendi" : ""})`).join(", ")}.
+          </li>
+        )}
+        {rapor.baska_sablonlu.length > 0 && (
+          <li>
+            Kendi şablonunu kullandığı için dokunulmayan şubeler:{" "}
+            {rapor.baska_sablonlu.map((b) => `${b.sinif} (${b.sablon})`).join(", ")}.
+          </li>
+        )}
       </ul>
       {rapor.farkli_saatli.length > 0 && (
         <>

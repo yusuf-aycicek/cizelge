@@ -737,6 +737,124 @@ AKISLAR["p1"] = async (tarayici, kaydet) => {
   await baglam.close();
 };
 
+// K5: şube grupları ve istisnalar, örnek okulda. Önce: docker compose up -d --build api worker.
+// Akış her değişikliği API ile yapar ve sonunda tersini uygular; başlangıçtaki durumla aynı
+// olduğu denetlenir (şubeler, gruplar, şablon, istisnalar, atamalar, özel ayarlar). Üretilen
+// deneme programının kimliği yazdırılır (program silme ucu yok; veritabanından silinir).
+AKISLAR["k5"] = async (tarayici, kaydet) => {
+  const { baglam, s } = await ornekGiris(tarayici, MASAUSTU);
+  const yaz = { headers: { Origin: ADRES } };
+  const al = async (yol) => (await s.request.get(ADRES + yol)).json();
+  const gonder = async (yontem, yol, data) => {
+    const y = await s.request.fetch(ADRES + yol, { method: yontem, ...yaz, ...(data ? { data } : {}) });
+    if (!y.ok()) throw new Error(`${yontem} ${yol}: ${y.status()} ${await y.text()}`);
+    return y.status() === 204 ? null : y.json();
+  };
+  const DP = "/api/ders-programi";
+  const durum = async () => {
+    const kurallar = await al(`${DP}/kurallar`);
+    return JSON.stringify({
+      siniflar: (await al("/api/siniflar")).map((x) => [x.ad, x.sube_grubu_id]),
+      gruplar: await al("/api/sube-gruplari"),
+      sablon: (await al(`${DP}/seviye-sablonlari`)).map((x) => [x.id, x.haftalik_saat]).sort(),
+      istisnalar: await al(`${DP}/istisnalar`),
+      atamalar: (await al(`${DP}/atamalar`)).map((x) => [x.id, x.ogretmen_id, x.haftalik_saat]).sort(),
+      ozel: kurallar.map((k) => [k.tur, k.ozel_ayarlar.length]),
+    });
+  };
+  const baslangic = await durum();
+  const sinif = Object.fromEntries((await al("/api/siniflar")).map((x) => [x.ad, x]));
+  const ders = Object.fromEntries((await al("/api/dersler")).map((x) => [x.ad, x.id]));
+  const ogretmen = Object.fromEntries((await al("/api/ogretmenler")).map((x) => [x.ad, x.id]));
+  const seviye9 = (await al(`${DP}/seviye-sablonlari`)).filter((x) => x.seviye === 9 && !x.sube_grubu_id);
+  const eklenenSablon = [];
+  let grup;
+  try {
+    // 1. Grup: "9 Fen", 9-A grupta. Grubun şablonu: 9. sınıflarınki + Coğrafya 2.
+    grup = await gonder("POST", "/api/sube-gruplari", { ad: "9 Fen", seviye: 9 });
+    await gonder("PATCH", `/api/siniflar/${sinif["9-A"].id}`, { sube_grubu_id: grup.id });
+    for (const x of [...seviye9, { ders_id: ders["Coğrafya"], haftalik_saat: 2 }]) {
+      eklenenSablon.push(await gonder("POST", `${DP}/seviye-sablonlari`, { seviye: 9, sube_grubu_id: grup.id, ders_id: x.ders_id, haftalik_saat: x.haftalik_saat }));
+    }
+    // Gruba özel kurallar: 9 Fen'de Matematik günde en çok 3 saat ve 3+3 dağılım.
+    await gonder("PUT", `${DP}/kurallar/gunluk_ders_siniri/ozel`, { kapsam: { ders_id: ders["Matematik"], sube_grubu_id: grup.id }, parametreler: { n: 3 } });
+    await gonder("PUT", `${DP}/kurallar/blok_deseni/ozel`, { kapsam: { ders_id: ders["Matematik"], sube_grubu_id: grup.id }, parametreler: { desen: [3, 3] } });
+
+    await s.goto(ADRES + "/siniflar");
+    await s.getByRole("region", { name: "Şube grupları" }).waitFor();
+    await s.waitForTimeout(800);
+    await kaydet(s, "01-siniflar-gruplar.png", true);
+
+    // 2. Grubun şablonunu arayüzden uygula.
+    await s.goto(`${ADRES}/seviye-sablonu?seviye=9&grup=${grup.id}`);
+    await s.getByRole("heading", { name: "9 Fen grubunun dersleri" }).waitFor();
+    await s.getByRole("button", { name: "9 Fen şubelerine uygula" }).click();
+    await s.getByRole("heading", { name: "Şablon uygulandı" }).waitFor();
+    await s.waitForTimeout(600);
+    await kaydet(s, "02-grup-sablonu-uygulandi.png", true);
+    // 9-A'nın yeni Coğrafya dersine öğretmen.
+    const cog9a = (await al(`${DP}/atamalar`)).find((a) => a.sinif_id === sinif["9-A"].id && a.ders_id === ders["Coğrafya"]);
+    await gonder("PATCH", `${DP}/atamalar/${cog9a.id}`, { ogretmen_id: ogretmen["Fatma Şahin"] });
+
+    // 3. 9. sınıfların şablonuna Coğrafya 2: uygulanınca 9-B'ye eklenir (9-A kendi grubunda).
+    eklenenSablon.push(await gonder("POST", `${DP}/seviye-sablonlari`, { seviye: 9, ders_id: ders["Coğrafya"], haftalik_saat: 2 }));
+    await gonder("POST", `${DP}/seviye-sablonlari/uygula`, { seviye: 9 });
+
+    // 4. Ders dağılımında 9-B'den Coğrafya'yı "bu şube almaz" ile kaldır (pencere).
+    await s.goto(`${ADRES}/ders-dagilimi?gorunum=sube&sinif=${sinif["9-B"].id}`);
+    await s.getByRole("button", { name: "Coğrafya dersini kaldır" }).click();
+    await s.getByText("9-B bu dersi hiç almasın").waitFor();
+    await s.waitForTimeout(500);
+    await kaydet(s, "03-kaldirma-penceresi.png");
+    await s.getByRole("dialog").getByRole("button", { name: "Kaldır" }).click();
+    await s.getByText(/9-B artık Coğrafya almıyor/).waitFor();
+    await s.getByRole("heading", { name: "Bu şubeye özel" }).scrollIntoViewIfNeeded();
+    await s.waitForTimeout(600);
+    await kaydet(s, "04-sube-istisnasi.png", true);
+
+    // 5. Şablonu yeniden uygula: Coğrafya 9-B'ye geri gelmez, raporda görünür.
+    await s.goto(`${ADRES}/seviye-sablonu?seviye=9`);
+    await s.getByRole("button", { name: "9. sınıf şubelerine uygula" }).click();
+    await s.getByText(/Şubenin almadığı 1 ders eklenmedi/).waitFor();
+    await s.waitForTimeout(600);
+    await kaydet(s, "05-yeniden-uygulama-raporu.png", true);
+    const cog9b = (await al(`${DP}/atamalar`)).filter((a) => a.sinif_id === sinif["9-B"].id && a.ders_id === ders["Coğrafya"]);
+    if (cog9b.length) throw new Error("İstisna korunmadı: 9-B'ye Coğrafya geri geldi");
+    console.log("İstisna korundu: yeniden uygulamada 9-B'ye Coğrafya eklenmedi.");
+
+    // 6. Özel ayarların özeti ve program üretimi (Hızlı).
+    await s.goto(ADRES + "/okul");
+    await s.getByText("9 Fen grubu · Matematik").first().scrollIntoViewIfNeeded();
+    await s.waitForTimeout(500);
+    await kaydet(s, "06-ozel-ayarlar.png");
+    await s.goto(ADRES + "/program");
+    await s.getByText(/Ön kontrol tamam/).waitFor();
+    await s.getByLabel("Programın adı").fill("K5 deneme");
+    await s.getByRole("radio", { name: /Hızlı/ }).check();
+    await s.getByRole("button", { name: "Programı oluştur" }).click();
+    await s.getByRole("heading", { name: "“K5 deneme” hazır" }).waitFor({ timeout: 120_000 });
+    const program = (await al(`${DP}/programlar`)).find((p) => p.ad === "K5 deneme");
+    console.log(`DENEME_PROGRAMI=${program.id} durum=${program.cozum_durumu} ceza=${program.toplam_ceza}`);
+    await s.goto(`${ADRES}/program/${program.id}?sinif=${sinif["9-A"].id}`);
+    await s.getByRole("table", { name: /haftalık programı/ }).waitFor();
+    await s.waitForTimeout(1500);
+    await kaydet(s, "07-cizelge-9a.png", true);
+  } finally {
+    // Geri al: önce şablon satırları (istisna kaldırılınca ders şablondan geri eklenmesin).
+    for (const x of eklenenSablon.reverse()) await gonder("DELETE", `${DP}/seviye-sablonlari/${x.id}`);
+    for (const i of await al(`${DP}/istisnalar`)) await gonder("DELETE", `${DP}/istisnalar/${i.id}`);
+    const ilk = JSON.parse(baslangic).atamalar.map((a) => a[0]);
+    for (const a of await al(`${DP}/atamalar`)) if (!ilk.includes(a.id)) await gonder("DELETE", `${DP}/atamalar/${a.id}`);
+    if (grup) {
+      await gonder("PATCH", `/api/siniflar/${sinif["9-A"].id}`, { sube_grubu_id: null });
+      await gonder("DELETE", `/api/sube-gruplari/${grup.id}`); // gruba özel ayarlar da silinir
+    }
+    if ((await durum()) !== baslangic) throw new Error("Deneme verisi geri alınamadı: durum başlangıçtakinden farklı");
+    console.log("Deneme verisi geri alındı: şubeler, gruplar, şablon, istisnalar, atamalar ve özel ayarlar başlangıçtaki gibi.");
+    await baglam.close();
+  }
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {

@@ -41,6 +41,19 @@ try {
     await istek("POST", "/api/ders-programi/seviye-sablonlari", { seviye: 9, ders_id: ders.id, haftalik_saat: 4 });
   }
 
+  // Şube grubu, grubun şablonu ve şube istisnası (K5): uzun adla. 9-B şablonu kullanır, 9-A grupta.
+  const grup = await istek("POST", "/api/sube-gruplari", { ad: "9 Fen Bilimleri ve Matematik Ağırlıklı Grup", seviye: 9 });
+  await istek("PATCH", `/api/siniflar/${sinif.id}`, { sube_grubu_id: grup.id });
+  const sinifB = await istek("POST", "/api/siniflar", { ad: "9-B", seviye: 9 });
+  const ekDers = await istek("POST", "/api/dersler", { ad: "Felsefe ve Mantık Bilimine Giriş", kisa_ad: "FEL" });
+  await istek("POST", "/api/ders-programi/seviye-sablonlari", { seviye: 9, sube_grubu_id: grup.id, ders_id: ekDers.id, haftalik_saat: 2 });
+  await istek("POST", "/api/ders-programi/istisnalar", { sinif_id: sinifB.id, ders_id: ekDers.id, tur: "ek", haftalik_saat: 2 });
+  const sablonSatiri = (await istek("GET", "/api/ders-programi/seviye-sablonlari")).find((s) => !s.sube_grubu_id);
+  await istek("POST", "/api/ders-programi/istisnalar", { sinif_id: sinifB.id, ders_id: sablonSatiri.ders_id, tur: "almaz" });
+  const ekAtama = (await istek("GET", "/api/ders-programi/atamalar")).find((a) => a.sinif_id === sinifB.id);
+  await istek("PATCH", `/api/ders-programi/atamalar/${ekAtama.id}`, { ogretmen_id: ogretmen.id });
+  SAYFALAR.push(`/seviye-sablonu?seviye=9&grup=${grup.id}`, `/ders-dagilimi?gorunum=sube&sinif=${sinifB.id}`);
+
   // Programlar tablosunda "Çizelgeyi aç" bağlantısı yalnızca hazır programda çıkar: bir tane üretilir
   // (worker çalışıyor olmalı; bu küçük okul bir saniyede çözülür).
   const program = await istek("POST", "/api/ders-programi/programlar",

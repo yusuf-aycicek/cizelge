@@ -1,6 +1,6 @@
 import { Illustrasyon } from "../bilesenler/Illustrasyon";
 import { DersCipi } from "../dersler/DersCipi";
-import { Plus, Trash2 } from "lucide-react";
+import { Ban, Plus, Trash2, Undo2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router";
@@ -16,7 +16,9 @@ import stil from "./Dagilim.module.css";
 import type { DagilimVerisi, Git } from "./DersDagilimiSayfasi";
 import { OgretmenSecici } from "./OgretmenSecici";
 import { SaatGirdisi } from "./SaatGirdisi";
-import { atamaApi, useAtamalarDegisti, type Atama } from "./veri";
+import {
+  atamaApi, istisnaApi, subeninSablonu, useAtamalarDegisti, useIstisnalar, useSablon, type Atama, type Istisna,
+} from "./veri";
 
 /**
  * Şube görünümü: solda şubeler (toplam saat, öğretmensiz ders sayısı), sağda seçili şubenin
@@ -70,8 +72,14 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
   const bildirim = useBildirim();
   const atamalarDegisti = useAtamalarDegisti();
   const [kaldirilacak, setKaldirilacak] = useState<Atama | null>(null);
+  // Kaldırırken "bu şube bu dersi hiç almasın" (almaz istisnası); şablondaki derste açık başlar.
+  const [almaz, setAlmaz] = useState(true);
   const [yeni, setYeni] = useState({ ders_id: "", saat: "" });
+  const [ekDers, setEkDers] = useState(true);
   const [yeniHatasi, setYeniHatasi] = useState<string>();
+  const sablon = subeninSablonu(sinif, useSablon().data ?? []);
+  const istisnalar = (useIstisnalar().data ?? []).filter((i) => i.sinif_id === sinif.id);
+  const ekMi = (dersId: string) => istisnalar.some((i) => i.ders_id === dersId && i.tur === "ek");
 
   const dersAdi = (a: Atama) => veri.ders.get(a.ders_id)?.ad ?? "";
   const atamalar = turkceSirala(
@@ -102,25 +110,52 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
     onError: (hata) => bildirim("hata", hataMetni(hata)),
   });
 
+  // Şablonda olmayan ders "ek ders" istisnasıyla eklenir: istisna dersi de ekler (tek istek).
   const ekle = useMutation({
-    mutationFn: (d: { ders_id: string; haftalik_saat: number }) =>
-      atamaApi.olustur({ sinif_id: sinif.id, ders_id: d.ders_id, haftalik_saat: d.haftalik_saat, ogretmen_id: null }),
-    onSuccess: async (sonuc) => {
+    mutationFn: async (d: { ders_id: string; haftalik_saat: number; ek: boolean }) => {
+      if (d.ek) {
+        await istisnaApi.olustur({ sinif_id: sinif.id, ders_id: d.ders_id, tur: "ek", haftalik_saat: d.haftalik_saat });
+      } else {
+        await atamaApi.olustur({ sinif_id: sinif.id, ders_id: d.ders_id, haftalik_saat: d.haftalik_saat, ogretmen_id: null });
+      }
+      return d;
+    },
+    onSuccess: async (d) => {
       await atamalarDegisti();
-      bildirim("basari", `${dersAdi(sonuc)}, ${sinif.ad} şubesine eklendi. Öğretmenini seçin.`);
+      const ad = veri.ders.get(d.ders_id)?.ad ?? "";
+      bildirim("basari", `${ad}, ${sinif.ad} şubesine${d.ek ? " ek ders olarak" : ""} eklendi. Öğretmenini seçin.`);
       setYeni({ ders_id: "", saat: "" });
     },
     onError: (hata) => setYeniHatasi(hataMetni(hata)),
   });
 
+  // "Almaz" istisnası dersi de kaldırır (tek istek); yoksa yalnızca ders kaldırılır.
   const kaldir = useMutation({
-    mutationFn: (a: Atama) => atamaApi.sil(a.id),
-    onSuccess: async (_, a) => {
+    mutationFn: async (d: { atama: Atama; almaz: boolean }) => {
+      if (d.almaz) await istisnaApi.olustur({ sinif_id: sinif.id, ders_id: d.atama.ders_id, tur: "almaz" });
+      else await atamaApi.sil(d.atama.id);
+    },
+    onSuccess: async (_, d) => {
       await atamalarDegisti();
-      bildirim("basari", `${dersAdi(a)}, ${sinif.ad} şubesinden kaldırıldı.`);
+      bildirim("basari", d.almaz
+        ? `${sinif.ad} artık ${dersAdi(d.atama)} almıyor; şablon yeniden uygulansa da eklenmez.`
+        : `${dersAdi(d.atama)}, ${sinif.ad} şubesinden kaldırıldı.`);
     },
     onError: (hata) => bildirim("hata", hataMetni(hata)),
     onSettled: () => setKaldirilacak(null),
+  });
+
+  const istisnaKaldir = useMutation({
+    mutationFn: (i: Istisna) => istisnaApi.sil(i.id),
+    onSuccess: async (sonuc, i) => {
+      await atamalarDegisti();
+      bildirim("basari", i.tur === "almaz"
+        ? sonuc.geri_eklenen_saat
+          ? `${i.ders_adi}, şablondaki ${sonuc.geri_eklenen_saat} saatle ${sinif.ad} şubesine geri eklendi. Öğretmenini seçin.`
+          : `${sinif.ad} için “${i.ders_adi} almaz” işareti kaldırıldı.`
+        : `${i.ders_adi} artık ${sinif.ad} şubesinin ek dersi olarak işaretli değil; ders şubede kalır.`);
+    },
+    onError: (hata) => bildirim("hata", hataMetni(hata)),
   });
 
   function ekleGonder(olay: FormEvent) {
@@ -129,8 +164,10 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
     if (!yeni.ders_id) return setYeniHatasi("Eklenecek dersi seçin.");
     if (!Number.isInteger(saat) || saat < 1) return setYeniHatasi("Haftalık saat en az 1 olmalı.");
     setYeniHatasi(undefined);
-    ekle.mutate({ ders_id: yeni.ders_id, haftalik_saat: saat });
+    ekle.mutate({ ders_id: yeni.ders_id, haftalik_saat: saat, ek: sablondaYok && ekDers });
   }
+  const sablondaYok = Boolean(yeni.ders_id) && sablon.size > 0 && !sablon.has(yeni.ders_id);
+  const kaldirilacakSablonda = kaldirilacak ? sablon.has(kaldirilacak.ders_id) : false;
 
   const mesgul = (a: Atama) => guncelle.isPending && guncelle.variables?.atama.id === a.id;
 
@@ -163,6 +200,7 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
               hucre: (a) => (
                 <>
                   <DersCipi ad={dersAdi(a)} renk={veri.ders.get(a.ders_id)?.renk} isaret={veri.dersIsareti.get(a.ders_id)} />
+                  {ekMi(a.ders_id) && <span className={stil.ekRozet}>Ek ders</span>}
                   {!a.ogretmen_id && (
                     <span className={stil.eksikRozet}>
                       <span aria-hidden="true">⚠ </span>Öğretmen seçilmedi
@@ -207,7 +245,8 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
                     aria-label={`${dersAdi(a)} dersini bütün şubelerde göster`}>
                     Bütün şubeler
                   </Dugme>
-                  <Dugme ikon={<Trash2 />} tur="metin" onClick={() => setKaldirilacak(a)} aria-label={`${dersAdi(a)} dersini kaldır`}>
+                  <Dugme ikon={<Trash2 />} tur="metin" onClick={() => { setAlmaz(true); setKaldirilacak(a); }}
+                    aria-label={`${dersAdi(a)} dersini kaldır`}>
                     Kaldır
                   </Dugme>
                 </span>
@@ -233,6 +272,36 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
         </p>
       )}
 
+      {istisnalar.length > 0 && (
+        <div className={stil.istisnalar}>
+          <h3 className={stil.formBasligi}>Bu şubeye özel</h3>
+          <ul>
+            {istisnalar.map((i) => (
+              <li key={i.id}>
+                <span>
+                  {i.tur === "almaz" ? (
+                    <><Ban aria-hidden="true" className={stil.istisnaIkonu} /> <strong>{i.ders_adi}</strong> almaz</>
+                  ) : (
+                    <><Plus aria-hidden="true" className={stil.istisnaIkonu} /> <strong>{i.ders_adi}</strong> ek ders, haftada {i.haftalik_saat} saat</>
+                  )}
+                  {i.uyari && (
+                    <span className={stil.istisnaUyarisi}>
+                      <span aria-hidden="true">⚠ </span>
+                      {i.uyari}
+                    </span>
+                  )}
+                </span>
+                <Dugme ikon={<Undo2 />} tur="metin" yukleniyor={istisnaKaldir.isPending && istisnaKaldir.variables?.id === i.id}
+                  onClick={() => istisnaKaldir.mutate(i)}
+                  aria-label={i.tur === "almaz" ? `${i.ders_adi}: “almaz” işaretini kaldır` : `${i.ders_adi}: ek ders işaretini kaldır`}>
+                  {i.tur === "almaz" ? "Geri al" : "İşareti kaldır"}
+                </Dugme>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <form onSubmit={ekleGonder} className={stil.ekleFormu} noValidate>
         <h3 className={stil.formBasligi}>Ders ekle</h3>
         <div className={stil.ekleAlanlari}>
@@ -251,6 +320,12 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
             Ekle
           </Dugme>
         </div>
+        {sablondaYok && (
+          <label className={stil.onayKutusu}>
+            <input type="checkbox" checked={ekDers} onChange={(o) => setEkDers(o.target.checked)} />
+            Bu ders şubenin şablonunda yok: ek ders olarak kaydet (şablon yeniden uygulandığında da korunur)
+          </label>
+        )}
       </form>
 
       <OnayPenceresi
@@ -264,9 +339,16 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
         onaylaMetni="Kaldır"
         tehlikeli
         yukleniyor={kaldir.isPending}
-        onOnayla={() => kaldirilacak && kaldir.mutate(kaldirilacak)}
+        onOnayla={() => kaldirilacak && kaldir.mutate({ atama: kaldirilacak, almaz: kaldirilacakSablonda && almaz })}
         onVazgec={() => setKaldirilacak(null)}
-      />
+      >
+        {kaldirilacak && kaldirilacakSablonda && (
+          <label className={stil.onayKutusu}>
+            <input type="checkbox" checked={almaz} onChange={(o) => setAlmaz(o.target.checked)} />
+            {sinif.ad} bu dersi hiç almasın (şablon yeniden uygulandığında geri gelmez)
+          </label>
+        )}
+      </OnayPenceresi>
     </section>
   );
 }

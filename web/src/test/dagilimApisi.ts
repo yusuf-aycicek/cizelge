@@ -20,11 +20,19 @@ export const OGRETMENLER: Sema["OgretmenYanit"][] = [
   { id: "o-ayse", ad: "Ayşe Yılmaz", brans: "Matematik Öğretmeni" },
 ];
 export const SINIFLAR: Sema["SinifYanit"][] = [
-  { id: "s-10a", ad: "10-A", seviye: 10 },
-  { id: "s-9c", ad: "9-C", seviye: 9 },
-  { id: "s-9a", ad: "9-A", seviye: 9 },
-  { id: "s-9b", ad: "9-B", seviye: 9 },
+  { id: "s-10a", ad: "10-A", seviye: 10, sube_grubu_id: null },
+  { id: "s-9c", ad: "9-C", seviye: 9, sube_grubu_id: null },
+  { id: "s-9a", ad: "9-A", seviye: 9, sube_grubu_id: null },
+  { id: "s-9b", ad: "9-B", seviye: 9, sube_grubu_id: null },
 ];
+
+/** Şablon uygulamasının boş raporu; testler istediği alanı ezer. */
+export function bosRapor(degisiklik: Partial<Sema["SablonUygulamaSonucu"]> = {}): Sema["SablonUygulamaSonucu"] {
+  return {
+    sube_sayisi: 0, subeler: [], olusturulan: 0, zaten_var: 0, farkli_saatli: [], istisna_atlanan: [], istisna_ek: [],
+    baska_sablonlu: [], ...degisiklik,
+  };
+}
 export const DERSLER: Sema["DersYanit"][] = [
   { id: "d-mat", ad: "Matematik", kisa_ad: "MAT", renk: "#1d4ed8" },
   { id: "d-fiz", ad: "Fizik", kisa_ad: "FİZ", renk: "#c2410c" },
@@ -70,6 +78,9 @@ export function dagilimApisiKur(
     atamalar?: Atama[];
     sablon?: SablonSatiri[];
     ogretmenler?: Sema["OgretmenYanit"][];
+    siniflar?: Sema["SinifYanit"][];
+    gruplar?: Sema["SubeGrubuYanit"][];
+    istisnalar?: Sema["SubeIstisnasiYanit"][];
     ozetGuncelle?: (durum: SahteDurum) => void;
     uygulamaSonucu?: Sema["SablonUygulamaSonucu"];
   } = {},
@@ -77,9 +88,11 @@ export function dagilimApisiKur(
   const durum: SahteDurum = {
     atamalar: secenekler.atamalar ?? ornekAtamalar(),
     sablon: secenekler.sablon ?? [],
+    istisnalar: secenekler.istisnalar ?? [],
     ozet: ornekOzet(),
     istekler: [],
   };
+  const siniflar = secenekler.siniflar ?? SINIFLAR;
   const degisti = () => secenekler.ozetGuncelle?.(durum);
   const kaydet = async (yontem: string, yol: string, request?: Request) => {
     const govde = request ? await request.json() : undefined;
@@ -89,7 +102,34 @@ export function dagilimApisiKur(
 
   sunucu.use(
     http.get("/api/ogretmenler", () => HttpResponse.json(secenekler.ogretmenler ?? OGRETMENLER)),
-    http.get("/api/siniflar", () => HttpResponse.json(SINIFLAR)),
+    http.get("/api/siniflar", () => HttpResponse.json(siniflar)),
+    http.get("/api/sube-gruplari", () => HttpResponse.json(secenekler.gruplar ?? [])),
+    http.get("/api/ders-programi/istisnalar", () => HttpResponse.json(durum.istisnalar)),
+    // İstisna ders dağılımını da değiştirir (sunucudaki gibi): "almaz" dersi kaldırır, "ek" ekler.
+    http.post("/api/ders-programi/istisnalar", async ({ request }) => {
+      const govde = (await kaydet("POST", "istisnalar", request)) as Sema["SubeIstisnasiOlustur"];
+      const ders = DERSLER.find((d) => d.id === govde.ders_id)?.ad ?? "";
+      const sinif = siniflar.find((s) => s.id === govde.sinif_id)?.ad ?? "";
+      if (govde.tur === "almaz") {
+        durum.atamalar = durum.atamalar.filter((a) => !(a.sinif_id === govde.sinif_id && a.ders_id === govde.ders_id));
+      } else if (!durum.atamalar.some((a) => a.sinif_id === govde.sinif_id && a.ders_id === govde.ders_id)) {
+        durum.atamalar = [...durum.atamalar, { id: `a-ek-${durum.atamalar.length}`, sinif_id: govde.sinif_id,
+          ders_id: govde.ders_id, ogretmen_id: null, haftalik_saat: govde.haftalik_saat ?? 1 }];
+      }
+      const yeni: Sema["SubeIstisnasiYanit"] = {
+        id: `i-${durum.istisnalar.length}`, sinif_id: govde.sinif_id, ders_id: govde.ders_id, tur: govde.tur,
+        haftalik_saat: govde.haftalik_saat ?? null, sinif_adi: sinif, ders_adi: ders, sablonda: govde.tur === "almaz",
+        atanmis: govde.tur === "ek", uyari: null,
+      };
+      durum.istisnalar = [...durum.istisnalar, yeni];
+      degisti();
+      return HttpResponse.json(yeni, { status: 201 });
+    }),
+    http.delete("/api/ders-programi/istisnalar/:id", async ({ params }) => {
+      await kaydet("DELETE", `istisnalar/${params.id}`);
+      durum.istisnalar = durum.istisnalar.filter((i) => i.id !== params.id);
+      return HttpResponse.json({ geri_eklenen_saat: null });
+    }),
     http.get("/api/dersler", () => HttpResponse.json(DERSLER)),
     http.get("/api/ders-programi/atamalar", () => HttpResponse.json(durum.atamalar)),
     http.get("/api/ders-programi/dagilim-ozeti", () => HttpResponse.json(durum.ozet)),
@@ -125,13 +165,11 @@ export function dagilimApisiKur(
 
     http.post("/api/ders-programi/seviye-sablonlari/uygula", async ({ request }) => {
       await kaydet("POST", "seviye-sablonlari/uygula", request);
-      return HttpResponse.json(
-        secenekler.uygulamaSonucu ?? { sube_sayisi: 0, olusturulan: 0, zaten_var: 0, farkli_saatli: [] },
-      );
+      return HttpResponse.json(secenekler.uygulamaSonucu ?? bosRapor());
     }),
     http.post("/api/ders-programi/seviye-sablonlari", async ({ request }) => {
       const govde = (await kaydet("POST", "seviye-sablonlari", request)) as Sema["SeviyeSablonuOlustur"];
-      const yeni = { id: `ss-yeni-${durum.sablon.length}`, ...govde };
+      const yeni: SablonSatiri = { id: `ss-yeni-${durum.sablon.length}`, ...govde, sube_grubu_id: govde.sube_grubu_id ?? null };
       durum.sablon = [...durum.sablon, yeni];
       return HttpResponse.json(yeni, { status: 201 });
     }),
@@ -152,6 +190,7 @@ export function dagilimApisiKur(
 export type SahteDurum = {
   atamalar: Atama[];
   sablon: SablonSatiri[];
+  istisnalar: Sema["SubeIstisnasiYanit"][];
   ozet: Sema["DagilimOzeti"];
   istekler: Istek[];
 };

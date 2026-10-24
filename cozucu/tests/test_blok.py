@@ -31,8 +31,8 @@ BLOK = "blok_deseni"
 BLOKSUZ = KisitTanimi(BLOK, {"otomatik": False})
 
 
-def ozel(desen, ders="d", sinif=None):
-    return KisitTanimi(BLOK, {"desen": desen}, kapsam=Kapsam(ders_id=ders, sinif_id=sinif))
+def ozel(desen, ders="d", sinif=None, grup=None):
+    return KisitTanimi(BLOK, {"desen": desen}, kapsam=Kapsam(ders_id=ders, sinif_id=sinif, sube_grubu_id=grup))
 
 
 def gelemez(ogretmen, gun, saat):
@@ -88,6 +88,23 @@ def test_desen_nereden_gelir():
     assert sonuc["b"] is None  # ders + şube özel ayarı ders ayarından özel
     assert (sonuc["c"].metin, sonuc["c"].ozel) == ("2+1+1", False)
     assert sonuc["f"] is None
+
+
+def test_sube_grubuna_ozel_desen_ve_kapsam_onceligi():
+    # Öncelik (kisisellestirme-plani 2.2): ders + şube (6) > ders + şube grubu (5) > ders (4) > okul.
+    from cozucu import Sinif
+
+    siniflar = [Sinif("s1", "11-A", 11, "say"), Sinif("s2", "11-B", 11, "say"), Sinif("s3", "11-C", 11, "soz")]
+    atamalar = [DersAtama(f"a{i}", f"s{i}", "d", "o1", 5) for i in (1, 2, 3)]
+    kisitlar = [ozel([3, 1, 1]), ozel([2, 1, 1, 1], grup="say"), ozel([], sinif="s2")]
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), siniflar=siniflar, atamalar=atamalar,
+                      kisitlar=[KisitTanimi("gunluk_ders_siniri", {"n": 3}), *kisitlar])
+    hesap = BlokHesabi(girdi)
+    assert hesap.desen(atamalar[0]).metin == "2+1+1+1"  # grubun şekli dersinkini ezer
+    assert hesap.desen(atamalar[1]) is None  # şubenin şekli grubunkini ezer
+    assert hesap.desen(atamalar[2]).metin == "3+1+1"  # başka grup: dersin şekli
+    sonuc = coz(girdi)
+    assert boylar(sonuc, "a1") == [2, 1, 1, 1] and boylar(sonuc, "a3") == [3, 1, 1]
 
 
 def test_okul_bloklari_kapatabilir():

@@ -49,6 +49,8 @@ type Props<T extends { id: string }, G> = {
   gorunum?: (alan: string, satir: T) => ReactNode | undefined;
   /** İşlemler sütunundan önce eklenecek sütunlar, ör. dersin rengi. */
   ekSutunlar?: Sutun<T>[];
+  /** Ekleme formundan sonra gösterilecek bölüm, ör. sınıflar sayfasında şube grupları. */
+  ekBolum?: ReactNode;
 };
 
 const deger = (satir: object, ad: string) => String((satir as Record<string, unknown>)[ad] ?? "");
@@ -91,6 +93,7 @@ export function ListeSayfasi<T extends { id: string }, G>({
   girdi,
   gorunum,
   ekSutunlar = [],
+  ekBolum,
 }: Props<T, G>) {
   const istemci = useQueryClient();
   const bildirim = useBildirim();
@@ -310,6 +313,8 @@ export function ListeSayfasi<T extends { id: string }, G>({
           </form>
         </section>
       )}
+
+      {liste.isSuccess && ekBolum}
 
       <OnayPenceresi
         acik={silinecek !== null}

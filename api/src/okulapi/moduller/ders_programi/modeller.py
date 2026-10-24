@@ -38,19 +38,58 @@ def okul_ici_fk(sutun: str, hedef: str, ondelete: str = "RESTRICT") -> ForeignKe
 
 
 class SeviyeSablonu(OkulaAitMixin, Base):
-    """Bir seviyenin (ör. 9. sınıflar) ders listesi ve haftalık saatleri."""
+    """Bir seviyenin (ör. 9. sınıflar) ya da bir şube grubunun (ör. 11 Sayısal) ders listesi ve
+    haftalık saatleri.
+
+    `sube_grubu_id` boşsa satır seviyenin şablonudur (K5 öncesindeki bütün satırlar böyle kalır);
+    doluysa grubun şablonudur ve `seviye` grubun seviyesidir (servis denetler). Grubun şablonunda
+    en az bir ders varsa grubun şubeleri seviyenin şablonu yerine onu kullanır. Grup silinince
+    şablonu da silinir (CASCADE): grubun parçasıdır.
+    """
 
     __tablename__ = "seviye_sablonu"
     _tablo_kisitlari = (
-        UniqueConstraint("okul_id", "seviye", "ders_id"),
+        # NULLS NOT DISTINCT: seviyenin şablonunda (grup boş) bir ders bir kez bulunur.
+        UniqueConstraint("okul_id", "seviye", "sube_grubu_id", "ders_id", postgresql_nulls_not_distinct=True),
         okul_ici_fk("ders_id", "ders"),
+        okul_ici_fk("sube_grubu_id", "sube_grubu", ondelete="CASCADE"),
         CheckConstraint("seviye BETWEEN 1 AND 12", name="seviye"),
         CheckConstraint("haftalik_saat >= 1", name="haftalik_saat"),
     )
 
     seviye: Mapped[int]
+    sube_grubu_id: Mapped[uuid.UUID | None]
     ders_id: Mapped[uuid.UUID]
     haftalik_saat: Mapped[int]
+
+
+ISTISNA_TURLERI = ("almaz", "ek")
+
+
+class SubeDersIstisnasi(OkulaAitMixin, Base):
+    """Şubenin şablondan ayrıldığı ders: "9-B Din almaz" ya da "11-A ek olarak Felsefe 2 saat".
+
+    Şablon uygulanırken okunur: `almaz` dersi şubeye eklenmez (silinmiş ders şablon yeniden
+    uygulanınca geri gelmez), `ek` dersi şablonda olmasa da `haftalik_saat` ile eklenir. Çözücü
+    istisnaları bilmez; onun girdisi ders atamalarıdır. Şube ya da ders silinince istisna da
+    silinir (CASCADE).
+    """
+
+    __tablename__ = "sube_ders_istisnasi"
+    _tablo_kisitlari = (
+        UniqueConstraint("okul_id", "sinif_id", "ders_id"),
+        okul_ici_fk("sinif_id", "sinif", ondelete="CASCADE"),
+        okul_ici_fk("ders_id", "ders", ondelete="CASCADE"),
+        CheckConstraint(f"tur IN ({', '.join(repr(t) for t in ISTISNA_TURLERI)})", name="tur"),
+        # Haftalık saat yalnızca "ek" istisnada vardır ve en az 1'dir.
+        CheckConstraint("(tur = 'ek') = (haftalik_saat IS NOT NULL) AND (haftalik_saat IS NULL OR haftalik_saat >= 1)",
+                        name="haftalik_saat"),
+    )
+
+    sinif_id: Mapped[uuid.UUID]
+    ders_id: Mapped[uuid.UUID]
+    tur: Mapped[str] = mapped_column(String(10))
+    haftalik_saat: Mapped[int | None]
 
 
 class DersAtama(OkulaAitMixin, Base):
@@ -98,8 +137,8 @@ class Musaitlik(OkulaAitMixin, Base):
 class Kisit(OkulaAitMixin, Base):
     """Bir kural tanımı. `tur` çözücünün kural kayıt defterindeki adlardan biridir.
 
-    Kapsam sütunlarının üçü de boşsa okul geneli kuraldır; biri doluysa okul değerini o derse,
-    şubeye ya da öğretmene özel ezen bir **özel ayardır** (ADR 0016). Özel ayarın kipi ve ağırlığı
+    Kapsam sütunlarının dördü de boşsa okul geneli kuraldır; biri doluysa okul değerini o derse,
+    şubeye, şube grubuna ya da öğretmene özel ezen bir **özel ayardır** (ADR 0016). Özel ayarın kipi ve ağırlığı
     çözücüde okul tanımından gelir; burada okul tanımındakiyle aynı yazılır.
     """
 
@@ -107,14 +146,19 @@ class Kisit(OkulaAitMixin, Base):
     _tablo_kisitlari = (
         # NULLS NOT DISTINCT: kapsamın boş sütunları eşit sayılır; okul geneli satır da tek kalır
         # (migration ders_programi_0006).
-        UniqueConstraint("okul_id", "tur", "ders_id", "sinif_id", "ogretmen_id", postgresql_nulls_not_distinct=True),
+        UniqueConstraint("okul_id", "tur", "ders_id", "sinif_id", "sube_grubu_id", "ogretmen_id",
+                         name="uq_kisit_kapsam", postgresql_nulls_not_distinct=True),
         # Ona özel ayar, varlığın parçasıdır: varlık silinince ayar da silinir.
         okul_ici_fk("ders_id", "ders", ondelete="CASCADE"),
         okul_ici_fk("sinif_id", "sinif", ondelete="CASCADE"),
         okul_ici_fk("ogretmen_id", "ogretmen", ondelete="CASCADE"),
+        okul_ici_fk("sube_grubu_id", "sube_grubu", ondelete="CASCADE"),
         CheckConstraint("agirlik >= 0", name="agirlik"),
         # Öğretmen ailesi (M, boş gün) ile yerleşim ailesi (N, blok) ayrıktır (ADR 0016 madde 3).
-        CheckConstraint("ogretmen_id IS NULL OR (ders_id IS NULL AND sinif_id IS NULL)", name="kapsam_ailesi"),
+        CheckConstraint("ogretmen_id IS NULL OR (ders_id IS NULL AND sinif_id IS NULL AND sube_grubu_id IS NULL)",
+                        name="kapsam_ailesi"),
+        # Bir kapsamda şube ile şube grubu birlikte bulunamaz (cozucu.kapsam.Kapsam).
+        CheckConstraint("sinif_id IS NULL OR sube_grubu_id IS NULL", name="sube_ya_da_grup"),
     )
 
     tur: Mapped[str] = mapped_column(String(50))
@@ -124,11 +168,12 @@ class Kisit(OkulaAitMixin, Base):
     agirlik: Mapped[int] = mapped_column(default=1, server_default="1")
     ders_id: Mapped[uuid.UUID | None]
     sinif_id: Mapped[uuid.UUID | None]
+    sube_grubu_id: Mapped[uuid.UUID | None]
     ogretmen_id: Mapped[uuid.UUID | None]
 
     @property
     def okul_geneli(self) -> bool:
-        return self.ders_id is None and self.sinif_id is None and self.ogretmen_id is None
+        return self.ders_id is None and self.sinif_id is None and self.sube_grubu_id is None and self.ogretmen_id is None
 
 
 PROGRAM_DURUMLARI = ("bekliyor", "uretiliyor", "hazir", "basarisiz")

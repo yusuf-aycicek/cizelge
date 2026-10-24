@@ -1,4 +1,4 @@
-"""Çekirdek endpoint'leri: /api/okul, /api/ogretmenler, /api/siniflar, /api/dersler.
+"""Çekirdek endpoint'leri: /api/okul, /api/ogretmenler, /api/siniflar, /api/dersler, /api/sube-gruplari.
 
 Router yalnızca HTTP ile ilgilenir: yol, durum kodu, şema doğrulaması. İşi servise devreder.
 Okula ait varlıkların CRUD'u tek bir fabrika (`crud_router`) ile üretilir; modüller de aynı
@@ -17,7 +17,9 @@ from pydantic import BaseModel
 from okulapi.cekirdek import semalar
 from okulapi.cekirdek.bagimliliklar import AktifOkulId, OkulOturumu
 from okulapi.cekirdek.ders_renkleri import DERS_RENKLERI
-from okulapi.cekirdek.servisler import CrudServisi, DersServisi, OgretmenServisi, OkulServisi, SinifServisi
+from okulapi.cekirdek.servisler import (
+    CrudServisi, DersServisi, OgretmenServisi, OkulServisi, SinifServisi, SubeGrubuServisi,
+)
 
 
 def crud_router(
@@ -94,4 +96,6 @@ ROUTERLAR = [
                 semalar.SinifYanit, "sınıf"),
     crud_router("/dersler", DersServisi, semalar.DersOlustur, semalar.DersGuncelle,
                 semalar.DersYanit, "ders"),
+    crud_router("/sube-gruplari", SubeGrubuServisi, semalar.SubeGrubuOlustur, semalar.SubeGrubuGuncelle,
+                semalar.SubeGrubuYanit, "şube grubu"),
 ]

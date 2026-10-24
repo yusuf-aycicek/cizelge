@@ -1,29 +1,35 @@
 /** Seviye şablonu: dersler ve saatler, toplam ve kapasite, şubelere uygulama ve raporu. */
 import { screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { dagilimApisiKur } from "../test/dagilimApisi";
+import { bosRapor, dagilimApisiKur, SINIFLAR } from "../test/dagilimApisi";
 import { uygulamayiCiz } from "../test/yardimcilar";
 
 const SABLON_9 = [
-  { id: "ss-mat", seviye: 9, ders_id: "d-mat", haftalik_saat: 5 },
-  { id: "ss-fiz", seviye: 9, ders_id: "d-fiz", haftalik_saat: 3 },
+  { id: "ss-mat", seviye: 9, sube_grubu_id: null, ders_id: "d-mat", haftalik_saat: 5 },
+  { id: "ss-fiz", seviye: 9, sube_grubu_id: null, ders_id: "d-fiz", haftalik_saat: 3 },
 ];
 
-const RAPOR = {
+const RAPOR = bosRapor({
   sube_sayisi: 3,
+  subeler: ["9-A", "9-B", "9-C"],
   olusturulan: 4,
   zaten_var: 2,
   farkli_saatli: [
     { atama_id: "a-9b-mat", sinif: "9-B", ders: "Matematik", atamadaki_saat: 6, sablondaki_saat: 5 },
     { atama_id: "a-9c-mat", sinif: "9-C", ders: "Matematik", atamadaki_saat: 6, sablondaki_saat: 5 },
   ],
-};
+});
+
+// 9-A ve 9-B "9 Fen" grubunda; grubun şablonunda yalnızca Kimya var.
+const GRUP = { id: "g-fen", ad: "9 Fen", seviye: 9 };
+const GRUPLU_SINIFLAR = SINIFLAR.map((s) => (s.id === "s-9a" || s.id === "s-9b" ? { ...s, sube_grubu_id: "g-fen" } : s));
+const GRUP_SABLONU = [...SABLON_9, { id: "ss-g-kim", seviye: 9, sube_grubu_id: "g-fen", ders_id: "d-kim", haftalik_saat: 4 }];
 
 describe("seviye şablonu", () => {
   it("seviyeler şube sayısıyla; şablonun dersleri Türkçe sıralı; toplam ve kapasite", async () => {
     dagilimApisiKur({ sablon: SABLON_9 });
     uygulamayiCiz("/seviye-sablonu");
-    const seviye = await screen.findByRole("combobox", { name: "Sınıf seviyesi" });
+    const seviye = await screen.findByRole("combobox", { name: "Şablon" });
     expect(within(seviye).getAllByRole("option").map((o) => o.textContent)).toEqual([
       "9. sınıflar (3 şube)", "10. sınıflar (1 şube)",
     ]);
@@ -34,7 +40,7 @@ describe("seviye şablonu", () => {
   });
 
   it("toplam kapasiteyi aşınca uyarır", async () => {
-    dagilimApisiKur({ sablon: [{ id: "ss-mat", seviye: 9, ders_id: "d-mat", haftalik_saat: 41 }] });
+    dagilimApisiKur({ sablon: [{ id: "ss-mat", seviye: 9, sube_grubu_id: null, ders_id: "d-mat", haftalik_saat: 41 }] });
     uygulamayiCiz("/seviye-sablonu?seviye=9");
     expect(await screen.findByText(/Haftalık toplam/)).toHaveTextContent(
       "Haftalık toplam 41 saat; okulun haftalık kapasitesi 40 saat. Bu şablonla şubelerin programı üretilemez.",
@@ -89,13 +95,70 @@ describe("seviye şablonu", () => {
   });
 
   it("eklenecek ders yoksa bunu söyler", async () => {
-    dagilimApisiKur({ sablon: SABLON_9, uygulamaSonucu: { sube_sayisi: 3, olusturulan: 0, zaten_var: 6, farkli_saatli: [] } });
+    dagilimApisiKur({ sablon: SABLON_9, uygulamaSonucu: bosRapor({ sube_sayisi: 3, zaten_var: 6 }) });
     const { kullanici } = uygulamayiCiz("/seviye-sablonu?seviye=9");
     await kullanici.click(await screen.findByRole("button", { name: "9. sınıf şubelerine uygula" }));
     const rapor = (await screen.findByRole("heading", { name: "Şablon uygulandı" })).parentElement!;
     expect(rapor).toHaveTextContent("Eklenecek yeni ders yoktu: şablondaki derslerin hepsi şubelerde zaten var.");
     expect(rapor).toHaveTextContent("6 ders şubelerde zaten vardı; değiştirilmedi.");
     expect(within(rapor).queryByRole("table")).not.toBeInTheDocument();
+  });
+
+  it("şablon seviyeye ya da gruba ait; grubun şubeleri seviyenin şablonundan ayrılır", async () => {
+    dagilimApisiKur({ sablon: GRUP_SABLONU, siniflar: GRUPLU_SINIFLAR, gruplar: [GRUP] });
+    const { kullanici } = uygulamayiCiz("/seviye-sablonu?seviye=9");
+    const secim = await screen.findByRole("combobox", { name: "Şablon" });
+    expect(within(secim).getAllByRole("option").map((o) => o.textContent)).toEqual([
+      "9. sınıflar (1 şube)", "9 Fen grubu (2 şube)", "10. sınıflar (1 şube)",
+    ]);
+    expect(screen.getByText(/Bu şablon/)).toHaveTextContent(
+      "Bu şablon 9. sınıflara ait. 9-A (9 Fen), 9-B (9 Fen) kendi grubunun şablonunu kullanır.");
+    expect(screen.getByText(/1 şubeye \(9-C\) öğretmeni boş olarak eklenir/)).toBeInTheDocument();
+
+    await kullanici.selectOptions(secim, "9:g-fen");
+    expect(await screen.findByRole("heading", { name: "9 Fen grubunun dersleri" })).toBeInTheDocument();
+    const tablo = screen.getByRole("table", { name: "9 Fen grubunun şablonu" });
+    expect(within(tablo).getAllByRole("row").slice(1).map((r) => within(r).getAllByRole("cell")[0]?.textContent)).toEqual(["Kimya"]);
+    expect(screen.getByText(/Bu şablon/)).toHaveTextContent("Bu şablon 9 Fen grubuna ait (9-A, 9-B).");
+    expect(screen.getByRole("button", { name: "9 Fen şubelerine uygula" })).toBeEnabled();
+  });
+
+  it("gruba ders eklenir ve grubun şablonu grubun şubelerine uygulanır; rapor istisnaları söyler", async () => {
+    const api = dagilimApisiKur({
+      sablon: GRUP_SABLONU, siniflar: GRUPLU_SINIFLAR, gruplar: [GRUP],
+      uygulamaSonucu: bosRapor({
+        sube_sayisi: 2, subeler: ["9-A", "9-B"], olusturulan: 1, zaten_var: 0,
+        istisna_atlanan: [{ sinif: "9-B", ders: "Kimya" }],
+        istisna_ek: [{ sinif: "9-A", ders: "Fizik", haftalik_saat: 2, eklendi: false }],
+        baska_sablonlu: [{ sinif: "9-C", sablon: "9. sınıflar" }],
+      }),
+    });
+    const { kullanici } = uygulamayiCiz("/seviye-sablonu?seviye=9&grup=g-fen");
+    await kullanici.selectOptions(await screen.findByRole("combobox", { name: "Ders" }), "d-mat");
+    await kullanici.type(screen.getByRole("spinbutton", { name: "Haftalık saat" }), "6");
+    await kullanici.click(screen.getByRole("button", { name: "Ekle" }));
+    expect(await screen.findByText("Matematik 9 Fen grubunun şablonuna eklendi.")).toBeInTheDocument();
+    await kullanici.click(screen.getByRole("button", { name: "9 Fen şubelerine uygula" }));
+    const rapor = (await screen.findByRole("heading", { name: "Şablon uygulandı" })).parentElement!;
+    expect(rapor).toHaveTextContent("Şubenin almadığı 1 ders eklenmedi (istisna): 9-B Kimya.");
+    expect(rapor).toHaveTextContent("Şubelerin ek dersleri: 9-A Fizik (2 saat).");
+    expect(rapor).toHaveTextContent("Kendi şablonunu kullandığı için dokunulmayan şubeler: 9-C (9. sınıflar).");
+    expect(api.istekler).toEqual([
+      { yontem: "POST", yol: "seviye-sablonlari", govde: { seviye: 9, sube_grubu_id: "g-fen", ders_id: "d-mat", haftalik_saat: 6 } },
+      { yontem: "POST", yol: "seviye-sablonlari/uygula", govde: { seviye: 9, sube_grubu_id: "g-fen" } },
+    ]);
+  });
+
+  it("grubun şablonu boşken grubun şubeleri seviyenin şablonunu kullanır", async () => {
+    dagilimApisiKur({ sablon: SABLON_9, siniflar: GRUPLU_SINIFLAR, gruplar: [GRUP] });
+    const { kullanici } = uygulamayiCiz("/seviye-sablonu?seviye=9");
+    const secim = await screen.findByRole("combobox", { name: "Şablon" });
+    expect(within(secim).getAllByRole("option").map((o) => o.textContent)).toEqual([
+      "9. sınıflar (3 şube)", "9 Fen grubu (2 şube)", "10. sınıflar (1 şube)",
+    ]);
+    expect(screen.getByText(/3 şubeye \(9-A, 9-B, 9-C\) öğretmeni boş olarak eklenir/)).toBeInTheDocument();
+    await kullanici.selectOptions(secim, "9:g-fen");
+    expect(await screen.findByText(/Şablon boşken grubun şubeleri 9. sınıfların şablonunu kullanır/)).toBeInTheDocument();
   });
 
   it("şablon boşken uygulanamaz", async () => {

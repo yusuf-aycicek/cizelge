@@ -83,7 +83,7 @@ package "servisler (iş kuralları)" {
 ' @kod okulapi.moduller.ders_programi.depo
 package "depo" {
   class SeviyeSablonuDeposu {
-    +seviyenin(seviye : int) : list[SeviyeSablonu]
+    +sablonun(seviye : int, sube_grubu_id : UUID) : list[SeviyeSablonu]
   }
   class DersAtamaDeposu {
     +siniflarin(sinif_idler : list[UUID]) : list[DersAtama]
@@ -99,8 +99,8 @@ package "kurallar (önem seviyeleri tek yerde)" {
     +listele() : list[dict]
     +ayarla(tur : str, parametreler, onem) : dict
     +varsayilana_don(tur : str) : dict
-    +ozel_ayarla(tur, ders_id, sinif_id, ogretmen_id, parametreler) : dict
-    +ozel_kaldir(tur, ders_id, sinif_id, ogretmen_id) : dict
+    +ozel_ayarla(tur : str, kapsam, parametreler) : dict
+    +ozel_kaldir(tur : str, kapsam) : dict
   }
   class kurallar <<modül>> {
     {static} +ONEM_KARSILIKLARI : dict[str, dict[str, int]]

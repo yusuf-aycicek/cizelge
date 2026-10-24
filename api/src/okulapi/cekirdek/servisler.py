@@ -20,7 +20,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from okulapi.cekirdek.ders_renkleri import RENK_KODLARI, siradaki_renk
-from okulapi.cekirdek.depo import DersDeposu, OgretmenDeposu, OkulaAitDepo, OkulDeposu, SinifDeposu
+from okulapi.cekirdek.depo import DersDeposu, OgretmenDeposu, OkulaAitDepo, OkulDeposu, SinifDeposu, SubeGrubuDeposu
 from okulapi.cekirdek.kiraci import veritabaninda_okulu_ayarla
 from okulapi.cekirdek.modeller import Okul, OkulaAitMixin
 from okulapi.cekirdek.modul import Modul
@@ -190,6 +190,34 @@ class SinifServisi(CrudServisi):
     depo_sinifi = SinifDeposu
     varlik = "Sınıf"
     cakisma_mesaji = "Bu okulda bu adla bir sınıf zaten var"
+
+    def _dogrula(self, alanlar: dict[str, Any], nesne=None) -> None:
+        """Şubenin grubu bu okulda olmalı ve seviyesi şubeninkiyle aynı olmalı (ör. 11-A yalnızca
+        bir 11. sınıf grubunda olabilir)."""
+        grup_id = alanlar["sube_grubu_id"] if "sube_grubu_id" in alanlar else getattr(nesne, "sube_grubu_id", None)
+        if grup_id is None:
+            return
+        grup = SubeGrubuDeposu(self.oturum).getir(grup_id)
+        if grup is None:
+            raise GecersizVeri("Şube grubu bu okulda bulunamadı")
+        seviye = alanlar.get("seviye") or getattr(nesne, "seviye", None)
+        if grup.seviye != seviye:
+            ad = alanlar.get("ad") or getattr(nesne, "ad", "Şube")
+            if "sube_grubu_id" in alanlar:
+                raise GecersizVeri(f"{ad} {seviye}. sınıf; {grup.seviye}. sınıfların grubu \"{grup.ad}\" içine alınamaz")
+            raise GecersizVeri(
+                f"{ad}, {grup.seviye}. sınıfların grubu \"{grup.ad}\" içinde; seviyesini değiştirmeden önce şubeyi "
+                "gruptan çıkarın")
+
+
+class SubeGrubuServisi(CrudServisi):
+    """Şube grupları. Grup silinince şubeleri grupsuz kalır (veritabanı: SET NULL); modüllerdeki
+    gruba bağlı kayıtlar (ör. grubun şablonu, gruba özel kurallar) modülün kendi yabancı
+    anahtarıyla silinir."""
+
+    depo_sinifi = SubeGrubuDeposu
+    varlik = "Şube grubu"
+    cakisma_mesaji = "Bu okulda bu adla bir şube grubu zaten var"
 
 
 class DersServisi(CrudServisi):

@@ -36,7 +36,7 @@ def ozel_yaz(istemci, b, tur, kapsam, parametreler):
 
 def test_kurallar_desteklenen_kapsamlari_bildirir(istemci, okul):
     k = {x["tur"]: x for x in istemci.get(f"{DP}/kurallar", headers=okul["b"]).json()}
-    assert k[N]["kapsamlar"] == ["ders", "sube"]
+    assert k[N]["kapsamlar"] == ["ders", "sube", "sube_grubu"]
     assert k[M]["kapsamlar"] == ["ogretmen"]
     assert k["sinif_boslugu"]["kapsamlar"] == []
     assert all(x["ozel_ayarlar"] == [] for x in k.values())
@@ -49,7 +49,7 @@ def test_ogretmene_ozel_ayar_eklenir_guncellenir_kaldirilir(istemci, okul):
     assert yanit.json()["parametreler"] == {"m": 8}  # okul değeri değişmedi
     assert yanit.json()["varsayilan"] is True
     assert yanit.json()["ozel_ayarlar"] == [{
-        "kapsam": {"ogretmen_id": okul["ayse"], "ders_id": None, "sinif_id": None},
+        "kapsam": {"ogretmen_id": okul["ayse"], "ders_id": None, "sinif_id": None, "sube_grubu_id": None},
         "ad": "Ayşe Yılmaz",
         "parametreler": {"m": 6},
     }]
@@ -89,7 +89,7 @@ def test_okul_degeri_degisince_ozel_ayar_yerinde_kalir(istemci, okul):
     (N, {"ogretmen_id": "ayse"}, {"n": 3}, "\"Aynı dersin günlük sınırı\" kuralı öğretmene özel ayarlanamaz"),
     (M, {"ders_id": "mat"}, {"m": 6}, "\"Öğretmenin günlük ders sınırı\" kuralı derse özel ayarlanamaz"),
     (M, {"ogretmen_id": "ayse", "ders_id": "mat"}, {"m": 6}, "\"Öğretmenin günlük ders sınırı\" kuralı derse özel ayarlanamaz"),
-    (M, {}, {"m": 6}, "Özel ayar için bir öğretmen, ders ya da şube seçin"),
+    (M, {}, {"m": 6}, "Özel ayar için bir öğretmen, ders, şube ya da şube grubu seçin"),
     (M, {"ogretmen_id": "ayse"}, {"m": 0}, "Öğretmenin günlük ders sınırı: en az 1 olmalı"),
     (M, {"ogretmen_id": "ayse"}, {"n": 3}, "Bu kuralın ayarları: m"),
     (M, {"ogretmen_id": "yok"}, {"m": 6}, "Öğretmen bu okulda bulunamadı"),
@@ -173,7 +173,7 @@ def test_veritabani_ayni_kapsamda_iki_tanimi_reddeder(istemci, okul, oturum_fabr
     okul_id = _okul_id(istemci, okul["b"])
     with okul_oturumu(oturum_fabrikasi, okul_id) as o:
         _ekle(o, okul_id)  # okul geneli: üç kapsam sütunu NULL
-        with pytest.raises(IntegrityError, match="uq_kisit_okul_id_tur_ders_id_sinif_id_ogretmen_id"):
+        with pytest.raises(IntegrityError, match="uq_kisit_kapsam"):
             with o.begin_nested():
                 _ekle(o, okul_id)  # NULLS NOT DISTINCT: ikinci okul geneli satır da reddedilir
         _ekle(o, okul_id, ogretmen_id=okul["ayse"])

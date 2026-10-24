@@ -81,6 +81,25 @@
         "title": "AyarEtkisiYanit",
         "type": "object"
       },
+      "BaskaSablonlu": {
+        "properties": {
+          "sablon": {
+            "description": "Şubenin kullandığı şablon: \"11 Sayısal\" ya da \"11. sınıflar\"",
+            "title": "Sablon",
+            "type": "string"
+          },
+          "sinif": {
+            "title": "Sinif",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sinif",
+          "sablon"
+        ],
+        "title": "BaskaSablonlu",
+        "type": "object"
+      },
       "BenYanit": {
         "properties": {
           "kullanici": {
@@ -209,9 +228,10 @@
             "type": "integer"
           },
           "kaynak": {
-            "description": "ders_sube / ders: özel ayar; okul: okulun önerisi; yok: blok yok",
+            "description": "ders_sube / ders_grup / ders: özel ayar; okul: okulun önerisi; yok: blok yok",
             "enum": [
               "ders_sube",
+              "ders_grup",
               "ders",
               "okul",
               "yok"
@@ -578,6 +598,74 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "IstisnaAtlanan": {
+        "properties": {
+          "ders": {
+            "title": "Ders",
+            "type": "string"
+          },
+          "sinif": {
+            "title": "Sinif",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sinif",
+          "ders"
+        ],
+        "title": "IstisnaAtlanan",
+        "type": "object"
+      },
+      "IstisnaEk": {
+        "properties": {
+          "ders": {
+            "title": "Ders",
+            "type": "string"
+          },
+          "eklendi": {
+            "description": "false: ders şubede zaten vardı",
+            "title": "Eklendi",
+            "type": "boolean"
+          },
+          "haftalik_saat": {
+            "title": "Haftalik Saat",
+            "type": "integer"
+          },
+          "sinif": {
+            "title": "Sinif",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sinif",
+          "ders",
+          "haftalik_saat",
+          "eklendi"
+        ],
+        "title": "IstisnaEk",
+        "type": "object"
+      },
+      "IstisnaKaldirmaSonucu": {
+        "properties": {
+          "geri_eklenen_saat": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "\"Almaz\" kalkınca ders şablondan geri eklendiyse haftalık saati",
+            "title": "Geri Eklenen Saat"
+          }
+        },
+        "required": [
+          "geri_eklenen_saat"
+        ],
+        "title": "IstisnaKaldirmaSonucu",
+        "type": "object"
+      },
       "KayitIstegi": {
         "properties": {
           "ad": {
@@ -843,7 +931,7 @@
         "type": "object"
       },
       "KuralKapsami": {
-        "description": "Özel ayarın yeri. Öğretmen tek başına; ders ve şube tek başına ya da birlikte (ADR 0016).",
+        "description": "Özel ayarın yeri. Öğretmen tek başına; ders, şube ve şube grubu tek başına ya da ders ile\nbirlikte (ders + şube, ders + şube grubu). Şube ile şube grubu birlikte olamaz (ADR 0016).",
         "properties": {
           "ders_id": {
             "anyOf": [
@@ -880,6 +968,18 @@
               }
             ],
             "title": "Sinif Id"
+          },
+          "sube_grubu_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sube Grubu Id"
           }
         },
         "title": "KuralKapsami",
@@ -911,7 +1011,8 @@
               "enum": [
                 "ogretmen",
                 "ders",
-                "sube"
+                "sube",
+                "sube_grubu"
               ],
               "type": "string"
             },
@@ -1955,6 +2056,18 @@
             "minimum": 1.0,
             "title": "Seviye",
             "type": "integer"
+          },
+          "sube_grubu_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sube Grubu Id"
           }
         },
         "required": [
@@ -1964,13 +2077,34 @@
         "type": "object"
       },
       "SablonUygulamaSonucu": {
-        "description": "Şablon uygulandı: oluşturulan atamalar, zaten var olanlar, saati şablondan farklı olanlar.",
+        "description": "Şablon uygulandı: oluşturulan atamalar, zaten var olanlar, saati şablondan farklı olanlar,\nşube istisnaları (atlanan \"almaz\" dersleri, eklenen \"ek\" dersleri) ve bu seviyede başka bir\nşablonu kullandığı için dokunulmayan şubeler.",
         "properties": {
+          "baska_sablonlu": {
+            "items": {
+              "$ref": "#/components/schemas/BaskaSablonlu"
+            },
+            "title": "Baska Sablonlu",
+            "type": "array"
+          },
           "farkli_saatli": {
             "items": {
               "$ref": "#/components/schemas/FarkliSaat"
             },
             "title": "Farkli Saatli",
+            "type": "array"
+          },
+          "istisna_atlanan": {
+            "items": {
+              "$ref": "#/components/schemas/IstisnaAtlanan"
+            },
+            "title": "Istisna Atlanan",
+            "type": "array"
+          },
+          "istisna_ek": {
+            "items": {
+              "$ref": "#/components/schemas/IstisnaEk"
+            },
+            "title": "Istisna Ek",
             "type": "array"
           },
           "olusturulan": {
@@ -1981,6 +2115,13 @@
             "title": "Sube Sayisi",
             "type": "integer"
           },
+          "subeler": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Subeler",
+            "type": "array"
+          },
           "zaten_var": {
             "title": "Zaten Var",
             "type": "integer"
@@ -1988,9 +2129,13 @@
         },
         "required": [
           "sube_sayisi",
+          "subeler",
           "olusturulan",
           "zaten_var",
-          "farkli_saatli"
+          "farkli_saatli",
+          "istisna_atlanan",
+          "istisna_ek",
+          "baska_sablonlu"
         ],
         "title": "SablonUygulamaSonucu",
         "type": "object"
@@ -2058,6 +2203,18 @@
             "minimum": 1.0,
             "title": "Seviye",
             "type": "integer"
+          },
+          "sube_grubu_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sube Grubu Id"
           }
         },
         "required": [
@@ -2087,11 +2244,24 @@
           "seviye": {
             "title": "Seviye",
             "type": "integer"
+          },
+          "sube_grubu_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sube Grubu Id"
           }
         },
         "required": [
           "id",
           "seviye",
+          "sube_grubu_id",
           "ders_id",
           "haftalik_saat"
         ],
@@ -2162,6 +2332,18 @@
               }
             ],
             "title": "Seviye"
+          },
+          "sube_grubu_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sube Grubu Id"
           }
         },
         "title": "SinifGuncelle",
@@ -2180,6 +2362,18 @@
             "minimum": 1.0,
             "title": "Seviye",
             "type": "integer"
+          },
+          "sube_grubu_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sube Grubu Id"
           }
         },
         "required": [
@@ -2203,12 +2397,25 @@
           "seviye": {
             "title": "Seviye",
             "type": "integer"
+          },
+          "sube_grubu_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sube Grubu Id"
           }
         },
         "required": [
           "id",
           "ad",
-          "seviye"
+          "seviye",
+          "sube_grubu_id"
         ],
         "title": "SinifYanit",
         "type": "object"
@@ -2257,6 +2464,199 @@
           "mesaj"
         ],
         "title": "SinifYukuYanit",
+        "type": "object"
+      },
+      "SubeGrubuGuncelle": {
+        "description": "Yalnızca ad değişir: grubun seviyesi şubelerinin ve şablonunun seviyesidir.",
+        "properties": {
+          "ad": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ad"
+          }
+        },
+        "title": "SubeGrubuGuncelle",
+        "type": "object"
+      },
+      "SubeGrubuOlustur": {
+        "properties": {
+          "ad": {
+            "examples": [
+              "11 Sayısal"
+            ],
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Ad",
+            "type": "string"
+          },
+          "seviye": {
+            "maximum": 12.0,
+            "minimum": 1.0,
+            "title": "Seviye",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ad",
+          "seviye"
+        ],
+        "title": "SubeGrubuOlustur",
+        "type": "object"
+      },
+      "SubeGrubuYanit": {
+        "properties": {
+          "ad": {
+            "title": "Ad",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "seviye": {
+            "title": "Seviye",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "ad",
+          "seviye"
+        ],
+        "title": "SubeGrubuYanit",
+        "type": "object"
+      },
+      "SubeIstisnasiOlustur": {
+        "properties": {
+          "ders_id": {
+            "format": "uuid",
+            "title": "Ders Id",
+            "type": "string"
+          },
+          "haftalik_saat": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Yalnızca \"ek\" için",
+            "title": "Haftalik Saat"
+          },
+          "sinif_id": {
+            "format": "uuid",
+            "title": "Sinif Id",
+            "type": "string"
+          },
+          "tur": {
+            "enum": [
+              "almaz",
+              "ek"
+            ],
+            "title": "Tur",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sinif_id",
+          "ders_id",
+          "tur"
+        ],
+        "title": "SubeIstisnasiOlustur",
+        "type": "object"
+      },
+      "SubeIstisnasiYanit": {
+        "properties": {
+          "atanmis": {
+            "description": "Şubeye bu ders atanmış mı",
+            "title": "Atanmis",
+            "type": "boolean"
+          },
+          "ders_adi": {
+            "title": "Ders Adi",
+            "type": "string"
+          },
+          "ders_id": {
+            "format": "uuid",
+            "title": "Ders Id",
+            "type": "string"
+          },
+          "haftalik_saat": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Haftalik Saat"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "sablonda": {
+            "description": "Ders şubenin kullandığı şablonda var mı",
+            "title": "Sablonda",
+            "type": "boolean"
+          },
+          "sinif_adi": {
+            "title": "Sinif Adi",
+            "type": "string"
+          },
+          "sinif_id": {
+            "format": "uuid",
+            "title": "Sinif Id",
+            "type": "string"
+          },
+          "tur": {
+            "enum": [
+              "almaz",
+              "ek"
+            ],
+            "title": "Tur",
+            "type": "string"
+          },
+          "uyari": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "İstisna ile ders dağılımı tutarsızsa açıklama (otomatik düzeltilmez)",
+            "title": "Uyari"
+          }
+        },
+        "required": [
+          "id",
+          "sinif_id",
+          "ders_id",
+          "tur",
+          "haftalik_saat",
+          "sinif_adi",
+          "ders_adi",
+          "sablonda",
+          "atanmis",
+          "uyari"
+        ],
+        "title": "SubeIstisnasiYanit",
         "type": "object"
       },
       "TopluOgretmenAta": {
@@ -2723,6 +3123,116 @@
         ]
       }
     },
+    "/api/ders-programi/istisnalar": {
+      "get": {
+        "description": "Şubelerin şablondan ayrıldığı dersler; ders dağılımıyla tutarsız olanlar `uyari` taşır.",
+        "operationId": "istisnalari_listele_api_ders_programi_istisnalar_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SubeIstisnasiYanit"
+                  },
+                  "title": "Response Istisnalari Listele Api Ders Programi Istisnalar Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Istisnalari Listele",
+        "tags": [
+          "şube istisnası"
+        ]
+      },
+      "post": {
+        "description": "\"Almaz\": şubenin o dersi kaldırılır ve şablon yeniden uygulansa da geri gelmez. \"Ek\": ders\nşubede yoksa istisnadaki saatle eklenir. 409: bu şubenin bu ders için zaten istisnası var.",
+        "operationId": "istisna_ekle_api_ders_programi_istisnalar_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubeIstisnasiOlustur"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubeIstisnasiYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Istisna Ekle",
+        "tags": [
+          "şube istisnası"
+        ]
+      }
+    },
+    "/api/ders-programi/istisnalar/{istisna_id}": {
+      "delete": {
+        "description": "İstisnayı kaldırır; \"almaz\" kalkınca ders şubenin şablonundaysa geri eklenir.",
+        "operationId": "istisna_kaldir_api_ders_programi_istisnalar__istisna_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "istisna_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Istisna Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IstisnaKaldirmaSonucu"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Istisna Kaldir",
+        "tags": [
+          "şube istisnası"
+        ]
+      }
+    },
     "/api/ders-programi/kisitlar": {
       "get": {
         "operationId": "listele_api_ders_programi_kisitlar_get",
@@ -3097,6 +3607,23 @@
                 }
               ],
               "title": "Sinif Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sube_grubu_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sube Grubu Id"
             }
           }
         ],
@@ -4899,6 +5426,198 @@
         "summary": "Guncelle",
         "tags": [
           "sınıf"
+        ]
+      }
+    },
+    "/api/sube-gruplari": {
+      "get": {
+        "operationId": "listele_api_sube_gruplari_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SubeGrubuYanit"
+                  },
+                  "title": "Response Listele Api Sube Gruplari Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Listele",
+        "tags": [
+          "şube grubu"
+        ]
+      },
+      "post": {
+        "operationId": "olustur_api_sube_gruplari_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubeGrubuOlustur"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubeGrubuYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Olustur",
+        "tags": [
+          "şube grubu"
+        ]
+      }
+    },
+    "/api/sube-gruplari/{kayit_id}": {
+      "delete": {
+        "operationId": "sil_api_sube_gruplari__kayit_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kayit_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Kayit Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sil",
+        "tags": [
+          "şube grubu"
+        ]
+      },
+      "get": {
+        "operationId": "getir_api_sube_gruplari__kayit_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kayit_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Kayit Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubeGrubuYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Getir",
+        "tags": [
+          "şube grubu"
+        ]
+      },
+      "patch": {
+        "operationId": "guncelle_api_sube_gruplari__kayit_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kayit_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Kayit Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubeGrubuGuncelle"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubeGrubuYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Guncelle",
+        "tags": [
+          "şube grubu"
         ]
       }
     }

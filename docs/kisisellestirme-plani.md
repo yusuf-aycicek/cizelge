@@ -289,6 +289,36 @@ Bunların `anlatim.py`'de Türkçe karşılıkları olur. Çelişen grupların a
   "Evet" bir `almaz` istisnası yazar. Şube sayfasında istisnalar listelenir ve geri alınabilir.
 - **Şablon raporu (5.4):** "atlanan (istisna)" sayısını da gösterir.
 
+**K5'te netleşen ayrıntılar** (kullanıcı yokken verilen kararlar; gerekçeleri `docs/gece-raporu.md`):
+- **Hangi şube hangi şablonu kullanır** tek kuraldır (`servisler.sablon_kaynaklari`, arayüzde aynısı
+  `kullananSubeler` / `subeninSablonu`): şubenin grubunun şablonunda en az bir ders varsa grubunki,
+  yoksa seviyesininki. Grup şablonu seviye şablonunun **yerine** geçer (üstüne eklenmez); ortak dersler
+  grubun şablonuna da yazılır. Boş grup şablonu bir şeyi değiştirmez.
+- **Uygulama:** `POST /seviye-sablonlari/uygula {seviye, sube_grubu_id?}` şablonu yalnızca onu kullanan
+  şubelere uygular. Seviyenin şablonu, kendi grubunun şablonunu kullanan şubelere dokunmaz; rapor
+  bunları `baska_sablonlu` olarak adıyla söyler. Rapor ayrıca `istisna_atlanan` ("almaz" yüzünden
+  eklenmeyen) ve `istisna_ek` (şubenin ek dersleri; eksikse eklenir) listelerini verir.
+- **İstisna ders dağılımını da değiştirir** (kullanıcı iki iş yapmasın): "almaz" konunca şubenin o
+  dersi kaldırılır; "almaz" kaldırılınca ders şubenin şablonundaysa şablondaki saatle (öğretmeni
+  boş) geri eklenir. "Ek" konunca ders yoksa eklenir; "ek" kaldırılınca ders şubede kalır (veri
+  silinmez). Şubenin ek dersi ders dağılımından silinirse "ek" istisnası da silinir (şablon
+  uygulanınca geri gelmesin). İstisna ile dağılım tutarsızsa (ör. "almaz" ama elle eklenmiş) liste
+  uyarır, otomatik düzeltmez.
+- **Arayüz:** kaldırma penceresinde "9-A bu dersi hiç almasın" kutusu (ders şubenin şablonundaysa
+  görünür, işaretli başlar); şablonda olmayan ders eklenirken "ek ders olarak kaydet" kutusu; şube
+  panelinde "Bu şubeye özel" listesi ("Geri al" / "İşareti kaldır"); ders satırında "Ek ders" rozeti.
+- **Grubun seviyesi değiştirilemez** (`PATCH /sube-gruplari` yalnızca ad): seviye, şubelerinin ve
+  şablonunun seviyesidir; değiştirmek için yeni grup açılır. Şube başka seviyedeki bir gruba
+  alınamaz; gruptaki şubenin seviyesi değiştirilemez (önce gruptan çıkarılır).
+- **Grup silinince** şubeler grupsuz kalır (`SET NULL`), grubun şablonu ve gruba özel ayarlar silinir
+  (CASCADE); arayüz silmeden önce bunu söyler.
+- **Gruba özel kural ayarı** (N, dağılım şekli; ders + grup dahil) çözücüde, API'de ve özel ayarların
+  özetinde ("11 Sayısal grubu · Matematik") var; ayrı bir seçim ekranı yok (K4'teki ders + şube
+  kararıyla aynı). `dagilim-sekilleri` kaynağı `ders_grup` olabilir.
+- **Migration'lar:** `cekirdek_0007_sube_grubu` (0006 K3'te kullanıldı) ve tek bir
+  `ders_programi_0007_sube_gruplari` (şablon grubu, kısıt kapsamı, istisna tablosu). Kısıtın yeni
+  benzersizlik kuralının adı, kuraldan üretilen ad 63 karakteri aşacağı için `uq_kisit_kapsam`.
+
 ## 7. API
 
 | Uç | Ne |

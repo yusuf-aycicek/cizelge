@@ -155,12 +155,14 @@ Tüm tablolarda `id` (uuid) ve `okul_id` (FK) bulunur. Aşağıda yalnızca diğ
 | `kullanici` | email, sifre_hash, ad, rol | Yönetici hesapları (rol: mudur / mudur_yardimcisi). E-posta bütün sistemde, büyük/küçük harf ayrımsız tektir. Her okulda en az bir müdür bulunur |
 | `oturum` | kullanici_id, jeton_ozeti, son_kullanim, hareketsizlik_siniri, bitis_mutlak | Giriş oturumları. Kullanıcı silinince silinir |
 | `ogretmen` | ad, brans | |
-| `sinif` | ad, seviye | Şube, ör. 9-A |
+| `sube_grubu` | ad, seviye | Aynı seviyedeki şubelerin grubu, ör. "11 Sayısal" (K5) |
+| `sinif` | ad, seviye, sube_grubu_id (boş olabilir) | Şube, ör. 9-A; grubun seviyesi şubeninkiyle aynı |
 | `ders` | ad, kisa_ad | |
-| `seviye_sablonu` | seviye, ders_id, haftalik_saat | Seviyenin ders listesi |
+| `seviye_sablonu` | seviye, sube_grubu_id (boş olabilir), ders_id, haftalik_saat | Seviyenin ya da şube grubunun ders listesi. Grubun şablonunda ders varsa grubun şubeleri onu kullanır |
+| `sube_ders_istisnasi` | sinif_id, ders_id, tur (almaz / ek), haftalik_saat (yalnızca ek) | Şubenin şablondan ayrıldığı ders; şablon yeniden uygulanınca korunur |
 | `ders_atama` | sinif_id, ders_id, ogretmen_id (boş olabilir), haftalik_saat | Çözücünün asıl girdisi |
 | `musaitlik` | ogretmen_id, gun, saat, durum (gelemez / tercih_etmez) | |
-| `kisit` | tur, parametreler (JSON), zorunlu, agirlik, ders_id, sinif_id, ogretmen_id (kapsam; boş olabilir) | Okul geneli kurallar; kapsam doluysa o derse, şubeye ya da öğretmene özel ayar (ADR 0016) |
+| `kisit` | tur, parametreler (JSON), zorunlu, agirlik, ders_id, sinif_id, sube_grubu_id, ogretmen_id (kapsam; boş olabilir) | Okul geneli kurallar; kapsam doluysa o derse, şubeye, şube grubuna ya da öğretmene özel ayar (ADR 0016) |
 | `program` | ad, durum, hata_mesaji, temel_program_id (boş olabilir), sure_siniri_sn, olusturma, bitis | Her üretim denemesi bir kayıt. `temel_program_id` doluysa en az değişiklikle güncellemedir |
 | `yerlesim` | program_id, ders_atama_id, gun, saat, kilitli | Programın hücreleri |
 
@@ -325,8 +327,8 @@ ne yapıldığını söyler. Öğretmen, ders ve şube bazında istisnalar için
 | Öğretmenin günlük ders sınırı (M) | 8 | Var: okul geneli ve öğretmene özel (öğretmen sayfası, K2) |
 | Öğretmene boş gün hedefi | Okul geneli 1; öğretmene özel 0, 1 ya da 2 | Var: okul geneli ve öğretmene özel (öğretmen sayfası, K2) |
 | Dersin bloklara bölünmesi | 1 saat: 1; 2: 2; 3: 2+1; 4: 2+2; 5: 2+2+1; 6: 2+2+2 | Var (K4): okul önerisi ve kapatma (Okul ayarları), derse özel şekil (Dersler), ders + şubeye özel (API; arayüzde özel ayarların özetinde görünür). ADR 0017 |
-| Şube grupları (alanlar: sayısal, sözel, eşit ağırlık, dil) | Grup = seviye | Tasarımda (a) |
-| Şubeye özel "bu dersi almaz / ek alır" | Yok | Tasarımda (a) |
+| Şube grupları (alanlar: sayısal, sözel, eşit ağırlık, dil) | Grup = seviye | Var (K5): Sınıflar sayfasında; şablon seviyeye ya da gruba; N ve dağılım şekli gruba özel (API, özel ayarların özeti) |
+| Şubeye özel "bu dersi almaz / ek alır" | Yok | Var (K5): ders dağılımında; şablon yeniden uygulanınca korunur, raporda görünür |
 | Dersin saat tercihi (ör. Matematik sabah) | Yok | Tasarımda (f) |
 | Öğretmenin geldiği günde en az ders | 2, esnek ("bir saat için gelmem") | Tasarımda (g) |
 | Aynı dersin günlere yayılması | Açık, "Önemli" | Tasarımda (h) |

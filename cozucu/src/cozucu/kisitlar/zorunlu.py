@@ -184,7 +184,8 @@ class BlokDeseni(KisitKurali):
     art arda, günün içinde ve öğle arasını kesmeden (docs/kisisellestirme-plani.md 4.1).
 
     Parametreler: okul geneli `otomatik` (haftalık saate göre önerilen desen) ve `varsayilanlar`
-    (saat → desen, öneriyi değiştirir); derse ya da ders + şubeye özel `desen` (`[]` = blok yok).
+    (saat → desen, öneriyi değiştirir); derse, ders + şubeye ya da ders + şube grubuna özel `desen`
+    (`[]` = blok yok).
     Hangi atamaya hangi desenin uygulanacağı `cozucu.blok.BlokHesabi`'dan gelir (tek kaynak).
 
     Model: `bas[g, s, b]` = "b saatlik blok g günü s saatinde başlıyor". Yalnızca bloğun sığdığı
@@ -194,7 +195,7 @@ class BlokDeseni(KisitKurali):
     """
 
     tur = BLOK_DESENI_TURU
-    kapsamlar = frozenset({"ders", "sube"})
+    kapsamlar = frozenset({"ders", "sube", "sube_grubu"})
     zorunlu_eksenler = frozenset({"ders"})
 
     def __init__(self, otomatik: bool = True, varsayilanlar: dict | None = None, desen: list | None = None) -> None:

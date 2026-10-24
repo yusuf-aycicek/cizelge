@@ -149,7 +149,7 @@ DENEME_EPOSTA_KALIBI = r"^(tasma|ekran|bos)-[0-9]+@ornek\.test$"
 # Listede olmayan okula ait bir tablo varsa silme başlamadan durulur (yeni tablo eklenince buraya
 # da eklenmeli; test denetler).
 SILME_SIRASI = ("yerlesim", "program", "kisit", "musaitlik", "ders_atama", "seviye_sablonu",
-                "oturum", "kullanici", "ogretmen", "sinif", "ders")
+                "sube_ders_istisnasi", "oturum", "kullanici", "ogretmen", "sinif", "sube_grubu", "ders")
 
 
 def okula_ait_tablolar(baglanti) -> set[str]:
