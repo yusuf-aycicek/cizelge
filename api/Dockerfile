@@ -6,18 +6,23 @@ FROM python:3.14-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 
+# Bütün paketler kilitli sürümlerle kurulur (api/requirements.lock, pip constraints): temiz kurulum
+# testlerin geçtiği sürümleri alır, yeni çıkan bir sürüm imajı sessizce değiştirmez. Çözücü, API ve
+# worker aynı ortamda olduğu için tek kilit dosyası kullanılır.
+COPY api/requirements.lock api/requirements.lock
+
 # Önce çözücü (OR-Tools ile), sonra API. Çözücü değişmedikçe onun katmanı önbellekten gelir.
 COPY cozucu/pyproject.toml cozucu/pyproject.toml
 COPY cozucu/src cozucu/src
-RUN pip install --no-cache-dir ./cozucu
+RUN pip install --no-cache-dir -c api/requirements.lock ./cozucu
 
 COPY api/pyproject.toml api/pyproject.toml
 COPY api/src api/src
-RUN pip install --no-cache-dir ./api
+RUN pip install --no-cache-dir -c api/requirements.lock ./api
 
 COPY worker/pyproject.toml worker/pyproject.toml
 COPY worker/src worker/src
-RUN pip install --no-cache-dir ./worker
+RUN pip install --no-cache-dir -c api/requirements.lock ./worker
 
 # Örnek okul komutunun veri setleri (docker compose exec api python -m okulapi ornek-okul ...).
 COPY veri/mini.json veri/gercekci.json veri/

@@ -30,7 +30,7 @@ try {
   };
   // Uzun adlı kayıtlar: taşma en çok uzun metinle ortaya çıkar.
   await istek("POST", "/api/kayit", {
-    okul: { ad: "Mustafa Kemal Atatürk Fen ve Teknoloji Anadolu Lisesi", gun_sayisi: 5, gunluk_ders_saati: 8 },
+    okul: { ad: "Çizelge Örnek Fen ve Teknoloji Anadolu Lisesi Deneme Okulu", gun_sayisi: 5, gunluk_ders_saati: 8 },
     ad: "Denetim", email: `tasma-${Date.now()}@ornek.test`, sifre: "ekran-goruntusu-parolasi",
   });
   const sinif = await istek("POST", "/api/siniflar", { ad: "9-A", seviye: 9 });

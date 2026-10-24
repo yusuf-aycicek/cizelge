@@ -28,8 +28,8 @@ from okulapi.ayarlar import Ayarlar
 
 ORNEK_EMAIL = "mudur@ornek.test"
 ORNEK_PAROLA = "ornek-okul-parolasi"
-ORNEK_OKUL = "Atatürk Anadolu Lisesi"
-ORNEK_MUDUR = "Hatice Yıldız"
+ORNEK_OKUL = "Çizelge Örnek Anadolu Lisesi"
+ORNEK_MUDUR = "Deneme Müdür"
 # Depodan çalışırken depo kökündeki veri/; konteynerde paket kurulu olduğu için imajın kopyası
 # (api/Dockerfile: OKULAPI_VERI_DIZINI=/app/veri).
 VERI = Path(os.environ.get("OKULAPI_VERI_DIZINI") or Path(__file__).resolve().parents[3] / "veri")

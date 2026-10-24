@@ -41,7 +41,7 @@ describe("korumalı sayfalar ve giriş", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Öğretmenler" })).toBeInTheDocument();
     expect(govdeler).toEqual([{ email: "ayse@okul.test", sifre: PAROLA }]);
     // Üst çubukta okul ve kullanıcı
-    expect(screen.getByText("Atatürk Anadolu Lisesi")).toBeInTheDocument();
+    expect(screen.getByText("Çizelge Örnek Anadolu Lisesi")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Ayşe Yılmaz/ })).toHaveAttribute("href", "/hesabim");
   });
 
@@ -119,7 +119,7 @@ describe("oturum süresinin dolması ve çıkış", () => {
 
 describe("kayıt", () => {
   async function formuDoldur(kullanici: ReturnType<typeof uygulamayiCiz>["kullanici"], degisen: Record<string, string> = {}) {
-    const deger = { okul: "Atatürk Anadolu Lisesi", saat: "8", ad: "Ayşe Yılmaz", email: "ayse@okul.test", sifre: PAROLA, tekrar: PAROLA, ...degisen };
+    const deger = { okul: "Çizelge Örnek Anadolu Lisesi", saat: "8", ad: "Ayşe Yılmaz", email: "ayse@okul.test", sifre: PAROLA, tekrar: PAROLA, ...degisen };
     await kullanici.type(await screen.findByLabelText(/Okulun adı/), deger.okul);
     const saat = screen.getByLabelText(/Günde kaç ders saati/);
     await kullanici.clear(saat);
@@ -143,9 +143,9 @@ describe("kayıt", () => {
     await kullanici.click(screen.getByRole("button", { name: "Okulu kaydet" }));
 
     expect(await screen.findByRole("heading", { level: 1, name: "Hoş geldiniz" })).toBeInTheDocument();
-    expect(await screen.findByText("Atatürk Anadolu Lisesi kaydedildi. Hoş geldiniz!")).toBeInTheDocument();
+    expect(await screen.findByText("Çizelge Örnek Anadolu Lisesi kaydedildi. Hoş geldiniz!")).toBeInTheDocument();
     expect(govdeler).toEqual([{
-      okul: { ad: "Atatürk Anadolu Lisesi", gun_sayisi: 6, gunluk_ders_saati: 8 },
+      okul: { ad: "Çizelge Örnek Anadolu Lisesi", gun_sayisi: 6, gunluk_ders_saati: 8 },
       ad: "Ayşe Yılmaz", email: "ayse@okul.test", sifre: PAROLA,
     }]);
   });

@@ -14,7 +14,7 @@ import type { Ben } from "../kimlik/oturum";
 export const BEN_ORNEK: Ben = {
   kullanici: { id: "k1", ad: "Ayşe Yılmaz", email: "ayse@okul.test", rol: "mudur" },
   okul: {
-    id: "o1", ad: "Atatürk Anadolu Lisesi", gun_sayisi: 5, gunluk_ders_saati: 8, gun_saatleri: [8, 8, 8, 8, 8],
+    id: "o1", ad: "Çizelge Örnek Anadolu Lisesi", gun_sayisi: 5, gunluk_ders_saati: 8, gun_saatleri: [8, 8, 8, 8, 8],
     ogle_arasi_sonra: null, ilk_ders_baslangic: null, ders_suresi_dk: 40, teneffus_dk: 10, ogle_arasi_dk: 40,
     zil_saatleri: null, ogle_arasi_zili: null,
   },

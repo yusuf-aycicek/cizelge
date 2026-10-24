@@ -14,7 +14,7 @@ const hucre = (gun: number, saat: number, ders: string, sube: string, uzunluk = 
 });
 
 const ICERIK: Icerik = {
-  tur: "ogretmen", yayinda: true, yayin_zamani: "2026-10-24T09:00:00Z", okul: "Atatürk Anadolu Lisesi",
+  tur: "ogretmen", yayinda: true, yayin_zamani: "2026-10-24T09:00:00Z", okul: "Çizelge Örnek Anadolu Lisesi",
   program: "Güz Programı",
   hafta: { gun_adlari: ["Pazartesi", "Salı"], gun_saatleri: [3, 3], saat_sayisi: 3, ogle_arasi_sonra: null, zil: null,
     ogle_zili: null },

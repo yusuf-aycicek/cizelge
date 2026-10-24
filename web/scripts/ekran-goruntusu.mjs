@@ -81,7 +81,7 @@ const AKISLAR = {
     await kaydet(s, "2-giris-hatali.png");
 
     await s.getByRole("link", { name: "Okulunuzu kaydedin" }).click();
-    await s.getByLabel(/Okulun adı/).fill("Atatürk Anadolu Lisesi");
+    await s.getByLabel(/Okulun adı/).fill("Çizelge Örnek Anadolu Lisesi");
     await s.getByLabel(/Adınız ve soyadınız/).fill("Ayşe Yılmaz");
     await s.getByLabel(/^Parola/).first().fill("kisa");
     await s.getByLabel(/Parola \(tekrar\)/).fill("baska");
@@ -130,7 +130,7 @@ AKISLAR["5.3"] = async (tarayici, kaydet) => {
     return y.json();
   };
   await istek("POST", "/api/kayit", {
-    okul: { ad: "Atatürk Anadolu Lisesi", gun_sayisi: 5, gunluk_ders_saati: 8 },
+    okul: { ad: "Çizelge Örnek Anadolu Lisesi", gun_sayisi: 5, gunluk_ders_saati: 8 },
     ad: "Ayşe Yılmaz", email: `ekran-${Date.now()}@ornek.test`, sifre: "ekran-goruntusu-parolasi",
   });
   const s = await baglam.newPage();
@@ -206,7 +206,7 @@ AKISLAR["5.4"] = async (tarayici, kaydet) => {
     return y.json();
   };
   await istek("POST", "/api/kayit", {
-    okul: { ad: "Atatürk Anadolu Lisesi", gun_sayisi: 5, gunluk_ders_saati: 8 },
+    okul: { ad: "Çizelge Örnek Anadolu Lisesi", gun_sayisi: 5, gunluk_ders_saati: 8 },
     ad: "Ayşe Yılmaz", email: `ekran-${Date.now()}@ornek.test`, sifre: "ekran-goruntusu-parolasi",
   });
   const o = {};
@@ -1132,7 +1132,7 @@ try {
   const baglam = await tarayici.newContext({ locale: "tr-TR" });
   const kayit = await baglam.request.post(ADRES + "/api/kayit", {
     headers: { Origin: ADRES },
-    data: { okul: { ad: "Atatürk Anadolu Lisesi" }, ad: "Ayşe Yılmaz", email: `ekran-${Date.now()}@ornek.test`, sifre: "ekran-goruntusu-parolasi" },
+    data: { okul: { ad: "Çizelge Örnek Anadolu Lisesi" }, ad: "Ayşe Yılmaz", email: `ekran-${Date.now()}@ornek.test`, sifre: "ekran-goruntusu-parolasi" },
   });
   if (!kayit.ok()) throw new Error(`Ekran görüntüsü için kayıt başarısız: ${kayit.status()} ${await kayit.text()}`);
   for (const g of liste) {

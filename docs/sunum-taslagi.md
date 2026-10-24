@@ -77,7 +77,7 @@ Yazılım Tasarımı ve Mimarisi dönem projesi · Yusuf Ayçiçek · 240541155
 - Süre yetmezse "süre yetmedi", tek tıkla daha uzun deneme
 - En az değişiklikle güncelleme: temel programdan her sapma ceza
 
-**Görsel:** `docs/ekranlar/6/11-program-olusturulamadi.png`
+**Görsel:** `docs/ekranlar/teslim/07-on-kontrol.png`
 
 ## Slayt 9 · Veri modeli ve nesne görünümü
 

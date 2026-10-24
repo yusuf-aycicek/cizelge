@@ -4,6 +4,10 @@ Kullanıcı yokken yapılan iş: Parça 1 (iki aşamalı çözüm) ve Parça 2 (
 istisnalar). Her alt parça testleri geçince commit edildi; durum ayrıca `docs/arayuz-plani.md`
 bölüm 7'de. Git'e push yapılmadı.
 
+> Not (teslim, 2026-10-24): geliştirme adımlarında alınan ekran görüntüleri (`docs/ekranlar/<adım>/`)
+> teslimde depodan çıkarıldı; `a6c50df` ve önceki commit'lerde durur. Depoda yalnızca
+> `docs/ekranlar/teslim/` kaldı.
+
 ## Durum
 
 | Parça | Durum | Commit |

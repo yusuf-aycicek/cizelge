@@ -101,6 +101,15 @@ services:
       - web_paketleri:/app/node_modules
     ports:
       - "${WEB_PORT:-5173}:5173"
+    # Arayüz hazır mı: Vite sayfayı veriyor mu. İlk açılışta npm ci birkaç dakika sürebilir;
+    # start_period boyunca başarısızlık sayılmaz. `docker compose up --wait` bu yüzden arayüz
+    # açılana kadar bekler. 127.0.0.1: alpine'daki wget localhost'u önce IPv6'ya çözer.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:5173/"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 300s
     depends_on:
       api:
         condition: service_healthy

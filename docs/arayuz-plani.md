@@ -2,6 +2,10 @@
 
 Durum: **onaylandı (2026-10-15).** Kararlar bölüm 8'de. Alt adım durumu bölüm 7'de.
 
+> Not (teslim, 2026-10-24): geliştirme adımlarında alınan ekran görüntüleri (`docs/ekranlar/<adım>/`)
+> teslimde depodan çıkarıldı; `a6c50df` ve önceki commit'lerde durur. Depoda yalnızca
+> `docs/ekranlar/teslim/` kaldı.
+
 Kabul (CLAUDE.md bölüm 8, yapım sırası 5): okul ayarları, listeler, seviye şablonu, ders atama ve
 müsaitlik çizelgesi arayüzden girilebilir. Ek hedef: mini set baştan sona yalnızca arayüz
 kullanılarak girilebilir ve bunu bir uçtan uca test kanıtlar.

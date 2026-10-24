@@ -69,8 +69,12 @@ sürer):
 docker compose up --build -d --wait
 ```
 
-`--wait`, bütün servisler sağlıklı olana kadar bekler. Beş konteyner çalışır: `db` (PostgreSQL 17),
+`--wait`, bütün servisler sağlıklı olana kadar bekler; arayüz de sayfayı vermeye başlayınca
+döner (ilk açılışta `npm ci` yüzünden birkaç dakika). Beş konteyner çalışır: `db` (PostgreSQL 17),
 `redis` (iş kuyruğu), `api` (FastAPI), `worker` (program üretimi), `web` (arayüz).
+Bağımlılıklar kilitli sürümlerle kurulur: Python paketleri `api/requirements.lock` (çözücüyü tek
+başına geliştirmek için `cozucu/requirements.lock`), arayüz paketleri `web/package-lock.json`
+(`npm ci`); böylece temiz kurulum testlerin geçtiği sürümleri alır.
 
 **2. Migration'lar** kendiliğinden uygulanır: `api` konteyneri başlarken önce
 `python -m okulapi.migrasyon upgrade heads` çalıştırır, sonra API'yi açar. Elle çalıştırmak
@@ -152,8 +156,11 @@ Gerçekçi örnek okulla, temiz bir kurulumda alınmıştır (`docs/ekranlar/tes
 | Üretilen program, şube görünümü | Öğretmen görünümü |
 | ![İndir menüsü](docs/ekranlar/teslim/05-indir-menusu.png) | ![Program listesi](docs/ekranlar/teslim/06-programlar.png) |
 | PDF ve Excel çıktıları | Programlar ve kalite özeti |
+| ![Ön kontrol](docs/ekranlar/teslim/07-on-kontrol.png) | |
+| Çözüm yoksa: ön kontrol nedeni kullanıcının diliyle söyler, üretme kapanır (deneme için günlük ders sınırı geçici olarak 1 yapıldı) | |
 
-Geliştirme sırasında her adımın sonunda alınan görüntüler `docs/ekranlar/<adım>/` altındadır.
+Geliştirme sırasında her adımın sonunda alınan görüntüler (`docs/ekranlar/<adım>/`) teslimde
+depodan çıkarıldı; git geçmişinde (`a6c50df` ve öncesi) durur.
 
 ## Testler
 
@@ -167,13 +174,13 @@ docker compose up -d db
 Çözücü (veritabanı gerekmez):
 
 ```bash
-cd cozucu && python -m venv .venv && .venv/Scripts/pip install -e ".[test]" && .venv/Scripts/python -m pytest
+cd cozucu && python -m venv .venv && .venv/Scripts/pip install -c requirements.lock -e ".[test]" && .venv/Scripts/python -m pytest
 ```
 
 API (çözücü ve worker paketleriyle birlikte; kuyruk bellek içi ikizle, RQ fakeredis ile sınanır):
 
 ```bash
-cd api && python -m venv .venv && .venv/Scripts/pip install -e ../cozucu -e ".[test]" -e ../worker && .venv/Scripts/python -m pytest
+cd api && python -m venv .venv && .venv/Scripts/pip install -c requirements.lock -e ../cozucu -e ".[test]" -e ../worker && .venv/Scripts/python -m pytest
 ```
 
 Arayüz: tip denetimi, lint ve testler (Vitest + Testing Library + MSW; API gerekmez):
@@ -207,7 +214,7 @@ cd cozucu && .venv/Scripts/python -m cozucu ../veri/mini.json --sinif 9-A
 ## Geliştirme notları
 
 - **Arayüzü Docker olmadan** çalıştırmak için (Node 22; API `localhost:8000`'de çalışıyor olmalı):
-  `cd web && npm install && npm run dev`. Vite'ın proxy'si `/api` isteklerini API'ye iletir
+  `cd web && npm ci && npm run dev`. Vite'ın proxy'si `/api` isteklerini API'ye iletir
   (ADR 0013). Yayında arayüz derlenir (`npm run build`) ve API ile aynı alan adının arkasına, bir ters
   vekil sunucuyla (nginx, Caddy) HTTPS üzerinden konur; `OKULAPI_CEREZ_SECURE` verilmez (varsayılan
   açık), `OKULAPI_IZINLI_KOKENLER` yayın adresini içerir.
