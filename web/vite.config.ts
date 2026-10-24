@@ -18,6 +18,8 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    // Uçtan uca testler (e2e/) Playwright'ındır, Vitest'in değil.
+    include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["./src/test/kurulum.ts"],
     // Varsayılan 5 sn; yük altında akış testleri (giriş + yönlendirme + birkaç istek) aşabiliyordu.
     testTimeout: 15_000,
