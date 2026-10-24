@@ -47,7 +47,7 @@ export const ORNEK_KURALLAR: Kural[] = [
   esnek("ardisik_ders", "Bir dersin saatleri arka arkaya", 2),
   // İkincil kurallar (K6). Eski testler sıra numarasıyla eriştiği için sona eklendi.
   { ...esnek("ders_saat_tercihi", "Dersin saat tercihi", 3), kapsamlar: ["ders", "sube", "sube_grubu"], zorunlu_eksenler: ["ders"] },
-  { ...esnek("gunluk_en_az_ders", "Öğretmen bir iki saat için gelmesin", 3), parametreler: { k: 2 }, varsayilan_parametreler: { k: 2 },
+  { ...esnek("gunluk_en_az_ders", "Öğretmen bir iki saat için gelmesin", 3), parametreler: { k: 1 }, varsayilan_parametreler: { k: 1 },
     kapsamlar: ["ogretmen"] },
   { ...esnek("ders_yayilimi", "Aynı ders günlere yayılsın", 2), parametreler: { yayilsin: false }, varsayilan_parametreler: { yayilsin: false },
     kapsamlar: ["ders", "sube", "sube_grubu"], zorunlu_eksenler: ["ders"] },

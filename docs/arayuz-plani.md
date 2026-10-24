@@ -768,6 +768,7 @@ Kullanım limiti dolabileceği için her alt parça ayrı commit edilir; yarıda
 | K6e | Arayüz: "Özel ayar ekle"de dört yeni kural (saat tercihi: "yalnızca seçilen saatlerde olsun" / "seçilen saatlerde olmasın" ve saat kutuları, öğle arasından hemen sonraki saat adıyla, "sabah saatlerini seç" kısayolu; en az ders: sayı; yayılım: açık/kapalı; yük: alt ve üst eşik). Özel ayarların özetinde sade cümleler ("5., 6. saatlerde olmasın", "haftada en az 15 saat"). Okul ayarları "Gelişmiş: kuralların önemi ve ikincil kurallar": yeni kuralların önemi, "geldiği günde en az kaç ders", "bütün derslerde açık" kutusu, yük eşikleri; tek "Gelişmiş ayarları kaydet". Kalite özetinde "az dersli gün", "art arda gün" ve (yalnızca sıfırdan büyükse) "saat tercihi". Testler: 5 yeni web testi | Bitti |
 | K6f | Örnek okulda deneme ve gerçekçi sette ölçüm (aşağıda "K6'dan notlar"; docs/olcumler.md "İkincil kurallar") | Bitti |
 | K6g | Yayılım okul genelinde kapalı, yalnızca derse (ders + şube/grup) özel açılır (ADR 0024). "Gelişmiş"te kutu yerine yönlendirme ve çatışma cümlesi; API okul geneli açmayı reddeder; kalite özetinde "art arda gün" yalnızca sıfırdan büyükse. Yeniden ölçüm: docs/olcumler.md | Bitti |
+| K6h | "Geldiği günde en az ders" okul genelinde kapalı (k = 1), okul ya da öğretmen açar (ADR 0025); kalite özetinde "az dersli gün" yalnızca sıfırdan büyükse; `cozucu.olcum --agirlik`. Ölçüm: kapalıyken eski ölçüler 69 (P1 ile aynı), "Önemsiz"de 98 | Bitti |
 | T | Tasarım rötuşu: iki seçenek gösterildi, kullanıcı A'yı seçti. Koyu espresso menü, seçili öğede kiremitten turuncuya geçiş, sayfa başlığında ve karşılamada dolu geçişli bant ve beyaz yazı, #efe4d6 zemin, pastel sayı kartları. Hepsi belirteçlerle (stil/belirtecler.css), kontrast testi yeni çiftlerle | Bitti |
 
 Tasarım rötuşundan notlar:
@@ -792,8 +793,8 @@ K6'dan notlar:
   kaldırdı, 5 deneme programını sildi; kurallar ve program listesi başlangıçla birebir aynı.
 - **Ölçüm:** sınıf boşluğu her tohumda 0, ama yayılım kuralı öğretmen konforunu kötüleştiriyor
   (pencere 8 → 23, eksik boş gün 11 → 19). Kullanıcı kararıyla yayılım okul genelinde kapatıldı
-  (K6g, ADR 0024); yeniden ölçümde eski ölçüler 156 → 123 (P1: 69). Kalan fark için "günde en az
-  ders" kuralının ayrıca ölçülmesi açık bir soru.
+  (K6g, ADR 0024); yeniden ölçümde eski ölçüler 156 → 123 (P1: 69). Kalan farkın kaynağı "günde
+  en az ders" çıktı (kapalıyken 69, "Önemsiz"de 98); o da okul genelinde kapatıldı (K6h, ADR 0025).
 
 ## 8. Açık sorular
 

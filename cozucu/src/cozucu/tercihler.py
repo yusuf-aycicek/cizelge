@@ -22,8 +22,10 @@ EN_AZ_DERS_TURU = "gunluk_en_az_ders"
 YAYILIM_TURU = "ders_yayilimi"
 # Öğretmenin haftalık yük eşikleri (uyarı; çözücüyü etkilemez). 0 = eşik yok.
 HAFTALIK_YUK_TURU = "haftalik_yuk"
-# Öğretmen geldiği bir günde en az kaç ders saati vermeli ("bir saat için gelmem").
-VARSAYILAN_GUNLUK_EN_AZ_DERS = 2
+# Öğretmen geldiği bir günde en az kaç ders saati vermeli ("bir saat için gelmem"). Okul genelinde
+# kapalı (1 = sınır yok, ADR 0025): boş gün ve pencereyle çatışıyor. Okul geneli ya da öğretmene
+# özel 2 ve üstü verilerek açılır.
+VARSAYILAN_GUNLUK_EN_AZ_DERS = 1
 
 
 def cezali_saatler(girdi: CozumGirdisi, sinif_id: str, ders_id: str) -> frozenset[int]:

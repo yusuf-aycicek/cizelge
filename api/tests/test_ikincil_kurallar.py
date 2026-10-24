@@ -24,7 +24,7 @@ def okul(istemci, okul_olustur):
 def test_kurallar_listede_kapsamlariyla(istemci, okul):
     k = {x["tur"]: x for x in istemci.get(f"{DP}/kurallar", headers=okul["b"]).json()}
     assert (k[SAAT]["kapsamlar"], k[SAAT]["zorunlu_eksenler"], k[SAAT]["parametreler"]) == (["ders", "sube", "sube_grubu"], ["ders"], {})
-    assert (k[EN_AZ]["kapsamlar"], k[EN_AZ]["parametreler"], k[EN_AZ]["seviye"]) == (["ogretmen"], {"k": 2}, "onemli")
+    assert (k[EN_AZ]["kapsamlar"], k[EN_AZ]["parametreler"], k[EN_AZ]["seviye"]) == (["ogretmen"], {"k": 1}, "onemli")
     assert (k[YAYILIM]["kapsamlar"], k[YAYILIM]["zorunlu_eksenler"], k[YAYILIM]["parametreler"]) == (
         ["ders", "sube", "sube_grubu"], ["ders"], {"yayilsin": False})
 

@@ -319,5 +319,26 @@ boş gün × 4 (üç ölçümde de aynı ağırlıklar, doğrudan karşılaştı
 - Sınıf boşluğu her tohumda 60 ve 120 sn'de 0; ilk program 5,5-8,5 sn. Süre sınırı kararı değişmez.
 - Eski ölçüler 156'dan 123'e indi, ama P1'in (69) üstünde kaldı: pencere ortalama 8 → 18,
   eksik boş gün 11 → 15. Açık kalan K6 kuralı "günde en az ders" (her tohumda 0-1 gün kalıyor,
-  yani çözücü ona uyuyor). Farkın büyük olasılıkla bu kuraldan ve modelin büyümesinden geldiği
-  düşünülüyor; kural kapatılarak ayrıca ölçülmedi.
+  yani çözücü ona uyuyor). Kural kapatılarak ayrıca ölçüldü (aşağıda).
+
+### "Geldiği günde en az ders" kapalı ve "Önemsiz" (ADR 0025, 2026-10-24)
+
+Aynı koşullar; yayılım okul genelinde kapalı. Kural `python -m cozucu.olcum ../veri/gercekci.json
+--noktalar 30 60 120 --agirlik gunluk_en_az_ders=0` (ve `=1`) ile kapatıldı ya da hafifletildi.
+Ham sonuçlar: `scripts/sonuclar/k6-en-az-ders-kapali.md`, `k6-en-az-ders-onemsiz.md`.
+
+| 120 sn (tohum 0 / 1 / 2) | Toplam ceza | Eski ölçüler (ort.) | Sınıf boşluğu | Pencere | Tercih etmez | Eksik boş gün | Az dersli gün | Art arda gün |
+|---|---|---|---|---|---|---|---|---|
+| P1 (K6 öncesi) | 82 / 67 / 58 | 69 | 0 / 0 / 0 | 10 / 9 / 6 | 0 / 0 / 0 | 13 / 10 / 10 | — | — |
+| K6 (yayılım açık, en az ders 3) | 337 / 269 / 247 | 156 | 0 / 0 / 0 | 34 / 18 / 18 | 2 / 4 / 0 | 24 / 17 / 16 | 1 / 1 / 1 | 63 / 62 / 63 |
+| ADR 0024 (yayılım kapalı, en az ders 3) | 136 / 122 / 114 | 123 | 0 / 0 / 0 | 24 / 16 / 15 | 0 / 3 / 1 | 16 / 14 / 16 | 0 / 1 / 0 | 0 / 0 / 0 |
+| En az ders kapalı (0) | 60 / 67 / 79 | **69** | 0 / 0 / 0 | 8 / 9 / 9 | 0 / 0 / 0 | 9 / 10 / 13 | 3 / 3 / 2 | 0 / 0 / 0 |
+| En az ders "Önemsiz" (1) | 129 / 78 / 92 | 98 | 0 / 0 / 0 | 17 / 11 / 11 | 4 / 1 / 0 | 14 / 10 / 14 | 2 / 0 / 3 | 0 / 0 / 0 |
+
+- Kural kapalıyken fark kapanıyor: pencere ortalama 8,7, eksik boş gün 10,7, eski ölçüler 69
+  (P1 ile aynı). Kalan farkın kaynağı bu kural.
+- "Önemsiz" de yetmiyor (pencere 13 > 10, eksik boş gün 12,7 > 12). Kural okul genelinde
+  varsayılan olarak kapatıldı (k = 1); okul ya da öğretmen bazında açılır (ADR 0025).
+- Toplam ceza sütunları farklı ağırlıklarla hesaplandığı için doğrudan karşılaştırılmaz; "eski
+  ölçüler" sütunu aynı ağırlıklarla hesaplanır.
+- Sınıf boşluğu her ölçümde 60 ve 120 sn'de 0; ilk program 5,5-8,5 sn. Süre sınırı kararı değişmez.

@@ -100,7 +100,9 @@ KURAL_METINLERI: dict[str, tuple[str, str]] = {
     "gunluk_en_az_ders": (
         "Öğretmen bir iki saat için gelmesin",
         "Öğretmen okula geldiği günde en az bu kadar derse girer (\"bir saat için gelmem\"). Haftalık "
-        "dersi buna yetmeyen öğretmen için zorlanmaz.",
+        "dersi buna yetmeyen öğretmen için zorlanmaz. Okul genelinde kapalıdır (1: sınır yok); okul "
+        "geneli ya da öğretmene özel açılabilir, ama öğretmenlerin boş gününü ve boş saatlerini "
+        "zorlaştırabilir.",
     ),
     "ders_yayilimi": (
         "Aynı ders günlere yayılsın",

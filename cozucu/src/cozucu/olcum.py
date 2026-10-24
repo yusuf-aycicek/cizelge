@@ -136,10 +136,24 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--bloksuz", action="store_true", help="blok dersleri kapat (K4 öncesiyle karşılaştırmak için)")
     p.add_argument("--tek-asamali", action="store_true", help="iki aşamalı çözümü kapat (ADR 0018 öncesi)")
     p.add_argument("--pay", type=float, help="ilk aşamaya ayrılan en fazla süre payı (0-1)")
+    p.add_argument("--agirlik", metavar="TUR=SAYI", action="append", default=[],
+                   help="esnek bir kuralın okul geneli ağırlığı (0: kapalı), ör. gunluk_en_az_ders=0")
     a = p.parse_args(argv)
     girdi = girdi_oku(a.veri)
     if a.bloksuz:
         girdi = replace(girdi, kisitlar=[*girdi.kisitlar, KisitTanimi(BLOK_DESENI_TURU, {"otomatik": False})])
+    agirliklar = {}
+    for ifade in a.agirlik:
+        tur, _, sayi = ifade.partition("=")
+        agirliklar[tur] = int(sayi)
+    if agirliklar:
+        from cozucu.kisitlar import VARSAYILAN_KISITLAR
+
+        varsayilan = {t.tur: t for t in VARSAYILAN_KISITLAR}
+        # Okul geneli tanımın yerine geçer; özel (kapsamlı) ayarlar olduğu gibi kalır.
+        kalan = [k for k in girdi.kisitlar if not (k.tur in agirliklar and k.kapsam.okul_mu)]
+        yeni = [replace(varsayilan[t], agirlik=n) for t, n in agirliklar.items()]
+        girdi = replace(girdi, kisitlar=[*kalan, *yeni])
     secenek = {} if a.pay is None else {"uygunluk_payi": a.pay}
 
     def fabrika(tohum: int, gozlemci) -> CpSatCozucu:
@@ -151,6 +165,7 @@ def main(argv: list[str] | None = None) -> None:
     kip = [ad for ad, acik in (("bloksuz", a.bloksuz), ("tek aşamalı", a.tek_asamali)) if acik]
     if a.pay is not None:
         kip.append(f"ilk aşama payı {a.pay:g}")
+    kip += [f"{t} ağırlığı {n}" for t, n in agirliklar.items()]
     print(f"## {a.veri}{' (' + ', '.join(kip) + ')' if kip else ''}\n", flush=True)
     print(f"Bloklu atama: {sum(desenler.values())} / {len(girdi.atamalar)} {dict(desenler.most_common())}\n", flush=True)
     calistirmalar = []

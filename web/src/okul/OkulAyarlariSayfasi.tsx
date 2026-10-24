@@ -402,7 +402,7 @@ function ikincilDegerler(kurallar: Kural[], varsayilan = false): IkincilDegerler
     return (varsayilan ? k?.varsayilan_parametreler : k?.parametreler) ?? {};
   };
   return {
-    k: String(p("gunluk_en_az_ders").k ?? 2),
+    k: String(p("gunluk_en_az_ders").k ?? 1),
     alt: String(p("haftalik_yuk").alt ?? 0),
     ust: String(p("haftalik_yuk").ust ?? 0),
   };

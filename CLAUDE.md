@@ -212,8 +212,10 @@ Her ders ataması, gün ve saat üçlüsü için bir boolean değişken: "bu ata
   olmayan öğretmene ceza yazılmaz.
 - Dersin saat tercihi: derse (ya da ders + şubeye/gruba) özel istenen ya da istenmeyen saatlerin
   dışına konan her ders saati ceza. Okul genelinde tercih yoktur.
-- Öğretmenin geldiği günde en az k ders (varsayılan 2; öğretmene özel olabilir): dersi olup k'dan
-  az olan her gün ceza. k, öğretmenin yüküyle ve bir günde verebileceği en çok dersle sınırlanır.
+- Öğretmenin geldiği günde en az k ders: dersi olup k'dan az olan her gün ceza. k, öğretmenin
+  yüküyle ve bir günde verebileceği en çok dersle sınırlanır. Okul genelinde kapalıdır (k = 1);
+  okul geneli ya da öğretmene özel 2 ve üstü verilerek açılır. Açıkken ("Önemli" de "Önemsiz" de)
+  boş gün ve pencereyle çatışıp öğretmen konforunu bozduğu ölçüldü (ADR 0025).
 - Aynı dersin günlere yayılması: bir şubenin aynı dersi art arda iki günde olursa ceza. Okul
   genelinde kapalıdır, yalnızca derse (ya da ders + şubeye/gruba) özel açılır; bütün derslerde
   açıkken boş gün ve pencereyle çatışıp öğretmen konforunu bozduğu ölçüldü (ADR 0024).
@@ -231,7 +233,7 @@ ve öncelik sırası:
 | Öğretmene boş gün | 4 | |
 | Öğretmen penceresi | 3 | |
 | Dersin saat tercihi | 3 | Yalnızca derse özel ayar varsa etkili |
-| Öğretmenin geldiği günde en az ders | 3 | |
+| Öğretmenin geldiği günde en az ders | 3 | Yalnızca okul ya da öğretmen açtıysa etkili (ADR 0025) |
 | Aynı dersin günlere yayılması | 2 | Yalnızca derse özel açıldıysa etkili (ADR 0024) |
 | Bölünmüş (ardışık olmayan) ders | 2 | |
 
@@ -353,7 +355,7 @@ ne yapıldığını söyler. Öğretmen, ders ve şube bazında istisnalar için
 | Şube grupları (alanlar: sayısal, sözel, eşit ağırlık, dil) | Grup = seviye | Var (K5): Sınıflar sayfasında; şablon seviyeye ya da gruba; N ve dağılım şekli gruba özel (API, özel ayarların özeti) |
 | Şubeye özel "bu dersi almaz / ek alır" | Yok | Var (K5): ders dağılımında; şablon yeniden uygulanınca korunur, raporda görünür |
 | Dersin saat tercihi (ör. Matematik sabah) | Yok | Var (K6): derse, ders + şubeye/gruba özel (Özel ayar ekle) |
-| Öğretmenin geldiği günde en az ders | 2, esnek ("bir saat için gelmem") | Var (K6): okul geneli (Gelişmiş) ve öğretmene özel |
+| Öğretmenin geldiği günde en az ders | Kapalı (k = 1); açılınca esnek ("bir saat için gelmem") | Var (K6, ADR 0025): okul geneli (Gelişmiş) ve öğretmene özel açma |
 | Aynı dersin günlere yayılması | Okul genelinde kapalı; derse özel açılır ("Önemli") | Var (K6, ADR 0024): derse ya da ders + şubeye/gruba özel açma ve kapatma |
 | Öğretmenin haftalık yük eşikleri (maaş karşılığı, ek ders üst sınırı) | Kapalı; okul girerse uyarı | Var (K6, ADR 0023): okul geneli ve öğretmene özel; dağılımda ve ön kontrolde uyarı |
 | Esnek kuralların önemi | "Önemli" = bölüm 7'deki ağırlıklar | Var ("Önemsiz / Önemli / Çok önemli") |

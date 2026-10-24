@@ -305,7 +305,7 @@ describe("gelişmiş: kuralların önemi", () => {
     await kullanici.click(await screen.findByText("Gelişmiş: kuralların önemi ve ikincil kurallar"));
     const enAz = screen.getByRole("group", { name: "Öğretmen bir iki saat için gelmesin" });
     const k = within(enAz).getByRole("spinbutton", { name: "Geldiği günde en az kaç ders" });
-    expect(k).toHaveValue(2);
+    expect(k).toHaveValue(1); // okul genelinde kapalı (ADR 0025)
     await kullanici.clear(k);
     await kullanici.type(k, "3");
     // Yayılım okul genelinde açılamaz (ADR 0024): onay kutusu yok, yalnızca yönlendirme.

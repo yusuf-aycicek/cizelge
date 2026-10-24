@@ -41,3 +41,13 @@ def test_cli_temel_ile_guncelleme(tmp_path, capsys):
     assert cli_main([str(MINI), "--sure", "5", "--sinif", "--kaydet", str(sonuc_dosyasi)]) == 0
     assert cli_main([str(MINI), "--sure", "5", "--sinif", "--temel", str(sonuc_dosyasi)]) == 0
     assert "değişen hücre 0/71" in capsys.readouterr().out
+
+
+def test_olcum_kurali_agirlikla_kapatir(capsys):
+    # --agirlik okul geneli tanımı değiştirir: kapalı kuralın ağırlığı 0, ölçüsü yine raporlanır.
+    from cozucu.olcum import main as olcum_main
+
+    olcum_main([str(MINI), "--tohum", "0", "--noktalar", "2", "--agirlik", "gunluk_en_az_ders=0"])
+    cikti = capsys.readouterr().out
+    assert "(gunluk_en_az_ders ağırlığı 0)" in cikti
+    assert "| 0 | 2 |" in cikti

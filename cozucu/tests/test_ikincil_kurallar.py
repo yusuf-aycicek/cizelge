@@ -101,9 +101,34 @@ def tek_saatlik_dersler(adet, ogretmen="o1"):
     return [DersAtama(f"{ogretmen}-t{i}", f"s{i}", f"d{i}", ogretmen, 1) for i in range(adet)]
 
 
+def en_az_acik(k=2):
+    """Yalnızca "en az ders" açık, okul genelinde k ile (varsayılan kapalıdır, ADR 0025)."""
+    return [KisitTanimi(EN_AZ, {"k": k}, zorunlu=False, agirlik=t.agirlik) if t.tur == EN_AZ else t for t in yalniz(EN_AZ)]
+
+
+def test_okul_genelinde_en_az_ders_kapali():
+    # ADR 0025: okul ayarı olmadan k = 1; kilitle zorlanan tek saatlik gün ceza getirmez.
+    kilitler = [kilit("o1-t0", 0, 0), kilit("o1-t1", 1, 0), kilit("o1-t2", 1, 1)]
+    girdi = girdi_kur(ayar=OkulAyari(2, 4), atamalar=tek_saatlik_dersler(3), kilitli_yerlesimler=kilitler,
+                      kisitlar=yalniz(EN_AZ) + [BLOKSUZ])
+    assert gunluk_en_az_ders(girdi, "o1", 3) == 1
+    sonuc = coz(girdi)
+    assert olc(girdi, sonuc.yerlesimler).az_dersli_gun == 0
+    assert sonuc.toplam_ceza == 0
+
+
+def test_okul_kapaliyken_ogretmene_ozel_acilir():
+    # Okulda kapalı, bu öğretmene 2: 4 tek saatlik ders her gün en az 2 olacak şekilde dağılır.
+    girdi = girdi_kur(ayar=OkulAyari(5, 4), atamalar=tek_saatlik_dersler(4),
+                      kisitlar=yalniz(EN_AZ) + [BLOKSUZ, ozel(EN_AZ, {"k": 2}, ogretmen_id="o1")])
+    assert gunluk_en_az_ders(girdi, "o1", 4) == 2
+    gunler = [y.gun for y in coz(girdi).yerlesimler]
+    assert all(gunler.count(g) >= 2 for g in set(gunler))
+
+
 def test_bir_saat_icin_gelmez():
     # 4 tek saatlik ders, 5 gün: kural kapalıyken her güne dağılabilirdi; açıkken her gün en az 2.
-    girdi = girdi_kur(ayar=OkulAyari(5, 4), atamalar=tek_saatlik_dersler(4), kisitlar=yalniz(EN_AZ) + [BLOKSUZ])
+    girdi = girdi_kur(ayar=OkulAyari(5, 4), atamalar=tek_saatlik_dersler(4), kisitlar=en_az_acik() + [BLOKSUZ])
     sonuc = coz(girdi)
     gunler = [y.gun for y in sonuc.yerlesimler]
     assert all(gunler.count(g) >= 2 for g in set(gunler))
@@ -113,7 +138,7 @@ def test_bir_saat_icin_gelmez():
 def test_kilitler_tek_saatlik_gun_birakirsa_ceza():
     kilitler = [kilit("o1-t0", 0, 0), kilit("o1-t1", 1, 0), kilit("o1-t2", 1, 1)]
     girdi = girdi_kur(ayar=OkulAyari(2, 4), atamalar=tek_saatlik_dersler(3), kilitli_yerlesimler=kilitler,
-                      kisitlar=yalniz(EN_AZ) + [BLOKSUZ])
+                      kisitlar=en_az_acik() + [BLOKSUZ])
     sonuc = coz(girdi)
     assert olc(girdi, sonuc.yerlesimler).az_dersli_gun == 1
     assert sonuc.toplam_ceza == 3
@@ -121,12 +146,12 @@ def test_kilitler_tek_saatlik_gun_birakirsa_ceza():
 
 def test_ders_saati_yetmeyene_ceza_yok():
     # 1 saatlik öğretmen: k etkin 1, kural yok. Günde 1 saat müsait öğretmen: en iyi gün 1.
-    girdi = girdi_kur(ayar=OkulAyari(5, 4), atamalar=tek_saatlik_dersler(1), kisitlar=yalniz(EN_AZ) + [BLOKSUZ])
+    girdi = girdi_kur(ayar=OkulAyari(5, 4), atamalar=tek_saatlik_dersler(1), kisitlar=en_az_acik() + [BLOKSUZ])
     assert gunluk_en_az_ders(girdi, "o1", 1) == 1
     assert coz(girdi).toplam_ceza == 0
     musait = [gelemez("o1", g, s) for g in range(2) for s in range(1, 4)]
     girdi = girdi_kur(ayar=OkulAyari(2, 4), atamalar=tek_saatlik_dersler(2), musaitlikler=musait,
-                      kisitlar=yalniz(EN_AZ) + [BLOKSUZ])
+                      kisitlar=en_az_acik() + [BLOKSUZ])
     assert gunluk_en_az_ders(girdi, "o1", 2) == 1
     assert coz(girdi).toplam_ceza == 0
 
@@ -134,7 +159,7 @@ def test_ders_saati_yetmeyene_ceza_yok():
 def test_ogretmene_ozel_en_az_ders():
     # Okulda 2, bu öğretmene 3: 6 tek saatlik ders 3 + 3 dağılır (2 + 2 + 2 değil).
     girdi = girdi_kur(ayar=OkulAyari(5, 4), atamalar=tek_saatlik_dersler(6),
-                      kisitlar=yalniz(EN_AZ) + [BLOKSUZ, ozel(EN_AZ, {"k": 3}, ogretmen_id="o1")])
+                      kisitlar=en_az_acik() + [BLOKSUZ, ozel(EN_AZ, {"k": 3}, ogretmen_id="o1")])
     assert gunluk_en_az_ders(girdi, "o1", 6) == 3
     sonuc = coz(girdi)
     gunler = [y.gun for y in sonuc.yerlesimler]

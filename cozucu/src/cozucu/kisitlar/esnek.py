@@ -233,7 +233,8 @@ class GunlukEnAzDers(EsnekKural):
     """Öğretmen geldiği günde en az k ders vermeli ("bir saat için gelmem"): dersi olup k'dan az
     olan her gün için ceza.
 
-    k okul geneli ya da öğretmene özel; öğretmenin yükü ve günlük olanağıyla sınırlanır
+    k okul geneli ya da öğretmene özel; varsayılan 1, yani kapalı (ADR 0025: boş gün ve pencereyle
+    çatışır). Öğretmenin yükü ve günlük olanağıyla sınırlanır
     (`tercihler.gunluk_en_az_ders`), ders saati yetmeyene ceza yazılmaz. Gün başına:
         k * az + ders sayısı >= k * geldi
     1..k-1 ders verilen günde `az` 1 olmak zorundadır; k ve üstünde ya da hiç dersi yoksa 0 olabilir.

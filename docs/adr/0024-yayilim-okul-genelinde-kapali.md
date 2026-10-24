@@ -42,8 +42,8 @@ cuma ile yayılabilir. Bütün derslerde istendiğinde çözücünün süresi bu
 
 - Varsayılan okulda kural modele hiçbir şey eklemez. Gerçekçi sette 120 sn'de eski ölçülerin
   (pencere, tercih etmez, eksik boş gün) cezası ortalama 156'dan 123'e indi, ama K6 öncesine (69)
-  dönmedi: pencere ortalama 18 (P1: 8), eksik boş gün 15 (P1: 11). Kalan farkın büyük olasılıkla
-  açık kalan "günde en az ders" kuralından geldiği düşünülüyor; ayrıca ölçülmedi (bkz.
+  dönmedi: pencere ortalama 18 (P1: 8), eksik boş gün 15 (P1: 11). Kalan farkın açık kalan "günde
+  en az ders" kuralından geldiği ölçüldü; o kural da okul genelinde kapatıldı (ADR 0025,
   `docs/olcumler.md`).
 - Migration gerekmez. Okul geneli `yayilsin: true` satırı olan bir okul varsa (K6 ile bu ADR
   arasında açılmış olabilir), "Varsayılana dön" ile silinir. Bu satır çözücüde hâlâ geçerlidir.
