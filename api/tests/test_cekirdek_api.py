@@ -27,7 +27,8 @@ def test_okul_olusturma_ve_ayarlar(istemci, okul_olustur):
     assert yanit.status_code == 200
     assert yanit.json() == {"id": okul_id, "ad": "Atatürk Lisesi", "gun_sayisi": 5, "gunluk_ders_saati": 8,
                             "gun_saatleri": [8, 8, 8, 8, 8], "ogle_arasi_sonra": None, "ilk_ders_baslangic": None,
-                            "ders_suresi_dk": 40, "teneffus_dk": 10, "ogle_arasi_dk": 40}
+                            "ders_suresi_dk": 40, "teneffus_dk": 10, "ogle_arasi_dk": 40,
+                            "zil_saatleri": None, "ogle_arasi_zili": None}
 
     yanit = istemci.patch("/api/okul", json={"gunluk_ders_saati": 7}, headers=okul_basligi(okul_id))
     assert yanit.status_code == 200 and yanit.json()["gunluk_ders_saati"] == 7

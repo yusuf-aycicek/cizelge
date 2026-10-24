@@ -3,7 +3,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { delay, http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import type { components } from "../api/sema";
-import { BEN_ORNEK, ORNEK_KURALLAR, sunucu } from "../test/sunucu";
+import { BEN_ORNEK, ZIL_0830_OGLE_4, ORNEK_KURALLAR, sunucu } from "../test/sunucu";
 import { uygulamayiCiz } from "../test/yardimcilar";
 import { degisiklikler, durumHaritasi, komsu, sonrakiDurum, topluHedef, uygula } from "./musaitlik";
 
@@ -283,7 +283,7 @@ describe("müsaitlik çizelgesi", () => {
 function kisaCumaliOkul() {
   sunucu.use(http.get("/api/ben", () => HttpResponse.json({
     ...BEN_ORNEK,
-    okul: { ...BEN_ORNEK.okul, gun_saatleri: [8, 8, 8, 8, 5], ogle_arasi_sonra: 4, ilk_ders_baslangic: "08:30:00" },
+    okul: { ...BEN_ORNEK.okul, gun_saatleri: [8, 8, 8, 8, 5], ogle_arasi_sonra: 4, ...ZIL_0830_OGLE_4 },
   })));
 }
 

@@ -1807,9 +1807,36 @@
             ],
             "title": "Ogle Arasi Sonra"
           },
+          "ogle_arasi_zili": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ZilSaati"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
           "teneffus_dk": {
             "title": "Teneffus Dk",
             "type": "integer"
+          },
+          "zil_saatleri": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ZilSaati"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Her ders saatinin zili (en uzun güne göre); tanımsızsa null. Tek kaynak: cekirdek/zil.py.",
+            "readOnly": true,
+            "title": "Zil Saatleri"
           }
         },
         "required": [
@@ -1822,7 +1849,9 @@
           "ilk_ders_baslangic",
           "ders_suresi_dk",
           "teneffus_dk",
-          "ogle_arasi_dk"
+          "ogle_arasi_dk",
+          "zil_saatleri",
+          "ogle_arasi_zili"
         ],
         "title": "OkulYanit",
         "type": "object"
@@ -3085,6 +3114,107 @@
           "kilitli"
         ],
         "title": "YerlesimYanit",
+        "type": "object"
+      },
+      "ZilOnizlemeIstegi": {
+        "description": "Ayar ekranındaki taslağın zil saatleri (kaydetmeden).",
+        "properties": {
+          "ders_suresi_dk": {
+            "default": 40,
+            "maximum": 120.0,
+            "minimum": 10.0,
+            "title": "Ders Suresi Dk",
+            "type": "integer"
+          },
+          "ilk_ders_baslangic": {
+            "format": "time",
+            "title": "Ilk Ders Baslangic",
+            "type": "string"
+          },
+          "ogle_arasi_dk": {
+            "default": 40,
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Ogle Arasi Dk",
+            "type": "integer"
+          },
+          "ogle_arasi_sonra": {
+            "anyOf": [
+              {
+                "maximum": 15.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ogle Arasi Sonra"
+          },
+          "saat_sayisi": {
+            "maximum": 16.0,
+            "minimum": 1.0,
+            "title": "Saat Sayisi",
+            "type": "integer"
+          },
+          "teneffus_dk": {
+            "default": 10,
+            "maximum": 60.0,
+            "minimum": 0.0,
+            "title": "Teneffus Dk",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ilk_ders_baslangic",
+          "saat_sayisi"
+        ],
+        "title": "ZilOnizlemeIstegi",
+        "type": "object"
+      },
+      "ZilOnizlemeYanit": {
+        "properties": {
+          "ogle_arasi_zili": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ZilSaati"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "zil_saatleri": {
+            "items": {
+              "$ref": "#/components/schemas/ZilSaati"
+            },
+            "title": "Zil Saatleri",
+            "type": "array"
+          }
+        },
+        "required": [
+          "zil_saatleri",
+          "ogle_arasi_zili"
+        ],
+        "title": "ZilOnizlemeYanit",
+        "type": "object"
+      },
+      "ZilSaati": {
+        "properties": {
+          "baslangic": {
+            "title": "Baslangic",
+            "type": "string"
+          },
+          "bitis": {
+            "title": "Bitis",
+            "type": "string"
+          }
+        },
+        "required": [
+          "baslangic",
+          "bitis"
+        ],
+        "title": "ZilSaati",
         "type": "object"
       }
     }
@@ -6019,6 +6149,48 @@
           }
         },
         "summary": "Okul Ayar Etkisi",
+        "tags": [
+          "okul"
+        ]
+      }
+    },
+    "/api/okul/zil-onizleme": {
+      "post": {
+        "description": "Ayar ekranındaki taslağın zil saatleri. Hesap tek yerdedir (cekirdek/zil.py); kaydetmez.",
+        "operationId": "okul_zil_onizleme_api_okul_zil_onizleme_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZilOnizlemeIstegi"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZilOnizlemeYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Okul Zil Onizleme",
         "tags": [
           "okul"
         ]

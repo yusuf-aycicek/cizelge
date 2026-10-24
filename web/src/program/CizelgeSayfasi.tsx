@@ -15,7 +15,7 @@ import { Sekmeler } from "../bilesenler/Sekmeler";
 import { useAtamalar } from "../dagilim/veri";
 import { DersCipi } from "../dersler/DersCipi";
 import { useBen } from "../kimlik/oturum";
-import { ogleArasiSonrasi, ogleArasiZili, saatVar, zilMetni, zilSaatleri, type ZilSaati } from "../okul/zaman";
+import { ogleArasiSonrasi, saatVar, zilMetni, type ZilSaati } from "../okul/zaman";
 import { dersKaynagi, ogretmenKaynagi, sinifKaynagi, type Ders, type Ogretmen, type Sinif } from "../listeler/kaynaklar";
 import { turkceSirala } from "../metin";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
@@ -109,7 +109,7 @@ export function CizelgeSayfasi() {
 
   const hucreler = cizelgeHucreleri(yerlesimler.data, atamalar.data, gorunum, seciliId);
   const boyut = cizelgeBoyutu(yerlesimler.data, okul.gun_sayisi, okul.gunluk_ders_saati);
-  const zil = zilSaatleri(okul, boyut.saat);
+  const zil = okul.zil_saatleri ?? null;
   const vurgulu = new Set(
     (farkGoster ? fark.data?.hucreler ?? [] : [])
       .filter((h) => hucreler.get(hucreAnahtari(h.gun, h.saat))?.id === h.ders_atama_id)
@@ -144,7 +144,7 @@ export function CizelgeSayfasi() {
     gunSaatleri: okul.gun_saatleri,
     ogleArasiSonra: okul.ogle_arasi_sonra,
     zil,
-    ogleZili: ogleArasiZili(okul, zil),
+    ogleZili: okul.ogle_arasi_zili ?? null,
     hucreler,
     gorunum,
     ders: new Map(dersler.data.map((d) => [d.id, d])),

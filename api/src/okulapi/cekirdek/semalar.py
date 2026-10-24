@@ -11,7 +11,9 @@ import uuid
 from datetime import time
 from typing import Annotated
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, computed_field
+
+from okulapi.cekirdek import zil as zil_hesabi
 
 
 class _Yanit(BaseModel):
@@ -60,6 +62,11 @@ class AyarEtkisiYanit(BaseModel):
     etkiler: list[str]
 
 
+class ZilSaati(BaseModel):
+    baslangic: str  # "08:30"
+    bitis: str
+
+
 class OkulYanit(_Yanit):
     id: uuid.UUID
     ad: str
@@ -72,6 +79,39 @@ class OkulYanit(_Yanit):
     ders_suresi_dk: int
     teneffus_dk: int
     ogle_arasi_dk: int
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def zil_saatleri(self) -> list[ZilSaati] | None:
+        """Her ders saatinin zili (en uzun güne göre); tanımsızsa null. Tek kaynak: cekirdek/zil.py."""
+        zil = self._zil()
+        return [ZilSaati(baslangic=z.baslangic, bitis=z.bitis) for z in zil] if zil else None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def ogle_arasi_zili(self) -> ZilSaati | None:
+        z = zil_hesabi.ogle_arasi_zili(self._zil(), self.ogle_arasi_sonra, self.ogle_arasi_dk)
+        return ZilSaati(baslangic=z.baslangic, bitis=z.bitis) if z else None
+
+    def _zil(self) -> list[zil_hesabi.Zil] | None:
+        return zil_hesabi.zil_saatleri(self.ilk_ders_baslangic, self.gunluk_ders_saati, self.ders_suresi_dk,
+                                       self.teneffus_dk, self.ogle_arasi_dk, self.ogle_arasi_sonra)
+
+
+class ZilOnizlemeIstegi(BaseModel):
+    """Ayar ekranındaki taslağın zil saatleri (kaydetmeden)."""
+
+    ilk_ders_baslangic: time
+    saat_sayisi: int = Field(ge=1, le=16)
+    ders_suresi_dk: int = Field(default=40, ge=10, le=120)
+    teneffus_dk: int = Field(default=10, ge=0, le=60)
+    ogle_arasi_dk: int = Field(default=40, ge=0, le=180)
+    ogle_arasi_sonra: int | None = Field(default=None, ge=1, le=15)
+
+
+class ZilOnizlemeYanit(BaseModel):
+    zil_saatleri: list[ZilSaati]
+    ogle_arasi_zili: ZilSaati | None
 
 
 class OgretmenOlustur(BaseModel):

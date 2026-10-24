@@ -1,7 +1,7 @@
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
 import { Settings } from "lucide-react";
 import { Iskelet } from "../bilesenler/Iskelet";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fragment, useState, type FormEvent } from "react";
 import { ApiHatasi, cagir, hataMetni } from "../api/hata";
 import { api } from "../api/istemci";
@@ -17,7 +17,7 @@ import stil from "./Okul.module.css";
 import { GUN_ADLARI } from "../program/aciklama";
 import { BlokBolumu } from "./BlokBolumu";
 import { OzelAyarlarOzeti } from "./OzelAyarlarOzeti";
-import { kisaliyor, ogleArasiSonrasi, ogleArasiZili, zilMetni, zilSaatleri } from "./zaman";
+import { kisaliyor, ogleArasiSonrasi, zilMetni } from "./zaman";
 
 type Okul = components["schemas"]["OkulYanit"];
 type Kural = components["schemas"]["KuralYanit"];
@@ -181,8 +181,25 @@ function OkulBilgileri({ okul }: { okul: Okul }) {
   const sunucu = sunucuHatalari(etkiler ? null : (kaydet.error ?? onizle.error));
   const hata = (alan: string) => hatalar[alan] ?? sunucu.alanlar[alan];
   const gunSecenekleri = [...new Set([5, 6, okul.gun_sayisi])].sort();
-  const zil = d.zil ? zilSaatleri(hafta, enUzun) : null;
-  const ogleZili = ogleArasiZili(hafta, zil);
+  // Önizleme sunucudan gelir: zil hesabı tek yerdedir (api cekirdek/zil.py), çıktılar da onu kullanır.
+  // Sorgu anahtarı taslağın kendisi; değer değişince yeni istek gider, yanıt gelene kadar eskisi görünür.
+  const zilTaslagi = {
+    ilk_ders_baslangic: d.baslangic, saat_sayisi: enUzun, ders_suresi_dk: hafta.ders_suresi_dk,
+    teneffus_dk: hafta.teneffus_dk, ogle_arasi_dk: hafta.ogle_arasi_dk,
+    ogle_arasi_sonra: hafta.ogle_arasi_sonra != null && hafta.ogle_arasi_sonra < enUzun ? hafta.ogle_arasi_sonra : null,
+  };
+  const zilGecerli = d.zil && /^\d{2}:\d{2}$/.test(d.baslangic) && enUzun <= 16
+    && [zilTaslagi.ders_suresi_dk, zilTaslagi.teneffus_dk, zilTaslagi.ogle_arasi_dk].every(Number.isInteger)
+    && zilTaslagi.ders_suresi_dk >= 10 && zilTaslagi.ders_suresi_dk <= 120 && zilTaslagi.teneffus_dk >= 0
+    && zilTaslagi.teneffus_dk <= 60 && zilTaslagi.ogle_arasi_dk >= 0 && zilTaslagi.ogle_arasi_dk <= 180;
+  const zilOnizleme = useQuery({
+    queryKey: ["zil-onizleme", zilTaslagi],
+    queryFn: () => cagir(api.POST("/api/okul/zil-onizleme", { body: zilTaslagi })),
+    enabled: zilGecerli,
+    placeholderData: keepPreviousData,
+  });
+  const zil = d.zil ? zilOnizleme.data?.zil_saatleri ?? null : null;
+  const ogleZili = zilOnizleme.data?.ogle_arasi_zili ?? null;
 
   function farkliyiDegistir(acik: boolean) {
     // Açılınca her gün bugünkü tek değerle başlar; kapanınca en uzun gün "her gün" değeri olur.

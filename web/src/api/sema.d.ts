@@ -891,6 +891,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/okul/zil-onizleme": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Okul Zil Onizleme
+         * @description Ayar ekranındaki taslağın zil saatleri. Hesap tek yerdedir (cekirdek/zil.py); kaydetmez.
+         */
+        post: operations["okul_zil_onizleme_api_okul_zil_onizleme_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/saglik": {
         parameters: {
             query?: never;
@@ -1685,8 +1705,14 @@ export interface components {
             ogle_arasi_dk: number;
             /** Ogle Arasi Sonra */
             ogle_arasi_sonra: number | null;
+            readonly ogle_arasi_zili: components["schemas"]["ZilSaati"] | null;
             /** Teneffus Dk */
             teneffus_dk: number;
+            /**
+             * Zil Saatleri
+             * @description Her ders saatinin zili (en uzun güne göre); tanımsızsa null. Tek kaynak: cekirdek/zil.py.
+             */
+            readonly zil_saatleri: components["schemas"]["ZilSaati"][] | null;
         };
         /** OnKontrolYanit */
         OnKontrolYanit: {
@@ -2159,6 +2185,49 @@ export interface components {
             kilitli: boolean;
             /** Saat */
             saat: number;
+        };
+        /**
+         * ZilOnizlemeIstegi
+         * @description Ayar ekranındaki taslağın zil saatleri (kaydetmeden).
+         */
+        ZilOnizlemeIstegi: {
+            /**
+             * Ders Suresi Dk
+             * @default 40
+             */
+            ders_suresi_dk: number;
+            /**
+             * Ilk Ders Baslangic
+             * Format: time
+             */
+            ilk_ders_baslangic: string;
+            /**
+             * Ogle Arasi Dk
+             * @default 40
+             */
+            ogle_arasi_dk: number;
+            /** Ogle Arasi Sonra */
+            ogle_arasi_sonra?: number | null;
+            /** Saat Sayisi */
+            saat_sayisi: number;
+            /**
+             * Teneffus Dk
+             * @default 10
+             */
+            teneffus_dk: number;
+        };
+        /** ZilOnizlemeYanit */
+        ZilOnizlemeYanit: {
+            ogle_arasi_zili: components["schemas"]["ZilSaati"] | null;
+            /** Zil Saatleri */
+            zil_saatleri: components["schemas"]["ZilSaati"][];
+        };
+        /** ZilSaati */
+        ZilSaati: {
+            /** Baslangic */
+            baslangic: string;
+            /** Bitis */
+            bitis: string;
         };
     };
     responses: never;
@@ -4259,6 +4328,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AyarEtkisiYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    okul_zil_onizleme_api_okul_zil_onizleme_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ZilOnizlemeIstegi"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ZilOnizlemeYanit"];
                 };
             };
             /** @description Validation Error */

@@ -16,7 +16,19 @@ export const BEN_ORNEK: Ben = {
   okul: {
     id: "o1", ad: "Atatürk Anadolu Lisesi", gun_sayisi: 5, gunluk_ders_saati: 8, gun_saatleri: [8, 8, 8, 8, 8],
     ogle_arasi_sonra: null, ilk_ders_baslangic: null, ders_suresi_dk: 40, teneffus_dk: 10, ogle_arasi_dk: 40,
+    zil_saatleri: null, ogle_arasi_zili: null,
   },
+};
+
+/** Sunucunun hesapladığı zil saatleri (api cekirdek/zil.py): 08:30, 40 dk ders, 10 dk teneffüs, 4. dersten sonra 40 dk öğle. */
+export const ZIL_0830_OGLE_4 = {
+  ilk_ders_baslangic: "08:30:00",
+  zil_saatleri: ["08:30", "09:20", "10:10", "11:00", "12:20", "13:10", "14:00", "14:50"].map((b) => {
+    const [s, d] = b.split(":").map(Number) as [number, number];
+    const bitis = s * 60 + d + 40;
+    return { baslangic: b, bitis: `${String(Math.floor(bitis / 60)).padStart(2, "0")}:${String(bitis % 60).padStart(2, "0")}` };
+  }),
+  ogle_arasi_zili: { baslangic: "11:40", bitis: "12:20" },
 };
 
 type Kural = components["schemas"]["KuralYanit"];

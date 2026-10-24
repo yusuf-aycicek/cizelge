@@ -307,6 +307,7 @@ Her alt adım testler geçince commit edilir, onayınız olmadan sonrakine geçi
 | 6.2 | Haftalık çizelge görünümü ve kalite özeti | Bitti: `/program/:id`; şube ve öğretmen sekmeleri, seçim adres çubuğunda; hücrede ders çipi ve öğretmen rozeti ya da şube adı; boş saat sade; hücreler gün gün sırayla yerleşir (en çok 0,6 sn); çizelge boyutu okul ayarı ile programın büyüğü; kalite özeti sade Türkçe |
 | 6.3 | Programlar listesi ve temel alarak yeniden üretme | Bitti (2026-10-24). API: `PATCH /programlar/{id}` (ad), `DELETE /programlar/{id}` (üretimi süren program 409; bu programı temel alanların bağı kopar), `GET /programlar/{id}/fark?ile=` (verilmezse temel program; hücreler şube + ders + gün + saat ile karşılaştırılır; `degisen` kalite ölçüsündeki "değişen yerleşim"le aynı tanım; şube başına sayı ve değişen hücreler). "Eski verilerle üretildi": migration `ders_programi_0008` ile `program.veri_ozeti` (yalnızca okulun verisi, temel program ve kilitler hariç; `girdi_ozeti` temel program silinince de değişirdi, yanlış uyarı verirdi); `ProgramYanit.eski_veri` (hazır programda; eski programlarda bilinmiyor). Arayüz: Programlar tablosu (durum ve kısa kalite "3 konu iyileştirilebilir", ayrıntı `title`'da; "Temel: …"; "Eski verilerle" rozeti; satır içi ad değiştirme; onaylı silme; "Temel al"); hazır panelinde eski veri uyarısı (tek tıkla temel alarak yeniden üret), temel programa göre fark özeti ("“Eylül” programına göre 3 ders saati yer değiştirdi: 9-A (2), 9-B (1)") ve "Bu programı temel alarak yeniden üret"; oluşturma kartında "“X” temel alınıyor" ve "Temel almadan üret"; çizelgede `?fark=1` / "Temel programdan değişen dersleri vurgula" (kesik çerçeve ve nokta, ekran okuyucuya "Temel programa göre değişti"), masaüstü ve gün gün görünümde. Geliştirme veritabanından 23 Ekim tarihli iki başarısız program (kullanıcı isteği) silindi. |
 | 7.1 | Elle düzeltme: taşıma, kilit, geri alma | Bitti (2026-10-24, ADR 0019). Çözücü: `dogrulama.ihlaller` (tür, karşılaştırma anahtarı, kullanıcı dilinde mesaj; `dogrula` aynı metinleri döner); `cozucu/tasima.py`: blok bütün taşınır, kilitli ders taşınmaz, **yer değiştirme** (hedefte aynı şubenin dersi varsa boşalan saatlere geçer; takassız ilk sürümde gerçekçi sette 40 dersin 38'inin hedefi yoktu, takasla 6), yalnızca yeni zorunlu ihlal engeller, ağırlığı > 0 esnek ölçü kötüleşirse uyarı; `BlokHesabi.desen` önbelleği (harita 3 sn → 0,6 sn). API: `GET /programlar/{id}/tasima` (her başlangıç hücresi uygun / uyarı / engel, nedenler, takas edilen dersler), `POST /tasi` (422 engel, 409 onaysız uyarı), `PUT /kilit` (bütün blok), `POST /geri-al` (sondan başa; 409 yoksa); `program_islemi` (migration `ders_programi_0009`, RLS, bileşik FK, CASCADE); `ProgramYanit.elle_duzeltme`; kalite ölçümü ve toplam ceza her değişiklikte yeniden hesaplanır; program satırı FOR UPDATE. Arayüz: çizelgede masaüstünde sürükle bırak (bırakmadan biterse iptal), tıklayarak ya da telefonda dokunarak seç → "Taşı" → hedef; hedefler renk + desenle (uygun yeşil, uyarı kesik sarı, engel çizgili), üzerine gelince nedeni (aria-live) ve kimle yer değiştireceği; uyarıda onay penceresi; "Kilitle / Kilidi aç" (kilit simgesi, kalın kenar, ekran okuyucuya "Kilitli"); "Geri al (n)"; elle düzeltilmiş programda kalite özeti "en iyisi kanıtlandı" demez. Mutasyon: 24/24 (ilk turda 18; kapalı kural, takas konumu, aynı günde kaydırma, onaysız uyarı, geri alma sırası ve temel programın kilidi için test eklendi). Tarayıcıda denemede bulunan: blok hücresinde düğme içeriği ortaya kayıyordu (düzeltildi); elle düzeltilmiş programda "kanıtlandı" yazıyordu (düzeltildi). Denemedeki taşıma geri alındı. Ekran: docs/ekranlar/7.1/ (6 görüntü; geçici "gelemez" günü ve onu temel alan program API ile açılıp silindi, veritabanı başlangıçla aynı). Uçtan uca test yeni kodla yeniden geçti. Not: 0008 migration'ından önce üretilen programın veri özeti yok, "eski veri" uyarısı onda gösterilmez (bilinmiyor). |
+| 7.2 | PDF ve Excel çıktı | Sürüyor (2026-10-24). Alt parçalar ve durumları aşağıda ("7.2 çıktı planı"). |
 
 6.1-6.2 uçtan uca denemesi (örnek okulda gerçek üretim):
 - Mini set: program 1 saniyeden kısa sürede hazır (en iyisi kanıtlandı); bütün kalite ölçüleri sıfır.
@@ -727,6 +728,20 @@ Parça 0 notları: `api/src/okulapi/ornek_okul.py`.
      yok");
    - "Bu programı temel alarak yeniden üret" ve kaç hücrenin değiştiğinin gösterimi;
    - uçtan uca: arayüzden program üretilip bir şubenin çizelgesi doğrulanır.
+
+### 7.2 çıktı planı (PDF ve Excel)
+
+Kullanım limiti dolabileceği için her alt parça ayrı commit edilir; yarıda kalırsa buradan devam edilir.
+
+| # | Alt parça | Durum |
+|---|---|---|
+| 7.2a | Zil saati hesabı tek kaynakta: `api cekirdek/zil.py`; `OkulYanit.zil_saatleri` ve `ogle_arasi_zili` hesaplanmış alanlar; ayar ekranının önizlemesi `POST /api/okul/zil-onizleme` (kaydetmez); arayüzdeki hesap (`zaman.ts`) kaldırıldı | Bitti |
+| 7.2b | Kütüphane seçimi ve ADR 0020; çıktı verisinin tek modeli (şube/öğretmen hücreleri, blok birleşik hücre) | Sırada |
+| 7.2c | Şube ve öğretmen PDF'i (A4 yatay, her biri ayrı sayfa; tek şube/öğretmen; imza alanı isteğe bağlı) | |
+| 7.2d | Çarşaf liste PDF'i (A3 yatay, sığmazsa sayfalara bölünür) | |
+| 7.2e | Excel (şubeler, öğretmenler, çarşaf liste sekmeleri; filtre, yazdırma ayarı) | |
+| 7.2f | Çıktı uçlarında okul izolasyonu testi (bir kez bozularak denenir); büyük okulda süre ölçümü | |
+| 7.2g | Arayüz: program sayfasında ve çizelgede "İndir" menüsü; 3 PDF sayfası PNG | |
 
 ## 8. Açık sorular
 

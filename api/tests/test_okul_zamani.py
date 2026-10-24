@@ -114,8 +114,25 @@ def test_zil_saatleri_kaydedilir_ve_kaldirilir(istemci, okul):
              "ogle_arasi_sonra": 4}
     o = istemci.patch("/api/okul", json=govde, headers=okul["b"]).json()
     assert (o["ilk_ders_baslangic"], o["ogle_arasi_dk"], o["ogle_arasi_sonra"]) == ("08:30:00", 45, 4)
+    # Zil saatleri sunucuda hesaplanır (tek kaynak: cekirdek/zil.py); arayüz ve çıktılar buradan okur.
+    assert [z["baslangic"] for z in o["zil_saatleri"]] == [
+        "08:30", "09:20", "10:10", "11:00", "12:25", "13:15", "14:05", "14:55"]
+    assert o["zil_saatleri"][3] == {"baslangic": "11:00", "bitis": "11:40"}
+    assert o["ogle_arasi_zili"] == {"baslangic": "11:40", "bitis": "12:25"}
     o = istemci.patch("/api/okul", json={"ilk_ders_baslangic": None}, headers=okul["b"]).json()
     assert o["ilk_ders_baslangic"] is None and o["ogle_arasi_sonra"] == 4
+    assert (o["zil_saatleri"], o["ogle_arasi_zili"]) == (None, None)
+
+
+def test_zil_onizlemesi_kaydetmeden_hesaplar(istemci, okul):
+    govde = {"ilk_ders_baslangic": "08:00", "saat_sayisi": 3, "ders_suresi_dk": 45, "teneffus_dk": 15,
+             "ogle_arasi_dk": 60, "ogle_arasi_sonra": 2}
+    o = istemci.post("/api/okul/zil-onizleme", json=govde, headers=okul["b"]).json()
+    assert [(z["baslangic"], z["bitis"]) for z in o["zil_saatleri"]] == [
+        ("08:00", "08:45"), ("09:00", "09:45"), ("10:45", "11:30")]
+    assert o["ogle_arasi_zili"] == {"baslangic": "09:45", "bitis": "10:45"}
+    assert istemci.get("/api/okul", headers=okul["b"]).json()["zil_saatleri"] is None
+    assert istemci.post("/api/okul/zil-onizleme", json=govde).status_code == 401
 
 
 @pytest.mark.parametrize("sql", [

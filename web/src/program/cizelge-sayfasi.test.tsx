@@ -3,7 +3,7 @@ import { screen, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { dagilimApisiKur } from "../test/dagilimApisi";
-import { BEN_ORNEK, sunucu } from "../test/sunucu";
+import { BEN_ORNEK, ZIL_0830_OGLE_4, sunucu } from "../test/sunucu";
 import { uygulamayiCiz } from "../test/yardimcilar";
 
 const PROGRAM = {
@@ -92,7 +92,7 @@ describe("haftalık çizelge", () => {
 function kisaCumaliOkul() {
   sunucu.use(http.get("/api/ben", () => HttpResponse.json({
     ...BEN_ORNEK,
-    okul: { ...BEN_ORNEK.okul, gun_saatleri: [8, 8, 8, 8, 5], ogle_arasi_sonra: 4, ilk_ders_baslangic: "08:30:00" },
+    okul: { ...BEN_ORNEK.okul, gun_saatleri: [8, 8, 8, 8, 5], ogle_arasi_sonra: 4, ...ZIL_0830_OGLE_4 },
   })));
 }
 

@@ -15,6 +15,7 @@ from fastapi import APIRouter, Request, Response, status
 from pydantic import BaseModel
 
 from okulapi.cekirdek import semalar
+from okulapi.cekirdek import zil as zil_hesabi
 from okulapi.cekirdek.bagimliliklar import AktifOkulId, OkulOturumu
 from okulapi.cekirdek.ders_renkleri import DERS_RENKLERI
 from okulapi.cekirdek.servisler import (
@@ -86,6 +87,15 @@ def okul_ayar_etkisi(veri: semalar.AyarEtkisiIstegi, okul_id: AktifOkulId, oturu
     """Önizleme: gün/saat bu değerlere getirilirse mevcut kayıtlara ne olur? Hiçbir şeyi değiştirmez."""
     etkiler = OkulServisi(oturum).ayar_etkileri(okul_id, veri.model_dump(exclude_unset=True), istek.app.state.moduller)
     return {"etkiler": etkiler}
+
+
+@okul_router.post("/okul/zil-onizleme", response_model=semalar.ZilOnizlemeYanit)
+def okul_zil_onizleme(veri: semalar.ZilOnizlemeIstegi, _okul_id: AktifOkulId) -> Any:
+    """Ayar ekranındaki taslağın zil saatleri. Hesap tek yerdedir (cekirdek/zil.py); kaydetmez."""
+    zil = zil_hesabi.zil_saatleri(veri.ilk_ders_baslangic, veri.saat_sayisi, veri.ders_suresi_dk,
+                                  veri.teneffus_dk, veri.ogle_arasi_dk, veri.ogle_arasi_sonra) or []
+    ogle = zil_hesabi.ogle_arasi_zili(zil, veri.ogle_arasi_sonra, veri.ogle_arasi_dk)
+    return {"zil_saatleri": [vars(z) for z in zil], "ogle_arasi_zili": vars(ogle) if ogle else None}
 
 
 ROUTERLAR = [

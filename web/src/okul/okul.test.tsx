@@ -12,11 +12,26 @@ const ETKILER = [
 ];
 
 /** Okul uçları: önizleme ve kaydetme istekleri kaydedilir. */
+const ZIL_BITIS: Record<string, string> = {
+  "08:30": "09:10", "09:20": "10:00", "10:10": "10:50", "11:00": "11:40", "12:30": "13:10", "13:20": "14:00",
+  "14:10": "14:50", "15:00": "15:40",
+};
+
 function okulApisi(etkiler: string[] = []) {
   const istekler: { yol: string; govde: unknown }[] = [];
   let okul = { ...BEN_ORNEK.okul };
   sunucu.use(
     http.get("/api/okul", () => HttpResponse.json(okul)),
+    // Zil hesabı sunucudadır (api cekirdek/zil.py); sahte sunucu 50 dk öğle arası taslağına yanıt verir.
+    http.post("/api/okul/zil-onizleme", async ({ request }) => {
+      const govde = (await request.json()) as { ogle_arasi_dk: number; ogle_arasi_sonra: number | null };
+      istekler.push({ yol: "zil-onizleme", govde });
+      const baslar = ["08:30", "09:20", "10:10", "11:00", "12:30", "13:20", "14:10", "15:00"];
+      return HttpResponse.json({
+        zil_saatleri: baslar.map((b) => ({ baslangic: b, bitis: ZIL_BITIS[b]! })),
+        ogle_arasi_zili: govde.ogle_arasi_sonra === 4 && govde.ogle_arasi_dk === 50 ? { baslangic: "11:40", bitis: "12:30" } : null,
+      });
+    }),
     http.post("/api/okul/ayar-etkisi", async ({ request }) => {
       istekler.push({ yol: "ayar-etkisi", govde: await request.json() });
       return HttpResponse.json({ etkiler });
@@ -178,8 +193,12 @@ describe("günlere göre ders saati, öğle arası, zil saatleri (K3)", () => {
 
     await kullanici.click(screen.getByRole("button", { name: "Kaydet" }));
     expect(await screen.findByText("Okul bilgileri kaydedildi.")).toBeInTheDocument();
-    expect(istekler.map((i) => i.yol)).toEqual(["okul"]); // kısalma yok: önizleme istenmedi
-    expect(istekler[0]!.govde).toMatchObject({ ogle_arasi_sonra: 4, ilk_ders_baslangic: "08:30", ogle_arasi_dk: 50 });
+    // Kısalma yok: ayar etkisi sorulmadı. Zil önizlemesi sunucudan, son taslakla istendi.
+    expect(istekler.filter((i) => i.yol !== "zil-onizleme").map((i) => i.yol)).toEqual(["okul"]);
+    expect(istekler.filter((i) => i.yol === "zil-onizleme").at(-1)?.govde).toEqual({
+      ilk_ders_baslangic: "08:30", saat_sayisi: 8, ders_suresi_dk: 40, teneffus_dk: 10, ogle_arasi_dk: 50, ogle_arasi_sonra: 4,
+    });
+    expect(istekler.find((i) => i.yol === "okul")!.govde).toMatchObject({ ogle_arasi_sonra: 4, ilk_ders_baslangic: "08:30", ogle_arasi_dk: 50 });
   });
 
   it("öğle arası son dersten sonra seçilemez; zil saati biçimi denetlenir", async () => {

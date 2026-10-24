@@ -2,7 +2,7 @@ import { Ban, BoxSelect, Waves } from "lucide-react";
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { hataMetni } from "../api/hata";
 import { useBildirim } from "../bilesenler/Bildirim";
-import { ogleArasiSonrasi, ogleArasiZili, saatVar, zilMetni, zilSaatleri, type Hafta } from "../okul/zaman";
+import { ogleArasiSonrasi, saatVar, zilMetni, type Hafta } from "../okul/zaman";
 import { GUN_ADLARI, GUN_KISA_ADLARI } from "../program/aciklama";
 import {
   DURUM_ADLARI,
@@ -146,8 +146,8 @@ export function MusaitlikCizelgesi({ ogretmenId, ad, gunSayisi, saatSayisi, haft
   const gunler = Array.from({ length: gunSayisi }, (_, g) => GUN_ADLARI[g] ?? `${g + 1}. gün`);
   const saatler = Array.from({ length: saatSayisi }, (_, s) => s);
   const yuk = cizelge.data?.yuk;
-  const zil = zilSaatleri(hafta, saatSayisi);
-  const ogleZili = ogleArasiZili(hafta, zil);
+  const zil = hafta.zil_saatleri;
+  const ogleZili = hafta.ogle_arasi_zili;
 
   return (
     <section aria-labelledby="musaitlik-baslik" className={stil.kart}>
