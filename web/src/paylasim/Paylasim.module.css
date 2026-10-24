@@ -1,0 +1,211 @@
+/* Paylaşım sayfası: girişsiz, menüsüz. Telefonda gün gün liste, genişte haftalık tablo. */
+.sayfa {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--bosluk-4);
+}
+
+.marka {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  font-weight: var(--yazi-baslik-agirligi);
+  color: var(--renk-birincil-koyu);
+  margin: 0 0 var(--bosluk-4);
+}
+.marka svg {
+  width: 1.25em;
+  height: 1.25em;
+}
+
+.ust h1 {
+  margin-bottom: var(--bosluk-2);
+}
+.okul {
+  margin: 0 0 var(--bosluk-1);
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-metin-ikincil);
+}
+.altBaslik {
+  font-weight: var(--yazi-kalin);
+  font-size: var(--yazi-buyuk);
+  color: var(--renk-metin-ikincil);
+}
+.bilgi {
+  color: var(--renk-metin-ikincil);
+  margin: 0 0 var(--bosluk-4);
+}
+
+.eylemler {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bosluk-3) var(--bosluk-5);
+  align-items: end;
+  margin-bottom: var(--bosluk-5);
+}
+.secici {
+  display: grid;
+  gap: var(--bosluk-1);
+  font-weight: var(--yazi-kalin);
+}
+.secici select {
+  font: inherit;
+  min-height: 2.75rem;
+  padding: 0 var(--bosluk-3);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose-kucuk);
+  background: var(--renk-zemin);
+  max-width: 100%;
+}
+.pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  min-height: 2.75rem;
+  padding: 0 var(--bosluk-4);
+  border-radius: var(--kose);
+  background: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+  font-weight: var(--yazi-kalin);
+  text-decoration: none;
+}
+.pdf svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.mesaj {
+  background: var(--renk-zemin);
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-buyuk);
+  padding: var(--bosluk-5);
+}
+
+.ders {
+  display: block;
+  font-weight: var(--yazi-kalin);
+}
+.ikinci {
+  display: block;
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
+}
+.zil {
+  display: block;
+  font-size: var(--yazi-kucuk);
+  font-weight: normal;
+  color: var(--renk-metin-ikincil);
+}
+
+/* --- haftalık tablo (geniş ekran) --- */
+.haftalik {
+  display: none;
+}
+.tablo {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: var(--renk-zemin);
+}
+.tablo th,
+.tablo td {
+  border: 1px solid var(--renk-kenar-alan);
+  padding: var(--bosluk-2);
+  vertical-align: middle;
+  text-align: start;
+}
+.tablo thead th,
+.tablo tbody th {
+  background: var(--renk-yuzey);
+}
+.tablo tbody th {
+  width: 7rem;
+}
+.tablo td.dolu {
+  border-inline-start-width: 5px;
+  background: var(--renk-zemin);
+}
+.tablo td.yok {
+  background: var(--renk-yuzey-vurgu);
+}
+.tablo .ogle td {
+  text-align: center;
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
+  background: var(--renk-yuzey);
+  padding: var(--bosluk-1);
+}
+
+/* --- gün gün (telefon) --- */
+.gunler {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--bosluk-1);
+  margin-bottom: var(--bosluk-3);
+}
+.gunDugmesi {
+  font: inherit;
+  font-weight: var(--yazi-kalin);
+  min-height: 2.75rem;
+  padding: 0 var(--bosluk-1);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose-kucuk);
+  background: var(--renk-zemin);
+  color: var(--renk-metin);
+}
+.gunDugmesi[aria-pressed="true"] {
+  background: var(--renk-birincil);
+  border-color: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+}
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--bosluk-2);
+}
+.liste li {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr;
+  gap: var(--bosluk-3);
+  align-items: center;
+  padding: var(--bosluk-3);
+  border-radius: var(--kose);
+  background: var(--renk-zemin);
+  border: 1px solid var(--renk-kenar);
+}
+.liste li.dolu {
+  border-inline-start: 6px solid;
+}
+.liste li.bos .icerik {
+  color: var(--renk-metin-ikincil);
+}
+.liste li.ogle {
+  display: block;
+  text-align: center;
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
+  background: var(--renk-yuzey);
+  padding: var(--bosluk-1);
+}
+.saat {
+  font-weight: var(--yazi-kalin);
+}
+
+@media (min-width: 48rem) {
+  .haftalik {
+    display: block;
+  }
+  .gunGun {
+    display: none;
+  }
+}
+
+@media print {
+  .eylemler,
+  .marka {
+    display: none;
+  }
+}

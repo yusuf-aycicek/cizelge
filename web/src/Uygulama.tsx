@@ -11,6 +11,8 @@ import { HesabimSayfasi } from "./kimlik/HesabimSayfasi";
 import { KayitSayfasi } from "./kimlik/KayitSayfasi";
 import { IceAktarmaSayfasi } from "./iceaktarma/IceAktarmaSayfasi";
 import { KullanicilarSayfasi } from "./kimlik/KullanicilarSayfasi";
+import { PaylasimSayfasi } from "./paylasim/PaylasimSayfasi";
+import { YayinSayfasi } from "./paylasim/YayinSayfasi";
 import { KimlikCercevesi } from "./kimlik/KimlikCercevesi";
 import { KorumaliAlan } from "./kimlik/KorumaliAlan";
 import { DerslerSayfasi, OgretmenlerSayfasi, SiniflarSayfasi } from "./listeler/sayfalar";
@@ -27,7 +29,7 @@ import { TasarimSayfasi } from "./sayfalar/TasarimSayfasi";
  * tarayıcıda gerçek adres çubuğuyla, testte bellekteki bir adresle çalışır.
  */
 /** Kendi sayfası olan menü öğeleri; gerisi "hazırlanıyor" gösterir. */
-const HAZIR_SAYFALAR = new Set(["/", "/okul", "/ogretmenler", "/siniflar", "/dersler", "/seviye-sablonu", "/ders-dagilimi", "/program", "/kullanicilar"]);
+const HAZIR_SAYFALAR = new Set(["/", "/okul", "/ogretmenler", "/siniflar", "/dersler", "/seviye-sablonu", "/ders-dagilimi", "/program", "/kullanicilar", "/ice-aktarma", "/yayin"]);
 
 export function Uygulama({ sorguIstemcisi }: { sorguIstemcisi: QueryClient }) {
   return (
@@ -35,6 +37,8 @@ export function Uygulama({ sorguIstemcisi }: { sorguIstemcisi: QueryClient }) {
       <BildirimSaglayici>
         {/* İç içe yollar: dıştaki öğe (düzen) içtekinin çevresini çizer, içteki <Outlet />'e yerleşir. */}
         <Routes>
+          {/* Paylaşım linki (8b): girişsiz, menüsüz. */}
+          <Route path="p/:jeton" element={<PaylasimSayfasi />} />
           <Route element={<KimlikCercevesi />}>
             <Route path="giris" element={<GirisSayfasi />} />
             <Route path="kayit" element={<KayitSayfasi />} />
@@ -57,6 +61,7 @@ export function Uygulama({ sorguIstemcisi }: { sorguIstemcisi: QueryClient }) {
               <Route path="program/:id" element={<CizelgeSayfasi />} />
               <Route path="kullanicilar" element={<KullanicilarSayfasi />} />
               <Route path="ice-aktarma" element={<IceAktarmaSayfasi />} />
+              <Route path="yayin" element={<YayinSayfasi />} />
               {MENU.filter((m) => !HAZIR_SAYFALAR.has(m.yol)).map((m) => (
                 <Route key={m.yol} path={m.yol.slice(1)} element={<YapimAsamasinda baslik={m.ad} />} />
               ))}

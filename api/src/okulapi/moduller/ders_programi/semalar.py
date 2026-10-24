@@ -490,3 +490,89 @@ class IceAktarmaOnizleme(_Yanit):
 class IceAktarmaSonucu(BaseModel):
     eklenen: int
     guncellenen: int
+
+
+# --- yayın (8b, ADR 0022) ------------------------------------------------------------
+
+
+class YayinIstegi(BaseModel):
+    program_id: uuid.UUID
+
+
+class YayinDurumu(BaseModel):
+    program_id: uuid.UUID | None = Field(description="Program silindiyse boş; yayın yine kalır")
+    program_adi: str
+    yayin_zamani: datetime
+    eski_veri: bool | None = Field(description="Program, yayından sonra değişen verilerle mi üretildi (bilinmiyorsa boş)")
+    program_degisti: bool = Field(description="Programda yayından sonra değişiklik var (elle düzeltme, ad)")
+    uyarilar: list[str]
+
+
+# --- paylaşım linki (8b, ADR 0022) ---------------------------------------------------
+
+
+PaylasimTuru = Literal["okul", "ogretmen", "sube"]
+
+
+class PaylasimLinkiOlustur(BaseModel):
+    tur: PaylasimTuru
+    ogretmen_id: uuid.UUID | None = None
+    sinif_id: uuid.UUID | None = None
+
+
+class TopluLinkIstegi(BaseModel):
+    tur: Literal["ogretmen", "sube"]
+
+
+class PaylasimLinkiYanit(BaseModel):
+    id: uuid.UUID
+    tur: PaylasimTuru
+    ogretmen_id: uuid.UUID | None
+    sinif_id: uuid.UUID | None
+    hedef_adi: str = Field(description="\"Bütün okul\", öğretmenin ya da şubenin adı")
+    jeton: str = Field(description="Linkin adresi: /p/{jeton}")
+    olusturma: datetime
+
+
+class PaylasimHucresi(BaseModel):
+    gun: int
+    saat: int
+    uzunluk: int
+    ders: str
+    kisa_ad: str
+    renk: str
+    sube: str
+    ogretmen: str
+
+
+class PaylasimCizelgesi(BaseModel):
+    """Kimlik taşımaz: linkle gelene veritabanı kimliği verilmez."""
+
+    ad: str
+    tur: Literal["sube", "ogretmen"]
+    hucreler: list[PaylasimHucresi]
+
+
+class ZilSaati(BaseModel):
+    baslangic: str
+    bitis: str
+
+
+class PaylasimHaftasi(BaseModel):
+    gun_adlari: list[str]
+    gun_saatleri: list[int]
+    saat_sayisi: int
+    ogle_arasi_sonra: int | None
+    zil: list[ZilSaati] | None
+    ogle_zili: ZilSaati | None
+
+
+class PaylasimYanit(BaseModel):
+    tur: PaylasimTuru
+    yayinda: bool
+    yayin_zamani: datetime | None
+    okul: str
+    program: str
+    hafta: PaylasimHaftasi | None
+    subeler: list[PaylasimCizelgesi]
+    ogretmenler: list[PaylasimCizelgesi]

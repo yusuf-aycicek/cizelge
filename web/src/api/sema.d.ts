@@ -477,6 +477,125 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ders-programi/paylasim-linkleri": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Linkleri Listele */
+        get: operations["linkleri_listele_api_ders_programi_paylasim_linkleri_get"];
+        put?: never;
+        /**
+         * Link Olustur
+         * @description Kapsamın (okul, öğretmen ya da şube) linki; zaten varsa o döner.
+         */
+        post: operations["link_olustur_api_ders_programi_paylasim_linkleri_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/paylasim-linkleri/toplu": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Toplu Link Olustur
+         * @description Linki olmayan bütün öğretmenlere ya da şubelere link; o türün bütün linkleri döner.
+         */
+        post: operations["toplu_link_olustur_api_ders_programi_paylasim_linkleri_toplu_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/paylasim-linkleri/{link_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Link Iptal */
+        delete: operations["link_iptal_api_ders_programi_paylasim_linkleri__link_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/paylasim-linkleri/{link_id}/yenile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Link Yenile
+         * @description Yeni jeton; eski link o anda çalışmaz olur.
+         */
+        post: operations["link_yenile_api_ders_programi_paylasim_linkleri__link_id__yenile_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/paylasim/{jeton}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Paylasim Goster
+         * @description Linkin kapsamındaki yayınlanmış program (giriş gerekmez).
+         */
+        get: operations["paylasim_goster_api_ders_programi_paylasim__jeton__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/paylasim/{jeton}/program.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Paylasim Pdf
+         * @description Linkin kapsamındaki programın PDF'i. Okul linkinde `sube` ya da `ogretmen` (adıyla) tek sayfa
+         *     seçer; seçim yalnızca linkin zaten gördüğü çizelgeler arasında yapılır.
+         */
+        get: operations["paylasim_pdf_api_ders_programi_paylasim__jeton__program_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ders-programi/programlar": {
         parameters: {
             query?: never;
@@ -778,6 +897,35 @@ export interface paths {
         head?: never;
         /** Guncelle */
         patch: operations["guncelle_api_ders_programi_seviye_sablonlari__kayit_id__patch"];
+        trace?: never;
+    };
+    "/api/ders-programi/yayin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Yayin Durumu
+         * @description Okulun yayınlanan programı (yoksa null) ve güncel olmama nedenleri.
+         */
+        get: operations["yayin_durumu_api_ders_programi_yayin_get"];
+        /**
+         * Yayinla
+         * @description Programı yayınlar: içeriği dondurulur (sonradan atama, öğretmen ya da ders silinse de
+         *     değişmez). Var olan yayının yerini alır; paylaşım linkleri aynı kalır.
+         */
+        put: operations["yayinla_api_ders_programi_yayin_put"];
+        post?: never;
+        /**
+         * Yayini Kaldir
+         * @description 404: yayın yok.
+         */
+        delete: operations["yayini_kaldir_api_ders_programi_yayin_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/ders-renkleri": {
@@ -1947,6 +2095,119 @@ export interface components {
                 };
             };
         };
+        /**
+         * PaylasimCizelgesi
+         * @description Kimlik taşımaz: linkle gelene veritabanı kimliği verilmez.
+         */
+        PaylasimCizelgesi: {
+            /** Ad */
+            ad: string;
+            /** Hucreler */
+            hucreler: components["schemas"]["PaylasimHucresi"][];
+            /**
+             * Tur
+             * @enum {string}
+             */
+            tur: "sube" | "ogretmen";
+        };
+        /** PaylasimHaftasi */
+        PaylasimHaftasi: {
+            /** Gun Adlari */
+            gun_adlari: string[];
+            /** Gun Saatleri */
+            gun_saatleri: number[];
+            /** Ogle Arasi Sonra */
+            ogle_arasi_sonra: number | null;
+            ogle_zili: components["schemas"]["ZilSaati"] | null;
+            /** Saat Sayisi */
+            saat_sayisi: number;
+            /** Zil */
+            zil: components["schemas"]["ZilSaati"][] | null;
+        };
+        /** PaylasimHucresi */
+        PaylasimHucresi: {
+            /** Ders */
+            ders: string;
+            /** Gun */
+            gun: number;
+            /** Kisa Ad */
+            kisa_ad: string;
+            /** Ogretmen */
+            ogretmen: string;
+            /** Renk */
+            renk: string;
+            /** Saat */
+            saat: number;
+            /** Sube */
+            sube: string;
+            /** Uzunluk */
+            uzunluk: number;
+        };
+        /** PaylasimLinkiOlustur */
+        PaylasimLinkiOlustur: {
+            /** Ogretmen Id */
+            ogretmen_id?: string | null;
+            /** Sinif Id */
+            sinif_id?: string | null;
+            /**
+             * Tur
+             * @enum {string}
+             */
+            tur: "okul" | "ogretmen" | "sube";
+        };
+        /** PaylasimLinkiYanit */
+        PaylasimLinkiYanit: {
+            /**
+             * Hedef Adi
+             * @description "Bütün okul", öğretmenin ya da şubenin adı
+             */
+            hedef_adi: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Jeton
+             * @description Linkin adresi: /p/{jeton}
+             */
+            jeton: string;
+            /** Ogretmen Id */
+            ogretmen_id: string | null;
+            /**
+             * Olusturma
+             * Format: date-time
+             */
+            olusturma: string;
+            /** Sinif Id */
+            sinif_id: string | null;
+            /**
+             * Tur
+             * @enum {string}
+             */
+            tur: "okul" | "ogretmen" | "sube";
+        };
+        /** PaylasimYanit */
+        PaylasimYanit: {
+            hafta: components["schemas"]["PaylasimHaftasi"] | null;
+            /** Ogretmenler */
+            ogretmenler: components["schemas"]["PaylasimCizelgesi"][];
+            /** Okul */
+            okul: string;
+            /** Program */
+            program: string;
+            /** Subeler */
+            subeler: components["schemas"]["PaylasimCizelgesi"][];
+            /**
+             * Tur
+             * @enum {string}
+             */
+            tur: "okul" | "ogretmen" | "sube";
+            /** Yayin Zamani */
+            yayin_zamani: string | null;
+            /** Yayinda */
+            yayinda: boolean;
+        };
         /** ProgramAdi */
         ProgramAdi: {
             /** Ad */
@@ -2339,6 +2600,14 @@ export interface components {
              */
             uyarilari_kabul: boolean;
         };
+        /** TopluLinkIstegi */
+        TopluLinkIstegi: {
+            /**
+             * Tur
+             * @enum {string}
+             */
+            tur: "ogretmen" | "sube";
+        };
         /**
          * TopluOgretmenAta
          * @description Aynı öğretmeni birden fazla atamaya tek seferde verir (ör. 9-A, 9-B, 9-C Matematik).
@@ -2358,6 +2627,41 @@ export interface components {
             email: string;
             /** Sifre */
             sifre: string;
+        };
+        /** YayinDurumu */
+        YayinDurumu: {
+            /**
+             * Eski Veri
+             * @description Program, yayından sonra değişen verilerle mi üretildi (bilinmiyorsa boş)
+             */
+            eski_veri: boolean | null;
+            /** Program Adi */
+            program_adi: string;
+            /**
+             * Program Degisti
+             * @description Programda yayından sonra değişiklik var (elle düzeltme, ad)
+             */
+            program_degisti: boolean;
+            /**
+             * Program Id
+             * @description Program silindiyse boş; yayın yine kalır
+             */
+            program_id: string | null;
+            /** Uyarilar */
+            uyarilar: string[];
+            /**
+             * Yayin Zamani
+             * Format: date-time
+             */
+            yayin_zamani: string;
+        };
+        /** YayinIstegi */
+        YayinIstegi: {
+            /**
+             * Program Id
+             * Format: uuid
+             */
+            program_id: string;
         };
         /** YerlesimYanit */
         YerlesimYanit: {
@@ -3484,6 +3788,229 @@ export interface operations {
             };
         };
     };
+    linkleri_listele_api_ders_programi_paylasim_linkleri_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaylasimLinkiYanit"][];
+                };
+            };
+        };
+    };
+    link_olustur_api_ders_programi_paylasim_linkleri_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaylasimLinkiOlustur"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaylasimLinkiYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    toplu_link_olustur_api_ders_programi_paylasim_linkleri_toplu_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TopluLinkIstegi"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaylasimLinkiYanit"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    link_iptal_api_ders_programi_paylasim_linkleri__link_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                link_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    link_yenile_api_ders_programi_paylasim_linkleri__link_id__yenile_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                link_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaylasimLinkiYanit"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    paylasim_goster_api_ders_programi_paylasim__jeton__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jeton: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaylasimYanit"];
+                };
+            };
+            /** @description Link yok ya da iptal edildi */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    paylasim_pdf_api_ders_programi_paylasim__jeton__program_pdf_get: {
+        parameters: {
+            query?: {
+                sube?: string | null;
+                ogretmen?: string | null;
+            };
+            header?: never;
+            path: {
+                jeton: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Link yok, iptal edildi ya da yayında program yok */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     programlari_listele_api_ders_programi_programlar_get: {
         parameters: {
             query?: never;
@@ -4190,6 +4717,91 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    yayin_durumu_api_ders_programi_yayin_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["YayinDurumu"] | null;
+                };
+            };
+        };
+    };
+    yayinla_api_ders_programi_yayin_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["YayinIstegi"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["YayinDurumu"];
+                };
+            };
+            /** @description Program, şube ya da öğretmen bu okulda yok */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Program hazır değil */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    yayini_kaldir_api_ders_programi_yayin_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

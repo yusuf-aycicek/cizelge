@@ -26,9 +26,10 @@ from okulapi.cekirdek.servisler import OkulServisi
 from okulapi.cekirdek.veritabani import Base, motor_olustur, oturum_fabrikasi as fabrika_olustur
 from okulapi.main import uygulama_olustur
 from okulapi.moduller.ders_programi.modeller import (
-    ProgramIslemi,
+    ProgramIslemi, PaylasimLinki, Yayin,
     DersAtama, Kisit, Musaitlik, Program, SeviyeSablonu, SubeDersIstisnasi, Yerlesim,
 )
+from okulapi.moduller.ders_programi.paylasim import yeni_jeton
 
 RLS_IHLALI = "42501"  # insufficient_privilege: "new row violates row-level security policy"
 
@@ -66,6 +67,9 @@ def _okul_verisi(fabrika, ad: str) -> tuple[uuid.UUID, dict[str, set[uuid.UUID]]
         o.add(Yerlesim(program_id=program.id, ders_atama_id=atama.id, gun=1, saat=0, kilitli=True))
         o.add(ProgramIslemi(program_id=program.id, sira=1, tur="kilit",
                             veri={"ders_atama_id": str(atama.id), "hucreler": [[1, 0]], "kilitli": True}))
+        o.add(Yayin(program_id=program.id, program_adi="Eylül", yayin_zamani=datetime.now(timezone.utc),
+                    icerik={"subeler": [], "ogretmenler": []}))
+        o.add(PaylasimLinki(tur="ogretmen", ogretmen_id=ogretmen.id, jeton=yeni_jeton()))
         o.commit()
         satirlar = {t: set(o.scalars(text(f"SELECT id FROM {t}"))) for t in okula_ait_tablolar()}
     return okul_id, satirlar

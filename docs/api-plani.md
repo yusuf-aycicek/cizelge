@@ -456,8 +456,9 @@ Worker'ın akışı ve sonucu yazan parça (`moduller/ders_programi/sonuc_yazici
 
 ## 15. Sonraya
 
-1. **Paylaşılan/yayınlanan programın dondurulması** (yapım sırası 8, öğretmen paylaşım linki
-   adımında ele alınacak).
+1. **Paylaşılan/yayınlanan programın dondurulması** (yapım sırası 8). **Çözüldü (8b, ADR 0022):**
+   yayın, çıktı modelinin JSON anlık görüntüsüdür; atama, öğretmen ya da ders silinse de değişmez
+   (`tests/test_yayin.py`). Aşağıdaki not tarihçe olarak duruyor.
    - Sorun: ders ataması silinince yerleşimleri de siliniyor (`ON DELETE CASCADE`, bölüm 3. alt adım
      notları). Öğretmenlerle paylaşılmış bir programdan bir ders bu yüzden **sessizce kaybolabilir**.
      Silme davranışı şimdilik değiştirilmedi.

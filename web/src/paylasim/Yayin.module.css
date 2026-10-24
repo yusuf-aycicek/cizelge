@@ -1,0 +1,113 @@
+/* Yayın ve paylaşım sayfası (yönetici). */
+.yayinda {
+  font-size: var(--yazi-buyuk);
+}
+
+.uyarilar {
+  background: var(--renk-uyari-zemin);
+  color: var(--renk-uyari-metin);
+  border-inline-start: 4px solid currentColor;
+  border-radius: var(--kose);
+  padding: var(--bosluk-3) var(--bosluk-4) var(--bosluk-3) var(--bosluk-6);
+}
+.uyarilar li + li {
+  margin-top: var(--bosluk-2);
+}
+
+.satir {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--bosluk-3);
+}
+.secici {
+  display: grid;
+  gap: var(--bosluk-1);
+  font-weight: var(--yazi-kalin);
+}
+.secici select {
+  font: inherit;
+  min-height: 2.75rem;
+  padding: 0 var(--bosluk-3);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose-kucuk);
+  background: var(--renk-zemin);
+  max-width: 100%;
+}
+
+.aciklama {
+  max-width: 44rem;
+  color: var(--renk-metin-ikincil);
+}
+
+.grup {
+  border-top: 1px solid var(--renk-kenar);
+  padding-top: var(--bosluk-4);
+  margin-top: var(--bosluk-4);
+}
+.grupUst {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  margin-bottom: var(--bosluk-3);
+}
+.grupUst h3 {
+  margin: 0;
+}
+
+.tablo {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tablo th,
+.tablo td {
+  text-align: start;
+  padding: var(--bosluk-2);
+  border-bottom: 1px solid var(--renk-kenar);
+}
+.tablo tbody th {
+  font-weight: var(--yazi-kalin);
+  white-space: nowrap;
+}
+.adres {
+  font: inherit;
+  font-size: var(--yazi-kucuk);
+  width: 100%;
+  min-width: 12rem;
+  padding: var(--bosluk-1) var(--bosluk-2);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose-kucuk);
+  background: var(--renk-yuzey);
+}
+.eylemler {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bosluk-1);
+  justify-content: end;
+}
+
+/* Telefonda satırlar alt alta. */
+@media (max-width: 40rem) {
+  .tablo thead {
+    display: none;
+  }
+  .tablo tr,
+  .tablo th,
+  .tablo td {
+    display: block;
+  }
+  .tablo tr {
+    border-bottom: 1px solid var(--renk-kenar);
+    padding: var(--bosluk-2) 0;
+  }
+  .tablo th,
+  .tablo td {
+    border: 0;
+    padding: var(--bosluk-1) 0;
+  }
+  .eylemler {
+    justify-content: start;
+  }
+}

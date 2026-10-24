@@ -148,7 +148,7 @@ DENEME_EPOSTA_KALIBI = r"^(tasma|ekran|bos)-[0-9]+@ornek\.test$"
 # Okula ait tablolar, silinme sırasıyla (yabancı anahtarlar RESTRICT: önce gösterenler silinir).
 # Listede olmayan okula ait bir tablo varsa silme başlamadan durulur (yeni tablo eklenince buraya
 # da eklenmeli; test denetler).
-SILME_SIRASI = ("program_islemi", "yerlesim", "program", "kisit", "musaitlik", "ders_atama", "seviye_sablonu",
+SILME_SIRASI = ("paylasim_linki", "yayin", "program_islemi", "yerlesim", "program", "kisit", "musaitlik", "ders_atama", "seviye_sablonu",
                 "sube_ders_istisnasi", "oturum", "kullanici", "ogretmen", "sinif", "sube_grubu", "ders")
 
 

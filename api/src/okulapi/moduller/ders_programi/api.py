@@ -13,10 +13,10 @@ from fastapi import APIRouter, HTTPException, Query, Request, Response
 from fastapi.concurrency import run_in_threadpool
 
 from okulapi.cekirdek.api import crud_router
-from okulapi.cekirdek.bagimliliklar import AktifOkulId, Kuyruk, OkulOturumu
+from okulapi.cekirdek.bagimliliklar import AktifOkulId, Kuyruk, OkulOturumu, OkulsuzOturum
 from okulapi.cekirdek.depo import OgretmenDeposu
 from okulapi.cekirdek.servisler import KayitBulunamadi
-from okulapi.moduller.ders_programi import ice_aktarma, semalar
+from okulapi.moduller.ders_programi import ice_aktarma, paylasim, semalar
 from okulapi.moduller.ders_programi.cikti import excel, pdf
 from okulapi.moduller.ders_programi.cikti.model import Cizelge
 from okulapi.moduller.ders_programi.cikti.veri import program_ciktisi
@@ -34,6 +34,7 @@ from okulapi.moduller.ders_programi.servisler import (
     dagilim_sekilleri,
     on_kontrol_sonucu,
 )
+from okulapi.moduller.ders_programi.yayin import YayinServisi
 
 router = APIRouter()
 
@@ -343,12 +344,118 @@ async def ice_aktar(istek: Request, oturum: OkulOturumu, ozet: str = Query(max_l
     return await run_in_threadpool(ice_aktarma.kaydet, oturum, icerik, ozet)
 
 
+yayin_router = APIRouter(prefix="/yayin", tags=["yayın"])
+
+
+@yayin_router.get("", response_model=semalar.YayinDurumu | None)
+def yayin_durumu(oturum: OkulOturumu) -> Any:
+    """Okulun yayınlanan programı (yoksa null) ve güncel olmama nedenleri."""
+    return YayinServisi(oturum).durum()
+
+
+@yayin_router.put("", response_model=semalar.YayinDurumu, responses=_CIKTI_YANITLARI)
+def yayinla(veri: semalar.YayinIstegi, oturum: OkulOturumu) -> Any:
+    """Programı yayınlar: içeriği dondurulur (sonradan atama, öğretmen ya da ders silinse de
+    değişmez). Var olan yayının yerini alır; paylaşım linkleri aynı kalır."""
+    return YayinServisi(oturum).yayinla(veri.program_id)
+
+
+@yayin_router.delete("", status_code=204)
+def yayini_kaldir(oturum: OkulOturumu) -> Response:
+    """404: yayın yok."""
+    YayinServisi(oturum).kaldir()
+    return Response(status_code=204)
+
+
+link_router = APIRouter(prefix="/paylasim-linkleri", tags=["paylaşım"])
+
+
+@link_router.get("", response_model=list[semalar.PaylasimLinkiYanit])
+def linkleri_listele(oturum: OkulOturumu) -> Any:
+    return paylasim.PaylasimServisi(oturum).listele()
+
+
+@link_router.post("", response_model=semalar.PaylasimLinkiYanit)
+def link_olustur(veri: semalar.PaylasimLinkiOlustur, oturum: OkulOturumu) -> Any:
+    """Kapsamın (okul, öğretmen ya da şube) linki; zaten varsa o döner."""
+    return paylasim.PaylasimServisi(oturum).olustur(veri.tur, veri.ogretmen_id, veri.sinif_id)
+
+
+@link_router.post("/toplu", response_model=list[semalar.PaylasimLinkiYanit])
+def toplu_link_olustur(veri: semalar.TopluLinkIstegi, oturum: OkulOturumu) -> Any:
+    """Linki olmayan bütün öğretmenlere ya da şubelere link; o türün bütün linkleri döner."""
+    return paylasim.PaylasimServisi(oturum).toplu_olustur(veri.tur)
+
+
+@link_router.post("/{link_id}/yenile", response_model=semalar.PaylasimLinkiYanit)
+def link_yenile(link_id: uuid.UUID, oturum: OkulOturumu) -> Any:
+    """Yeni jeton; eski link o anda çalışmaz olur."""
+    return paylasim.PaylasimServisi(oturum).yenile(link_id)
+
+
+@link_router.delete("/{link_id}", status_code=204)
+def link_iptal(link_id: uuid.UUID, oturum: OkulOturumu) -> Response:
+    paylasim.PaylasimServisi(oturum).iptal(link_id)
+    return Response(status_code=204)
+
+
+# Girişsiz uçlar: oturum yok, okul bağlamı açılmaz (OkulsuzOturum). İçerik veritabanında, jetonun
+# kapsamına göre süzülür (paylasim_icerigi, ADR 0022).
+acik_router = APIRouter(prefix="/paylasim", tags=["paylaşım (girişsiz)"])
+_GIZLI = {"Cache-Control": "no-store", "Referrer-Policy": "no-referrer", "X-Robots-Tag": "noindex"}
+_LINK_YOK = "Paylaşım linki bulunamadı"
+
+
+def _paylasim(oturum, jeton: str) -> dict:
+    veri = paylasim.icerik(oturum, jeton)
+    if veri is None:
+        raise HTTPException(404, _LINK_YOK, headers=_GIZLI)
+    return veri
+
+
+@acik_router.get("/{jeton}", response_model=semalar.PaylasimYanit, responses={404: {"description": "Link yok ya da iptal edildi"}})
+def paylasim_goster(jeton: str, oturum: OkulsuzOturum, yanit: Response) -> Any:
+    """Linkin kapsamındaki yayınlanmış program (giriş gerekmez)."""
+    veri = _paylasim(oturum, jeton)
+    yanit.headers.update(_GIZLI)
+    icerik = veri["icerik"]
+    if icerik is None:
+        return {"tur": veri["tur"], "yayinda": False, "yayin_zamani": None, "okul": "", "program": "", "hafta": None,
+                "subeler": [], "ogretmenler": []}
+    return {"tur": veri["tur"], "yayinda": True, "yayin_zamani": veri["yayin_zamani"], "okul": icerik["okul"],
+            "program": icerik["program"], "hafta": icerik["hafta"], "subeler": icerik["subeler"],
+            "ogretmenler": icerik["ogretmenler"]}
+
+
+@acik_router.get("/{jeton}/program.pdf", response_class=Response,
+                 responses={404: {"description": "Link yok, iptal edildi ya da yayında program yok"}})
+def paylasim_pdf(jeton: str, oturum: OkulsuzOturum, sube: str | None = None, ogretmen: str | None = None) -> Response:
+    """Linkin kapsamındaki programın PDF'i. Okul linkinde `sube` ya da `ogretmen` (adıyla) tek sayfa
+    seçer; seçim yalnızca linkin zaten gördüğü çizelgeler arasında yapılır."""
+    veri = _paylasim(oturum, jeton)
+    if veri["icerik"] is None:
+        raise HTTPException(404, "Yayında program yok", headers=_GIZLI)
+    cikti = paylasim.cikti_modeli(veri)
+    cizelgeler = cikti.subeler + cikti.ogretmenler
+    if sube is not None or ogretmen is not None:
+        cizelgeler = [c for c in cizelgeler if (c.tur, c.ad) in {("sube", sube), ("ogretmen", ogretmen)}]
+        if not cizelgeler:
+            raise HTTPException(404, "Bu linkte böyle bir şube ya da öğretmen yok", headers=_GIZLI)
+    ad = cizelgeler[0].ad if len(cizelgeler) == 1 else cikti.okul
+    yanit = _dosya(pdf.haftalik_pdf(cikti, cizelgeler, "Ders programı"), PDF, f"{ad} programı.pdf")
+    yanit.headers.update(_GIZLI)
+    return yanit
+
+
 # Özel yollar (/uygula) CRUD'un /{kayit_id} yollarından önce eklenir.
 router.include_router(sablon_router)
 router.include_router(atama_router)
 router.include_router(kural_router)
 router.include_router(istisna_router)
 router.include_router(ice_router)
+router.include_router(yayin_router)
+router.include_router(link_router)
+router.include_router(acik_router)
 for alt in (
     crud_router("/seviye-sablonlari", SeviyeSablonuServisi, semalar.SeviyeSablonuOlustur,
                 semalar.SeviyeSablonuGuncelle, semalar.SeviyeSablonuYanit, "seviye şablonu"),

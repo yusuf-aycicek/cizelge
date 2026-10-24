@@ -12,6 +12,7 @@ import {
   Menu,
   School,
   Settings,
+  Share2,
   UserCog,
 } from "lucide-react";
 import { useState } from "react";
@@ -35,6 +36,7 @@ export const MENU = [
   { yol: "/ders-dagilimi", ad: "Ders dağılımı", Ikon: ClipboardList },
   { yol: "/ice-aktarma", ad: "Excel'den aktar", Ikon: FileUp },
   { yol: "/program", ad: "Program", Ikon: CalendarRange },
+  { yol: "/yayin", ad: "Yayın ve paylaşım", Ikon: Share2 },
   { yol: "/kullanicilar", ad: "Kullanıcılar", Ikon: UserCog },
 ] as const;
 

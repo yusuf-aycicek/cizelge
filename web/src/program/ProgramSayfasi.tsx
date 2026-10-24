@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  CalendarRange, Check, CircleAlert, CircleX, History, Hourglass, LoaderCircle, RotateCcw, Sparkles, TableProperties, WandSparkles,
+  CalendarRange, Check, CircleAlert, CircleX, History, Hourglass, LoaderCircle, RotateCcw, Share2, Sparkles, TableProperties, WandSparkles,
   X,
 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
@@ -293,6 +293,9 @@ function HazirPaneli({ program, onTemelAl }: { program: Program; onTemelAl: (p: 
             <TableProperties aria-hidden="true" /> Haftalık çizelgeyi aç
           </Link>
           <IndirMenusu programId={program.id} />
+          <Link to="/yayin" className={stil.cizelgeBaglantisi}>
+            <Share2 aria-hidden="true" /> Yayınla ve paylaş
+          </Link>
         </div>
       </div>
       <EskiVeriUyarisi program={program} onTemelAl={onTemelAl} />

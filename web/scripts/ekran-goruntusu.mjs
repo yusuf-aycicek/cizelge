@@ -1062,6 +1062,47 @@ AKISLAR["7.2"] = async (tarayici, kaydet) => {
   }
 };
 
+// 8b: yayın sayfası ve girişsiz paylaşım sayfası (telefon ve masaüstü). Örnek okulda yayın yoksa
+// hazır program geçici olarak yayınlanır; açılan linkler ve geçici yayın iş bitince geri alınır.
+AKISLAR["8"] = async (tarayici, kaydet) => {
+  const { baglam, s } = await ornekGiris(tarayici, MASAUSTU);
+  const koken = { Origin: ADRES };
+  const DP = ADRES + "/api/ders-programi";
+  const onceki = new Set((await (await s.request.get(DP + "/paylasim-linkleri")).json()).map((l) => l.id));
+  const yayinVardi = (await (await s.request.get(DP + "/yayin")).json()) !== null;
+  try {
+    if (!yayinVardi) {
+      const program = (await (await s.request.get(DP + "/programlar")).json()).find((p) => p.durum === "hazir");
+      await s.request.put(DP + "/yayin", { headers: koken, data: { program_id: program.id } });
+    }
+    await s.request.post(DP + "/paylasim-linkleri", { headers: koken, data: { tur: "okul" } });
+    const ogretmenler = await (await s.request.post(DP + "/paylasim-linkleri/toplu", { headers: koken, data: { tur: "ogretmen" } })).json();
+    await s.goto(ADRES + "/yayin");
+    await s.getByLabel(`${ogretmenler[0].hedef_adi} linki`, { exact: true }).waitFor();
+    await kaydet(s, "01-yayin-sayfasi.png");
+
+    const tel = await tarayici.newContext({ viewport: TELEFON, locale: "tr-TR", isMobile: true, hasTouch: true });
+    const t = await tel.newPage();
+    await t.goto(`${ADRES}/p/${ogretmenler[0].jeton}`);
+    await t.getByRole("button", { name: "Salı" }).click();
+    await t.getByRole("list", { name: "Salı dersleri" }).waitFor();
+    await kaydet(t, "02-telefon-ogretmen.png", true);
+    await tel.close();
+
+    const okulLinki = (await (await s.request.get(DP + "/paylasim-linkleri")).json()).find((l) => l.tur === "okul");
+    const m = await baglam.newPage();
+    await m.goto(`${ADRES}/p/${okulLinki.jeton}`);
+    await m.getByRole("table").first().waitFor();
+    await kaydet(m, "03-masaustu-okul-linki.png");
+  } finally {
+    for (const l of await (await s.request.get(DP + "/paylasim-linkleri")).json()) {
+      if (!onceki.has(l.id)) await s.request.delete(`${DP}/paylasim-linkleri/${l.id}`, { headers: koken });
+    }
+    if (!yayinVardi) await s.request.delete(DP + "/yayin", { headers: koken });
+    await baglam.close();
+  }
+};
+
 const liste = GORUNUMLER[adim];
 const akis = AKISLAR[adim];
 if (!liste && !akis) {

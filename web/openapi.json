@@ -2134,6 +2134,335 @@
         "title": "OzelAyarYanit",
         "type": "object"
       },
+      "PaylasimCizelgesi": {
+        "description": "Kimlik taşımaz: linkle gelene veritabanı kimliği verilmez.",
+        "properties": {
+          "ad": {
+            "title": "Ad",
+            "type": "string"
+          },
+          "hucreler": {
+            "items": {
+              "$ref": "#/components/schemas/PaylasimHucresi"
+            },
+            "title": "Hucreler",
+            "type": "array"
+          },
+          "tur": {
+            "enum": [
+              "sube",
+              "ogretmen"
+            ],
+            "title": "Tur",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ad",
+          "tur",
+          "hucreler"
+        ],
+        "title": "PaylasimCizelgesi",
+        "type": "object"
+      },
+      "PaylasimHaftasi": {
+        "properties": {
+          "gun_adlari": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gun Adlari",
+            "type": "array"
+          },
+          "gun_saatleri": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Gun Saatleri",
+            "type": "array"
+          },
+          "ogle_arasi_sonra": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ogle Arasi Sonra"
+          },
+          "ogle_zili": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ZilSaati"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "saat_sayisi": {
+            "title": "Saat Sayisi",
+            "type": "integer"
+          },
+          "zil": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ZilSaati"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zil"
+          }
+        },
+        "required": [
+          "gun_adlari",
+          "gun_saatleri",
+          "saat_sayisi",
+          "ogle_arasi_sonra",
+          "zil",
+          "ogle_zili"
+        ],
+        "title": "PaylasimHaftasi",
+        "type": "object"
+      },
+      "PaylasimHucresi": {
+        "properties": {
+          "ders": {
+            "title": "Ders",
+            "type": "string"
+          },
+          "gun": {
+            "title": "Gun",
+            "type": "integer"
+          },
+          "kisa_ad": {
+            "title": "Kisa Ad",
+            "type": "string"
+          },
+          "ogretmen": {
+            "title": "Ogretmen",
+            "type": "string"
+          },
+          "renk": {
+            "title": "Renk",
+            "type": "string"
+          },
+          "saat": {
+            "title": "Saat",
+            "type": "integer"
+          },
+          "sube": {
+            "title": "Sube",
+            "type": "string"
+          },
+          "uzunluk": {
+            "title": "Uzunluk",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "gun",
+          "saat",
+          "uzunluk",
+          "ders",
+          "kisa_ad",
+          "renk",
+          "sube",
+          "ogretmen"
+        ],
+        "title": "PaylasimHucresi",
+        "type": "object"
+      },
+      "PaylasimLinkiOlustur": {
+        "properties": {
+          "ogretmen_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ogretmen Id"
+          },
+          "sinif_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sinif Id"
+          },
+          "tur": {
+            "enum": [
+              "okul",
+              "ogretmen",
+              "sube"
+            ],
+            "title": "Tur",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tur"
+        ],
+        "title": "PaylasimLinkiOlustur",
+        "type": "object"
+      },
+      "PaylasimLinkiYanit": {
+        "properties": {
+          "hedef_adi": {
+            "description": "\"Bütün okul\", öğretmenin ya da şubenin adı",
+            "title": "Hedef Adi",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "jeton": {
+            "description": "Linkin adresi: /p/{jeton}",
+            "title": "Jeton",
+            "type": "string"
+          },
+          "ogretmen_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ogretmen Id"
+          },
+          "olusturma": {
+            "format": "date-time",
+            "title": "Olusturma",
+            "type": "string"
+          },
+          "sinif_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sinif Id"
+          },
+          "tur": {
+            "enum": [
+              "okul",
+              "ogretmen",
+              "sube"
+            ],
+            "title": "Tur",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tur",
+          "ogretmen_id",
+          "sinif_id",
+          "hedef_adi",
+          "jeton",
+          "olusturma"
+        ],
+        "title": "PaylasimLinkiYanit",
+        "type": "object"
+      },
+      "PaylasimYanit": {
+        "properties": {
+          "hafta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaylasimHaftasi"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ogretmenler": {
+            "items": {
+              "$ref": "#/components/schemas/PaylasimCizelgesi"
+            },
+            "title": "Ogretmenler",
+            "type": "array"
+          },
+          "okul": {
+            "title": "Okul",
+            "type": "string"
+          },
+          "program": {
+            "title": "Program",
+            "type": "string"
+          },
+          "subeler": {
+            "items": {
+              "$ref": "#/components/schemas/PaylasimCizelgesi"
+            },
+            "title": "Subeler",
+            "type": "array"
+          },
+          "tur": {
+            "enum": [
+              "okul",
+              "ogretmen",
+              "sube"
+            ],
+            "title": "Tur",
+            "type": "string"
+          },
+          "yayin_zamani": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yayin Zamani"
+          },
+          "yayinda": {
+            "title": "Yayinda",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "tur",
+          "yayinda",
+          "yayin_zamani",
+          "okul",
+          "program",
+          "hafta",
+          "subeler",
+          "ogretmenler"
+        ],
+        "title": "PaylasimYanit",
+        "type": "object"
+      },
       "ProgramAdi": {
         "properties": {
           "ad": {
@@ -3154,6 +3483,23 @@
         "title": "TasimaIstegi",
         "type": "object"
       },
+      "TopluLinkIstegi": {
+        "properties": {
+          "tur": {
+            "enum": [
+              "ogretmen",
+              "sube"
+            ],
+            "title": "Tur",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tur"
+        ],
+        "title": "TopluLinkIstegi",
+        "type": "object"
+      },
       "TopluOgretmenAta": {
         "description": "Aynı öğretmeni birden fazla atamaya tek seferde verir (ör. 9-A, 9-B, 9-C Matematik).\n`ogretmen_id: null` hepsinin öğretmenini boşaltır.",
         "properties": {
@@ -3215,6 +3561,80 @@
           "sifre"
         ],
         "title": "YardimciOlustur",
+        "type": "object"
+      },
+      "YayinDurumu": {
+        "properties": {
+          "eski_veri": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Program, yayından sonra değişen verilerle mi üretildi (bilinmiyorsa boş)",
+            "title": "Eski Veri"
+          },
+          "program_adi": {
+            "title": "Program Adi",
+            "type": "string"
+          },
+          "program_degisti": {
+            "description": "Programda yayından sonra değişiklik var (elle düzeltme, ad)",
+            "title": "Program Degisti",
+            "type": "boolean"
+          },
+          "program_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Program silindiyse boş; yayın yine kalır",
+            "title": "Program Id"
+          },
+          "uyarilar": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Uyarilar",
+            "type": "array"
+          },
+          "yayin_zamani": {
+            "format": "date-time",
+            "title": "Yayin Zamani",
+            "type": "string"
+          }
+        },
+        "required": [
+          "program_id",
+          "program_adi",
+          "yayin_zamani",
+          "eski_veri",
+          "program_degisti",
+          "uyarilar"
+        ],
+        "title": "YayinDurumu",
+        "type": "object"
+      },
+      "YayinIstegi": {
+        "properties": {
+          "program_id": {
+            "format": "uuid",
+            "title": "Program Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "program_id"
+        ],
+        "title": "YayinIstegi",
         "type": "object"
       },
       "YerlesimYanit": {
@@ -4834,6 +5254,314 @@
         ]
       }
     },
+    "/api/ders-programi/paylasim-linkleri": {
+      "get": {
+        "operationId": "linkleri_listele_api_ders_programi_paylasim_linkleri_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PaylasimLinkiYanit"
+                  },
+                  "title": "Response Linkleri Listele Api Ders Programi Paylasim Linkleri Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Linkleri Listele",
+        "tags": [
+          "paylaşım"
+        ]
+      },
+      "post": {
+        "description": "Kapsamın (okul, öğretmen ya da şube) linki; zaten varsa o döner.",
+        "operationId": "link_olustur_api_ders_programi_paylasim_linkleri_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaylasimLinkiOlustur"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaylasimLinkiYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Link Olustur",
+        "tags": [
+          "paylaşım"
+        ]
+      }
+    },
+    "/api/ders-programi/paylasim-linkleri/toplu": {
+      "post": {
+        "description": "Linki olmayan bütün öğretmenlere ya da şubelere link; o türün bütün linkleri döner.",
+        "operationId": "toplu_link_olustur_api_ders_programi_paylasim_linkleri_toplu_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TopluLinkIstegi"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PaylasimLinkiYanit"
+                  },
+                  "title": "Response Toplu Link Olustur Api Ders Programi Paylasim Linkleri Toplu Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Toplu Link Olustur",
+        "tags": [
+          "paylaşım"
+        ]
+      }
+    },
+    "/api/ders-programi/paylasim-linkleri/{link_id}": {
+      "delete": {
+        "operationId": "link_iptal_api_ders_programi_paylasim_linkleri__link_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "link_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Link Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Link Iptal",
+        "tags": [
+          "paylaşım"
+        ]
+      }
+    },
+    "/api/ders-programi/paylasim-linkleri/{link_id}/yenile": {
+      "post": {
+        "description": "Yeni jeton; eski link o anda çalışmaz olur.",
+        "operationId": "link_yenile_api_ders_programi_paylasim_linkleri__link_id__yenile_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "link_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Link Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaylasimLinkiYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Link Yenile",
+        "tags": [
+          "paylaşım"
+        ]
+      }
+    },
+    "/api/ders-programi/paylasim/{jeton}": {
+      "get": {
+        "description": "Linkin kapsamındaki yayınlanmış program (giriş gerekmez).",
+        "operationId": "paylasim_goster_api_ders_programi_paylasim__jeton__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "jeton",
+            "required": true,
+            "schema": {
+              "title": "Jeton",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaylasimYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Link yok ya da iptal edildi"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Paylasim Goster",
+        "tags": [
+          "paylaşım (girişsiz)"
+        ]
+      }
+    },
+    "/api/ders-programi/paylasim/{jeton}/program.pdf": {
+      "get": {
+        "description": "Linkin kapsamındaki programın PDF'i. Okul linkinde `sube` ya da `ogretmen` (adıyla) tek sayfa\nseçer; seçim yalnızca linkin zaten gördüğü çizelgeler arasında yapılır.",
+        "operationId": "paylasim_pdf_api_ders_programi_paylasim__jeton__program_pdf_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "jeton",
+            "required": true,
+            "schema": {
+              "title": "Jeton",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sube",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sube"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ogretmen",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ogretmen"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Link yok, iptal edildi ya da yayında program yok"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Paylasim Pdf",
+        "tags": [
+          "paylaşım (girişsiz)"
+        ]
+      }
+    },
     "/api/ders-programi/programlar": {
       "get": {
         "operationId": "programlari_listele_api_ders_programi_programlar_get",
@@ -5831,6 +6559,95 @@
         "summary": "Guncelle",
         "tags": [
           "seviye şablonu"
+        ]
+      }
+    },
+    "/api/ders-programi/yayin": {
+      "delete": {
+        "description": "404: yayın yok.",
+        "operationId": "yayini_kaldir_api_ders_programi_yayin_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Yayini Kaldir",
+        "tags": [
+          "yayın"
+        ]
+      },
+      "get": {
+        "description": "Okulun yayınlanan programı (yoksa null) ve güncel olmama nedenleri.",
+        "operationId": "yayin_durumu_api_ders_programi_yayin_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/YayinDurumu"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Yayin Durumu Api Ders Programi Yayin Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Yayin Durumu",
+        "tags": [
+          "yayın"
+        ]
+      },
+      "put": {
+        "description": "Programı yayınlar: içeriği dondurulur (sonradan atama, öğretmen ya da ders silinse de\ndeğişmez). Var olan yayının yerini alır; paylaşım linkleri aynı kalır.",
+        "operationId": "yayinla_api_ders_programi_yayin_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/YayinIstegi"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YayinDurumu"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Program, şube ya da öğretmen bu okulda yok"
+          },
+          "409": {
+            "description": "Program hazır değil"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Yayinla",
+        "tags": [
+          "yayın"
         ]
       }
     },

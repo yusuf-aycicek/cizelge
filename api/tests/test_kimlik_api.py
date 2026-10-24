@@ -27,7 +27,9 @@ YENI = "yepyeni-parola-2026"
 
 # Oturum gerektirmeyen uçlar. Liste bilerek elle yazılır: yeni bir açık uç eklemek bilinçli bir
 # karar olmalı (bu test güncellenmeden eklenirse aşağıdaki test kırılır).
-ACIK_UCLAR = {("get", "/api/saglik"), ("post", "/api/kayit"), ("post", "/api/giris"), ("post", "/api/cikis")}
+ACIK_UCLAR = {("get", "/api/saglik"), ("post", "/api/kayit"), ("post", "/api/giris"), ("post", "/api/cikis"),
+              # Paylaşım linki (ADR 0022): okul bağlamı açmaz, yalnızca jetonun kapsamı; test_paylasim.py.
+              ("get", "/api/ders-programi/paylasim/{jeton}"), ("get", "/api/ders-programi/paylasim/{jeton}/program.pdf")}
 
 
 def cerez(jeton: str) -> dict[str, str]:

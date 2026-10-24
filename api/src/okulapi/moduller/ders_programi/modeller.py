@@ -292,3 +292,59 @@ class ProgramIslemi(OkulaAitMixin, Base):
     sira: Mapped[int]
     tur: Mapped[str] = mapped_column(String(10))
     veri: Mapped[dict[str, Any]] = mapped_column(JSONB)
+
+
+class Yayin(OkulaAitMixin, Base):
+    """Okulun yayınlanan programı (8b, ADR 0022): yayın anındaki programın **dondurulmuş** kopyası.
+
+    `icerik` çıktı modelinin (`cikti/model.py`) JSON'udur: şube ve öğretmen adları, ders adları ve
+    renkleri, gün ve saatler, zil saatleri. Ders atamasına, öğretmene ya da yerleşime yabancı anahtarla
+    bağlı değildir; bu yüzden atama silinince (yerleşimler CASCADE ile silinir) ya da öğretmen, ders
+    silinince yayınlanan program sessizce eksilmez. Taslak programlarda CASCADE aynen kalır.
+
+    Okulda en fazla bir yayın vardır; yeniden yayınlamak satırı günceller (paylaşım linkleri aynı
+    kalır, yeni içeriği gösterir). Program silinince yayın kalır (`program_id` boşalır).
+    `veri_ozeti`: programın üretildiği verinin özeti; şimdikinden farklıysa yayın eski verilerledir.
+    """
+
+    __tablename__ = "yayin"
+    _tablo_kisitlari = (
+        UniqueConstraint("okul_id"),
+        okul_ici_fk("program_id", "program", ondelete="SET NULL (program_id)"),
+    )
+
+    program_id: Mapped[uuid.UUID | None]
+    program_adi: Mapped[str] = mapped_column(String(200))
+    yayin_zamani: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    icerik: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    veri_ozeti: Mapped[str | None] = mapped_column(String(64))
+
+
+PAYLASIM_TURLERI = ("okul", "ogretmen", "sube")
+
+
+class PaylasimLinki(OkulaAitMixin, Base):
+    """Girişsiz, salt okunur paylaşım linki (8b, ADR 0022): bütün okul, tek öğretmen ya da tek şube.
+
+    Okulun yayınlanan programını gösterir (yayına değil okula bağlıdır: yeniden yayınlamak linki
+    değiştirmez). `jeton` 256 bit rastgele; yenilemek yeni jeton, iptal satırı silmektir. Linkle
+    okuma yalnızca `paylasim_icerigi` veritabanı fonksiyonuyla yapılır (migration 0011).
+    """
+
+    __tablename__ = "paylasim_linki"
+    _tablo_kisitlari = (
+        okul_ici_fk("ogretmen_id", "ogretmen", ondelete="CASCADE"),
+        okul_ici_fk("sinif_id", "sinif", ondelete="CASCADE"),
+        CheckConstraint(
+            "(tur = 'okul' AND ogretmen_id IS NULL AND sinif_id IS NULL)"
+            " OR (tur = 'ogretmen' AND ogretmen_id IS NOT NULL AND sinif_id IS NULL)"
+            " OR (tur = 'sube' AND sinif_id IS NOT NULL AND ogretmen_id IS NULL)", name="kapsam"),
+        CheckConstraint("length(jeton) >= 32", name="jeton_uzunlugu"),
+        UniqueConstraint("jeton"),
+        UniqueConstraint("okul_id", "tur", "ogretmen_id", "sinif_id", postgresql_nulls_not_distinct=True),
+    )
+
+    tur: Mapped[str] = mapped_column(String(10))
+    ogretmen_id: Mapped[uuid.UUID | None]
+    sinif_id: Mapped[uuid.UUID | None]
+    jeton: Mapped[str] = mapped_column(String(64))
