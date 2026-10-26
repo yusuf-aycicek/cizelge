@@ -9,10 +9,12 @@
  */
 import createClient from "openapi-fetch";
 import type { paths } from "./sema";
+import { izle } from "./uyanma";
 
 export const api = createClient<paths>({
   baseUrl: globalThis.location?.origin ?? "",
   credentials: "same-origin",
   // fetch her çağrıda yeniden okunur: testlerde sahte sunucu (MSW) fetch'i sonradan sarar.
-  fetch: (istek: Request) => globalThis.fetch(istek),
+  // izle: uzun süren istekte "sunucu uyanıyor" bildirimi (uyanma.ts).
+  fetch: (istek: Request) => izle(globalThis.fetch(istek)),
 });

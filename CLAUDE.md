@@ -115,6 +115,10 @@ Kuyruk (Redis)  ---->  Worker (Python)  -->  Çözücü modülü (OR-Tools CP-SA
 
    Bkz. ADR 0012, 0013.
 
+**Yayın (ADR 0026):** arayüz Cloudflare Pages'te (`/api` bir Pages Function ile API'ye iletilir,
+aynı köken korunur), API ve worker tek bir Render servisinde (`docker/yayin-baslat.sh`), kuyruk
+Render Key Value, veritabanı Neon. Ayarlar `render.yaml` ve `.env.example`'da.
+
 Her önemli karar için `docs/adr/` altına kısa bir karar kaydı (ADR) yazılır: bağlam, karar,
 değerlendirilen alternatifler, sonuçları.
 

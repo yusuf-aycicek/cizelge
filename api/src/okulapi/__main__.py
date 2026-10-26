@@ -7,6 +7,10 @@
                                                          geliştirme veritabanını temizler, örnek okulu yükler
                                                          (bilgisayarda çalıştırılır; bkz. okulapi/ornek_okul.py)
 
+    OKULAPI_DEMO_PAROLA=... python -m okulapi demo-okul
+                                                         demo okulu yoksa ekler, hiçbir şeyi silmez (yayında da
+                                                         çalışır; sunucu her açılışta çağırır)
+
 Docker'da: docker compose exec api python -m okulapi parola-sifirla <email>
 
 Okul müdürü parolasını unuttuğunda sistemi işleten kişi içindir (e-postayla sıfırlama yok,
@@ -14,7 +18,7 @@ ADR 0012). Parola değişir, kullanıcının bütün oturumları kapanır, kaba 
 Veritabanına uygulamanın rolüyle bağlanır; kullanıcı, giriş fonksiyonuyla e-postadan bulunur.
 
 Çıkış kodları: 0 başarılı, 1 kullanıcı bulunamadı, 2 parola geçersiz ya da eşleşmedi (ornek-okul:
-2 onay yok), 3 geliştirme ortamı değil (OKULAPI_ORTAM=gelistirme verilmedi).
+2 onay yok; demo-okul: 2 parola verilmedi), 3 geliştirme ortamı değil (OKULAPI_ORTAM=gelistirme verilmedi).
 """
 
 from __future__ import annotations
@@ -74,6 +78,21 @@ def ornek_okul(evet: bool, ayarlar: Ayarlar, veri_seti: str = "mini") -> int:
     return 0
 
 
+def demo_okul(ayarlar: Ayarlar) -> int:
+    from okulapi.ornek_okul import DEMO_EMAIL, demo_okul_kur
+
+    if not ayarlar.demo_parola:
+        print("Demo okul için parola verilmedi (OKULAPI_DEMO_PAROLA); hiçbir şey yapılmadı.", file=sys.stderr)
+        return 2
+    sayilar = demo_okul_kur(ayarlar, ayarlar.demo_parola)
+    if sayilar is None:
+        print(f"Demo okul zaten var ({DEMO_EMAIL}); hiçbir şey değişmedi.")
+    else:
+        print("Demo okul yüklendi: " + ", ".join(f"{v} {k}" for k, v in sayilar.items()))
+        print(f"Giriş: {DEMO_EMAIL} (parola: OKULAPI_DEMO_PAROLA)")
+    return 0
+
+
 def deneme_temizle(ayarlar: Ayarlar) -> int:
     from okulapi.ornek_okul import ORTAM_UYARISI, deneme_okullarini_sil
 
@@ -95,12 +114,15 @@ def main(argv: list[str] | None = None, fabrika: sessionmaker | None = None, aya
     ornek.add_argument("--evet", action="store_true", help="Bütün verinin silineceğini onaylıyorum")
     ornek.add_argument("--set", dest="veri_seti", choices=["mini", "gercekci"], default="mini",
                        help="Veri seti: mini (varsayılan, hızlı) ya da gercekci (24 şube)")
+    komutlar.add_parser("demo-okul", help="Demo okulu yoksa ekler (hiçbir şeyi silmez)")
     komutlar.add_parser("deneme-temizle", help="Betiklerin açtığı deneme okullarını siler (örnek okula dokunmaz)")
     secim = ayristirici.parse_args(argv)
 
     ayarlar = ayarlar or Ayarlar()
     if secim.komut == "ornek-okul":
         return ornek_okul(secim.evet, ayarlar, secim.veri_seti)
+    if secim.komut == "demo-okul":
+        return demo_okul(ayarlar)
     if secim.komut == "deneme-temizle":
         return deneme_temizle(ayarlar)
     motor = None

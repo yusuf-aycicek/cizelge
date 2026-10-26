@@ -14,11 +14,14 @@ from okulapi.__main__ import main
 from okulapi.ayarlar import Ayarlar
 from okulapi.main import uygulama_olustur
 from okulapi.ornek_okul import (
+    DEMO_EMAIL,
+    DEMO_OKUL,
     ORNEK_EMAIL,
     ORNEK_OKUL,
     ORNEK_PAROLA,
     SILME_SIRASI,
     GelistirmeOrtamiDegil,
+    demo_okul_kur,
     deneme_okullarini_sil,
     okula_ait_tablolar,
     ornek_okul_kur,
@@ -54,6 +57,15 @@ def test_ortam_varsayilani_yayindir(monkeypatch):
 def test_ortam_degiskenden_okunur(monkeypatch):
     monkeypatch.setenv("OKULAPI_ORTAM", "gelistirme")
     assert Ayarlar().ortam == "gelistirme"
+
+
+def test_veritabani_adresine_surucu_eklenir_ssl_ayari_korunur(monkeypatch):
+    neon = "postgresql://okul_uygulama:p@ep-x.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    monkeypatch.setenv("OKULAPI_VERITABANI_URL", neon)
+    monkeypatch.setenv("OKULAPI_MIGRASYON_URL", "postgres://sahip:p@h/neondb?sslmode=require")
+    a = Ayarlar()
+    assert a.veritabani_url == "postgresql+psycopg://" + neon.removeprefix("postgresql://")
+    assert a.migrasyon_url == "postgresql+psycopg://sahip:p@h/neondb?sslmode=require"
 
 
 def test_gecersiz_ortam_reddedilir(monkeypatch):
@@ -109,6 +121,53 @@ def test_gercekci_set_secilebilir(gelistirme, capsys):
     assert main(["ornek-okul", "--evet", "--set", "gercekci"], ayarlar=gelistirme) == 0
     assert "42 ogretmen, 24 sinif" in capsys.readouterr().out
     assert okul_sayisi(gelistirme) == 1
+
+
+# --- demo-okul (yayında, silmeden) ----------------------------------------------------------
+
+DEMO_PAROLA = "demo-okul-parolasi"
+
+
+def test_demo_okul_parolasiz_hicbir_sey_yapmaz(yuklu, ayarlar, capsys):
+    assert main(["demo-okul"], ayarlar=ayarlar) == 2
+    assert "OKULAPI_DEMO_PAROLA" in capsys.readouterr().err
+    assert okul_sayisi(ayarlar) == 1
+
+
+def test_demo_okul_yayinda_silmeden_eklenir_ikinci_kez_eklenmez(yuklu, ayarlar, capsys):
+    yayin = ayarlar.model_copy(update={"demo_parola": DEMO_PAROLA})
+    assert yayin.ortam == "yayin"
+    assert main(["demo-okul"], ayarlar=yayin) == 0
+    assert "Demo okul yüklendi: 5 ogretmen, 3 sinif" in capsys.readouterr().out
+    assert okul_sayisi(yayin) == 2  # var olan okul yerinde
+    assert main(["demo-okul"], ayarlar=yayin) == 0
+    assert "zaten var" in capsys.readouterr().out
+    assert okul_sayisi(yayin) == 2
+
+    uygulama = uygulama_olustur(yayin.model_copy(update={"cerez_secure": False}))
+    try:
+        with TestClient(uygulama) as istemci:
+            yanit = istemci.post("/api/giris", json={"email": DEMO_EMAIL, "sifre": DEMO_PAROLA})
+            assert yanit.status_code == 200, yanit.text
+            assert istemci.get("/api/okul").json()["ad"] == DEMO_OKUL
+            assert len(istemci.get("/api/ders-programi/atamalar").json()) == 18
+    finally:
+        uygulama.state.motor.dispose()
+
+
+def test_demo_okul_yarida_kalirsa_yarim_okul_kalmaz(yuklu, ayarlar, monkeypatch):
+    import okulapi.ornek_okul as ornek
+
+    def bozuk(*_):
+        raise RuntimeError("yükleme yarıda kaldı")
+
+    monkeypatch.setattr(ornek, "_sablonlari_uret", bozuk)
+    with pytest.raises(RuntimeError):
+        demo_okul_kur(ayarlar, DEMO_PAROLA)
+    assert okul_sayisi(ayarlar) == 1  # kaydedilen demo okul geri silindi, öncekine dokunulmadı
+    monkeypatch.undo()
+    assert demo_okul_kur(ayarlar, DEMO_PAROLA) is not None  # yeniden denenebilir
+    assert okul_sayisi(ayarlar) == 2
 
 
 # --- deneme-temizle ---------------------------------------------------------------------------

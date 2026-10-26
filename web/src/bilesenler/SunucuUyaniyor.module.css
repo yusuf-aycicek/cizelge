@@ -1,0 +1,39 @@
+.bant {
+  position: fixed;
+  inset-block-start: var(--bosluk-3);
+  inset-inline: 0;
+  margin-inline: auto;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  width: fit-content;
+  max-width: calc(100vw - 2 * var(--bosluk-4));
+  padding: var(--bosluk-2) var(--bosluk-4);
+  border-radius: var(--kose);
+  box-shadow: var(--golge);
+  background: var(--renk-kart-1);
+  color: var(--renk-kart-1-vurgu);
+  font-weight: 600;
+}
+
+.nokta {
+  flex: none;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: currentColor;
+  animation: nabiz 1.2s ease-in-out infinite;
+}
+
+@keyframes nabiz {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nokta {
+    animation: none;
+  }
+}

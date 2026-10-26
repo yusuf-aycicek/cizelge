@@ -28,5 +28,10 @@ RUN pip install --no-cache-dir -c api/requirements.lock ./worker
 COPY veri/mini.json veri/gercekci.json veri/
 ENV OKULAPI_VERI_DIZINI=/app/veri
 
+# Yayındaki tek servis başlangıcı (Render: migration, demo okul, worker, API; docker/yayin-baslat.sh).
+# Docker Compose kendi komutunu verir, bunu kullanmaz.
+COPY docker/yayin-baslat.sh /app/yayin-baslat.sh
+
 EXPOSE 8000
-CMD ["uvicorn", "okulapi.main:uygulama_olustur", "--factory", "--host", "0.0.0.0", "--port", "8000"]
+# Port, barındırma ortamının verdiği PORT değişkeninden (Render); yoksa 8000.
+CMD ["sh", "-c", "exec uvicorn okulapi.main:uygulama_olustur --factory --host 0.0.0.0 --port ${PORT:-8000}"]

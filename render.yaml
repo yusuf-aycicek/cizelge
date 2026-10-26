@@ -1,0 +1,44 @@
+# Render Blueprint: yayındaki API (ADR 0026). Render panelinde New > Blueprint ile bu dosyadan
+# kurulur. Arayüz Cloudflare Pages'tedir, veritabanı Neon'dadır; burada yalnızca API ve kuyruk var.
+#
+# sync: false olan değerler depoya yazılmaz; Render kurulumda panelde sorar (parolalar burada).
+
+services:
+  # İş kuyruğu (Redis uyumlu). Yalnızca Render'ın iç ağından erişilir (ipAllowList boş).
+  # noeviction: bellek dolarsa kuyruktaki iş sessizce silinmesin, hata versin.
+  - type: keyvalue
+    name: cizelge-kuyruk
+    region: frankfurt
+    plan: free
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+  # API + worker tek serviste: ücretsiz planda ayrı worker servisi yok (docker/yayin-baslat.sh).
+  - type: web
+    name: cizelge-api
+    runtime: docker
+    region: frankfurt
+    plan: free
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: .
+    dockerCommand: sh /app/yayin-baslat.sh
+    healthCheckPath: /api/saglik
+    envVars:
+      - key: OKULAPI_REDIS_URL
+        fromService:
+          type: keyvalue
+          name: cizelge-kuyruk
+          property: connectionString
+      # Neon, "direct" (pooled olmayan) adresler; postgresql+psycopg:// ile başlar.
+      - key: OKULAPI_VERITABANI_URL  # okul_uygulama rolü (RLS'ye tabi)
+        sync: false
+      - key: OKULAPI_MIGRASYON_URL  # neondb_owner (tablo sahibi, yalnızca migration ve demo kurulumu)
+        sync: false
+      - key: OKULAPI_DEMO_PAROLA  # demo@cizelge.test hesabının parolası
+        sync: false
+      # Veri değiştiren isteklerde kabul edilen kökenler (JSON listesi): Pages adresi ve yerel.
+      - key: OKULAPI_IZINLI_KOKENLER
+        sync: false
+      # 512 MB bellek: çözücü 8 yerine 2 iş parçacığıyla çalışır.
+      - key: OKULAPI_COZUCU_IS_PARCACIGI
+        value: "2"

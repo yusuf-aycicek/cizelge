@@ -105,6 +105,11 @@ def upgrade() -> None:
             IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{PAYLASIM}') THEN
                 CREATE ROLE {PAYLASIM} NOLOGIN;
             END IF;
+            -- Süper kullanıcı olmayan migration rolü (ör. Neon'un sahip rolü) fonksiyonu bu role
+            -- devredebilmek için rolün üyesi olmalı. PostgreSQL 16+ rolü oluşturana bu yetkiyi verir.
+            IF NOT (SELECT rolsuper FROM pg_roles WHERE rolname = current_user) THEN
+                EXECUTE format('GRANT %I TO %I', '{PAYLASIM}', current_user);
+            END IF;
         END $$
     """)
     op.execute(f"GRANT USAGE ON SCHEMA public TO {PAYLASIM}")
@@ -114,7 +119,11 @@ def upgrade() -> None:
     op.execute(f"CREATE POLICY paylasim_okuma ON yayin FOR SELECT TO {PAYLASIM} USING (true)")
 
     op.execute(FONKSIYON)
+    # PostgreSQL 15+: fonksiyonun yeni sahibinin şemada CREATE yetkisi olmalı (süper kullanıcı
+    # olmayan migration rolünde, ör. Neon, denetlenir). Yalnızca devir sırasında verilir.
+    op.execute(f"GRANT CREATE ON SCHEMA public TO {PAYLASIM}")
     op.execute(f"ALTER FUNCTION {IMZA} OWNER TO {PAYLASIM}")
+    op.execute(f"REVOKE CREATE ON SCHEMA public FROM {PAYLASIM}")
     op.execute(f"REVOKE ALL ON FUNCTION {IMZA} FROM PUBLIC")
     op.execute(f"GRANT EXECUTE ON FUNCTION {IMZA} TO {UYGULAMA}")
 

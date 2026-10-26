@@ -114,6 +114,14 @@ def ornek_okul_kur(ayarlar: Ayarlar, veri_yolu: Path = MINI) -> dict[str, int]:
     # Koruma fonksiyonun kendisinde: komut satırı dışında bir yerden çağrılsa da atlatılamaz.
     if ayarlar.ortam != "gelistirme":
         raise GelistirmeOrtamiDegil(ORTAM_UYARISI)
+    veritabanini_temizle(ayarlar.migrasyon_url)
+    return _okul_yukle(ayarlar, veri_yolu, ORNEK_OKUL, ORNEK_MUDUR, ORNEK_EMAIL, ORNEK_PAROLA)
+
+
+def _okul_yukle(ayarlar: Ayarlar, veri_yolu: Path, okul_adi: str, mudur: str, email: str,
+                parola: str) -> dict[str, int]:
+    """Okulu kaydeder ve veri setini API'den geçirerek yükler. Yarıda kalırsa okul silinir:
+    yarım bir okul kalmaz, komut yeniden çalıştırılabilir."""
     import warnings
 
     # Starlette'in TestClient'ı httpx için kullanım dışı uyarısı verir; bu komutun çıktısını kirletmesin.
@@ -123,23 +131,66 @@ def ornek_okul_kur(ayarlar: Ayarlar, veri_yolu: Path = MINI) -> dict[str, int]:
     from okulapi.main import uygulama_olustur
 
     veri = json.loads(veri_yolu.read_text(encoding="utf-8"))
-    veritabanini_temizle(ayarlar.migrasyon_url)
     # Süreç içi istemci http üzerinden konuşur; Secure çerez geri gönderilmezdi. Bu çerez yalnızca
     # yükleme sırasında kullanılır, tarayıcıya hiç gitmez.
     uygulama = uygulama_olustur(ayarlar.model_copy(update={"cerez_secure": False}))
+    okul_id = None
     try:
         with TestClient(uygulama) as istemci:
             yanit = istemci.post("/api/kayit", json={
-                "okul": {"ad": ORNEK_OKUL, **veri["ayar"]}, "ad": ORNEK_MUDUR,
-                "email": ORNEK_EMAIL, "sifre": ORNEK_PAROLA})
+                "okul": {"ad": okul_adi, **veri["ayar"]}, "ad": mudur, "email": email, "sifre": parola})
             if yanit.status_code != 201:
                 raise RuntimeError(f"kayıt: {yanit.status_code} {yanit.text}")
+            okul_id = yanit.json()["okul"]["id"]
             harita = veri_setini_yukle(istemci, veri)
             sablon = _sablonlari_uret(istemci, veri, harita)
+    except Exception:
+        if okul_id is not None:
+            okulu_sil(ayarlar.migrasyon_url, okul_id)
+        raise
     finally:
         uygulama.state.motor.dispose()
     return {"ogretmen": len(veri["ogretmenler"]), "sinif": len(veri["siniflar"]), "ders": len(veri["dersler"]),
             "atama": len(veri["atamalar"]), "musaitlik": len(veri["musaitlikler"]), "sablon": sablon}
+
+
+# --- yayındaki demo okul ---------------------------------------------------------------------
+
+# Yayındaki sistemi deneyenler boş ekranla karşılaşmasın diye. Örnek okuldan farkı: hiçbir şeyi
+# silmez, yalnızca demo hesabı yoksa ekler; bu yüzden yayında da çalışır (ortam koruması yok) ve
+# her açılışta güvenle çağrılabilir. Parola depoya yazılmaz, sunucunun gizli değişkeninden gelir.
+DEMO_EMAIL = "demo@cizelge.test"
+DEMO_OKUL = "Çizelge Demo Lisesi"
+DEMO_MUDUR = "Demo Müdür"
+
+
+def demo_okul_kur(ayarlar: Ayarlar, parola: str, veri_yolu: Path = MINI) -> dict[str, int] | None:
+    """Demo hesabı yoksa demo okulu yükler ve sayıları döner; varsa hiçbir şey yapmaz (None)."""
+    from okulapi.cekirdek.kimlik.servis import KimlikServisi
+    from okulapi.cekirdek.veritabani import motor_olustur, oturum_fabrikasi
+
+    motor = motor_olustur(ayarlar.veritabani_url)
+    try:
+        # E-posta okuldan bağımsız aranır (giriş fonksiyonu, RLS altında; ADR 0012).
+        if KimlikServisi(oturum_fabrikasi(motor), ayarlar)._eposta_kullaniliyor_mu(DEMO_EMAIL):
+            return None
+    finally:
+        motor.dispose()
+    return _okul_yukle(ayarlar, veri_yolu, DEMO_OKUL, DEMO_MUDUR, DEMO_EMAIL, parola)
+
+
+def okulu_sil(migrasyon_url: str, okul_id: str) -> None:
+    """Tek bir okulu bütün verisiyle siler (tek işlem). Tablo sahibi yayında (Neon) süper kullanıcı
+    değildir ve FORCE RLS'ye tabidir: aktif okul ayarlanır, politikalar yalnızca o okulu gösterir."""
+    motor = create_engine(migrasyon_url)
+    try:
+        with motor.begin() as b:
+            b.execute(text("SELECT set_config('app.okul_id', :k, true)"), {"k": str(okul_id)})
+            for tablo in SILME_SIRASI:
+                b.execute(text(f"DELETE FROM {tablo} WHERE okul_id = :k"), {"k": str(okul_id)})
+            b.execute(text("DELETE FROM okul WHERE id = :k"), {"k": str(okul_id)})
+    finally:
+        motor.dispose()
 
 
 # --- deneme okullarının temizliği ------------------------------------------------------------

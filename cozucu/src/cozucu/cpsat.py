@@ -165,7 +165,8 @@ class CpSatCozucu(ProgramCozucu):
                 )
         if durum is CozumDurumu.COZUMSUZ:
             sonuc.mesajlar.append("Zorunlu kısıtların hepsini sağlayan bir program yok.")
-            sonuc.celiskiler = celiskileri_bul(girdi, min(sure_siniri_sn, CELISKI_ANALIZ_SURESI_SN))
+            sonuc.celiskiler = celiskileri_bul(girdi, min(sure_siniri_sn, CELISKI_ANALIZ_SURESI_SN),
+                                               self.is_parcacigi)
         sonuc.sure_sn = time.perf_counter() - baslangic
         return sonuc
 

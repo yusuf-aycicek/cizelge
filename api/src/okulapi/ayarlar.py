@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import Literal
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +27,16 @@ class Ayarlar(BaseSettings):
     veritabani_url: str = "postgresql+psycopg://okul_uygulama:okul_uygulama@localhost:5433/okul"
     migrasyon_url: str = "postgresql+psycopg://okul_sahip:okul_sahip@localhost:5433/okul"
 
+    @field_validator("veritabani_url", "migrasyon_url")
+    @classmethod
+    def _surucu_ekle(cls, url: str) -> str:
+        """Barındırıcıların verdiği adres (ör. Neon: postgresql://...?sslmode=require) olduğu gibi
+        yapıştırılabilsin: sürücü belirtilmemişse psycopg eklenir. SSL ayarı adresin içinde kalır."""
+        for onek in ("postgresql://", "postgres://"):
+            if url.startswith(onek):
+                return "postgresql+psycopg://" + url.removeprefix(onek)
+        return url
+
     # Yüklenecek modüller. Yeni bir modül eklemek için adını buraya (ya da ortam değişkenine,
     # ör. OKULAPI_ETKIN_MODULLER='["ders_programi","kutuphane"]') eklemek yeterlidir.
     etkin_moduller: list[str] = ["ders_programi"]
@@ -34,6 +45,12 @@ class Ayarlar(BaseSettings):
     # yalnızca konteyner içindeki adlandırmayla anlamlıdır; docker-compose aynısını verir.
     redis_url: str = "redis://redis:6379/0"
     kuyruk_adi: str = "program_uretimi"
+    # Çözücünün paralel arama iş parçacığı sayısı (CP-SAT num_workers). Bellek iş parçacığı sayısıyla
+    # artar: küçük sunucularda (ör. 512 MB) düşürülür, OKULAPI_COZUCU_IS_PARCACIGI=2.
+    cozucu_is_parcacigi: int = 8
+
+    # Yayındaki demo okulun parolası (python -m okulapi demo-okul). Verilmezse demo okul kurulmaz.
+    demo_parola: str | None = None
 
     # Kimlik doğrulama (ADR 0012).
     oturum_hareketsizlik_saat: int = 12  # bu kadar süre kullanılmayan oturum geçersiz olur

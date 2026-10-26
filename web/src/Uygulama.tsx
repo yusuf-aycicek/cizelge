@@ -3,6 +3,7 @@ import { ProgramSayfasi } from "./program/ProgramSayfasi";
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import { Route, Routes } from "react-router";
 import { BildirimSaglayici } from "./bilesenler/Bildirim";
+import { SunucuUyaniyor } from "./bilesenler/SunucuUyaniyor";
 import { Cerceve, MENU } from "./cerceve/Cerceve";
 import { DersDagilimiSayfasi } from "./dagilim/DersDagilimiSayfasi";
 import { SeviyeSablonuSayfasi } from "./dagilim/SeviyeSablonuSayfasi";
@@ -35,6 +36,7 @@ export function Uygulama({ sorguIstemcisi }: { sorguIstemcisi: QueryClient }) {
   return (
     <QueryClientProvider client={sorguIstemcisi}>
       <BildirimSaglayici>
+        <SunucuUyaniyor />
         {/* İç içe yollar: dıştaki öğe (düzen) içtekinin çevresini çizer, içteki <Outlet />'e yerleşir. */}
         <Routes>
           {/* Paylaşım linki (8b): girişsiz, menüsüz. */}

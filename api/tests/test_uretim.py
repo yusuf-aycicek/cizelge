@@ -590,3 +590,21 @@ def test_temizlenen_program_icin_gec_gelen_is_bir_sey_yapmaz(oturum_fabrikasi, m
         takili_uretimleri_temizle(o, None)
         o.commit()
     assert programi_uret(oturum_fabrikasi, okul_id, program_id, SahteCozucu()) is UretimSonucu.ATLANDI
+
+
+def test_worker_isi_cozucu_is_parcacigini_ayardan_alir(monkeypatch):
+    """Küçük sunucuda bellek için iş parçacığı sayısı düşürülür (OKULAPI_COZUCU_IS_PARCACIGI)."""
+    import okulapi.cekirdek.isci as isci
+    import okulapi.moduller.ders_programi.uretim as uretim
+
+    alinan = {}
+
+    def sahte_uret(_fabrika, _okul_id, _program_id, cozucu, **_):
+        alinan["is_parcacigi"] = cozucu.is_parcacigi
+        return uretim.UretimSonucu.HAZIR
+
+    monkeypatch.setenv("OKULAPI_COZUCU_IS_PARCACIGI", "2")
+    monkeypatch.setattr(isci, "isci_fabrikasi", lambda: None)
+    monkeypatch.setattr(uretim, "programi_uret", sahte_uret)
+    uretim.uretim_isi(str(uuid.uuid4()), str(uuid.uuid4()))
+    assert alinan["is_parcacigi"] == 2

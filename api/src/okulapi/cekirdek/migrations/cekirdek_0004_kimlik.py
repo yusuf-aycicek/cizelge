@@ -30,7 +30,8 @@ yerine `lower(email)` üzerinde benzersiz indeks gelir. CHECK `email = lower(ema
 
 Notlar:
 - `ALTER FUNCTION ... OWNER TO okul_giris` için migration rolünün `okul_giris` üyesi ya da süper
-  kullanıcı olması gerekir (geliştirmede `okul_sahip` süper kullanıcıdır).
+  kullanıcı olması gerekir (geliştirmede `okul_sahip` süper kullanıcıdır; süper kullanıcı değilse,
+  ör. Neon, migration rolü kendisine verir).
 - E-postaları küçük harfe çeviren UPDATE: tablo sahibi süper kullanıcı değilse `FORCE ROW LEVEL
   SECURITY` yüzünden satırları göremez. Böyle bir ortamda bu migration'dan önce RLS geçici olarak
   kapatılmalıdır. Bu sürümde gerçek kullanıcı verisi yok.
@@ -177,6 +178,11 @@ def upgrade() -> None:
             IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{GIRIS}') THEN
                 CREATE ROLE {GIRIS} NOLOGIN;
             END IF;
+            -- Süper kullanıcı olmayan migration rolü (ör. Neon'un sahip rolü) fonksiyonu bu role
+            -- devredebilmek için rolün üyesi olmalı. PostgreSQL 16+ rolü oluşturana bu yetkiyi verir.
+            IF NOT (SELECT rolsuper FROM pg_roles WHERE rolname = current_user) THEN
+                EXECUTE format('GRANT %I TO %I', '{GIRIS}', current_user);
+            END IF;
         END $$
     """)
     op.execute(f"GRANT USAGE ON SCHEMA public TO {GIRIS}")
@@ -191,11 +197,15 @@ def upgrade() -> None:
     op.execute(f"CREATE POLICY giris_son_kullanim ON oturum FOR UPDATE TO {GIRIS} USING (true) WITH CHECK (true)")
 
     # --- fonksiyonlar --------------------------------------------------------------------------
+    # PostgreSQL 15+: fonksiyonun yeni sahibinin şemada CREATE yetkisi olmalı (süper kullanıcı
+    # olmayan migration rolünde, ör. Neon, denetlenir). Yalnızca devir sırasında verilir.
+    op.execute(f"GRANT CREATE ON SCHEMA public TO {GIRIS}")
     for imza, tanim in FONKSIYONLAR.items():
         op.execute(tanim)
         op.execute(f"ALTER FUNCTION {imza} OWNER TO {GIRIS}")
         op.execute(f"REVOKE ALL ON FUNCTION {imza} FROM PUBLIC")
         op.execute(f"GRANT EXECUTE ON FUNCTION {imza} TO {UYGULAMA}")
+    op.execute(f"REVOKE CREATE ON SCHEMA public FROM {GIRIS}")
 
 
 def downgrade() -> None:

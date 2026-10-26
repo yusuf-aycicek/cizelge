@@ -1,0 +1,4 @@
+# Cloudflare Pages: tek sayfalık uygulama. Bilinmeyen her yol index.html'e gider, React Router
+# sayfayı kendisi seçer (sayfa yenilemede 404 olmaz). /api/* bu kurala girmez: Pages Function
+# (functions/api) dosyalardan önce çalışır.
+/*    /index.html   200

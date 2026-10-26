@@ -279,7 +279,12 @@ URETIM_BASARISIZ = f"{__name__}.uretim_basarisiz_oldu"
 def uretim_isi(okul_id: str, program_id: str) -> str:
     from okulapi.cekirdek.isci import isci_fabrikasi
 
-    return programi_uret(isci_fabrikasi(), okul_id, program_id, bulunamazsa_bekle=BULUNAMAZSA_BEKLE_SN).value
+    from okulapi.ayarlar import Ayarlar
+
+    # İş parçacığı sayısı sunucunun ayarıdır (küçük sunucuda bellek için düşürülür).
+    cozucu = CpSatCozucu(is_parcacigi=Ayarlar().cozucu_is_parcacigi)
+    return programi_uret(isci_fabrikasi(), okul_id, program_id, cozucu,
+                         bulunamazsa_bekle=BULUNAMAZSA_BEKLE_SN).value
 
 
 def uretim_basarisiz_oldu(okul_id: str, program_id: str, zaman_asimi: bool) -> None:
