@@ -29,7 +29,7 @@ services:
           type: keyvalue
           name: cizelge-kuyruk
           property: connectionString
-      # Neon, "direct" (pooled olmayan) adresler; postgresql+psycopg:// ile başlar.
+      # Neon, "direct" (pooled olmayan) adresler; Neon'un verdiği gibi yapıştırılır (sürücü eklenir).
       - key: OKULAPI_VERITABANI_URL  # okul_uygulama rolü (RLS'ye tabi)
         sync: false
       - key: OKULAPI_MIGRASYON_URL  # neondb_owner (tablo sahibi, yalnızca migration ve demo kurulumu)
