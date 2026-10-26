@@ -55,4 +55,5 @@ Bu seçim mimarinin iki varsayımıyla çatışıyor:
 - Tablo sahibinin adresi (`OKULAPI_MIGRASYON_URL`) API servisinde de bulunur (Docker Compose'daki
   gibi). Ücretsiz planda ayrı bir "deploy öncesi" adımı yoktur.
 - Demo okul `python -m okulapi demo-okul` ile kurulur: hiçbir şeyi silmez, hesap varsa bir şey
-  yapmaz, yarıda kalırsa yarım okulu geri siler. Parolası depoda değil, Render'daki gizli değişkende.
+  yapmaz, yarıda kalırsa yarım okulu geri siler. Parolası depoda değil, Render'daki gizli değişkende; bütün parolalar gibi en az 12 karakterdir
+  (daha kısaysa demo okul kurulmaz, API yine açılır, hata günlükte görünür).
