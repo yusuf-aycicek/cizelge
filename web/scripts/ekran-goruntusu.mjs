@@ -71,7 +71,7 @@ const AKISLAR = {
     const s = await baglam.newPage();
 
     await s.goto(ADRES + "/ogretmenler");
-    await s.getByRole("heading", { name: "Giriş yap" }).waitFor();
+    await s.getByRole("heading", { name: "Tekrar hoş geldiniz" }).waitFor();
     await kaydet(s, "1-giris.png");
 
     await s.getByLabel("E-posta").fill("kimse@ornek.test");
@@ -296,7 +296,7 @@ AKISLAR["tasarim"] = async (tarayici, kaydet) => {
     const baglam = await tarayici.newContext({ viewport: MASAUSTU, locale: "tr-TR" });
     const s = await baglam.newPage();
     await s.goto(ADRES + "/giris");
-    await s.getByRole("heading", { name: "Giriş yap" }).waitFor();
+    await s.getByRole("heading", { name: "Tekrar hoş geldiniz" }).waitFor();
     await kaydet(s, `${tema}-1-giris.png`);
     await s.getByLabel("E-posta").fill("mudur@ornek.test");
     await s.getByLabel("Parola").fill("ornek-okul-parolasi");
@@ -332,7 +332,7 @@ AKISLAR["tasarim-a"] = async (tarayici, kaydet) => {
   const baglam = await tarayici.newContext({ viewport: MASAUSTU, locale: "tr-TR" });
   const s = await baglam.newPage();
   await s.goto(ADRES + "/giris");
-  await s.getByRole("heading", { name: "Giriş yap" }).waitFor();
+  await s.getByRole("heading", { name: "Tekrar hoş geldiniz" }).waitFor();
   await kaydet(s, "01-giris.png");
   await girisYap(s);
   await bekle(s);
@@ -517,6 +517,26 @@ AKISLAR["k1"] = async (tarayici, kaydet) => {
     await bolum.scrollIntoViewIfNeeded();
     await s.waitForTimeout(500);
     await kaydet(s, `${ad}-ozel-ayarlar.png`);
+    await baglam.close();
+  }
+};
+
+// Yeniden tasarlanan giriş sayfası: masaüstü, tablet, telefon; çizelge dolu anda. Hareket
+// azaltılmış görünüm de kaydedilir (animasyon yerine dolu, durağan çizelge).
+AKISLAR["giris"] = async (tarayici, kaydet) => {
+  const boyutlar = [
+    ["1-masaustu.png", { width: 1440, height: 900 }, {}],
+    ["2-tablet.png", { width: 768, height: 1024 }, {}],
+    ["3-telefon.png", TELEFON, {}],
+    ["4-hareket-azaltilmis.png", { width: 1440, height: 900 }, { reducedMotion: "reduce" }],
+  ];
+  for (const [dosya, viewport, secenek] of boyutlar) {
+    const baglam = await tarayici.newContext({ viewport, locale: "tr-TR", ...secenek });
+    const s = await baglam.newPage();
+    await s.goto(ADRES + "/giris");
+    await s.getByRole("heading", { name: "Tekrar hoş geldiniz" }).waitFor();
+    if (!secenek.reducedMotion) await s.waitForTimeout(6000); // kartlar yerleşsin, solmadan önce
+    await kaydet(s, dosya, viewport === TELEFON);
     await baglam.close();
   }
 };

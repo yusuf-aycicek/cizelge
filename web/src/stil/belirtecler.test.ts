@@ -71,6 +71,11 @@ const METIN_CIFTLERI: [string, string][] = [
     [`renk-kart-${i}-vurgu`, `renk-kart-${i}`],
   ]),
   ...[1, 2, 3, 4, 5, 6, 7, 8].map((i): [string, string] => ["renk-cip-metin", `renk-rozet-${i}`]),
+  // Giriş sayfasının tanıtım paneli ve örnek çizelgesi.
+  ["renk-tanitim-metin", "renk-tanitim-zemin"],
+  ["renk-tanitim-ikincil", "renk-tanitim-zemin"],
+  ["renk-tanitim-metin", "renk-tanitim-ikon-zemin"],
+  ...["mat", "fizik", "turkce", "tarih", "ing", "kimya"].map((d): [string, string] => [`renk-ders-${d}-metin`, `renk-ders-${d}`]),
 ];
 
 const SINIR_CIFTLERI: [string, string][] = [

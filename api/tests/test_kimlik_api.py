@@ -21,6 +21,7 @@ from conftest import CEREZ, IZINLI_KOKEN, PAROLA, api_ile_kayit, cerezden_jeton,
 from okulapi.ayarlar import Ayarlar
 from okulapi.cekirdek.kimlik.koken import IZINSIZ_KOKEN
 from okulapi.main import uygulama_olustur
+from okulapi.ornek_okul import DEMO_EMAIL
 
 KAYNAK = Path(__file__).resolve().parents[1] / "src"
 YENI = "yepyeni-parola-2026"
@@ -28,6 +29,8 @@ YENI = "yepyeni-parola-2026"
 # Oturum gerektirmeyen uçlar. Liste bilerek elle yazılır: yeni bir açık uç eklemek bilinçli bir
 # karar olmalı (bu test güncellenmeden eklenirse aşağıdaki test kırılır).
 ACIK_UCLAR = {("get", "/api/saglik"), ("post", "/api/kayit"), ("post", "/api/giris"), ("post", "/api/cikis"),
+              # Demo düğmesi (ADR 0027): yalnızca demo hesabına oturum açar, sunucu ayarıyla açılır.
+              ("get", "/api/oturum/demo"), ("post", "/api/oturum/demo"),
               # Paylaşım linki (ADR 0022): okul bağlamı açmaz, yalnızca jetonun kapsamı; test_paylasim.py.
               ("get", "/api/ders-programi/paylasim/{jeton}"), ("get", "/api/ders-programi/paylasim/{jeton}/program.pdf")}
 
@@ -179,6 +182,65 @@ def test_kaba_kuvvet_429_ve_retry_after(istemci):
     yanit = istemci.post("/api/giris", json={"email": "ayse@a.test", "sifre": PAROLA})
     assert yanit.status_code == 429 and yanit.headers["Retry-After"] == "900"
     assert "15 dakika" in yanit.json()["detail"]
+
+
+# --- demo oturumu (ADR 0027) ------------------------------------------------------------------
+
+DEMO_PAROLA = "demo-okul-parolasi"
+
+
+@pytest.fixture
+def demo_istemci(ayarlar, oturum_fabrikasi, kuyruk):
+    """OKULAPI_DEMO_PAROLA tanımlı sunucu."""
+    uygulama = uygulama_olustur(ayarlar.model_copy(update={"demo_parola": DEMO_PAROLA}))
+    uygulama.state.oturum_fabrikasi = oturum_fabrikasi
+    uygulama.state.kuyruk = kuyruk
+    with TestClient(uygulama) as istemci:
+        yield istemci
+    uygulama.state.motor.dispose()
+
+
+def _demo_hesabi(istemci) -> None:
+    yanit = _kayit_yaniti(istemci, email=DEMO_EMAIL, sifre=DEMO_PAROLA, okul="Demo Lisesi")
+    assert yanit.status_code == 201, yanit.text
+    istemci.cookies.clear()
+
+
+def test_demo_parolasi_yoksa_demo_kapali(istemci):
+    _demo_hesabi(istemci)  # hesap olsa bile sunucu ayarı yoksa açılmaz
+    assert istemci.get("/api/oturum/demo").json() == {"acik": False}
+    yanit = istemci.post("/api/oturum/demo")
+    assert yanit.status_code == 404 and "set-cookie" not in yanit.headers
+
+
+def test_demo_oturumu_girisle_ayni_cerezi_yazar(demo_istemci):
+    _demo_hesabi(demo_istemci)
+    assert demo_istemci.get("/api/oturum/demo").json() == {"acik": True}
+    yanit = demo_istemci.post("/api/oturum/demo")
+    assert yanit.status_code == 200, yanit.text
+    set_cookie = yanit.headers["set-cookie"]
+    assert re.search(r"HttpOnly", set_cookie, re.I) and re.search(r"SameSite=strict", set_cookie, re.I)
+    assert "Path=/api" in set_cookie
+    assert DEMO_PAROLA not in yanit.text and cerezden_jeton(yanit) not in yanit.text
+    assert yanit.json()["kullanici"]["email"] == DEMO_EMAIL and yanit.json()["okul"]["ad"] == "Demo Lisesi"
+    demo_istemci.cookies.clear()
+    assert demo_istemci.get("/api/ben", headers=cerez(cerezden_jeton(yanit))).json()["okul"]["ad"] == "Demo Lisesi"
+
+
+def test_demo_oturumu_baska_hesaba_acilmaz(demo_istemci):
+    """İstek gövdesi yok sayılır: e-posta sunucuda sabittir."""
+    _kayit_yaniti(demo_istemci, email="ayse@a.test")
+    demo_istemci.cookies.clear()
+    yanit = demo_istemci.post("/api/oturum/demo", json={"email": "ayse@a.test"})
+    assert yanit.status_code == 404 and "set-cookie" not in yanit.headers  # demo okul kurulmamış
+
+
+def test_yanlis_parola_denemeleri_demoyu_kilitlemez(demo_istemci):
+    _demo_hesabi(demo_istemci)
+    for _ in range(5):
+        demo_istemci.post("/api/giris", json={"email": DEMO_EMAIL, "sifre": "yanlis-parola-1234"})
+    assert demo_istemci.post("/api/giris", json={"email": DEMO_EMAIL, "sifre": DEMO_PAROLA}).status_code == 429
+    assert demo_istemci.post("/api/oturum/demo").status_code == 200
 
 
 def test_kayitta_kullanilan_eposta_ve_kisa_parola(istemci):

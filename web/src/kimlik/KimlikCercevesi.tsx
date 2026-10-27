@@ -8,9 +8,11 @@ import stil from "./Kimlik.module.css";
  * Giriş ve kayıt sayfalarının düzeni: menü yok, ortada tek bir kart. Zaten giriş yapmış
  * kullanıcı buraya gelirse ana sayfaya gönderilir.
  */
-export function KimlikCercevesi() {
+export function KimlikCercevesi({ yalin = false }: { yalin?: boolean }) {
   const ben = useBen();
   if (ben.data) return <Navigate to="/" replace />;
+  // Giriş sayfası kendi iki sütunlu düzenini çizer; çerçeve yalnızca yönlendirmeyi yapar.
+  if (yalin) return <Outlet />;
   return (
     <div className={stil.sayfa}>
       <header className={stil.ust}>

@@ -22,6 +22,8 @@ from okulapi.cekirdek.kiraci import okul_oturumu
 from okulapi.cekirdek.kimlik.servis import KullaniciServisi
 from okulapi.cekirdek.modeller import Kullanici, Okul
 from okulapi.cekirdek.semalar import OkulOlustur, OkulYanit
+from okulapi.cekirdek.servisler import KayitBulunamadi
+from okulapi.ornek_okul import DEMO_EMAIL
 
 EPOSTA = Field(min_length=3, max_length=320, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 # Uzunluk kuralı (12-256) serviste, Türkçe mesajla; burada yalnızca gövde boyutu sınırı.
@@ -112,6 +114,29 @@ def kayit(veri: KayitIstegi, kimlik: Kimlik, istek: Request, yanit: Response) ->
 def giris(veri: GirisIstegi, kimlik: Kimlik, istek: Request, yanit: Response) -> Any:
     """401: e-posta ya da parola hatalı (hangisi olduğu söylenmez). 429: çok fazla hatalı deneme."""
     bilgi, jeton = kimlik.giris(veri.email, veri.sifre)
+    _cerez_yaz(istek, yanit, jeton)
+    with okul_oturumu(istek.app.state.oturum_fabrikasi, bilgi.okul_id) as oturum:
+        return _ben(oturum, bilgi)
+
+
+class DemoDurumu(BaseModel):
+    acik: bool
+
+
+@router.get("/oturum/demo", response_model=DemoDurumu)
+def demo_durumu(istek: Request) -> Any:
+    """Giriş sayfası "Demo ile dene" düğmesini buna göre gösterir. Parolanın kendisi hiçbir
+    yanıtta yoktur."""
+    return {"acik": bool(istek.app.state.ayarlar.demo_parola)}
+
+
+@router.post("/oturum/demo", response_model=BenYanit)
+def demo_oturumu(kimlik: Kimlik, istek: Request, yanit: Response) -> Any:
+    """Demo okula (demo@cizelge.test) oturum açar; çerez girişteki gibidir (ADR 0027). Sunucuda
+    OKULAPI_DEMO_PAROLA tanımlı değilse ya da demo okul kurulmamışsa 404."""
+    if not istek.app.state.ayarlar.demo_parola:
+        raise KayitBulunamadi("Demo okul")
+    bilgi, jeton = kimlik.demo_giris(DEMO_EMAIL)
     _cerez_yaz(istek, yanit, jeton)
     with okul_oturumu(istek.app.state.oturum_fabrikasi, bilgi.okul_id) as oturum:
         return _ben(oturum, bilgi)

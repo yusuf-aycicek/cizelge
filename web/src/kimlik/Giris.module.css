@@ -1,0 +1,391 @@
+/* Giriş sayfası: solda sabit genişlikte giriş alanı, sağda tanıtım paneli. Yalnızca 720 px'in
+   altında (telefon) panel formun altına iner. */
+.sayfa {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 26.25rem minmax(0, 1fr); /* 420 px */
+  gap: var(--bosluk-4);
+  padding: var(--bosluk-4);
+  background:
+    radial-gradient(50rem 30rem at -10% -10%, color-mix(in srgb, var(--renk-birincil) 14%, transparent), transparent),
+    var(--renk-sayfa);
+}
+
+.sol {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.marka {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  padding: var(--bosluk-2) var(--bosluk-3);
+  color: var(--renk-metin);
+  font-weight: var(--yazi-baslik-agirligi);
+  font-size: var(--yazi-buyuk);
+}
+.logo {
+  flex: none;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0.4rem;
+  border-radius: var(--kose);
+  background: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+}
+.urunAdi {
+  display: block;
+  line-height: 1.2;
+}
+.urunAciklamasi {
+  display: block;
+  font-size: var(--yazi-kucuk);
+  font-weight: 400;
+  color: var(--renk-metin-ikincil);
+}
+
+.kartAlani {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: var(--bosluk-5) 0;
+}
+
+.kart {
+  width: 100%;
+  background: var(--renk-zemin);
+  border-radius: 20px;
+  box-shadow: var(--golge-kart);
+  padding: var(--bosluk-6) var(--bosluk-5);
+  animation: kartGir var(--sure-uzun) var(--egri);
+}
+@keyframes kartGir {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
+.baslik {
+  margin: 0 0 var(--bosluk-1);
+  font-size: var(--yazi-sayfa-basligi);
+}
+.altBaslik {
+  margin: 0 0 var(--bosluk-5);
+  color: var(--renk-metin-ikincil);
+}
+
+/* Form alanları: 48 px, 12 px köşe; odakta turuncu çerçeve ve hafif halka. */
+.form input {
+  min-height: 3rem;
+  max-width: none;
+  border-radius: 12px;
+  transition: border-color var(--sure-kisa), box-shadow var(--sure-kisa);
+}
+.form input:focus,
+.form input:focus-visible {
+  outline: none;
+  border-color: var(--renk-birincil);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--renk-birincil) 18%, transparent);
+  border-radius: 12px;
+}
+
+.genisDugme {
+  width: 100%;
+  min-height: 3rem;
+  border-radius: 12px;
+  font-size: var(--yazi-normal);
+}
+.demoDugmesi {
+  border-color: var(--renk-birincil);
+  color: var(--renk-birincil);
+}
+
+.ayirici {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  margin: var(--bosluk-4) 0;
+  color: var(--renk-metin-ikincil);
+  font-size: var(--yazi-kucuk);
+}
+.ayirici::before,
+.ayirici::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--renk-kenar);
+}
+
+.not {
+  margin: var(--bosluk-2) 0 0;
+  text-align: center;
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
+}
+
+.alt {
+  margin: var(--bosluk-5) 0 0;
+  text-align: center;
+}
+
+.bilgi {
+  background: var(--renk-bilgi-zemin);
+  color: var(--renk-bilgi-metin);
+  border-inline-start: 4px solid currentColor;
+  border-radius: var(--kose);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  margin-bottom: var(--bosluk-4);
+}
+
+/* --- tanıtım paneli --------------------------------------------------------------------------- */
+
+.panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--bosluk-5);
+  padding: clamp(var(--bosluk-5), 4vw, 3.5rem);
+  border-radius: 28px;
+  background: var(--renk-tanitim-zemin);
+  color: var(--renk-tanitim-metin);
+}
+
+.etiket {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: var(--yazi-baslik-agirligi);
+  letter-spacing: 0.08em;
+  color: var(--renk-tanitim-ikincil);
+}
+.nokta {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--renk-tanitim-nokta);
+  animation: yanipSon 1.4s ease-in-out infinite;
+}
+@keyframes yanipSon {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.panelBasligi {
+  margin: 0;
+  max-width: 36rem;
+  font-size: clamp(1.5rem, 1rem + 1.8vw, 2.5rem);
+  line-height: 1.2;
+  font-weight: var(--yazi-baslik-agirligi);
+  color: var(--renk-tanitim-metin);
+}
+
+.ornek {
+  margin: 0;
+  max-width: 34rem;
+  padding: var(--bosluk-4);
+  border-radius: 18px;
+  background: var(--renk-yuzey);
+  color: var(--renk-metin);
+}
+.ornekBasligi {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bosluk-2);
+  margin-bottom: var(--bosluk-3);
+  font-size: var(--yazi-kucuk);
+}
+.rozet {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--renk-basari-zemin);
+  color: var(--renk-basari-metin);
+  font-weight: var(--yazi-baslik-agirligi);
+  font-size: 0.75rem;
+}
+
+/*
+ * Örnek çizelgenin hareketi. Izgara 9 sn'lik bir zaman sayacı (`--zaman`, 0 → 9) oynatır, kartlar
+ * onu miras alır ve konumlarını kendi düşme anlarından (`--d`, sn) hesaplar: önce yukarıda ve
+ * görünmez, `--d` anında yarım saniyede düşer, 7.7 sn'den sonra hepsi birlikte solar. Böylece tek
+ * bir animasyon bütün kartları aynı döngüde tutar (kart başına gecikme her kartın döngüsünü
+ * kaydırırdı).
+ *
+ * Hareket azaltılmışsa temel.css animasyonu kapatır: `--zaman` başlangıç değerinde (6) kalır ve
+ * çizelge dolu görünür. @property'yi tanımayan tarayıcıda hesap geçersiz olur, kartlar yine yerinde.
+ */
+@property --zaman {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 6;
+}
+@keyframes zaman {
+  from {
+    --zaman: 0;
+  }
+  to {
+    --zaman: 9;
+  }
+}
+
+.izgara {
+  display: grid;
+  grid-template-columns: 2rem repeat(5, minmax(0, 1fr));
+  grid-auto-rows: minmax(2.1rem, auto);
+  gap: 0.3rem;
+  overflow: hidden;
+  animation: zaman 9s linear infinite;
+}
+.gun,
+.saat {
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+  font-weight: var(--yazi-baslik-agirligi);
+  color: var(--renk-metin-ikincil);
+}
+.gun {
+  min-height: 1.5rem;
+}
+.bosHucre {
+  border: 1.5px dashed var(--renk-kenar-alan);
+  border-radius: 8px;
+  opacity: 0.5;
+}
+.hucre {
+  display: grid;
+}
+
+.dersKarti {
+  --k: clamp(0, calc((var(--d) + 0.5 - var(--zaman)) / 0.5), 1); /* 1 = yukarıda, 0 = yerinde */
+  --s: calc(1 - var(--k));
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: var(--yazi-baslik-agirligi);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transform: translateY(calc((1 - var(--s) * var(--s)) * -180%)); /* yerçekimi gibi hızlanarak */
+  opacity: min(calc(var(--s) * 3), clamp(0, calc((8.3 - var(--zaman)) / 0.6), 1));
+}
+.dersKarti[data-ders="mat"] {
+  background: var(--renk-ders-mat);
+  color: var(--renk-ders-mat-metin);
+}
+.dersKarti[data-ders="fizik"] {
+  background: var(--renk-ders-fizik);
+  color: var(--renk-ders-fizik-metin);
+}
+.dersKarti[data-ders="turkce"] {
+  background: var(--renk-ders-turkce);
+  color: var(--renk-ders-turkce-metin);
+}
+.dersKarti[data-ders="tarih"] {
+  background: var(--renk-ders-tarih);
+  color: var(--renk-ders-tarih-metin);
+}
+.dersKarti[data-ders="ing"] {
+  background: var(--renk-ders-ing);
+  color: var(--renk-ders-ing-metin);
+}
+.dersKarti[data-ders="kimya"] {
+  background: var(--renk-ders-kimya);
+  color: var(--renk-ders-kimya-metin);
+}
+
+.ozellikler {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--bosluk-4);
+  max-width: 44rem;
+}
+.ozellikler li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-1);
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-tanitim-ikincil);
+}
+.ozellikler strong {
+  color: var(--renk-tanitim-metin);
+  font-size: var(--yazi-normal);
+}
+.ozellikIkonu {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: var(--bosluk-1);
+  border-radius: 12px;
+  background: var(--renk-tanitim-ikon-zemin);
+  color: var(--renk-tanitim-nokta);
+}
+.ozellikIkonu svg {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+/* Tablet: panel dar kalır; özellikler alt alta, çizelge sıkışır ki ders adları sığsın. */
+@media (max-width: 64rem) {
+  .ozellikler {
+    grid-template-columns: 1fr;
+  }
+  .ornek {
+    padding: var(--bosluk-3);
+  }
+  .izgara {
+    grid-template-columns: 1rem repeat(5, minmax(0, 1fr));
+    gap: 0.2rem;
+  }
+  .dersKarti {
+    font-size: 0.65rem;
+  }
+}
+
+/* Tablet ile telefon arası (720 px üstü, yan yana) en dar hâl. */
+@media (max-width: 56rem) {
+  .panel {
+    padding: var(--bosluk-4);
+  }
+}
+
+/* Telefon (720 px altı): tek sütun, panel formun altında. */
+@media (max-width: 45rem) {
+  .sayfa {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--bosluk-3);
+  }
+  .kart {
+    padding: var(--bosluk-5) var(--bosluk-4);
+  }
+  .kartAlani {
+    padding: var(--bosluk-3) 0 var(--bosluk-2);
+  }
+  .panel {
+    border-radius: 22px;
+    padding: var(--bosluk-5);
+  }
+  /* Panel tam genişlikte: tabletteki sıkıştırma geri alınır. */
+  .ornek {
+    padding: var(--bosluk-4);
+  }
+  .izgara {
+    grid-template-columns: 1.5rem repeat(5, minmax(0, 1fr));
+    gap: 0.3rem;
+  }
+  .dersKarti {
+    font-size: 0.75rem;
+  }
+}

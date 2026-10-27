@@ -80,6 +80,7 @@ export const varsayilanIsleyiciler = [
   http.get("/api/saglik", () => HttpResponse.json({ durum: "ok", veritabani: "ok", moduller: ["ders_programi"] })),
   http.get("/api/ben", () => HttpResponse.json(BEN_ORNEK)),
   http.post("/api/cikis", () => new HttpResponse(null, { status: 204 })),
+  http.get("/api/oturum/demo", () => HttpResponse.json({ acik: false })),
   http.get("/api/okul", () => HttpResponse.json(BEN_ORNEK.okul)),
   http.get("/api/ders-programi/kurallar", () => HttpResponse.json(ORNEK_KURALLAR)),
   http.get("/api/ogretmenler", () => HttpResponse.json([])),

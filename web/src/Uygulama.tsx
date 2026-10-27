@@ -41,8 +41,10 @@ export function Uygulama({ sorguIstemcisi }: { sorguIstemcisi: QueryClient }) {
         <Routes>
           {/* Paylaşım linki (8b): girişsiz, menüsüz. */}
           <Route path="p/:jeton" element={<PaylasimSayfasi />} />
-          <Route element={<KimlikCercevesi />}>
+          <Route element={<KimlikCercevesi yalin />}>
             <Route path="giris" element={<GirisSayfasi />} />
+          </Route>
+          <Route element={<KimlikCercevesi />}>
             <Route path="kayit" element={<KayitSayfasi />} />
           </Route>
           <Route element={<KorumaliAlan />}>

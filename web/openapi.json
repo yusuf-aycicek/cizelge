@@ -284,6 +284,19 @@
         "title": "DagilimSekli",
         "type": "object"
       },
+      "DemoDurumu": {
+        "properties": {
+          "acik": {
+            "title": "Acik",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "acik"
+        ],
+        "title": "DemoDurumu",
+        "type": "object"
+      },
       "DersAtamaGuncelle": {
         "description": "Sınıf ve ders değiştirilemez: (sınıf, ders) atamanın kimliğidir. Başka bir sınıf/ders için\nyeni atama oluşturulur. `ogretmen_id: null` göndermek öğretmeni boşaltır.",
         "properties": {
@@ -7517,6 +7530,48 @@
         "summary": "Okul Zil Onizleme",
         "tags": [
           "okul"
+        ]
+      }
+    },
+    "/api/oturum/demo": {
+      "get": {
+        "description": "Giriş sayfası \"Demo ile dene\" düğmesini buna göre gösterir. Parolanın kendisi hiçbir\nyanıtta yoktur.",
+        "operationId": "demo_durumu_api_oturum_demo_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoDurumu"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Demo Durumu",
+        "tags": [
+          "kimlik"
+        ]
+      },
+      "post": {
+        "description": "Demo okula (demo@cizelge.test) oturum açar; çerez girişteki gibidir (ADR 0027). Sunucuda\nOKULAPI_DEMO_PAROLA tanımlı değilse ya da demo okul kurulmamışsa 404.",
+        "operationId": "demo_oturumu_api_oturum_demo_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenYanit"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Demo Oturumu",
+        "tags": [
+          "kimlik"
         ]
       }
     },

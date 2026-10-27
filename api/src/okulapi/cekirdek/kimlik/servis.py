@@ -196,6 +196,23 @@ class KimlikServisi:
             o.commit()
         return OturumBilgisi(oturum_id, kullanici_id, okul_id), jeton
 
+    def demo_giris(self, email: str) -> tuple[OturumBilgisi, str]:
+        """Demo hesabına parolasız oturum (ADR 0027). Yalnızca API'nin demo ucu çağırır; hangi
+        e-posta olduğunu da o belirler, istekten gelmez. Kaba kuvvet kilidine bakılmaz: herkesin
+        bildiği tek hesap, birinin yanlış parola denemeleriyle demoyu kilitleyememeli."""
+        email = eposta_duzelt(email)
+        with okulsuz_oturum(self.fabrika) as o:
+            bilgi = self._giris_bilgisi(o, email)
+        if bilgi is None:
+            raise KayitBulunamadi("Demo okul")
+        okul_id, kullanici_id = bilgi["okul_id"], bilgi["kullanici_id"]
+        with okul_oturumu(self.fabrika, okul_id) as o:
+            jeton = self._oturum_ac(o, okul_id, kullanici_id)
+            o.flush()
+            oturum_id = o.scalars(select(Oturum.id).where(Oturum.jeton_ozeti == jeton_ozeti(jeton))).one()
+            o.commit()
+        return OturumBilgisi(oturum_id, kullanici_id, okul_id), jeton
+
     def oturum_coz(self, jeton: str | None) -> OturumBilgisi | None:
         if not jeton or len(jeton) > 200:
             return None

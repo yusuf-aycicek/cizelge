@@ -31,7 +31,7 @@ describe("korumalı sayfalar ve giriş", () => {
     const govdeler = girisiKabulEt();
     const { kullanici } = uygulamayiCiz("/ogretmenler");
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Giriş yap" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "Tekrar hoş geldiniz" })).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "Ana menü" })).not.toBeInTheDocument();
 
     await kullanici.type(screen.getByLabelText(/E-posta/), "ayse@okul.test");
@@ -68,12 +68,53 @@ describe("korumalı sayfalar ve giriş", () => {
     await kullanici.click(screen.getByRole("button", { name: "Giriş yap" }));
     expect(await screen.findByText(mesaj)).toBeInTheDocument();
     expect(screen.getByText(mesaj).closest('[role="alert"]')).not.toBeNull();
-    expect(screen.getByRole("heading", { level: 1, name: "Giriş yap" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Tekrar hoş geldiniz" })).toBeInTheDocument();
   });
 
   it("giriş yapmış kullanıcı giriş sayfasına gelirse ana sayfaya gider", async () => {
     uygulamayiCiz("/giris");
     expect(await screen.findByRole("heading", { level: 1, name: "Hoş geldiniz" })).toBeInTheDocument();
+  });
+});
+
+describe("demo ile dene", () => {
+  it("sunucuda demo kapalıysa düğme görünmez", async () => {
+    oturumYok();
+    uygulamayiCiz("/giris");
+    expect(await screen.findByRole("button", { name: "Giriş yap" })).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText("ya da")).not.toBeInTheDocument());
+    expect(screen.queryByRole("button", { name: "Demo ile dene" })).not.toBeInTheDocument();
+  });
+
+  it("demo açıksa tek tıkla, parolasız ve gövdesiz istekle demo okula girilir", async () => {
+    let girisYapildi = false;
+    const govdeler: string[] = [];
+    sunucu.use(
+      http.get("/api/ben", () => (girisYapildi ? HttpResponse.json(BEN_ORNEK) : oturumGerekli())),
+      http.get("/api/oturum/demo", () => HttpResponse.json({ acik: true })),
+      http.post("/api/oturum/demo", async ({ request }) => {
+        govdeler.push(await request.text());
+        girisYapildi = true;
+        return HttpResponse.json(BEN_ORNEK);
+      }),
+    );
+    const { kullanici } = uygulamayiCiz("/giris");
+    const dugme = await screen.findByRole("button", { name: "Demo ile dene" });
+    expect(dugme).toHaveAccessibleDescription("Örnek okulla açılır, parola gerekmez.");
+    await kullanici.click(dugme);
+    expect(await screen.findByRole("heading", { level: 1, name: "Hoş geldiniz" })).toBeInTheDocument();
+    expect(govdeler).toEqual([""]);
+  });
+
+  it("demo okul kurulmamışsa sunucunun mesajı gösterilir", async () => {
+    oturumYok();
+    sunucu.use(
+      http.get("/api/oturum/demo", () => HttpResponse.json({ acik: true })),
+      http.post("/api/oturum/demo", () => HttpResponse.json({ detail: "Demo okul bulunamadı" }, { status: 404 })),
+    );
+    const { kullanici } = uygulamayiCiz("/giris");
+    await kullanici.click(await screen.findByRole("button", { name: "Demo ile dene" }));
+    expect(await screen.findByText("Demo okul bulunamadı")).toHaveAttribute("role", "alert");
   });
 });
 
@@ -89,7 +130,7 @@ describe("oturum süresinin dolması ve çıkış", () => {
     );
     uygulamayiCiz("/");
     expect(await screen.findByText(SURE_DOLDU_MESAJI)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1, name: "Giriş yap" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Tekrar hoş geldiniz" })).toBeInTheDocument();
   });
 
   it("çıkış yapınca giriş sayfası ve 'Çıkış yaptınız'", async () => {
@@ -104,7 +145,7 @@ describe("oturum süresinin dolması ve çıkış", () => {
     const { kullanici } = uygulamayiCiz("/");
     await kullanici.click(await screen.findByRole("button", { name: "Çıkış" }));
     expect(await screen.findByText("Çıkış yaptınız.")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1, name: "Giriş yap" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Tekrar hoş geldiniz" })).toBeInTheDocument();
   });
 
   it("sunucuya ulaşılamasa da çıkış yapılmış sayılır", async () => {
@@ -113,7 +154,7 @@ describe("oturum süresinin dolması ve çıkış", () => {
     const cikis = await screen.findByRole("button", { name: "Çıkış" });
     oturumYok(); // bundan sonra sunucu kullanıcıyı tanımıyor
     await kullanici.click(cikis);
-    expect(await screen.findByRole("heading", { level: 1, name: "Giriş yap" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "Tekrar hoş geldiniz" })).toBeInTheDocument();
   });
 });
 

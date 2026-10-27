@@ -34,7 +34,7 @@ services:
         sync: false
       - key: OKULAPI_MIGRASYON_URL  # neondb_owner (tablo sahibi, yalnızca migration ve demo kurulumu)
         sync: false
-      - key: OKULAPI_DEMO_PAROLA  # demo@cizelge.test hesabının parolası; en az 12 karakter
+      - key: OKULAPI_DEMO_PAROLA  # demo@cizelge.test hesabının parolası; en az 12 karakter. "Demo ile dene" düğmesini de açar (ADR 0027)
         sync: false
       # Veri değiştiren isteklerde kabul edilen kökenler (JSON listesi): Pages adresi ve yerel.
       - key: OKULAPI_IZINLI_KOKENLER

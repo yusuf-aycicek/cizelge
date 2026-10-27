@@ -52,6 +52,9 @@ services:
       # isteklerini buraya yönlendirir) ve API'nin kendi belge sayfası (/docs).
       # Port .env ile değiştirilirse (WEB_PORT, API_PORT) kökenler de onları izler.
       OKULAPI_IZINLI_KOKENLER: '["http://localhost:${WEB_PORT:-5173}", "http://localhost:${API_PORT:-8000}"]'
+      # "Demo ile dene" düğmesi (ADR 0027): varsayılan kapalı. Yerelde denemek için .env'e
+      # OKULAPI_DEMO_PAROLA yazılır ve `docker compose exec api python -m okulapi demo-okul` çalıştırılır.
+      OKULAPI_DEMO_PAROLA: ${OKULAPI_DEMO_PAROLA:-}
     depends_on:
       db:
         condition: service_healthy  # veritabanı bağlantı kabul etmeden api başlamaz

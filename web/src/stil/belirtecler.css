@@ -57,6 +57,26 @@
   --renk-rozet-8: #92400e;      /* ders çipindeki yazı; API paleti bununla denetlenir (CIP_METNI) */
   --renk-menu-aktif-cizgi: transparent;
 
+  /* --- renkler: giriş sayfasının tanıtım paneli (koyu kahve, açık yazı) --- */
+  --renk-tanitim-zemin: #3b2a20;
+  --renk-tanitim-metin: #f7ece0;
+  --renk-tanitim-ikincil: #d6c1ad;
+  --renk-tanitim-ikon-zemin: #4d382b;
+  --renk-tanitim-nokta: #f0782f;   /* "program hazırlanıyor" yanıp sönen nokta */
+  /* tanıtımdaki örnek çizelgenin ders kartları: yumuşak zemin, koyu yazı (4.5:1) */
+  --renk-ders-mat: #fde3d3;
+  --renk-ders-mat-metin: #8a2f0c;
+  --renk-ders-fizik: #d9e7f3;
+  --renk-ders-fizik-metin: #1e4a8a;
+  --renk-ders-turkce: #dcebd9;
+  --renk-ders-turkce-metin: #2f6b3a;
+  --renk-ders-tarih: #f6e3b4;
+  --renk-ders-tarih-metin: #7a4a00;
+  --renk-ders-ing: #e8def3;
+  --renk-ders-ing-metin: #5b3a99;
+  --renk-ders-kimya: #f7d9e3;
+  --renk-ders-kimya-metin: #8f1d4a;
+
   /* --- renkler: anlam --- */
   --renk-birincil: #b53c0b;       /* koyulaşan sayfa zemininde (#efe4d6) bağlantı yazısı 4.5:1 kalsın */
   --renk-birincil-koyu: #9a3412;

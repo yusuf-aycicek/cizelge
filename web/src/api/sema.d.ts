@@ -1199,6 +1199,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/oturum/demo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Demo Durumu
+         * @description Giriş sayfası "Demo ile dene" düğmesini buna göre gösterir. Parolanın kendisi hiçbir
+         *     yanıtta yoktur.
+         */
+        get: operations["demo_durumu_api_oturum_demo_get"];
+        put?: never;
+        /**
+         * Demo Oturumu
+         * @description Demo okula (demo@cizelge.test) oturum açar; çerez girişteki gibidir (ADR 0027). Sunucuda
+         *     OKULAPI_DEMO_PAROLA tanımlı değilse ya da demo okul kurulmamışsa 404.
+         */
+        post: operations["demo_oturumu_api_oturum_demo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/saglik": {
         parameters: {
             query?: never;
@@ -1409,6 +1435,11 @@ export interface components {
             sinif_id: string;
             /** Sorunlar */
             sorunlar: string[];
+        };
+        /** DemoDurumu */
+        DemoDurumu: {
+            /** Acik */
+            acik: boolean;
         };
         /**
          * DersAtamaGuncelle
@@ -5469,6 +5500,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    demo_durumu_api_oturum_demo_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DemoDurumu"];
+                };
+            };
+        };
+    };
+    demo_oturumu_api_oturum_demo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenYanit"];
                 };
             };
         };
