@@ -110,7 +110,7 @@ export function GirisSayfasi() {
                   Demo ile dene
                 </Dugme>
                 <p id="demo-notu" className={stil.not}>
-                  Örnek okulla açılır, parola gerekmez.
+                  Örnek okulla açılır, parola gerekmez. Demo verileri düzenli olarak sıfırlanır.
                 </p>
               </>
             )}

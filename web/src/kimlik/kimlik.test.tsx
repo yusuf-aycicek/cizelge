@@ -100,7 +100,7 @@ describe("demo ile dene", () => {
     );
     const { kullanici } = uygulamayiCiz("/giris");
     const dugme = await screen.findByRole("button", { name: "Demo ile dene" });
-    expect(dugme).toHaveAccessibleDescription("Örnek okulla açılır, parola gerekmez.");
+    expect(dugme).toHaveAccessibleDescription("Örnek okulla açılır, parola gerekmez. Demo verileri düzenli olarak sıfırlanır.");
     await kullanici.click(dugme);
     expect(await screen.findByRole("heading", { level: 1, name: "Hoş geldiniz" })).toBeInTheDocument();
     expect(govdeler).toEqual([""]);

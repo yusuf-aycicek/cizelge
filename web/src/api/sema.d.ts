@@ -1215,8 +1215,9 @@ export interface paths {
         put?: never;
         /**
          * Demo Oturumu
-         * @description Demo okula (demo@cizelge.test) oturum açar; çerez girişteki gibidir (ADR 0027). Sunucuda
-         *     OKULAPI_DEMO_PAROLA tanımlı değilse ya da demo okul kurulmamışsa 404.
+         * @description Demo okula (demo@cizelge.test) oturum açar; çerez girişteki gibidir (ADR 0027). Demo okul
+         *     `demo_sifirlama_dk` dakikadan eskiyse ya da yoksa önce baştan kurulur. Sunucuda
+         *     OKULAPI_DEMO_PAROLA tanımlı değilse 404; kurulum başarısız olursa da 404 (ayrıntı günlükte).
          */
         post: operations["demo_oturumu_api_oturum_demo_post"];
         delete?: never;

@@ -179,6 +179,46 @@ def demo_okul_kur(ayarlar: Ayarlar, parola: str, veri_yolu: Path = MINI) -> dict
     return _okul_yukle(ayarlar, veri_yolu, DEMO_OKUL, DEMO_MUDUR, DEMO_EMAIL, parola)
 
 
+# Aynı anda iki demo girişi sıfırlamaya kalkarsa ikincisi birincinin bitmesini bekler (PostgreSQL
+# danışma kilidi; sayı yalnızca bu iş için seçilmiş sabit bir anahtardır).
+DEMO_KILIDI = 270_270_027
+
+
+def demo_okulu_tazele(ayarlar: Ayarlar, parola: str, fabrika, veri_yolu: Path = MINI) -> bool:
+    """Demo girişinden hemen önce çağrılır (ADR 0027). Demo okul `demo_sifirlama_dk` dakikadan
+    eskiyse yalnızca o okul silinip baştan kurulur; demo okul hiç yoksa kurulur. Kurulduysa True.
+
+    Başka bir okula dokunulmaz: silinecek okul demo e-postasının okuludur, silme o okulun
+    kimliğiyle sınırlıdır (`okulu_sil`). "Son sıfırlama" okulun oluşturulma zamanıdır; süre
+    veritabanının saatiyle ölçülür. Sıfırlama demo okulun bütün oturumlarını da kapatır.
+    `fabrika`: uygulamanın oturum fabrikası (uygulama rolü, RLS altında).
+    """
+    from sqlalchemy import func, select
+
+    from okulapi.cekirdek.kimlik.servis import KimlikServisi
+    from okulapi.cekirdek.kiraci import okul_oturumu, okulsuz_oturum
+    from okulapi.cekirdek.modeller import Okul
+
+    with fabrika() as kilit:
+        # İşlem sonuna kadar süren kilit; ikinci giriş burada bekler, durumu kilitten sonra okur.
+        kilit.execute(select(func.pg_advisory_xact_lock(DEMO_KILIDI)))
+        try:
+            with okulsuz_oturum(fabrika) as o:
+                bilgi = KimlikServisi(fabrika, ayarlar)._giris_bilgisi(o, DEMO_EMAIL)
+            if bilgi is not None:
+                okul_id = bilgi["okul_id"]
+                sinir = func.now() - func.make_interval(0, 0, 0, 0, 0, ayarlar.demo_sifirlama_dk)
+                with okul_oturumu(fabrika, okul_id) as o:
+                    eski = o.scalar(select(Okul.olusturma <= sinir).where(Okul.id == okul_id))
+                if not eski:
+                    return False
+                okulu_sil(ayarlar.migrasyon_url, str(okul_id))
+            _okul_yukle(ayarlar, veri_yolu, DEMO_OKUL, DEMO_MUDUR, DEMO_EMAIL, parola)
+            return True
+        finally:
+            kilit.commit()  # kilit bırakılır
+
+
 def okulu_sil(migrasyon_url: str, okul_id: str) -> None:
     """Tek bir okulu bütün verisiyle siler (tek işlem). Tablo sahibi yayında (Neon) süper kullanıcı
     değildir ve FORCE RLS'ye tabidir: aktif okul ayarlanır, politikalar yalnızca o okulu gösterir."""

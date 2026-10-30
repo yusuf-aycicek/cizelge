@@ -230,3 +230,98 @@ def test_silme_sirasi_okula_ait_butun_tablolari_kapsar(gelistirme):
             assert okula_ait_tablolar(b) == set(SILME_SIRASI)
     finally:
         motor.dispose()
+
+
+# --- demo okulun sıfırlanması (ADR 0027) ----------------------------------------------------------
+
+def _demo_okulu_eskit(ayarlar, dakika: int = 61) -> None:
+    """Demo okulun oluşturulma zamanını geriye alır (son sıfırlamadan bu yana geçen süre)."""
+    motor = create_engine(ayarlar.migrasyon_url)
+    try:
+        with motor.begin() as b:
+            b.execute(text("UPDATE okul SET olusturma = now() - make_interval(mins => :d) WHERE ad = :ad"),
+                      {"d": dakika, "ad": DEMO_OKUL})
+    finally:
+        motor.dispose()
+
+
+def _ogretmen_sayilari(ayarlar) -> dict[str, int]:
+    motor = create_engine(ayarlar.migrasyon_url)
+    try:
+        with motor.connect() as b:
+            return dict(b.execute(text(
+                "SELECT o.ad, count(t.id) FROM okul o LEFT JOIN ogretmen t ON t.okul_id = o.id GROUP BY o.ad")).all())
+    finally:
+        motor.dispose()
+
+
+@pytest.fixture
+def demo_yayin(yuklu, ayarlar):
+    """Örnek okul (dokunulmaması gereken başka okul) + kurulu demo okul, demo açık sunucu."""
+    yayin = ayarlar.model_copy(update={"demo_parola": DEMO_PAROLA, "cerez_secure": False})
+    assert demo_okul_kur(yayin, DEMO_PAROLA) is not None
+    uygulama = uygulama_olustur(yayin)
+    try:
+        with TestClient(uygulama) as istemci:
+            yield yayin, istemci
+    finally:
+        uygulama.state.motor.dispose()
+
+
+def test_demo_bozulup_bir_saat_dolmadan_sifirlanmaz(demo_yayin):
+    yayin, istemci = demo_yayin
+    assert istemci.post("/api/oturum/demo").status_code == 200
+    assert istemci.post("/api/ogretmenler", json={"ad": "Bozan Kişi"}).status_code == 201
+    _demo_okulu_eskit(yayin, dakika=59)
+    assert istemci.post("/api/oturum/demo").status_code == 200
+    assert len(istemci.get("/api/ogretmenler").json()) == 6  # bozulmuş hali duruyor
+
+
+def test_bir_saat_dolunca_yalnizca_demo_okul_bastan_kurulur(demo_yayin):
+    yayin, istemci = demo_yayin
+    eski = istemci.post("/api/oturum/demo")
+    eski_okul, eski_jeton = eski.json()["okul"]["id"], istemci.cookies.get("oturum")
+    assert istemci.post("/api/ogretmenler", json={"ad": "Bozan Kişi"}).status_code == 201
+    once = _ogretmen_sayilari(yayin)
+
+    _demo_okulu_eskit(yayin, dakika=61)
+    istemci.cookies.clear()
+    yanit = istemci.post("/api/oturum/demo")
+    assert yanit.status_code == 200, yanit.text
+    assert yanit.json()["okul"]["ad"] == DEMO_OKUL and yanit.json()["okul"]["id"] != eski_okul
+    assert len(istemci.get("/api/ogretmenler").json()) == 5
+    assert len(istemci.get("/api/ders-programi/atamalar").json()) == 18
+
+    sonra = _ogretmen_sayilari(yayin)
+    assert sonra[ORNEK_OKUL] == once[ORNEK_OKUL]  # başka okula dokunulmadı
+    assert set(sonra) == {ORNEK_OKUL, DEMO_OKUL}  # bozuk demo okul gitti, yenisi tek
+    istemci.cookies.clear()
+    assert istemci.get("/api/ben", headers={"Cookie": f"oturum={eski_jeton}"}).status_code == 401
+
+
+def test_ayni_anda_iki_sifirlama_tek_demo_okul_birakir(demo_yayin):
+    from concurrent.futures import ThreadPoolExecutor
+
+    from okulapi.ornek_okul import demo_okulu_tazele
+
+    yayin, istemci = demo_yayin
+    fabrika = istemci.app.state.oturum_fabrikasi
+    _demo_okulu_eskit(yayin)
+    with ThreadPoolExecutor(2) as havuz:
+        sonuclar = list(havuz.map(lambda _: demo_okulu_tazele(yayin, DEMO_PAROLA, fabrika), range(2)))
+    assert sorted(sonuclar) == [False, True]  # ikincisi kilidi bekledi, okulu taze buldu
+    assert okul_sayisi(yayin) == 2
+
+
+def test_demo_okul_yoksa_ilk_giriste_kurulur_govde_yok_sayilir(yuklu, ayarlar):
+    """İstek gövdesindeki e-posta yok sayılır: oturum hep demo hesabına açılır."""
+    yayin = ayarlar.model_copy(update={"demo_parola": DEMO_PAROLA, "cerez_secure": False})
+    uygulama = uygulama_olustur(yayin)
+    try:
+        with TestClient(uygulama) as istemci:
+            yanit = istemci.post("/api/oturum/demo", json={"email": ORNEK_EMAIL})
+            assert yanit.status_code == 200, yanit.text
+            assert yanit.json()["kullanici"]["email"] == DEMO_EMAIL and yanit.json()["okul"]["ad"] == DEMO_OKUL
+    finally:
+        uygulama.state.motor.dispose()
+    assert okul_sayisi(yayin) == 2

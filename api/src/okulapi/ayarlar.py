@@ -51,6 +51,9 @@ class Ayarlar(BaseSettings):
 
     # Yayındaki demo okulun parolası (python -m okulapi demo-okul). Verilmezse demo okul kurulmaz.
     demo_parola: str | None = None
+    # Demo okul en son bu kadar dakika önce kurulduysa bir sonraki "Demo ile dene" girişi onu
+    # silip baştan kurar (ADR 0027). Yalnızca demo okul etkilenir.
+    demo_sifirlama_dk: int = 60
 
     # Kimlik doğrulama (ADR 0012).
     oturum_hareketsizlik_saat: int = 12  # bu kadar süre kullanılmayan oturum geçersiz olur

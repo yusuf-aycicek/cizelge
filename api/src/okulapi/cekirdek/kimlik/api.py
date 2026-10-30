@@ -11,6 +11,7 @@ Yanıt gövdesinde jeton yoktur.
 Not: `from __future__ import annotations` yok (FastAPI tip ipuçlarını çalışma anında okur).
 """
 
+import logging
 import uuid
 from typing import Any, Literal
 
@@ -23,7 +24,9 @@ from okulapi.cekirdek.kimlik.servis import KullaniciServisi
 from okulapi.cekirdek.modeller import Kullanici, Okul
 from okulapi.cekirdek.semalar import OkulOlustur, OkulYanit
 from okulapi.cekirdek.servisler import KayitBulunamadi
-from okulapi.ornek_okul import DEMO_EMAIL
+from okulapi.ornek_okul import DEMO_EMAIL, demo_okulu_tazele
+
+logger = logging.getLogger(__name__)
 
 EPOSTA = Field(min_length=3, max_length=320, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 # Uzunluk kuralı (12-256) serviste, Türkçe mesajla; burada yalnızca gövde boyutu sınırı.
@@ -132,10 +135,16 @@ def demo_durumu(istek: Request) -> Any:
 
 @router.post("/oturum/demo", response_model=BenYanit)
 def demo_oturumu(kimlik: Kimlik, istek: Request, yanit: Response) -> Any:
-    """Demo okula (demo@cizelge.test) oturum açar; çerez girişteki gibidir (ADR 0027). Sunucuda
-    OKULAPI_DEMO_PAROLA tanımlı değilse ya da demo okul kurulmamışsa 404."""
-    if not istek.app.state.ayarlar.demo_parola:
+    """Demo okula (demo@cizelge.test) oturum açar; çerez girişteki gibidir (ADR 0027). Demo okul
+    `demo_sifirlama_dk` dakikadan eskiyse ya da yoksa önce baştan kurulur. Sunucuda
+    OKULAPI_DEMO_PAROLA tanımlı değilse 404; kurulum başarısız olursa da 404 (ayrıntı günlükte)."""
+    ayarlar = istek.app.state.ayarlar
+    if not ayarlar.demo_parola:
         raise KayitBulunamadi("Demo okul")
+    try:
+        demo_okulu_tazele(ayarlar, ayarlar.demo_parola, istek.app.state.oturum_fabrikasi)
+    except Exception:  # sıfırlama bozulsa da giriş denenir; okul yoksa demo_giris 404 verir
+        logger.exception("Demo okul sıfırlanamadı")
     bilgi, jeton = kimlik.demo_giris(DEMO_EMAIL)
     _cerez_yaz(istek, yanit, jeton)
     with okul_oturumu(istek.app.state.oturum_fabrikasi, bilgi.okul_id) as oturum:

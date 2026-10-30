@@ -227,14 +227,6 @@ def test_demo_oturumu_girisle_ayni_cerezi_yazar(demo_istemci):
     assert demo_istemci.get("/api/ben", headers=cerez(cerezden_jeton(yanit))).json()["okul"]["ad"] == "Demo Lisesi"
 
 
-def test_demo_oturumu_baska_hesaba_acilmaz(demo_istemci):
-    """İstek gövdesi yok sayılır: e-posta sunucuda sabittir."""
-    _kayit_yaniti(demo_istemci, email="ayse@a.test")
-    demo_istemci.cookies.clear()
-    yanit = demo_istemci.post("/api/oturum/demo", json={"email": "ayse@a.test"})
-    assert yanit.status_code == 404 and "set-cookie" not in yanit.headers  # demo okul kurulmamış
-
-
 def test_yanlis_parola_denemeleri_demoyu_kilitlemez(demo_istemci):
     _demo_hesabi(demo_istemci)
     for _ in range(5):
