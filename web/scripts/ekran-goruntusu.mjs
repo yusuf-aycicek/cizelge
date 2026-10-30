@@ -93,7 +93,7 @@ const AKISLAR = {
     await s.getByLabel(/Parola \(tekrar\)/).fill(parola);
     await kaydet(s, "4-kayit-dolu.png", true);
     await s.getByRole("button", { name: "Okulu kaydet" }).click();
-    await s.getByRole("heading", { name: "Hoş geldiniz" }).waitFor();
+    await s.getByRole("heading", { name: "Hoş geldiniz", exact: true }).waitFor();
     await s.getByText("✓ Çalışıyor").waitFor();
     await kaydet(s, "5-kayit-sonrasi-ana-sayfa.png");
 
@@ -539,6 +539,65 @@ AKISLAR["giris"] = async (tarayici, kaydet) => {
     await kaydet(s, dosya, viewport === TELEFON);
     await baglam.close();
   }
+};
+
+// Giriş sonrası bütün ekranlar, demo okulla dolu, masaüstü genişliğinde (yeniden tasarım öncesi
+// kayıt). "Demo ile dene" ile girilir; program yoksa üretilir, yayın ve okul linki açılır. Demo
+// okul zaten düzenli sıfırlandığı için geri alınmaz. Sunucuda OKULAPI_DEMO_PAROLA tanımlı olmalı.
+AKISLAR["giris-sonrasi"] = async (tarayici, kaydet) => {
+  const baglam = await tarayici.newContext({ viewport: { width: 1440, height: 900 }, locale: "tr-TR" });
+  const s = await baglam.newPage();
+  const koken = { Origin: ADRES };
+  const DP = ADRES + "/api/ders-programi";
+  const al = async (yol) => {
+    const yanit = await s.request.get(yol);
+    if (!yanit.ok()) throw new Error(`${yol}: ${yanit.status()} ${await yanit.text()}`);
+    return yanit.json();
+  };
+  await s.goto(ADRES + "/giris");
+  await s.getByRole("button", { name: "Demo ile dene" }).click();
+  await s.getByRole("heading", { name: "Hoş geldiniz", exact: true }).waitFor();
+
+  let program = (await al(DP + "/programlar")).find((p) => p.durum === "hazir");
+  if (!program) {
+    const yeni = await (await s.request.post(DP + "/programlar", { headers: koken, data: { ad: "Demo programı", sure_siniri_sn: 20 } })).json();
+    for (let i = 0; i < 90 && (await al(`${DP}/programlar/${yeni.id}`)).durum !== "hazir"; i++) await s.waitForTimeout(1000);
+    program = await al(`${DP}/programlar/${yeni.id}`);
+    if (program.durum !== "hazir") throw new Error(`Program üretilemedi: ${program.durum} ${program.hata_mesaji ?? ""}`);
+  }
+  if ((await al(DP + "/yayin")) === null) await s.request.put(DP + "/yayin", { headers: koken, data: { program_id: program.id } });
+  if ((await al(DP + "/paylasim-linkleri")).length === 0) {
+    await s.request.post(DP + "/paylasim-linkleri", { headers: koken, data: { tur: "okul" } });
+  }
+  const ogretmen = (await al(ADRES + "/api/ogretmenler"))[0];
+
+  const ekranlar = [
+    ["01-ana-sayfa.png", "/"],
+    ["02-okul-ayarlari.png", "/okul"],
+    ["03-ogretmenler.png", "/ogretmenler"],
+    ["04-ogretmen-ayrintisi.png", `/ogretmenler/${ogretmen.id}`],
+    ["05-siniflar.png", "/siniflar"],
+    ["06-dersler.png", "/dersler"],
+    ["07-seviye-sablonu.png", "/seviye-sablonu"],
+    ["08-ders-dagilimi.png", "/ders-dagilimi"],
+    ["09-excelden-aktar.png", "/ice-aktarma"],
+    ["10-programlar.png", "/program"],
+    ["11-haftalik-cizelge.png", `/program/${program.id}`],
+    ["12-yayin-ve-paylasim.png", "/yayin"],
+    ["13-kullanicilar.png", "/kullanicilar"],
+    ["14-hesabim.png", "/hesabim"],
+  ];
+  for (const [dosya, yol] of ekranlar) {
+    await s.goto(ADRES + yol, { waitUntil: "networkidle" });
+    await s.getByRole("heading", { level: 1 }).first().waitFor();
+    await s.waitForTimeout(500);
+    // Görünmez tarayıcıda gecikmeli giriş animasyonları (çizelge hücreleri) ilerlemeyebiliyor:
+    // "disabled" sonlu animasyonları bitmiş haline atlatır, sayfa gerçekte nasıl duruyorsa öyle çekilir.
+    await s.evaluate(() => window.scrollTo(0, 0));
+    await s.screenshot({ path: resolve(hedef, dosya), fullPage: true, animations: "disabled" });
+    console.log(`docs/ekranlar/${adim}/${dosya}`);
+  }
+  await baglam.close();
 };
 
 // K1 sonrası düzeltmeler (D1-D6). Örnek okulda hazır bir program olmalı.
