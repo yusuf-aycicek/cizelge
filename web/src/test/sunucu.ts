@@ -91,6 +91,7 @@ export const varsayilanIsleyiciler = [
   http.get("/api/ders-renkleri", () => HttpResponse.json(ORNEK_DERS_RENKLERI)),
   http.get("/api/ders-programi/atamalar", () => HttpResponse.json([])),
   http.get("/api/ders-programi/programlar", () => HttpResponse.json([])),
+  http.get("/api/ders-programi/yayin", () => HttpResponse.json(null)),
   http.get("/api/ders-programi/on-kontrol", () => HttpResponse.json({ celiskiler: [] })),
   http.get("/api/ders-programi/dagilim-sekilleri", () => HttpResponse.json([])),
   http.get("/api/ders-programi/seviye-sablonlari", () => HttpResponse.json([])),

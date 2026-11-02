@@ -126,17 +126,22 @@
 
 /* --- bekleme paneli ---------------------------------------------------------------------- */
 
+/* Koyu kart (iki temada da): içindeki metin ve yüzey renkleri kartın içinde yerel olarak koyu
+   zemine göre yeniden tanımlanır, alt öğeler değişmeden doğru rengi alır. */
 .bekleme {
+  --renk-metin: var(--renk-tanitim-metin);
+  --renk-metin-ikincil: var(--renk-tanitim-ikincil);
+  --renk-yuzey-vurgu: var(--renk-tanitim-ikon-zemin);
   display: flex;
   align-items: center;
   gap: var(--bosluk-6);
   padding: var(--bosluk-6);
   margin-bottom: var(--bosluk-5);
-  border-radius: var(--kose-buyuk);
-  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-kart);
   background:
-    radial-gradient(30rem 16rem at 0% 0%, color-mix(in srgb, var(--renk-birincil) 14%, transparent), transparent),
-    var(--renk-zemin);
+    radial-gradient(30rem 16rem at 0% 0%, color-mix(in srgb, var(--renk-parlak) 22%, transparent), transparent),
+    var(--renk-tanitim-zemin);
+  color: var(--renk-metin);
   box-shadow: var(--golge-kart);
   animation: paneliGir var(--sure-uzun) var(--egri);
 }
@@ -152,54 +157,74 @@
 }
 .beklemeMetni h2 {
   margin-bottom: var(--bosluk-2);
+  color: var(--renk-metin);
 }
 .beklemeAciklama {
   color: var(--renk-metin-ikincil);
   max-width: 40rem;
 }
 
-/* Mini çizelge: hücreler sırayla, yavaşça dolup boşalır (2,4 sn döngü). */
+/* Küçük çizelge: ders renkli kareler sırayla düşüp yerleşir, döngü 2,4 sn. Hareket azaltılmışsa
+   kareler dolu ve yerinde durur. */
 .animasyon {
   flex-shrink: 0;
   display: grid;
-  grid-template-columns: repeat(5, 1.6rem);
-  grid-auto-rows: 1.05rem;
-  gap: 0.3rem;
+  grid-template-columns: repeat(5, 1.9rem);
+  grid-auto-rows: 1.3rem;
+  gap: 0.35rem;
   padding: var(--bosluk-4);
-  border-radius: var(--kose-buyuk);
-  background: var(--renk-yuzey);
-  border: 1px solid var(--renk-kenar);
+  border-radius: 18px;
+  background: var(--renk-tanitim-ikon-zemin);
+  overflow: hidden;
 }
 .animasyonHucresi {
-  border-radius: 4px;
-  background: var(--renk-yuzey-vurgu);
-  animation: hucreDol 2.4s ease-in-out infinite;
+  border-radius: 5px;
+  background: var(--renk-ders-mat);
+  animation: hucreDol 2.4s var(--egri) infinite;
+}
+.animasyonHucresi:nth-child(6n + 2) {
+  background: var(--renk-ders-turkce);
+}
+.animasyonHucresi:nth-child(6n + 3) {
+  background: var(--renk-ders-fizik);
+}
+.animasyonHucresi:nth-child(6n + 4) {
+  background: var(--renk-ders-kimya);
+}
+.animasyonHucresi:nth-child(6n + 5) {
+  background: var(--renk-ders-tarih);
+}
+.animasyonHucresi:nth-child(6n) {
+  background: var(--renk-ders-ing);
 }
 @keyframes hucreDol {
-  0%,
-  100% {
-    background: var(--renk-yuzey-vurgu);
-    transform: scale(0.92);
+  0% {
+    opacity: 0;
+    transform: translateY(-140%);
   }
-  40%,
-  60% {
-    background: var(--renk-birincil);
-    transform: scale(1);
+  25%,
+  80% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: none;
   }
 }
 
 .cubuk {
   position: relative;
   height: 0.6rem;
-  border-radius: 999px;
-  background: var(--renk-yuzey-vurgu);
+  border-radius: var(--kose-hap);
+  background: var(--renk-tanitim-ikon-zemin);
   overflow: hidden;
   margin: var(--bosluk-4) 0;
 }
 .cubukDolgu {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--renk-birincil), color-mix(in srgb, var(--renk-birincil) 70%, var(--renk-zemin)));
+  background: linear-gradient(90deg, var(--renk-parlak), var(--renk-tanitim-nokta));
   transition: width 0.6s var(--egri);
   position: relative;
   overflow: hidden;
@@ -209,7 +234,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.45), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--renk-tanitim-metin) 45%, transparent), transparent);
   transform: translateX(-100%);
   animation: parilti 1.8s ease-in-out infinite;
 }
@@ -231,7 +256,6 @@
   display: flex;
   gap: var(--bosluk-3);
   align-items: flex-start;
-  transition: opacity var(--sure) var(--egri);
 }
 .asamaIsareti {
   display: grid;
@@ -240,7 +264,7 @@
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 999px;
-  border: 2px solid var(--renk-kenar-alan);
+  border: 2px solid var(--renk-metin-ikincil);
   transition: background-color var(--sure) var(--egri), border-color var(--sure) var(--egri);
 }
 .asamaIsareti svg {
@@ -258,20 +282,24 @@
   animation: paneliGir var(--sure) var(--egri);
 }
 .bitti .asamaIsareti {
-  background: var(--renk-basari-metin);
-  border-color: var(--renk-basari-metin);
-  color: var(--renk-cip-metin);
+  background: var(--renk-tanitim-nokta);
+  border-color: var(--renk-tanitim-nokta);
+  color: var(--renk-tanitim-zemin);
 }
 .bitti .asamaAdi {
   color: var(--renk-metin-ikincil);
   font-weight: normal;
 }
 .suruyor .asamaIsareti {
-  border-color: var(--renk-birincil);
-  color: var(--renk-birincil);
+  border-color: var(--renk-tanitim-nokta);
+  color: var(--renk-tanitim-nokta);
 }
+/* Sıradaki aşamalar soluk ama okunur (saydamlık değil, ikincil yazı rengi: kontrast korunur). */
 .sirada {
-  opacity: 0.55;
+  color: var(--renk-metin-ikincil);
+}
+.sirada .asamaAdi {
+  font-weight: normal;
 }
 .donen {
   animation: don 1s linear infinite;

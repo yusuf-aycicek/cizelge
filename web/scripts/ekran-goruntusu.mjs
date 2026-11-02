@@ -97,7 +97,7 @@ const AKISLAR = {
     await s.getByLabel(/Parola \(tekrar\)/).fill(parola);
     await kaydet(s, "4-kayit-dolu.png", true);
     await s.getByRole("button", { name: "Okulu kaydet" }).click();
-    await s.getByRole("heading", { name: "Hoş geldiniz", exact: true }).waitFor();
+    await s.getByRole("heading", { level: 1, name: /^(Günaydın|İyi günler|İyi akşamlar|İyi geceler)\b/ }).waitFor();
     await s.getByText("✓ Çalışıyor").waitFor();
     await kaydet(s, "5-kayit-sonrasi-ana-sayfa.png");
 
@@ -560,7 +560,7 @@ AKISLAR["giris-sonrasi"] = async (tarayici, kaydet) => {
   };
   await s.goto(ADRES + "/giris");
   await s.getByRole("button", { name: "Demo ile dene" }).click();
-  await s.getByRole("heading", { name: "Hoş geldiniz", exact: true }).waitFor();
+  await s.getByRole("heading", { level: 1, name: /^(Günaydın|İyi günler|İyi akşamlar|İyi geceler)\b/ }).waitFor();
 
   let program = (await al(DP + "/programlar")).find((p) => p.durum === "hazir");
   if (!program) {

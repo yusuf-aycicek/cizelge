@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Check, CircleAlert, CircleX, History, Hourglass, LoaderCircle, RotateCcw, Share2, Sparkles, TableProperties, WandSparkles, X } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { hataMetni } from "../api/hata";
 import { MetinAlani } from "../bilesenler/Alan";
 import { useBildirim } from "../bilesenler/Bildirim";
@@ -53,6 +53,15 @@ export function ProgramSayfasi() {
   // "Bu programı temel alarak yeniden üret" (en az değişiklikle güncelleme): seçilen program oluşturma
   // kartına temel olarak verilir.
   const [temel, setTemel] = useState<Program | null>(null);
+  // Ana sayfadaki "Yeni program" buraya `#olustur` ile gelir: oluşturma kartına kaydırılır, ad alanı odaklanır.
+  const { hash } = useLocation();
+  const yuklendi = programlar.isSuccess;
+  useEffect(() => {
+    if (hash !== "#olustur" || !yuklendi) return;
+    const kart = document.getElementById("olustur");
+    kart?.scrollIntoView?.({ block: "start" });
+    kart?.querySelector("input")?.focus({ preventScroll: true });
+  }, [hash, yuklendi]);
   const temelAl = (p: Program) => {
     setTemel(p);
     requestAnimationFrame(() => document.getElementById("olustur-baslik")?.scrollIntoView?.({ behavior: "smooth", block: "start" }));
@@ -121,7 +130,7 @@ function OlusturKarti({ sira, yeniden, temel, onTemelKaldir }: {
   }
 
   return (
-    <section aria-labelledby="olustur-baslik" className={sayfaStili.kart}>
+    <section id="olustur" aria-labelledby="olustur-baslik" className={sayfaStili.kart}>
       <h2 id="olustur-baslik">{yeniden ? "Yeni program oluştur" : "Programı oluştur"}</h2>
       {onKontrol.isError ? (
         <div className={stil.engeller} role="note">

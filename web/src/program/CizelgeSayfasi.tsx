@@ -4,7 +4,7 @@ import { ArrowLeft, Lock } from "lucide-react";
 import { Fragment, useRef, type CSSProperties, type DragEvent, type ReactNode } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import { hataMetni } from "../api/hata";
-import { SecimAlani } from "../bilesenler/Alan";
+import { CipSecici } from "../bilesenler/CipSecici";
 import { kisaKisiAdi } from "../bilesenler/darAlan";
 import { SigdirilanMetin } from "../bilesenler/SigdirilanMetin";
 import { Iskelet } from "../bilesenler/Iskelet";
@@ -13,7 +13,8 @@ import { OgretmenRozeti } from "../bilesenler/OgretmenRozeti";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
 import { Sekmeler } from "../bilesenler/Sekmeler";
 import { useAtamalar } from "../dagilim/veri";
-import { DersCipi } from "../dersler/DersCipi";
+import { dersRenkStili } from "../dersler/dersRengi";
+import { isaretKarakteri } from "../dersler/isaret";
 import { useBen } from "../kimlik/oturum";
 import { IndirMenusu } from "./IndirMenusu";
 import { ogleArasiSonrasi, saatVar, zilMetni, type ZilSaati } from "../okul/zaman";
@@ -122,6 +123,7 @@ export function CizelgeSayfasi() {
       .filter((y) => y.kilitli && hucreler.get(hucreAnahtari(y.gun, y.saat))?.id === y.ders_atama_id)
       .map((y) => hucreAnahtari(y.gun, y.saat)),
   );
+  const seciliAtama = duz.secili ? atamalar.data.find((a) => a.id === duz.secili!.ders_atama_id) : undefined;
   const dersAdi = (a: Atama) =>
     `${siniflar.data.find((x) => x.id === a.sinif_id)?.ad ?? ""} ${dersler.data.find((x) => x.id === a.ders_id)?.ad ?? ""}`.trim();
   const seciliDers = (a: Atama, gun: number, saat: number) => ({
@@ -175,19 +177,15 @@ export function CizelgeSayfasi() {
           Temel programdan değişen dersleri vurgula
         </label>
       )}
-      <Sekmeler etiket="Çizelge türü" sekmeler={SEKMELER} secili={gorunum} onSec={(g) => sec({ gorunum: g })} idOneki="cizelge">
+      <Sekmeler etiket="Çizelge türü" sekmeler={SEKMELER} secili={gorunum} onSec={(g) => sec({ gorunum: g })} idOneki="cizelge"
+        bicim="segment">
         <div className={stil.secim}>
-          <SecimAlani
+          <CipSecici
             etiket={gorunum === "sube" ? "Şube" : "Öğretmen"}
-            value={seciliId}
-            onChange={(o) => sec(gorunum === "sube" ? { sinif: o.target.value } : { ogretmen: o.target.value })}
-          >
-            {secenekler.map((x) => (
-              <option key={x.id} value={x.id}>
-                {x.ad}
-              </option>
-            ))}
-          </SecimAlani>
+            secenekler={secenekler}
+            secili={seciliId}
+            onSec={(x) => sec(gorunum === "sube" ? { sinif: x } : { ogretmen: x })}
+          />
           <p className={stil.ozet}>{hucreler.size} ders saati</p>
         </div>
         <DuzeltmeCubugu
@@ -202,20 +200,124 @@ export function CizelgeSayfasi() {
           onVazgec={duz.birak}
           onGeriAl={duz.geriAl}
         />
-        {/* key: başka şube ya da öğretmen seçilince çizelge yeniden kurulur, hücreler yeniden yerleşir. */}
-        {cizelgeOzellikleri &&
-          (telefon ? (
-            <GunlukCizelge key={`${gorunum}-${seciliId}`} {...cizelgeOzellikleri} />
-          ) : (
-            <Cizelge key={`${gorunum}-${seciliId}`} {...cizelgeOzellikleri} />
-          ))}
+        <div className={stil.duzen}>
+          <div className={stil.ana}>
+            {/* key: başka şube ya da öğretmen seçilince çizelge yeniden kurulur, hücreler yeniden yerleşir. */}
+            {cizelgeOzellikleri &&
+              (telefon ? (
+                <GunlukCizelge key={`${gorunum}-${seciliId}`} {...cizelgeOzellikleri} />
+              ) : (
+                <Cizelge key={`${gorunum}-${seciliId}`} {...cizelgeOzellikleri} />
+              ))}
+          </div>
+          <aside className={stil.yan} aria-label="Ayrıntılar">
+            <SeciliDersKarti
+              secili={duz.secili}
+              atama={seciliAtama}
+              gorunum={gorunum}
+              ders={seciliAtama && dersler.data.find((d) => d.id === seciliAtama.ders_id)}
+              sinif={seciliAtama && siniflar.data.find((x) => x.id === seciliAtama.sinif_id)}
+              ogretmen={seciliAtama?.ogretmen_id ? ogretmenler.data.find((o) => o.id === seciliAtama.ogretmen_id) : undefined}
+              yerlesimler={yerlesimler.data}
+              atamalar={atamalar.data}
+              adres={(degisiklik) => {
+                const yeni = new URLSearchParams(parametreler);
+                for (const [k, v] of Object.entries(degisiklik)) yeni.set(k, v);
+                return `?${yeni}`;
+              }}
+            />
+            <div className={stil.yanKart}>
+              <KaliteOzeti program={program.data} />
+            </div>
+          </aside>
+        </div>
       </Sekmeler>
-      <div className={sayfaStili.kart}>
-        <KaliteOzeti program={program.data} />
-      </div>
       <UyariOnayi hedef={duz.onaylanacak} ad={duz.secili?.ad ?? ""} yukleniyor={duz.tasiYukleniyor}
         onOnayla={duz.onayla} onVazgec={duz.onayVazgec} />
     </>
+  );
+}
+
+type Yerlesim = { ders_atama_id: string; gun: number; saat: number };
+
+/** Seçili dersin saatleri: o gün art arda gelen saatlerin ilki ve sonu (blok ise birden çok). */
+export function blokAraligi(yerlesimler: readonly Yerlesim[], atamaId: string, gun: number, saat: number) {
+  const saatler = new Set(yerlesimler.filter((y) => y.ders_atama_id === atamaId && y.gun === gun).map((y) => y.saat));
+  let ilk = saat;
+  let son = saat;
+  while (saatler.has(ilk - 1)) ilk--;
+  while (saatler.has(son + 1)) son++;
+  return { ilk, son };
+}
+
+/**
+ * Yan kart: seçili dersin ayrıntıları (ders, şube, öğretmen, saat, kilit) ve öbür görünüme geçiş.
+ * Ders seçili değilse ne yapılabileceğini söyler. Seçim elle düzeltmeninkiyle aynıdır.
+ */
+function SeciliDersKarti({
+  secili, atama, gorunum, ders, sinif, ogretmen, yerlesimler, atamalar, adres,
+}: {
+  secili: { gun: number; saat: number; kilitli: boolean } | null;
+  atama: Atama | undefined;
+  gorunum: CizelgeTuru;
+  ders: Ders | undefined;
+  sinif: Sinif | undefined;
+  ogretmen: Ogretmen | undefined;
+  yerlesimler: readonly Yerlesim[];
+  atamalar: readonly Atama[];
+  adres: (degisiklik: Record<string, string>) => string;
+}) {
+  if (!secili || !atama) {
+    return (
+      <section aria-labelledby="secili-ders" className={`${stil.yanKart} ${stil.seciliBos}`}>
+        <h2 id="secili-ders">Seçili ders</h2>
+        <p>
+          Bir derse dokunun: {gorunum === "sube" ? "öğretmeninin" : "şubesinin"} öbür dersleri vurgulanır, ayrıntıları burada görünür.
+        </p>
+      </section>
+    );
+  }
+  const { ilk, son } = blokAraligi(yerlesimler, atama.id, secili.gun, secili.saat);
+  const saatMetni = ilk === son ? `${ilk + 1}. saat` : `${ilk + 1}.-${son + 1}. saat (${son - ilk + 1} saat art arda)`;
+  const hocaAtamalari = new Set(atamalar.filter((a) => ogretmen && a.ogretmen_id === ogretmen.id).map((a) => a.id));
+  const hocaYerlesimleri = yerlesimler.filter((y) => hocaAtamalari.has(y.ders_atama_id));
+  const hocaGunleri = new Set(hocaYerlesimleri.map((y) => y.gun)).size;
+  return (
+    <section aria-labelledby="secili-ders" className={stil.yanKart}>
+      <h2 id="secili-ders">Seçili ders</h2>
+      <p className={stil.seciliBaslik} style={dersRenkStili(ders?.renk)}>
+        <strong>{ders?.ad ?? "?"}</strong>
+        <span>{sinif?.ad}</span>
+      </p>
+      <dl className={stil.bilgiler}>
+        <dt>Zaman</dt>
+        <dd>
+          {GUN_ADLARI[secili.gun]}, {saatMetni}
+        </dd>
+        <dt>Öğretmen</dt>
+        <dd>{ogretmen?.ad ?? "Seçilmemiş"}</dd>
+        {ogretmen && (
+          <>
+            <dt>Öğretmenin haftası</dt>
+            <dd>
+              {hocaYerlesimleri.length} saat, {hocaGunleri} gün
+            </dd>
+          </>
+        )}
+        <dt>Durum</dt>
+        <dd>{secili.kilitli ? "Kilitli: yeniden üretimde yerinde kalır" : "Taşınabilir"}</dd>
+      </dl>
+      {gorunum === "sube" && ogretmen && (
+        <Link className={stil.yanBaglanti} to={{ search: adres({ gorunum: "ogretmen", ogretmen: ogretmen.id }) }}>
+          {ogretmen.ad} haftasını aç
+        </Link>
+      )}
+      {gorunum === "ogretmen" && sinif && (
+        <Link className={stil.yanBaglanti} to={{ search: adres({ gorunum: "sube", sinif: sinif.id }) }}>
+          {sinif.ad} haftasını aç
+        </Link>
+      )}
+    </section>
   );
 }
 
@@ -278,6 +380,14 @@ function Cizelge({
 }: CizelgeProps) {
   const gunler = Array.from({ length: gunSayisi }, (_, g) => GUN_ADLARI[g] ?? `${g + 1}. gün`);
   const birlesik = birlesikHucreler(hucreler, gunSayisi, saatSayisi, ogleArasiSonra);
+  // Öğretmen görünümünde hiç dersi olmayan gün: başlıkta "Boş gün", sütun kesik çizgili.
+  const bosGun = (g: number) =>
+    gorunum === "ogretmen" && hucreler.size > 0 && !Array.from({ length: saatSayisi }, (_, s) => hucreler.has(hucreAnahtari(g, s))).some(Boolean);
+  // Seçili ders varken (taşıma dışında) aynı öğretmenin (öğretmen görünümünde aynı şubenin) dersleri
+  // renkli kalır, öbürleri griye döner.
+  const seciliAtama = duzeltme?.secili && !duzeltme.hedefler ? hucreler.get(duzeltme.secili) : undefined;
+  const ilgili = (a: Atama) =>
+    gorunum === "sube" ? Boolean(a.ogretmen_id) && a.ogretmen_id === seciliAtama?.ogretmen_id : a.sinif_id === seciliAtama?.sinif_id;
   // Sürükleme bir hücreye bırakılmadan biterse taşıma iptal edilir; bırakıldıysa karar (taşı / onay) sürer.
   const birakildi = useRef(false);
   const hedefler = duzeltme?.hedefler;
@@ -338,11 +448,20 @@ function Cizelge({
             <th scope="col" className={stil.kose}>
               <span className="gorunmez">Saat</span>
             </th>
-            {gunler.map((g) => (
-              <th key={g} scope="col">
-                {g}
-              </th>
-            ))}
+            {gunler.map((ad, g) =>
+              bosGun(g) ? (
+                <th key={ad} scope="col" className={stil.bosGunBasligi}>
+                  {ad}
+                  <span className={stil.bosGunEtiketi}>
+                    <span className="gorunmez">, </span>Boş gün
+                  </span>
+                </th>
+              ) : (
+                <th key={ad} scope="col">
+                  {ad}
+                </th>
+              ),
+            )}
           </tr>
         </thead>
         <tbody>
@@ -367,14 +486,15 @@ function Cizelge({
                   }
                   if (!a) {
                     return (
-                      <td key={g} className={stil.bos} {...hedefOzellikleri(g, s)}>
+                      <td key={g} className={bosGun(g) ? stil.bosGunHucresi : stil.bos} {...hedefOzellikleri(g, s)}>
                         {hedefler ? hucreDugmesi(g, s, undefined, <span className="gorunmez">Boş saat</span>) : <span className="gorunmez">Boş</span>}
                       </td>
                     );
                   }
                   const d = ders.get(a.ders_id);
                   const o = a.ogretmen_id ? ogretmen.get(a.ogretmen_id) : undefined;
-                  const gecikme = { animationDelay: `${yerlesmeGecikmesiMs(g, s, saatSayisi)}ms` } as CSSProperties;
+                  const gecikme = { animationDelay: `${yerlesmeGecikmesiMs(g, s, saatSayisi)}ms`, ...dersRenkStili(d?.renk) } as CSSProperties;
+                  const isaret = dersIsareti.get(a.ders_id) ?? 0;
                   const uzunluk = birlesik.uzunluk.get(hucreAnahtari(g, s)) ?? 1;
                   const degisti = blokDegisti(vurgulu, g, s, uzunluk);
                   const kilit = duzeltme?.kilitli.has(hucreAnahtari(g, s));
@@ -382,7 +502,9 @@ function Cizelge({
                   return (
                     <td key={g} className={[stil.dolu, uzunluk > 1 && stil.blok, degisti && stil.degisti, kilit && stil.kilitli].filter(Boolean).join(" ")}
                       style={gecikme} rowSpan={uzunluk > 1 ? uzunluk : undefined} data-degisti={degisti || undefined}
-                      data-kilitli={kilit || undefined} data-secili={secili || undefined} {...hedefOzellikleri(g, s)}>
+                      data-kilitli={kilit || undefined} data-secili={secili || undefined}
+                      data-ilgili={(seciliAtama && !secili && ilgili(a)) || undefined}
+                      data-soluk={(seciliAtama && !secili && !ilgili(a)) || undefined} {...hedefOzellikleri(g, s)}>
                       {hucreDugmesi(g, s, a, <>
                       {kilit && <Lock aria-hidden="true" className={stil.kilitIkonu} />}
                       {kilit && <span className="gorunmez">Kilitli: </span>}
@@ -394,7 +516,10 @@ function Cizelge({
                           <span className="gorunmez">{`${s + 1}.-${s + uzunluk}. saat, ${uzunluk} saat art arda: `}</span>
                         </span>
                       )}
-                      <DersCipi ad={d?.ad ?? "?"} kisaAd={d?.kisa_ad} renk={d?.renk} isaret={dersIsareti.get(a.ders_id)} />
+                      <span className={stil.dersAdi}>
+                        {isaret > 0 && <span aria-hidden="true" className={stil.isaret}>{isaretKarakteri(isaret)}</span>}
+                        <SigdirilanMetin uzun={d?.ad ?? "?"} kisa={d?.kisa_ad || d?.ad || "?"} />
+                      </span>
                       <span className={stil.ikinci}>
                         {gorunum === "sube" ? (
                           o && (

@@ -11,6 +11,8 @@ type Props<A extends string> = {
   onSec: (anahtar: A) => void;
   /** Sayfada benzersiz önek: sekme ve panel kimlikleri bundan üretilir. */
   idOneki: string;
+  /** "cizgi": altı çizili sekmeler (varsayılan); "segment": hap biçimli bölümlü anahtar. */
+  bicim?: "cizgi" | "segment";
   /** Seçili sekmenin paneli. */
   children: ReactNode;
 };
@@ -26,7 +28,7 @@ type Props<A extends string> = {
  * (kontrollü bileşen). Böylece seçimi sayfa tutar ve başka yerden de değiştirebilir (ör. "bu
  * öğretmenin dersleri" bağlantısı şube sekmesine geçer).
  */
-export function Sekmeler<A extends string>({ etiket, sekmeler, secili, onSec, idOneki, children }: Props<A>) {
+export function Sekmeler<A extends string>({ etiket, sekmeler, secili, onSec, idOneki, bicim = "cizgi", children }: Props<A>) {
   const dugmeler = useRef<Map<A, HTMLButtonElement>>(new Map());
 
   function tus(olay: KeyboardEvent, sira: number) {
@@ -41,7 +43,7 @@ export function Sekmeler<A extends string>({ etiket, sekmeler, secili, onSec, id
 
   return (
     <>
-      <div role="tablist" aria-label={etiket} className={stil.liste}>
+      <div role="tablist" aria-label={etiket} className={bicim === "segment" ? stil.segment : stil.liste}>
         {sekmeler.map((s, sira) => (
           <button
             key={s.anahtar}

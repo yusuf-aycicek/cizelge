@@ -9,6 +9,7 @@ import { uygulamayiCiz } from "./test/yardimcilar";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { SEKME_BASLIGI, UYGULAMA_ACIKLAMASI, UYGULAMA_ADI } from "./urun";
+import { SELAM_DESENI } from "./sayfalar/selam";
 
 describe("uygulamanın adı", () => {
   it("adı Çizelge: üst çubukta, giriş sayfasında ve sekme başlığında", async () => {
@@ -31,7 +32,7 @@ describe("uygulamanın adı", () => {
 describe("ana sayfa ve sistem durumu", () => {
   it("API çalışıyorsa durum iyi görünür", async () => {
     uygulamayiCiz("/");
-    expect(await screen.findByRole("heading", { level: 1, name: "Hoş geldiniz" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: SELAM_DESENI })).toBeInTheDocument();
     expect(await screen.findByText("✓ Çalışıyor")).toBeInTheDocument();
     expect(screen.getByText("✓ Bağlı")).toBeInTheDocument();
   });

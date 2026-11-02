@@ -15,16 +15,118 @@
 
 .secim {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0 var(--bosluk-5);
+  align-items: flex-start;
+  gap: var(--bosluk-3) var(--bosluk-5);
+  margin-bottom: var(--bosluk-4);
 }
-.secim > div {
-  flex: 0 1 22rem;
+.secim > [role="radiogroup"] {
+  flex: 1 1 auto;
 }
 .ozet {
+  flex: none;
+  margin: 0.4rem 0 0;
   color: var(--renk-metin-ikincil);
+  font-size: var(--yazi-kucuk);
+  font-weight: var(--yazi-kalin);
+  white-space: nowrap;
+}
+
+/* Çizelge solda, ayrıntı ve kalite sağda; dar ekranda alt alta. */
+.duzen {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 var(--bosluk-5);
+  align-items: start;
+}
+@media (min-width: 80rem) {
+  .duzen {
+    grid-template-columns: minmax(0, 1fr) 19rem;
+  }
+  .yan {
+    position: sticky;
+    top: var(--bosluk-4);
+  }
+}
+.ana {
+  min-width: 0;
+}
+.yan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-4);
   margin-bottom: var(--bosluk-5);
+}
+.yanKart {
+  background: var(--renk-zemin);
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-buyuk);
+  padding: var(--bosluk-4) var(--bosluk-5);
+  box-shadow: var(--golge-kart);
+}
+.yanKart h2 {
+  font-size: var(--yazi-buyuk);
+  margin: 0 0 var(--bosluk-2);
+}
+/* Kalite listesi dar sütunda tek sütun. */
+.yanKart ul {
+  grid-template-columns: minmax(0, 1fr);
+}
+.seciliBos p {
+  margin: 0;
+  color: var(--renk-metin-ikincil);
+  font-size: var(--yazi-kucuk);
+}
+.seciliBaslik {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--bosluk-2);
+  margin: 0 0 var(--bosluk-3);
+  padding: var(--bosluk-3);
+  border-radius: var(--kose);
+  background: var(--ders-zemin, var(--renk-yuzey));
+  color: var(--ders-yazi, var(--renk-metin));
+}
+.seciliBaslik strong {
+  font-weight: 800;
+}
+.bilgiler {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--bosluk-1) var(--bosluk-3);
+  margin: 0 0 var(--bosluk-3);
+  font-size: var(--yazi-kucuk);
+}
+.bilgiler dt {
+  color: var(--renk-metin-ikincil);
+}
+.bilgiler dd {
+  margin: 0;
+  font-weight: var(--yazi-kalin);
+}
+.yanBaglanti {
+  font-weight: var(--yazi-kalin);
+  font-size: var(--yazi-kucuk);
+}
+
+/* Öğretmenin boş günü: başlıkta etiket, sütunu kesik çizgili ve zeminsiz. */
+.bosGunBasligi {
+  color: var(--renk-metin) !important;
+}
+.bosGunEtiketi {
+  display: block;
+  width: fit-content;
+  margin: 0.2rem auto 0;
+  padding: 0.05rem var(--bosluk-2);
+  border: 1px dashed var(--renk-kenar-alan);
+  border-radius: var(--kose-hap);
+  font-size: 0.7rem;
+  color: var(--renk-metin-ikincil);
+}
+.bosGunHucresi {
+  background: transparent;
+  outline: 1.5px dashed var(--renk-kenar-alan);
+  outline-offset: -1px;
 }
 
 /* Kaydırma kutusu: position: relative görünmez başlıkların kaçmasını önler (Tablo ile aynı). */
@@ -79,12 +181,39 @@
   outline: 1px dashed var(--renk-kenar);
   outline-offset: -1px;
 }
+/* Dolu saat: dersin rengiyle dolu blok (zemin ve yazı çifti en az 4.5:1, ders-renkleri.test.ts). */
 .dolu {
-  background: var(--renk-yuzey);
-  box-shadow: inset 0 0 0 1px var(--renk-kenar);
+  background: var(--ders-zemin, var(--renk-yuzey));
+  color: var(--ders-yazi, var(--renk-metin));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ders-yazi, var(--renk-kenar)) 14%, transparent);
   /* Program açılınca hücreler gün gün, yukarıdan aşağı yerleşir; gecikme hücre başına satır içinde. */
   animation: yerles var(--sure-uzun) var(--egri) backwards;
   overflow: hidden;
+  transition: background-color var(--sure) var(--egri), color var(--sure) var(--egri);
+}
+.dersAdi {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  font-weight: 800;
+  font-size: var(--yazi-kucuk);
+  line-height: 1.25;
+}
+.dersAdi > :last-child {
+  min-width: 0;
+}
+.isaret {
+  font-size: 0.65rem;
+}
+/* Seçili dersle ilgili hücreler renkli ve çerçeveli, öbürleri gri (yazı kontrastı korunur). */
+.dolu[data-soluk] {
+  background: var(--renk-yuzey);
+  color: var(--renk-metin-ikincil);
+  box-shadow: inset 0 0 0 1px var(--renk-kenar);
+}
+.dolu[data-ilgili] {
+  box-shadow: inset 0 0 0 2px currentColor;
 }
 @keyframes yerles {
   from {
@@ -101,7 +230,7 @@
   gap: var(--bosluk-1);
   margin-top: 0.3rem;
   font-size: var(--yazi-kucuk);
-  color: var(--renk-metin-ikincil);
+  color: inherit;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -164,7 +293,7 @@
   inset-inline-end: var(--bosluk-2);
   font-size: 0.7rem;
   font-weight: var(--yazi-kalin);
-  color: var(--renk-metin-ikincil);
+  color: inherit;
 }
 
 /* --- Telefonda gün gün görünüm (5.6) ------------------------------------------------------ */
@@ -402,7 +531,7 @@
 /* Kilitli ders: kalın kenar ve köşede kilit. */
 .kilitli {
   position: relative;
-  box-shadow: inset 0 0 0 2px var(--renk-metin-ikincil) !important;
+  box-shadow: inset 0 0 0 2px currentColor !important;
 }
 .kilitIkonu {
   position: absolute;
@@ -410,7 +539,7 @@
   right: 0.3rem;
   width: 0.85rem;
   height: 0.85rem;
-  color: var(--renk-metin-ikincil);
+  color: currentColor;
 }
 [data-secili] {
   box-shadow: inset 0 0 0 3px var(--renk-birincil) !important;

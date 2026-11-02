@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import { BEN_ORNEK, oturumGerekli, oturumYok, sunucu } from "../test/sunucu";
 import { cikisYap, hesapMenusunuAc, uygulamayiCiz } from "../test/yardimcilar";
 import { SURE_DOLDU_MESAJI } from "./KorumaliAlan";
+import { SELAM_DESENI } from "../sayfalar/selam";
 
 const PAROLA = "dogru-at-pil-zimba";
 
@@ -87,7 +88,7 @@ describe("korumalı sayfalar ve giriş", () => {
       await kullanici.click(screen.getByRole("button", { name: "Giriş yap" }));
       expect(await screen.findByRole("button", { name: "Hoş geldiniz" })).toBeInTheDocument();
       expect(screen.getByText("Giriş başarılı. Hoş geldiniz.")).toHaveAttribute("role", "status");
-      expect(await screen.findByRole("heading", { level: 1, name: "Hoş geldiniz" }, { timeout: 3000 })).toBeInTheDocument();
+      expect(await screen.findByRole("heading", { level: 1, name: SELAM_DESENI }, { timeout: 3000 })).toBeInTheDocument();
     } finally {
       vi.unstubAllGlobals();
     }
@@ -110,7 +111,7 @@ describe("korumalı sayfalar ve giriş", () => {
 
   it("giriş yapmış kullanıcı giriş sayfasına gelirse ana sayfaya gider", async () => {
     uygulamayiCiz("/giris");
-    expect(await screen.findByRole("heading", { level: 1, name: "Hoş geldiniz" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: SELAM_DESENI })).toBeInTheDocument();
   });
 });
 
@@ -139,7 +140,7 @@ describe("demo ile dene", () => {
     const dugme = await screen.findByRole("button", { name: "Demo ile dene" });
     expect(dugme).toHaveAccessibleDescription("Örnek okulla açılır, parola gerekmez. Demo verileri düzenli olarak sıfırlanır.");
     await kullanici.click(dugme);
-    expect(await screen.findByRole("heading", { level: 1, name: "Hoş geldiniz" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: SELAM_DESENI })).toBeInTheDocument();
     expect(govdeler).toEqual([""]);
   });
 
@@ -221,7 +222,7 @@ describe("kayıt", () => {
     await kullanici.selectOptions(screen.getByLabelText(/Haftada kaç gün/), "6");
     await kullanici.click(screen.getByRole("button", { name: "Okulu kaydet" }));
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Hoş geldiniz" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: SELAM_DESENI })).toBeInTheDocument();
     expect(await screen.findByText("Çizelge Örnek Anadolu Lisesi kaydedildi. Hoş geldiniz!")).toBeInTheDocument();
     expect(govdeler).toEqual([{
       okul: { ad: "Çizelge Örnek Anadolu Lisesi", gun_sayisi: 6, gunluk_ders_saati: 8 },

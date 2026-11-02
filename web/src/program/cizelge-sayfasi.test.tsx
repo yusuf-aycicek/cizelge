@@ -34,7 +34,8 @@ function hucre(tablo: HTMLElement, gun: string, saat: string) {
   const satirlar = within(tablo).getAllByRole("row");
   const basliklar = within(satirlar[0]!).getAllByRole("columnheader").map((h) => h.textContent);
   const satir = satirlar.find((r) => within(r).queryByRole("rowheader")?.textContent === saat)!;
-  return within(satir).getAllByRole("cell")[basliklar.indexOf(gun) - 1]!;
+  // Boş gün başlığı "Salı, Boş gün" diye okunur.
+  return within(satir).getAllByRole("cell")[basliklar.findIndex((b) => b === gun || b === `${gun}, Boş gün`) - 1]!;
 }
 
 describe("haftalık çizelge", () => {
@@ -56,11 +57,61 @@ describe("haftalık çizelge", () => {
     const { kullanici } = uygulamayiCiz("/program/p1");
     await screen.findByRole("table", { name: /haftalık programı/ });
     await kullanici.click(screen.getByRole("tab", { name: "Öğretmene göre" }));
-    await kullanici.selectOptions(screen.getByRole("combobox", { name: "Öğretmen" }), "o-sule");
+    await kullanici.click(within(screen.getByRole("radiogroup", { name: "Öğretmen" })).getByRole("radio", { name: "Şule Kaya" }));
     const tablo = await screen.findByRole("table", { name: "Şule Kaya haftalık programı" });
     expect(hucre(tablo, "Pazartesi", "1. saat")).toHaveTextContent("Matematik9-A");
     expect(hucre(tablo, "Çarşamba", "1. saat")).toHaveTextContent("Matematik9-B");
     expect(hucre(tablo, "Salı", "3. saat")).toHaveTextContent("Boş");
+  });
+
+  it("şube ve öğretmen çiplerle seçilir; oklar çipler arasında gezer ve seçer", async () => {
+    kur();
+    const { kullanici } = uygulamayiCiz("/program/p1");
+    await screen.findByRole("table", { name: /haftalık programı/ });
+    const subeler = screen.getByRole("radiogroup", { name: "Şube" });
+    const ilk = within(subeler).getAllByRole("radio")[0]!;
+    expect(ilk).toHaveAttribute("aria-checked", "true");
+    // Gruba Tab ile tek kez girilir: yalnızca seçili çip odaklanabilir.
+    expect(within(subeler).getAllByRole("radio").filter((c) => c.tabIndex === 0)).toEqual([ilk]);
+    ilk.focus();
+    await kullanici.keyboard("{ArrowRight}");
+    const ikinci = within(subeler).getAllByRole("radio")[1]!;
+    expect(ikinci).toHaveFocus();
+    expect(ikinci).toHaveAttribute("aria-checked", "true");
+    expect(await screen.findByRole("table", { name: `${ikinci.textContent} haftalık programı` })).toBeInTheDocument();
+  });
+
+  it("öğretmen görünümünde dersi olmayan gün başlıkta \"Boş gün\"", async () => {
+    kur();
+    uygulamayiCiz("/program/p1?gorunum=ogretmen&ogretmen=o-sule");
+    const tablo = await screen.findByRole("table", { name: "Şule Kaya haftalık programı" });
+    expect(within(tablo).getAllByRole("columnheader").map((h) => h.textContent).slice(1)).toEqual([
+      "Pazartesi", "Salı, Boş gün", "Çarşamba", "Perşembe, Boş gün", "Cuma, Boş gün",
+    ]);
+  });
+
+  it("şube görünümünde boş gün etiketi yok", async () => {
+    kur();
+    uygulamayiCiz("/program/p1?gorunum=sube&sinif=s-9a");
+    const tablo = await screen.findByRole("table", { name: "9-A haftalık programı" });
+    expect(within(tablo).queryByText("Boş gün")).not.toBeInTheDocument();
+  });
+
+  it("derse dokununca yan kartta ayrıntılar; aynı öğretmenin dersleri renkli, öbürleri gri", async () => {
+    kur();
+    const { kullanici } = uygulamayiCiz("/program/p1?gorunum=sube&sinif=s-9a");
+    const tablo = await screen.findByRole("table", { name: "9-A haftalık programı" });
+    const yan = screen.getByRole("complementary", { name: "Ayrıntılar" });
+    expect(within(yan).getByText(/Bir derse dokunun/)).toBeInTheDocument();
+    await kullanici.click(within(hucre(tablo, "Pazartesi", "1. saat")).getByRole("button"));
+    const kart = within(yan).getByRole("region", { name: "Seçili ders" });
+    expect(kart).toHaveTextContent("Matematik9-A");
+    expect(kart).toHaveTextContent("Pazartesi, 1.-2. saat (2 saat art arda)");
+    expect(kart).toHaveTextContent("Şule Kaya");
+    expect(kart).toHaveTextContent("3 saat, 2 gün"); // 9-A ve 9-B Matematik
+    expect(hucre(tablo, "Salı", "3. saat")).toHaveAttribute("data-soluk");
+    await kullanici.click(within(kart).getByRole("link", { name: "Şule Kaya haftasını aç" }));
+    expect(await screen.findByRole("table", { name: "Şule Kaya haftalık programı" })).toBeInTheDocument();
   });
 
   it("dolu hücreler sırayla yerleşir (gecikme artar)", async () => {
