@@ -1,17 +1,3 @@
-.bosDurum {
-  border: 2px dashed var(--renk-kenar-alan);
-  border-radius: var(--kose-buyuk);
-  padding: var(--bosluk-6) var(--bosluk-5);
-  text-align: center;
-  background: var(--renk-yuzey);
-  margin-bottom: var(--bosluk-5);
-}
-.bosDurum p {
-  color: var(--renk-metin-ikincil);
-  max-width: 36rem;
-  margin-inline: auto;
-}
-
 .araCubugu {
   max-width: 28rem;
 }

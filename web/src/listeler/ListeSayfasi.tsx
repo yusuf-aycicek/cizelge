@@ -1,7 +1,8 @@
-import { Illustrasyon, type IllustrasyonTuru } from "../bilesenler/Illustrasyon";
+import { BosDurum } from "../bilesenler/BosDurum";
+import type { IllustrasyonTuru } from "../bilesenler/Illustrasyon";
 import type { ReactNode } from "react";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
-import { Check, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Check, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import { cikistanSonra } from "../bilesenler/hareket";
 import { Iskelet } from "../bilesenler/Iskelet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -258,12 +259,10 @@ export function ListeSayfasi<T extends { id: string }, G>({
       )}
 
       {liste.isSuccess && liste.data.length === 0 && (
-        <section className={stil.bosDurum} aria-labelledby="bos-baslik">
-          <Illustrasyon tur={bos.cizim} />
-          <h2 id="bos-baslik">{bos.baslik}</h2>
+        <BosDurum cizim={bos.cizim} baslik={bos.baslik}
+          eylem={<Dugme ikon={<Plus />} onClick={ilkAlanaOdaklan}>{bos.dugme}</Dugme>}>
           <p>{bos.aciklama}</p>
-          <Dugme ikon={<Plus />} onClick={ilkAlanaOdaklan}>{bos.dugme}</Dugme>
-        </section>
+        </BosDurum>
       )}
 
       {liste.isSuccess && liste.data.length > 0 && (
@@ -278,7 +277,12 @@ export function ListeSayfasi<T extends { id: string }, G>({
             sutunlar={sutunlar}
             satirlar={gorunen}
             satirAnahtari={(s) => s.id}
-            bosMesaj={`"${arama.trim()}" ile eşleşen ${kucukTekil} yok.`}
+            bosMesaj={
+              <BosDurum cizim="arama" boyut="kucuk" baslikDuzeyi={3} baslik={`"${arama.trim()}" ile eşleşen ${kucukTekil} yok.`}
+                eylem={<Dugme tur="metin" ikon={<X />} onClick={() => setArama("")}>Aramayı temizle</Dugme>}>
+                <p>Adın ya da başka bir alanın bir kısmını yazmak yeter; büyük/küçük harf fark etmez.</p>
+              </BosDurum>
+            }
           />
         </>
       )}

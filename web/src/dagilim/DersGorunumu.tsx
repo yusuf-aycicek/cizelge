@@ -1,4 +1,5 @@
 import { Check, ListChecks } from "lucide-react";
+import { BosDurum } from "../bilesenler/BosDurum";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { hataMetni } from "../api/hata";
@@ -25,9 +26,9 @@ export function DersGorunumu({ veri, dersId, git }: { veri: DagilimVerisi; dersI
   const ders = dersler.find((d) => d.id === dersId) ?? dersler[0];
   if (!ders) {
     return (
-      <p className={stil.aciklama}>
-        Henüz hiçbir şubeye ders eklenmedi. Önce seviye şablonunu uygulayın ya da şube görünümünden ders ekleyin.
-      </p>
+      <BosDurum cizim="ders" boyut="kucuk" baslikDuzeyi={3} baslik="Henüz hiçbir şubeye ders eklenmedi">
+        <p>Önce seviye şablonunu uygulayın ya da şube görünümünden ders ekleyin.</p>
+      </BosDurum>
     );
   }
   const subeSayisi = (id: string) => veri.atamalar.filter((a) => a.ders_id === id).length;

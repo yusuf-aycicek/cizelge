@@ -1,34 +1,62 @@
-/* Paylaşım sayfası: girişsiz, menüsüz. Telefonda gün gün liste, genişte haftalık tablo. */
+/* Paylaşım sayfası: girişsiz, menüsüz. Telefonda gün gün liste, genişte haftalık tablo. Dersler
+   uygulamadaki gibi kendi renginde dolu bloklar (zemin ve yazı çifti en az 4.5:1). */
 .sayfa {
   max-width: 72rem;
   margin: 0 auto;
   padding: var(--bosluk-4);
 }
 
+/* Ürün adı: uygulamanın üst çubuğundaki gibi mor karede takvim ikonu. */
 .marka {
   display: flex;
   align-items: center;
   gap: var(--bosluk-2);
-  font-weight: var(--yazi-baslik-agirligi);
-  color: var(--renk-birincil-koyu);
-  margin: 0 0 var(--bosluk-4);
+  font-family: var(--yazi-baslik-ailesi);
+  font-weight: 800;
+  font-size: var(--yazi-buyuk);
+  letter-spacing: var(--yazi-baslik-aralik);
+  margin: 0 0 var(--bosluk-5);
 }
-.marka svg {
-  width: 1.25em;
-  height: 1.25em;
+.logo {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 10px;
+  background: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+}
+.logo svg {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
+/* Başlık kartı: okul, kişi ya da şube, yayın bilgisi ve eylemler. */
+.ust {
+  background: var(--renk-zemin);
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-buyuk);
+  box-shadow: var(--golge-kart);
+  padding: var(--bosluk-5);
+  margin-bottom: var(--bosluk-5);
+}
 .ust h1 {
-  margin-bottom: var(--bosluk-2);
+  margin: 0 0 var(--bosluk-2);
 }
 .okul {
   margin: 0 0 var(--bosluk-1);
+  font-size: 0.75rem;
   font-weight: var(--yazi-kalin);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--renk-metin-ikincil);
 }
 .altBaslik {
+  display: block;
+  font-family: var(--yazi-ailesi);
   font-weight: var(--yazi-kalin);
-  font-size: var(--yazi-buyuk);
+  font-size: var(--yazi-normal);
+  letter-spacing: normal;
   color: var(--renk-metin-ikincil);
 }
 .bilgi {
@@ -39,100 +67,129 @@
 .eylemler {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--bosluk-3) var(--bosluk-5);
+  gap: var(--bosluk-3) var(--bosluk-4);
   align-items: end;
-  margin-bottom: var(--bosluk-5);
 }
 .secici {
   display: grid;
   gap: var(--bosluk-1);
   font-weight: var(--yazi-kalin);
+  font-size: var(--yazi-kucuk);
 }
 .secici select {
   font: inherit;
-  min-height: 2.75rem;
-  padding: 0 var(--bosluk-3);
-  border: 1px solid var(--renk-kenar-alan);
-  border-radius: var(--kose-kucuk);
+  font-size: var(--yazi-normal);
+  min-height: var(--dokunma-hedefi);
+  padding: 0 var(--bosluk-4);
+  border: 1.5px solid var(--renk-kenar-alan);
+  border-radius: var(--kose-hap);
   background: var(--renk-zemin);
+  color: var(--renk-metin);
   max-width: 100%;
+}
+.secici select:focus-visible {
+  outline: none;
+  box-shadow: var(--odak-halkasi);
 }
 .pdf {
   display: inline-flex;
   align-items: center;
   gap: var(--bosluk-2);
-  min-height: 2.75rem;
-  padding: 0 var(--bosluk-4);
-  border-radius: var(--kose);
+  min-height: var(--dokunma-hedefi);
+  padding: 0 var(--bosluk-5);
+  border-radius: var(--kose-hap);
   background: var(--renk-birincil);
   color: var(--renk-birincil-metin);
   font-weight: var(--yazi-kalin);
   text-decoration: none;
+  transition: transform var(--sure) var(--egri), box-shadow var(--sure) var(--egri);
+}
+.pdf:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--golge-uzerine);
 }
 .pdf svg {
   width: 1.1em;
   height: 1.1em;
 }
 
-.mesaj {
-  background: var(--renk-zemin);
-  border: 1px solid var(--renk-kenar);
-  border-radius: var(--kose-buyuk);
-  padding: var(--bosluk-5);
-}
-
 .ders {
   display: block;
-  font-weight: var(--yazi-kalin);
+  font-weight: 800;
 }
 .ikinci {
   display: block;
   font-size: var(--yazi-kucuk);
-  color: var(--renk-metin-ikincil);
 }
 .zil {
   display: block;
-  font-size: var(--yazi-kucuk);
+  font-size: 0.75rem;
   font-weight: normal;
   color: var(--renk-metin-ikincil);
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- haftalık tablo (geniş ekran) --- */
 .haftalik {
   display: none;
+  background: var(--renk-zemin);
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-buyuk);
+  box-shadow: var(--golge-kart);
+  padding: var(--bosluk-2);
 }
 .tablo {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0.35rem;
   table-layout: fixed;
-  background: var(--renk-zemin);
 }
 .tablo th,
 .tablo td {
-  border: 1px solid var(--renk-kenar-alan);
-  padding: var(--bosluk-2);
+  padding: var(--bosluk-2) var(--bosluk-3);
   vertical-align: middle;
   text-align: start;
+  border-radius: var(--kose);
 }
-.tablo thead th,
-.tablo tbody th {
-  background: var(--renk-yuzey);
-}
-.tablo tbody th {
-  width: 7rem;
-}
-.tablo td.dolu {
-  border-inline-start-width: 5px;
-  background: var(--renk-zemin);
-}
-.tablo td.yok {
-  background: var(--renk-yuzey-vurgu);
-}
-.tablo .ogle td {
+.tablo thead th {
   text-align: center;
   font-size: var(--yazi-kucuk);
   color: var(--renk-metin-ikincil);
-  background: var(--renk-yuzey);
+}
+.tablo tbody th {
+  width: 6.5rem;
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
+  text-align: end;
+}
+.tablo td {
+  height: 3.5rem;
+}
+.tablo td.dolu {
+  background: var(--ders-zemin, var(--renk-yuzey));
+  color: var(--ders-yazi, var(--renk-metin));
+  vertical-align: top;
+}
+.tablo td.bosHucre {
+  outline: 1px dashed var(--renk-kenar);
+  outline-offset: -1px;
+}
+/* Kısa günün sonu: o saat yok. */
+.tablo td.yok {
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 0.4rem,
+    color-mix(in srgb, var(--renk-kenar) 55%, transparent) 0.4rem 0.5rem
+  );
+}
+.tablo .ogle td {
+  height: auto;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: var(--yazi-kalin);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--renk-metin-ikincil);
   padding: var(--bosluk-1);
 }
 
@@ -142,22 +199,30 @@
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
   gap: var(--bosluk-1);
+  padding: var(--bosluk-1);
+  border-radius: var(--kose-hap);
+  background: var(--renk-zemin);
+  box-shadow: inset 0 0 0 1px var(--renk-kenar);
   margin-bottom: var(--bosluk-3);
 }
 .gunDugmesi {
   font: inherit;
   font-weight: var(--yazi-kalin);
-  min-height: 2.75rem;
+  min-height: var(--dokunma-hedefi);
   padding: 0 var(--bosluk-1);
-  border: 1px solid var(--renk-kenar-alan);
-  border-radius: var(--kose-kucuk);
-  background: var(--renk-zemin);
-  color: var(--renk-metin);
+  border: none;
+  border-radius: var(--kose-hap);
+  background: transparent;
+  color: var(--renk-metin-ikincil);
+  cursor: pointer;
 }
 .gunDugmesi[aria-pressed="true"] {
   background: var(--renk-birincil);
-  border-color: var(--renk-birincil);
   color: var(--renk-birincil-metin);
+}
+.gunDugmesi:focus-visible {
+  outline: none;
+  box-shadow: var(--odak-halkasi);
 }
 .liste {
   list-style: none;
@@ -168,33 +233,49 @@
 }
 .liste li {
   display: grid;
-  grid-template-columns: 6.5rem 1fr;
+  grid-template-columns: 6rem 1fr;
   gap: var(--bosluk-3);
   align-items: center;
-  padding: var(--bosluk-3);
+  min-height: 3.5rem;
+  padding: var(--bosluk-2) var(--bosluk-3);
   border-radius: var(--kose);
-  background: var(--renk-zemin);
-  border: 1px solid var(--renk-kenar);
 }
 .liste li.dolu {
-  border-inline-start: 6px solid;
+  background: var(--ders-zemin, var(--renk-yuzey));
+  color: var(--ders-yazi, var(--renk-metin));
+}
+.liste li.dolu .saat,
+.liste li.dolu .zil {
+  color: inherit;
+}
+.liste li.bos {
+  outline: 1px dashed var(--renk-kenar);
+  outline-offset: -1px;
 }
 .liste li.bos .icerik {
   color: var(--renk-metin-ikincil);
 }
 .liste li.ogle {
   display: block;
+  min-height: 0;
   text-align: center;
-  font-size: var(--yazi-kucuk);
+  font-size: 0.75rem;
+  font-weight: var(--yazi-kalin);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--renk-metin-ikincil);
-  background: var(--renk-yuzey);
   padding: var(--bosluk-1);
 }
 .saat {
+  font-size: var(--yazi-kucuk);
   font-weight: var(--yazi-kalin);
+  color: var(--renk-metin-ikincil);
 }
 
 @media (min-width: 48rem) {
+  .sayfa {
+    padding: var(--bosluk-6) var(--bosluk-5);
+  }
   .haftalik {
     display: block;
   }
@@ -207,5 +288,9 @@
   .eylemler,
   .marka {
     display: none;
+  }
+  .ust,
+  .haftalik {
+    box-shadow: none;
   }
 }

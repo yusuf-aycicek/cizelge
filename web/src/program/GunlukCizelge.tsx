@@ -3,7 +3,8 @@ import { useState, type CSSProperties, type ReactNode } from "react";
 import { kisaKisiAdi } from "../bilesenler/darAlan";
 import { OgretmenRozeti } from "../bilesenler/OgretmenRozeti";
 import { SigdirilanMetin } from "../bilesenler/SigdirilanMetin";
-import { DersCipi } from "../dersler/DersCipi";
+import { dersRenkStili } from "../dersler/dersRengi";
+import { isaretKarakteri } from "../dersler/isaret";
 import { ogleArasiSonrasi, saatVar, zilMetni } from "../okul/zaman";
 import { GUN_ADLARI, GUN_KISA_ADLARI } from "./aciklama";
 import { blokDegisti, blokSecili, HedefIsareti, type CizelgeProps } from "./CizelgeSayfasi";
@@ -60,7 +61,7 @@ export function GunlukCizelge({
       ) : icerik;
     satirlar.push(
       <li key={s} className={[a ? stil.gunDolu : stil.gunBos, degisti && stil.degisti, kilit && stil.kilitli].filter(Boolean).join(" ")}
-        style={{ animationDelay: `${s * 40}ms` } as CSSProperties} data-degisti={degisti || undefined}
+        style={{ animationDelay: `${s * 40}ms`, ...(a ? dersRenkStili(d?.renk) : {}) } as CSSProperties} data-degisti={degisti || undefined}
         data-kilitli={kilit || undefined} data-secili={blokSecili(duzeltme?.secili, gun, s, uzunluk) || undefined}
         data-hedef={duzeltme?.hedefler ? hedef?.durum ?? "yok" : undefined} data-dugmeli={dugmeli || undefined}>
         {dugme(<>
@@ -73,7 +74,12 @@ export function GunlukCizelge({
         </span>
         {a ? (
           <span className={stil.gunDers}>
-            <DersCipi ad={d?.ad ?? "?"} kisaAd={d?.kisa_ad} renk={d?.renk} isaret={dersIsareti.get(a.ders_id)} />
+            <span className={stil.dersAdi}>
+              {(dersIsareti.get(a.ders_id) ?? 0) > 0 && (
+                <span aria-hidden="true" className={stil.isaret}>{isaretKarakteri(dersIsareti.get(a.ders_id)!)}</span>
+              )}
+              {d?.ad ?? "?"}
+            </span>
             <span className={stil.ikinci}>
               {gorunum === "sube" ? (
                 o && (

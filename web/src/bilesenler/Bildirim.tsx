@@ -1,3 +1,4 @@
+import { CircleAlert, CircleCheck, Info, TriangleAlert, X, type LucideIcon } from "lucide-react";
 import { cikistanSonra } from "./hareket";
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import stil from "./Bildirim.module.css";
@@ -72,13 +73,26 @@ export function BildirimSaglayici({ children }: { children: ReactNode }) {
   );
 }
 
+const IKONLAR: Record<BildirimTuru, LucideIcon> = { basari: CircleCheck, hata: CircleAlert, uyari: TriangleAlert, bilgi: Info };
+
+/**
+ * Bildirim kartı: türün ikonu renkli dairede, mesaj ana metin renginde. Kendiliğinden kaybolan
+ * bildirimin altında kalan süreyi gösteren ince bir çubuk kısalır (yalnızca süs; hareket
+ * azaltılmışsa görünmez).
+ */
 function Kart({ bildirim, kapat }: { bildirim: Bildirim; kapat: (id: number) => void }) {
+  const Ikon = IKONLAR[bildirim.tur];
+  const gecici = bildirim.tur === "basari" || bildirim.tur === "bilgi";
   return (
     <div className={[stil.kart, stil[bildirim.tur], bildirim.cikiyor ? stil.cikiyor : ""].join(" ")}>
+      <span className={stil.ikon} aria-hidden="true">
+        <Ikon />
+      </span>
       <p className={stil.mesaj}>{bildirim.mesaj}</p>
       <button type="button" className={stil.kapat} onClick={() => kapat(bildirim.id)} aria-label="Bildirimi kapat">
-        ✕
+        <X aria-hidden="true" />
       </button>
+      {gecici && <span className={stil.sure} style={{ animationDuration: `${KAYBOLMA_MS}ms` }} aria-hidden="true" />}
     </div>
   );
 }

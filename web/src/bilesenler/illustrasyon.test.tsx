@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { Illustrasyon, type IllustrasyonTuru } from "./Illustrasyon";
 
-const TURLER: IllustrasyonTuru[] = ["ogretmen", "sinif", "ders", "takvim"];
+const TURLER: IllustrasyonTuru[] = ["ogretmen", "sinif", "ders", "takvim", "arama", "yayin"];
 
 describe("boş durum çizimleri", () => {
   it.each(TURLER)("%s: yalnızca süs (ekran okuyucudan gizli), renk sabitlemez", (tur) => {

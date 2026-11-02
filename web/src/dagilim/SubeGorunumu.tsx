@@ -1,6 +1,6 @@
 import { Illustrasyon } from "../bilesenler/Illustrasyon";
 import { DersCipi } from "../dersler/DersCipi";
-import { Ban, Plus, Trash2, Undo2 } from "lucide-react";
+import { Ban, Plus, Rows3, Trash2, Undo2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router";
@@ -241,13 +241,14 @@ function SubeDersleri({ veri, sinif, git }: { veri: DagilimVerisi; sinif: Sinif;
               hizala: "sag",
               hucre: (a) => (
                 <span className={stil.islemler}>
-                  <Dugme tur="metin" onClick={() => git({ gorunum: "ders", ders: a.ders_id })}
-                    aria-label={`${dersAdi(a)} dersini bütün şubelerde göster`}>
-                    Bütün şubeler
+                  <Dugme tur="metin" ikon={<Rows3 />} onClick={() => git({ gorunum: "ders", ders: a.ders_id })}
+                    aria-label={`${dersAdi(a)} dersini bütün şubelerde göster`} title="Bu dersi bütün şubelerde göster">
+                    <span className={stil.uzunMetin}>Bütün şubeler</span>
+                    <span className={stil.kisaMetin}>Şubeler</span>
                   </Dugme>
                   <Dugme ikon={<Trash2 />} tur="metin" onClick={() => { setAlmaz(true); setKaldirilacak(a); }}
-                    aria-label={`${dersAdi(a)} dersini kaldır`}>
-                    Kaldır
+                    aria-label={`${dersAdi(a)} dersini kaldır`} title="Dersi bu şubeden kaldır">
+                    <span className={stil.uzunMetin}>Kaldır</span>
                   </Dugme>
                 </span>
               ),

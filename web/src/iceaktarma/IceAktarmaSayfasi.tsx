@@ -7,7 +7,7 @@
  * yeniden hesaplar, önizlemedekinden farklıysa (veri arada değiştiyse) kaydetmez.
  */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Download } from "lucide-react";
+import { Download, FileSpreadsheet, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { cagir, hataMetni } from "../api/hata";
 import { api } from "../api/istemci";
@@ -92,6 +92,7 @@ export function IceAktarmaSayfasi() {
   const bildirim = useBildirim();
   const girdi = useRef<HTMLInputElement>(null);
   const [dosya, setDosya] = useState<File | null>(null);
+  const [surukleniyor, setSurukleniyor] = useState(false);
 
   const onizle = useMutation({
     mutationFn: (d: File) => cagir(api.POST("/api/ders-programi/ice-aktarma/onizleme", dosyaGovdesi(d))),
@@ -125,20 +126,48 @@ export function IceAktarmaSayfasi() {
       </SayfaBasligi>
 
       <section className={sayfaStili.kart}>
-        <h2>1. Şablonu indirin</h2>
+        <h2 className={stil.adimBasligi}>
+          <span className={stil.adimNo} aria-hidden="true">1</span>
+          <span className="gorunmez">1. </span>Şablonu indirin
+        </h2>
         <p className={stil.metin}>
           Şablonda dört sayfa var: Öğretmenler, Sınıflar, Dersler ve Ders dağılımı. Yalnızca gerekenleri
           doldurabilirsiniz. Okulda aynı adla bir kayıt varsa yenisi açılmaz (büyük/küçük harf ve boşluk farkı
           önemsizdir); boş bırakılan hücre var olan değeri değiştirmez.
         </p>
-        <a className={stil.baglanti} href={SABLON_ADRESI} download>
+        <a className={stil.sablonDugmesi} href={SABLON_ADRESI} download>
           <Download aria-hidden="true" /> Şablonu indir (.xlsx)
         </a>
       </section>
 
       <section className={sayfaStili.kart}>
-        <h2>2. Doldurduğunuz dosyayı seçin</h2>
-        <label className={stil.dosyaEtiketi} htmlFor="ia-dosya">Excel dosyası (.xlsx, en çok 2 MB)</label>
+        <h2 className={stil.adimBasligi}>
+          <span className={stil.adimNo} aria-hidden="true">2</span>
+          <span className="gorunmez">2. </span>Doldurduğunuz dosyayı seçin
+        </h2>
+        {/* Bırakma alanı: etiketin kendisi. Tıklayınca (ya da klavyede girdiye gelip Boşluk/Enter)
+            dosya penceresi açılır; dosya üzerine sürüklenip bırakılabilir. Girdi görünmez ama odaklanır. */}
+        <label
+          className={stil.birakmaAlani}
+          htmlFor="ia-dosya"
+          data-surukleniyor={surukleniyor || undefined}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setSurukleniyor(true);
+          }}
+          onDragLeave={() => setSurukleniyor(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setSurukleniyor(false);
+            sec(e.dataTransfer.files[0]);
+          }}
+        >
+          <span className={stil.birakmaIkonu} aria-hidden="true">
+            {dosya ? <FileSpreadsheet /> : <Upload />}
+          </span>
+          <span className={stil.birakmaBaslik}>{dosya ? dosya.name : "Dosyayı buraya bırakın ya da seçmek için tıklayın"}</span>
+          <span className={stil.birakmaIpucu}>Excel dosyası (.xlsx, en çok 2 MB){dosya && " · başka dosya seçmek için tıklayın"}</span>
+        </label>
         <input id="ia-dosya" ref={girdi} type="file" className={stil.dosya}
           accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           onChange={(e) => sec(e.target.files?.[0])} />

@@ -5,6 +5,10 @@
   margin: 0 auto var(--bosluk-4);
   animation: cizimGir var(--sure-uzun) var(--egri);
 }
+.kucuk {
+  width: min(9rem, 50%);
+  margin-bottom: var(--bosluk-3);
+}
 @keyframes cizimGir {
   from {
     opacity: 0;
@@ -57,4 +61,15 @@
   stroke-width: 3;
   stroke-linecap: round;
   opacity: 0.85;
+}
+.cerceve {
+  fill: none;
+  stroke: var(--renk-birincil);
+  stroke-width: 6;
+}
+.sap {
+  fill: none;
+  stroke: var(--renk-birincil-koyu);
+  stroke-width: 9;
+  stroke-linecap: round;
 }

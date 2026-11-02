@@ -14,6 +14,7 @@ import { cagir, hataMetni } from "../api/hata";
 import { api } from "../api/istemci";
 import type { components } from "../api/sema";
 import { useBildirim } from "../bilesenler/Bildirim";
+import { BosDurum } from "../bilesenler/BosDurum";
 import { Dugme } from "../bilesenler/Dugme";
 import { OnayPenceresi } from "../bilesenler/OnayPenceresi";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
@@ -80,7 +81,9 @@ function YayinBolumu() {
           )}
         </>
       ) : (
-        <p>Henüz yayınlanmış program yok. Yayınlanan programı öğretmenler ve şubeler linkle, giriş yapmadan görür.</p>
+        <BosDurum cizim="yayin" boyut="kucuk" baslikDuzeyi={3} baslik="Henüz yayınlanmış program yok">
+          <p>Yayınlanan programı öğretmenler ve şubeler linkle, giriş yapmadan telefondan görür.</p>
+        </BosDurum>
       )}
       {hazirlar.length > 0 ? (
         <div className={stil.satir}>

@@ -75,7 +75,10 @@ describe("öğretmen seçici", () => {
     expect(await screen.findByText(MESAJ)).toBeInTheDocument();
     // Seçicideki seçenek de aşımı söyler.
     const secenek = within(screen.getByRole("combobox", { name: "9-B Matematik öğretmeni" })).getByRole("option", { name: /Şule Kaya/ });
-    expect(secenek).toHaveTextContent("Şule Kaya (Matematik) · 12 / 10 saat · kapasite aşıldı");
+    expect(secenek).toHaveTextContent("Şule Kaya · 12 / 10 saat · kapasite aşıldı");
+    // Seçili öğretmenin seçeneğinde branş yazmaz (kapalı seçiciye sığsın); tam metin title'da.
+    expect(screen.getByRole("combobox", { name: "9-B Matematik öğretmeni" })).toHaveAttribute(
+      "title", "Şule Kaya (Matematik) · 12 / 10 saat · kapasite aşıldı");
   });
 });
 

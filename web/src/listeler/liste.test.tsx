@@ -88,7 +88,11 @@ describe("liste, sıralama, arama", () => {
     expect(satirAdlari()).toEqual(["Şule Kaya"]);
     await kullanici.clear(screen.getByLabelText("Ara"));
     await kullanici.type(screen.getByLabelText("Ara"), "xyz");
-    expect(screen.getByRole("cell", { name: '"xyz" ile eşleşen öğretmen yok.' })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: '"xyz" ile eşleşen öğretmen yok.' })).toBeInTheDocument();
+    // Boş sonuçta arama tek tıkla temizlenir, liste geri gelir.
+    await kullanici.click(screen.getByRole("button", { name: "Aramayı temizle" }));
+    expect(screen.getByLabelText("Ara")).toHaveValue("");
+    expect(satirAdlari()).toContain("Şule Kaya");
   });
 
   it("şubeler sayıyla sıralanır (9-A, 10-A)", async () => {

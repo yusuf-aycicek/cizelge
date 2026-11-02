@@ -4,25 +4,97 @@
   color: var(--renk-metin-ikincil);
 }
 
-.baglanti {
+/* Adım başlığı: numara dairede. */
+.adimBasligi {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+}
+.adimNo {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+  font-size: var(--yazi-normal);
+}
+
+.sablonDugmesi {
   display: inline-flex;
   align-items: center;
   gap: var(--bosluk-2);
+  min-height: var(--dokunma-hedefi);
+  padding: 0 var(--bosluk-5);
+  border: 1.5px solid var(--renk-birincil);
+  border-radius: var(--kose-hap);
+  color: var(--renk-birincil);
   font-weight: var(--yazi-kalin);
-  color: var(--renk-birincil-koyu);
+  text-decoration: none;
+  transition: background-color var(--sure) var(--egri);
 }
-.baglanti svg {
+.sablonDugmesi:hover {
+  background: var(--renk-yuzey-vurgu);
+}
+.sablonDugmesi svg {
   width: 1.1em;
   height: 1.1em;
 }
 
-.dosyaEtiketi {
-  display: block;
-  font-weight: var(--yazi-kalin);
+/* Bırakma alanı: kesik çerçeveli geniş kutu; dosya üzerine gelince vurgulanır. */
+.birakmaAlani {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--bosluk-1);
+  padding: var(--bosluk-6) var(--bosluk-4);
+  border: 2px dashed var(--renk-kenar-alan);
+  border-radius: var(--kose-buyuk);
+  background: color-mix(in srgb, var(--renk-yuzey) 70%, transparent);
+  text-align: center;
+  cursor: pointer;
+  transition: background-color var(--sure) var(--egri), border-color var(--sure) var(--egri);
+}
+.birakmaAlani:hover,
+.birakmaAlani[data-surukleniyor] {
+  border-color: var(--renk-birincil);
+  background: var(--renk-yuzey-vurgu);
+}
+/* Görünmez girdi klavyeyle odaklanınca halka alanın kendisinde görünür. */
+.birakmaAlani:has(+ .dosya:focus-visible) {
+  box-shadow: var(--odak-halkasi);
+}
+.birakmaIkonu {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
   margin-bottom: var(--bosluk-2);
+  border-radius: 50%;
+  background: var(--renk-zemin);
+  color: var(--renk-birincil);
+  box-shadow: var(--golge);
+}
+.birakmaIkonu svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+.birakmaBaslik {
+  font-weight: var(--yazi-kalin);
+  overflow-wrap: anywhere;
+}
+.birakmaIpucu {
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
 }
 .dosya {
-  max-width: 100%;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
 }
 
 .ozet {

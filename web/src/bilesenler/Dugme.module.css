@@ -17,6 +17,10 @@
   cursor: pointer;
   background-size: 201% 100%;
   background-position: 100% 0;
+  /* Geçiş kenarlığın altından başlar: yoksa kenarlık alanında bir sonraki karo görünür ve
+     düğmenin sağında ince bir çizgi kalır (tablo satırındaki "Düzenle | Sil"). */
+  background-origin: border-box;
+  background-repeat: no-repeat;
   transition:
     background-position var(--sure-dolum) var(--egri),
     color var(--sure-dolum) var(--egri),

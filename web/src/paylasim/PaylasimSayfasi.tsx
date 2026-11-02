@@ -13,6 +13,8 @@ import { useParams } from "react-router";
 import { ApiHatasi, cagir, hataMetni } from "../api/hata";
 import { api } from "../api/istemci";
 import type { components } from "../api/sema";
+import { BosDurum } from "../bilesenler/BosDurum";
+import { dersRenkStili } from "../dersler/dersRengi";
 import { UYGULAMA_ADI } from "../urun";
 import stil from "./Paylasim.module.css";
 
@@ -64,7 +66,7 @@ function GunGun({ c, hafta }: { c: Cizelge; hafta: Hafta }) {
     if (c.hucreler.some((x) => x.gun === gun && x.saat < s && s < x.saat + x.uzunluk)) continue;
     const uzunluk = h?.uzunluk ?? 1;
     satirlar.push(
-      <li key={s} className={h ? stil.dolu : stil.bos} style={h ? { borderInlineStartColor: h.renk } : undefined}>
+      <li key={s} className={h ? stil.dolu : stil.bos} style={h ? dersRenkStili(h.renk) : undefined}>
         <span className={stil.saat}>
           {saatMetni(s, uzunluk)}
           <span className={stil.zil}>{zilMetni(hafta, s, uzunluk)}</span>
@@ -100,9 +102,9 @@ function Haftalik({ c, hafta }: { c: Cizelge; hafta: Hafta }) {
         {hafta.gun_adlari.map((ad, g) => {
           if (c.hucreler.some((x) => x.gun === g && x.saat < s && s < x.saat + x.uzunluk)) return null;
           const h = c.hucreler.find((x) => x.gun === g && x.saat === s);
-          if (!h) return <td key={ad} className={s < (hafta.gun_saatleri[g] ?? 0) ? undefined : stil.yok} />;
+          if (!h) return <td key={ad} className={s < (hafta.gun_saatleri[g] ?? 0) ? stil.bosHucre : stil.yok} />;
           return (
-            <td key={ad} rowSpan={h.uzunluk} className={stil.dolu} style={{ borderInlineStartColor: h.renk }}>
+            <td key={ad} rowSpan={h.uzunluk} className={stil.dolu} style={dersRenkStili(h.renk)}>
               <HucreIcerigi h={h} tur={c.tur} />
             </td>
           );
@@ -176,28 +178,25 @@ export function PaylasimSayfasi() {
   if (sorgu.isPending) govde = <p role="status">Program yükleniyor…</p>;
   else if (sorgu.isError) {
     govde = (
-      <div className={stil.mesaj}>
-        <h1>Bu link geçerli değil</h1>
+      <BosDurum cizim="arama" baslik="Bu link geçerli değil" baslikDuzeyi={1}>
         <p>
           {sorgu.error instanceof ApiHatasi && sorgu.error.durum === 404
             ? "Link iptal edilmiş ya da yenilenmiş olabilir. Okul yönetiminden güncel linki isteyin."
             : hataMetni(sorgu.error)}
         </p>
-      </div>
+      </BosDurum>
     );
   } else if (!icerik?.yayinda || !icerik.hafta) {
     govde = (
-      <div className={stil.mesaj}>
-        <h1>Yayında program yok</h1>
+      <BosDurum cizim="yayin" baslik="Yayında program yok" baslikDuzeyi={1}>
         <p>Okul yönetimi programı yayınladığında burada görünecek.</p>
-      </div>
+      </BosDurum>
     );
   } else if (!secili) {
     govde = (
-      <div className={stil.mesaj}>
-        <h1>{icerik.okul}</h1>
+      <BosDurum cizim="takvim" baslik={icerik.okul} baslikDuzeyi={1}>
         <p>Yayınlanan programda bu linkin dersi yok.</p>
-      </div>
+      </BosDurum>
     );
   } else {
     govde = (
@@ -225,7 +224,9 @@ export function PaylasimSayfasi() {
 
   return (
     <main className={stil.sayfa}>
-      <p className={stil.marka}><CalendarDays aria-hidden="true" /> {UYGULAMA_ADI}</p>
+      <p className={stil.marka}>
+        <span className={stil.logo} aria-hidden="true"><CalendarDays /></span> {UYGULAMA_ADI}
+      </p>
       {govde}
     </main>
   );

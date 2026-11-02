@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { BosDurum } from "../bilesenler/BosDurum";
 import {
   ArrowRight,
   BookOpen,
@@ -135,10 +136,14 @@ export function AnaSayfa() {
               ) : (
                 <section className={`${stil.kart} ${pano.bosKart}`} aria-labelledby="mini-baslik">
                   <h2 id="mini-baslik">Haftalık program</h2>
-                  <p>Henüz hazır bir program yok. Kurulum adımları bitince programı oluşturun.</p>
-                  <Link to="/program" className={pano.metinBaglanti}>
-                    Program sayfasına git <ArrowRight aria-hidden="true" />
-                  </Link>
+                  <BosDurum cizim="takvim" boyut="kucuk" baslikDuzeyi={3} baslik="Henüz hazır bir program yok"
+                    eylem={
+                      <Link to="/program" className={pano.metinBaglanti}>
+                        Program sayfasına git <ArrowRight aria-hidden="true" />
+                      </Link>
+                    }>
+                    <p>Kurulum adımları bitince programı oluşturun; haftası burada görünür.</p>
+                  </BosDurum>
                 </section>
               )}
               <KurulumListesi kurulum={kurulum} />

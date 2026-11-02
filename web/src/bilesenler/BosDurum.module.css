@@ -1,0 +1,36 @@
+.bos {
+  border: 2px dashed var(--renk-kenar-alan);
+  border-radius: var(--kose-buyuk);
+  padding: var(--bosluk-6) var(--bosluk-5);
+  text-align: center;
+  background: color-mix(in srgb, var(--renk-yuzey) 70%, transparent);
+  margin-bottom: var(--bosluk-5);
+}
+.kucuk {
+  border: none;
+  background: none;
+  padding: var(--bosluk-4) var(--bosluk-3);
+  margin: 0;
+}
+.baslik {
+  margin: 0 0 var(--bosluk-2);
+  font-size: var(--yazi-buyuk);
+}
+.kucuk .baslik {
+  font-size: var(--yazi-normal);
+}
+.aciklama {
+  color: var(--renk-metin-ikincil);
+  max-width: 36rem;
+  margin-inline: auto;
+}
+.aciklama p {
+  margin: 0;
+}
+.eylem {
+  margin-top: var(--bosluk-4);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--bosluk-2);
+}

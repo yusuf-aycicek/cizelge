@@ -62,7 +62,7 @@
 }
 .secici {
   width: 100%;
-  min-width: 11rem;
+  min-width: 15.5rem;
   max-width: 22rem;
 }
 /* Öğretmeni seçilmemiş seçici: kalın, uyarı renkli kenar (yalnızca renge dayanmaz: satırda yazı da var). */
@@ -77,8 +77,28 @@
   display: inline-flex;
   gap: var(--bosluk-1);
 }
+/* İşlem düğmeleri tek satır; dar tabloda yazı kısalır ("Şubeler", "Kaldır" yalnızca ikon), adı
+   aria-label'da tam kalır. */
 .islemler > button {
   padding-inline: var(--bosluk-2);
+  white-space: nowrap;
+}
+.kisaMetin {
+  display: none;
+}
+@container (max-width: 52rem) {
+  .uzunMetin {
+    display: none;
+  }
+  .kisaMetin {
+    display: inline;
+  }
+}
+/* Menü yandayken (ör. 1024 px) tablo daha da dar: ikisi de yalnızca ikon. */
+@container (max-width: 46rem) {
+  .kisaMetin {
+    display: none;
+  }
 }
 
 .iyiMetin {

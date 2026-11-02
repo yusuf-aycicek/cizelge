@@ -22,7 +22,10 @@ type Props = Omit<SelectHTMLAttributes<HTMLSelectElement>, "value" | "onChange">
  * - dersin branşıyla eşleşen öğretmenler üstte ("Branşı uyan: Matematik");
  * - diğerleri altta ("Diğer öğretmenler"). Branş serbest metin olduğu için kimse gizlenmez.
  *
- * Her seçenekte öğretmenin güncel yükü yazar: "Ayşe Yılmaz (Matematik) · 18 / 24 saat". Yük,
+ * Her seçenekte öğretmenin güncel yükü yazar: "Ayşe Yılmaz (Matematik) · 18 / 24 saat". Seçili
+ * öğretmenin seçeneğinde branş yazmaz ("Ayşe Yılmaz · 18 / 24 saat"): doğal seçici kapalıyken seçili
+ * seçeneğin metnini gösterir, branşla birlikte tablo sütununa sığmayıp kesiliyordu. Tam metin
+ * seçicinin `title`'ında kalır (üzerine gelince). Yük,
  * sunucunun özetinden gelir (ön kontrolle aynı hesap). Kapasitesi aşılmış öğretmen için seçenek
  * metninde "kapasite aşıldı" yazar; seçmek yine serbesttir (uyarı, yasak değil).
  *
@@ -37,17 +40,18 @@ export function OgretmenSecici({ etiket, ders, ogretmenler, yukler, deger, onDeg
   // okunabilirlik); ölçülen bir yavaşlık olmadan eklenmez.
   const { uyan, diger: digerleri } = bransaGoreGrupla(ogretmenler, ders);
 
-  const secenek = (o: Ogretmen) => {
+  const metin = (o: Ogretmen, bransli: boolean) => {
     const yuk = yukler.get(o.id);
-    const parcalar = [o.brans ? `${o.ad} (${o.brans})` : o.ad];
+    const parcalar = [bransli && o.brans ? `${o.ad} (${o.brans})` : o.ad];
     if (yuk) parcalar.push(yukMetni(yuk));
     if (yuk?.asim) parcalar.push("kapasite aşıldı");
-    return (
-      <option key={o.id} value={o.id}>
-        {parcalar.join(" · ")}
-      </option>
-    );
+    return parcalar.join(" · ");
   };
+  const secenek = (o: Ogretmen) => (
+    <option key={o.id} value={o.id}>
+      {metin(o, o.id !== deger)}
+    </option>
+  );
 
   // Seçili öğretmenin rozeti seçicinin solunda (doğal <option> içine resim konamaz).
   const secili = deger ? ogretmenler.find((o) => o.id === deger) : undefined;
@@ -58,6 +62,7 @@ export function OgretmenSecici({ etiket, ders, ogretmenler, yukler, deger, onDeg
         aria-label={etiket}
         className={[stil.secici, deger ? undefined : stil.seciciBos, className].filter(Boolean).join(" ")}
         value={deger ?? ""}
+        title={secili ? metin(secili, true) : undefined}
         onChange={(o) => onDegis(o.target.value || null)}
         {...diger}
       >

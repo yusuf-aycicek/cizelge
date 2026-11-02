@@ -345,9 +345,14 @@
   border-radius: var(--kose);
   animation: yerles var(--sure-uzun) var(--egri) backwards;
 }
+/* Telefonda da ders kendi renginde dolu blok; saat ve ikinci satır aynı yazı renginde. */
 .gunDolu {
-  background: var(--renk-yuzey);
-  box-shadow: inset 0 0 0 1px var(--renk-kenar);
+  background: var(--ders-zemin, var(--renk-yuzey));
+  color: var(--ders-yazi, var(--renk-metin));
+}
+.gunDolu .gunSaat,
+.gunDolu .zil {
+  color: inherit;
 }
 .gunBos {
   outline: 1px dashed var(--renk-kenar);

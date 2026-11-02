@@ -472,3 +472,25 @@
     font-size: 0.65rem;
   }
 }
+
+/* Telefonda dört kart 2 × 2: alt alta dört geniş kart sayfayı gereksiz uzatıyordu. */
+@media (max-width: 40rem) {
+  .sayilar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--bosluk-3);
+  }
+  .sayiKarti {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--bosluk-2);
+    padding: var(--bosluk-3) var(--bosluk-4);
+  }
+  .sayiIkonu {
+    grid-row: auto;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0.5rem;
+  }
+  .sayi {
+    font-size: 1.6rem;
+  }
+}

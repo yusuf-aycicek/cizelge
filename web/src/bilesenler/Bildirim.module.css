@@ -1,3 +1,4 @@
+/* Bildirimler sağ altta üst üste; yenisi sağ alttan kayarak gelir. */
 .alan {
   position: fixed;
   inset-block-end: var(--bosluk-4);
@@ -6,7 +7,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--bosluk-2);
-  width: min(26rem, calc(100vw - 2 * var(--bosluk-4)));
+  width: min(24rem, calc(100vw - 2 * var(--bosluk-4)));
 }
 
 .liste {
@@ -16,14 +17,18 @@
 }
 
 .kart {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: flex-start;
   gap: var(--bosluk-3);
-  padding: var(--bosluk-3) var(--bosluk-4);
-  border-radius: var(--kose);
-  box-shadow: var(--golge);
-  border-inline-start: 4px solid currentColor;
-  animation: kayarakGir var(--sure) var(--egri);
+  padding: var(--bosluk-3) var(--bosluk-3) var(--bosluk-3) var(--bosluk-4);
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-buyuk);
+  background: var(--renk-zemin);
+  color: var(--renk-metin);
+  box-shadow: var(--golge-pencere);
+  animation: kayarakGir var(--sure-uzun) var(--egri);
 }
 .cikiyor {
   animation: kayarakCik var(--sure) var(--egri) forwards;
@@ -32,7 +37,7 @@
 @keyframes kayarakGir {
   from {
     opacity: 0;
-    transform: translateX(2rem);
+    transform: translate(1.5rem, 1rem) scale(0.97);
   }
 }
 @keyframes kayarakCik {
@@ -42,38 +47,91 @@
   }
 }
 
+/* Türün ikonu kendi renginde, açık dairede. */
+.ikon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--tur-zemin);
+  color: var(--tur-metin);
+}
+.ikon svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
 .mesaj {
-  margin: 0;
+  margin: 0.3rem 0 0;
   flex: 1;
+  font-weight: var(--yazi-kalin);
+  line-height: 1.4;
 }
 
 .kapat {
+  flex: none;
+  display: grid;
+  place-items: center;
   border: none;
-  border-radius: var(--kose-kucuk);
+  border-radius: 50%;
   transition: background-color var(--sure-kisa);
   background: transparent;
   cursor: pointer;
-  min-width: 2rem;
-  min-height: 2rem;
-  color: inherit;
+  width: 2rem;
+  height: 2rem;
+  color: var(--renk-metin-ikincil);
+}
+.kapat svg {
+  width: 1rem;
+  height: 1rem;
+}
+.kapat:hover {
+  background: var(--renk-yuzey);
+  color: var(--renk-metin);
+}
+.kapat:focus-visible {
+  outline: none;
+  box-shadow: var(--odak-halkasi);
+}
+
+/* Kalan süre: alttaki ince çubuk kısalır. Hareket azaltılmışsa animasyon durur; çubuk süs
+   olduğu için o zaman hiç gösterilmez. */
+.sure {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3px;
+  background: var(--tur-metin);
+  opacity: 0.55;
+  transform-origin: left;
+  animation: sureAzal linear forwards;
+}
+@keyframes sureAzal {
+  to {
+    transform: scaleX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sure {
+    display: none;
+  }
 }
 
 .basari {
-  background: var(--renk-basari-zemin);
-  color: var(--renk-basari-metin);
+  --tur-zemin: var(--renk-basari-zemin);
+  --tur-metin: var(--renk-basari-metin);
 }
 .hata {
-  background: var(--renk-hata-zemin);
-  color: var(--renk-hata-metin);
+  --tur-zemin: var(--renk-hata-zemin);
+  --tur-metin: var(--renk-hata-metin);
+  border-color: color-mix(in srgb, var(--renk-hata-metin) 35%, var(--renk-kenar));
 }
 .uyari {
-  background: var(--renk-uyari-zemin);
-  color: var(--renk-uyari-metin);
+  --tur-zemin: var(--renk-uyari-zemin);
+  --tur-metin: var(--renk-uyari-metin);
 }
 .bilgi {
-  background: var(--renk-bilgi-zemin);
-  color: var(--renk-bilgi-metin);
-}
-.kapat:hover {
-  background: color-mix(in srgb, currentColor 10%, transparent);
+  --tur-zemin: var(--renk-bilgi-zemin);
+  --tur-metin: var(--renk-bilgi-metin);
 }
