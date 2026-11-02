@@ -6,9 +6,8 @@
   grid-template-columns: 26.25rem minmax(0, 1fr); /* 420 px */
   gap: var(--bosluk-4);
   padding: var(--bosluk-4);
-  background:
-    radial-gradient(50rem 30rem at -10% -10%, color-mix(in srgb, var(--renk-birincil) 14%, transparent), transparent),
-    var(--renk-sayfa);
+  /* Zemin ve ızgara body'den (temel.css); üstünde vurgu renginden hafif bir ışık. */
+  background: radial-gradient(50rem 30rem at -10% -10%, color-mix(in srgb, var(--renk-parlak) 18%, transparent), transparent);
 }
 
 .sol {
@@ -56,7 +55,7 @@
 .kart {
   width: 100%;
   background: var(--renk-zemin);
-  border-radius: 20px;
+  border-radius: var(--kose-kart);
   box-shadow: var(--golge-kart);
   padding: var(--bosluk-6) var(--bosluk-5);
   animation: kartGir var(--sure-uzun) var(--egri);
@@ -78,29 +77,16 @@
 }
 
 /* Form alanları: 48 px, 12 px köşe; odakta turuncu çerçeve ve hafif halka. */
+/* Form alanları kartın genişliğinde ve 48 px; köşe, odak ve göz düğmesi Alan bileşeninden. */
 .form input {
   min-height: 3rem;
   max-width: none;
-  border-radius: 12px;
-  transition: border-color var(--sure-kisa), box-shadow var(--sure-kisa);
-}
-.form input:focus,
-.form input:focus-visible {
-  outline: none;
-  border-color: var(--renk-birincil);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--renk-birincil) 18%, transparent);
-  border-radius: 12px;
 }
 
 .genisDugme {
   width: 100%;
   min-height: 3rem;
-  border-radius: 12px;
   font-size: var(--yazi-normal);
-}
-.demoDugmesi {
-  border-color: var(--renk-birincil);
-  color: var(--renk-birincil);
 }
 
 .ayirici {

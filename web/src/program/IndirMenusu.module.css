@@ -10,7 +10,7 @@
   min-height: var(--dokunma-hedefi);
   padding: 0 var(--bosluk-4);
   border: 1px solid var(--renk-kenar-alan);
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   background: var(--renk-yuzey);
   color: var(--renk-metin);
   font: inherit;

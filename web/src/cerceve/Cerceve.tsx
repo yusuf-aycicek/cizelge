@@ -23,6 +23,7 @@ import { api } from "../api/istemci";
 import { BEN_ANAHTARI, ROL_ADLARI, useBen } from "../kimlik/oturum";
 import type { GirisDurumu } from "../kimlik/KorumaliAlan";
 import { UYGULAMA_ADI } from "../urun";
+import { TemaDugmesi } from "../bilesenler/TemaDugmesi";
 import stil from "./Cerceve.module.css";
 
 /** Menüdeki sayfalar. Henüz yapılmamış olanlar "hazırlanıyor" sayfası gösterir. */
@@ -98,6 +99,7 @@ export function Cerceve() {
         {ben && (
           <div className={stil.kullanici}>
             <span className={stil.okulAdi}>{ben.okul.ad}</span>
+            <TemaDugmesi className={stil.temaDugmesi} />
             <Link to="/hesabim" className={stil.hesap} title="Hesabım">
               {ben.kullanici.ad}
               <span className={stil.rol}> · {ROL_ADLARI[ben.kullanici.rol] ?? ben.kullanici.rol}</span>

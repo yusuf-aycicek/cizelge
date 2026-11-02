@@ -185,7 +185,7 @@
 .gunSecici button {
   min-height: var(--dokunma-hedefi);
   border: none;
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   background: transparent;
   color: var(--renk-metin-ikincil);
   font: inherit;
@@ -391,7 +391,7 @@
   min-height: 3.5rem;
   padding: var(--bosluk-2) var(--bosluk-3);
   border: none;
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   background: transparent;
   color: inherit;
   font: inherit;

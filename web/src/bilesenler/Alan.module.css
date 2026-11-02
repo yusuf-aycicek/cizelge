@@ -11,15 +11,59 @@
 
 .denetim {
   min-height: var(--dokunma-hedefi);
-  padding: var(--bosluk-2) var(--bosluk-3);
-  border: 1px solid var(--renk-kenar-alan);
-  border-radius: var(--kose);
+  padding: var(--bosluk-2) var(--bosluk-4);
+  border: 1.5px solid var(--renk-kenar-alan);
+  border-radius: var(--kose-hap);
   background: var(--renk-zemin);
+  color: var(--renk-metin);
   width: 100%;
   max-width: 28rem;
+  transition: border-color var(--sure-kisa) var(--egri), box-shadow var(--sure-kisa) var(--egri);
+}
+/* Odakta vurgu çerçevesi ve hafif halka (fareyle de klavyeyle de: yazılacak yer belli olsun). */
+.denetim:focus,
+.denetim:focus-visible {
+  outline: none;
+  border-color: var(--renk-birincil);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--renk-birincil) 22%, transparent);
 }
 .denetim[aria-invalid="true"] {
   border: 2px solid var(--renk-tehlike);
+}
+
+/* Parola kutusu: göz düğmesi kutunun içinde, sağda. */
+.parolaKutusu {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 28rem;
+}
+.parolaKutusu .denetim {
+  padding-inline-end: calc(var(--dokunma-hedefi) + var(--bosluk-1));
+}
+.goz {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0.2rem;
+  margin-block: auto;
+  display: grid;
+  place-items: center;
+  width: calc(var(--dokunma-hedefi) - 0.4rem);
+  height: calc(var(--dokunma-hedefi) - 0.4rem);
+  padding: 0;
+  border: none;
+  border-radius: var(--kose-hap);
+  background: transparent;
+  color: var(--renk-metin-ikincil);
+  cursor: pointer;
+}
+.goz:hover {
+  background: var(--renk-yuzey-vurgu);
+  color: var(--renk-metin);
+}
+.goz svg {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 .aciklama {

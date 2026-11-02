@@ -100,7 +100,7 @@ export function GirisSayfasi() {
                 <Dugme
                   tur="ikincil"
                   ikon={<Play />}
-                  className={`${stil.genisDugme} ${stil.demoDugmesi}`}
+                  className={stil.genisDugme}
                   aria-describedby="demo-notu"
                   onClick={() => demo.mutate()}
                   disabled={mesgul && !demo.isPending}

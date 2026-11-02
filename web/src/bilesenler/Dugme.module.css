@@ -1,25 +1,47 @@
+/*
+ * "Dolum" stili: üzerine gelince koyu renk soldan sağa dolar (arka plan iki renkli bir geçiştir,
+ * yarısı görünür; üzerine gelince öbür yarısına kayar). Metin düğümleri ayrı öğe olmadığı için
+ * ::before katmanı yerine geçiş kaydırılır. Ayrıca 2 px kalkar, gölgesi büyür; basınca küçülür.
+ * Hareket azaltılmışsa temel.css geçişleri kapatır: renk yine değişir, kayma ve kalkma olmaz.
+ */
 .dugme {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--bosluk-2);
   min-height: var(--dokunma-hedefi);
-  padding: var(--bosluk-2) var(--bosluk-4);
-  border: 1px solid transparent;
-  border-radius: var(--kose);
+  padding: var(--bosluk-2) var(--bosluk-5);
+  border: 1.5px solid transparent;
+  border-radius: var(--kose-hap);
   font-weight: var(--yazi-kalin);
   cursor: pointer;
-  transition: background-color var(--sure-kisa) var(--egri), border-color var(--sure-kisa) var(--egri),
-    box-shadow var(--sure-kisa) var(--egri), transform var(--sure-kisa) var(--egri);
+  background-size: 201% 100%;
+  background-position: 100% 0;
+  transition:
+    background-position var(--sure-dolum) var(--egri),
+    color var(--sure-dolum) var(--egri),
+    border-color var(--sure-dolum) var(--egri),
+    box-shadow var(--sure) var(--egri),
+    transform var(--sure) var(--egri);
 }
 .dugme svg {
   width: 1.1em;
   height: 1.1em;
   flex-shrink: 0;
+  transition: transform var(--sure) var(--egri);
+}
+.dugme:hover:not(:disabled) {
+  background-position: 0 0;
+  transform: translateY(-2px);
 }
 /* Basınca hafifçe içe göçer: tıklandığını hisseder. */
 .dugme:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: scale(0.98);
+}
+/* İleri oku olan düğmede ok gideceği yöne kayar. */
+.dugme:hover:not(:disabled) :global(.lucide-arrow-right),
+.dugme:hover:not(:disabled) :global(.lucide-chevron-right) {
+  transform: translateX(4px);
 }
 .donen {
   animation: don 0.8s linear infinite;
@@ -35,36 +57,42 @@
 }
 
 .birincil {
-  background: var(--renk-birincil);
+  background-image: linear-gradient(90deg, var(--renk-birincil-koyu) 50%, var(--renk-birincil) 50%);
+  background-color: var(--renk-birincil);
   color: var(--renk-birincil-metin);
 }
 .birincil:hover:not(:disabled) {
-  background: var(--renk-birincil-koyu);
   box-shadow: var(--golge-uzerine);
 }
 
+/* Şeffaf zemin, vurgu çerçevesi; üzerine gelince vurgu rengi dolar, yazı dolu düğmeninki olur. */
 .ikincil {
-  background: var(--renk-zemin);
-  color: var(--renk-metin);
-  border-color: var(--renk-kenar-alan);
+  background-image: linear-gradient(90deg, var(--renk-birincil) 50%, transparent 50%);
+  background-color: transparent;
+  color: var(--renk-birincil);
+  border-color: var(--renk-birincil);
 }
 .ikincil:hover:not(:disabled) {
-  background: var(--renk-yuzey);
+  color: var(--renk-birincil-metin);
+  box-shadow: var(--golge-uzerine);
 }
 
 .tehlike {
-  background: var(--renk-tehlike);
+  background-image: linear-gradient(90deg, var(--renk-tehlike-koyu) 50%, var(--renk-tehlike) 50%);
+  background-color: var(--renk-tehlike);
   color: var(--renk-tehlike-metin);
 }
 .tehlike:hover:not(:disabled) {
-  background: var(--renk-tehlike-koyu);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--renk-tehlike) 35%, transparent);
 }
 
+/* Yalnızca yazı: bağlantı gibi; üzerine gelince açık vurgu dolar. */
 .metin {
-  background: transparent;
+  background-image: linear-gradient(90deg, var(--renk-yuzey-vurgu) 50%, transparent 50%);
+  background-color: transparent;
   color: var(--renk-birincil);
-  padding-inline: var(--bosluk-2);
+  padding-inline: var(--bosluk-3);
 }
 .metin:hover:not(:disabled) {
-  background: var(--renk-yuzey);
+  transform: none;
 }

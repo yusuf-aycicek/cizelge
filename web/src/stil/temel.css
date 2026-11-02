@@ -11,21 +11,37 @@ html {
   font-size: 100%; /* kullanıcının tarayıcıdaki yazı boyutu tercihine saygı */
   line-height: var(--satir-yuksekligi);
   color: var(--renk-metin);
-  background: var(--renk-sayfa);
   -webkit-text-size-adjust: 100%;
 }
 
+/* Zemin: açık renkten biraz koyusuna hafif geçiş ve üstünde ders tablosunu andıran çok soluk bir
+   ızgara (56 px kareler, metin renginin %5'i). Kökte durur: tuval bütün sayfayı kaplar, uzun
+   sayfada da zemin kesilmez. */
+html {
+  min-height: 100%;
+  background-color: var(--renk-sayfa);
+  background-image:
+    linear-gradient(var(--renk-izgara) 1px, transparent 1px),
+    linear-gradient(90deg, var(--renk-izgara) 1px, transparent 1px),
+    linear-gradient(180deg, var(--renk-sayfa), var(--renk-sayfa-2));
+  background-size: 56px 56px, 56px 56px, 100% 100%;
+}
 body {
   margin: 0;
+  min-height: 100vh;
 }
 
 h1,
 h2,
 h3 {
-  line-height: 1.25;
+  line-height: 1.2;
   margin: 0 0 var(--bosluk-4);
+  font-family: var(--yazi-baslik-ailesi);
   font-weight: var(--yazi-baslik-agirligi);
-  letter-spacing: -0.01em;
+  letter-spacing: var(--yazi-baslik-aralik);
+}
+h3 {
+  font-weight: var(--yazi-ara-baslik-agirligi);
 }
 h1 {
   font-size: var(--yazi-sayfa-basligi);
@@ -54,11 +70,24 @@ textarea {
 }
 
 /* Odak her zaman görünür: klavyeyle gezinen kullanıcı nerede olduğunu bilir. Fareyle tıklamada
-   halka çıkmaz (:focus-visible), klavyede çıkar. */
+   halka çıkmaz (:focus-visible), klavyede çıkar. 3 px, öğeden 2 px açıkta; öğenin köşesini izler. */
 :focus-visible {
-  outline: none;
-  box-shadow: var(--odak-halkasi);
-  border-radius: var(--kose-kucuk);
+  outline: 3px solid var(--renk-odak);
+  outline-offset: 2px;
+}
+
+/* Tema değişirken renkler yumuşakça geçer (tema.ts sınıfı kısa süre takar). */
+html.tema-gecisi,
+html.tema-gecisi *,
+html.tema-gecisi *::before,
+html.tema-gecisi *::after {
+  transition:
+    background-color 300ms ease,
+    color 300ms ease,
+    border-color 300ms ease,
+    fill 300ms ease,
+    stroke 300ms ease,
+    box-shadow 300ms ease !important;
 }
 
 /* Yalnızca ekran okuyuculara görünen metin (ör. tablo başlığı, simgeli düğmenin adı). */

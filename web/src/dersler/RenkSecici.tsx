@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react";
-import { useRef, type CSSProperties } from "react";
+import { useRef } from "react";
 import { cagir } from "../api/hata";
 import { api } from "../api/istemci";
+import { dersRenkStili } from "./dersRengi";
 import stil from "./Ders.module.css";
 
 export const RENKLER_ANAHTARI = ["ders-renkleri"] as const;
@@ -16,7 +17,6 @@ export function useDersRenkleri() {
   });
 }
 
-const renkStili = (renk: string) => ({ "--ders-rengi": renk }) as CSSProperties;
 
 type Props = {
   /** Erişilebilir ad, ör. "Matematik dersinin rengi". */
@@ -39,7 +39,7 @@ export function RenkSecici({ etiket, deger, onDegis, disabled }: Props) {
   return (
     <details ref={kutu} className={stil.secici}>
       <summary aria-label={`${etiket}: ${secili?.ad ?? deger}`} aria-disabled={disabled || undefined}>
-        <span className={stil.ornek} style={renkStili(deger)} aria-hidden="true" />
+        <span className={stil.ornek} style={dersRenkStili(deger)} aria-hidden="true" />
         <span aria-hidden="true">{secili?.ad ?? "Renk"}</span>
       </summary>
       <div role="radiogroup" aria-label={etiket} className={stil.pano}>
@@ -53,7 +53,7 @@ export function RenkSecici({ etiket, deger, onDegis, disabled }: Props) {
             title={r.ad}
             disabled={disabled}
             className={stil.secenek}
-            style={renkStili(r.renk)}
+            style={dersRenkStili(r.renk)}
             onClick={() => {
               if (kutu.current) kutu.current.open = false;
               if (r.renk !== deger) onDegis(r.renk);

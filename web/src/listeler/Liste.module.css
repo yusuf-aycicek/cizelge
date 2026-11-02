@@ -50,7 +50,7 @@
   min-height: 2.25rem;
   padding: var(--bosluk-1) var(--bosluk-2);
   border: 1px solid var(--renk-kenar-alan);
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   width: 100%;
   min-width: 8rem;
 }
@@ -63,7 +63,7 @@
   min-height: 2.25rem;
   padding: var(--bosluk-1) var(--bosluk-2);
   border: 1px solid var(--renk-kenar-alan);
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   background: var(--renk-yuzey);
   color: inherit;
   font: inherit;

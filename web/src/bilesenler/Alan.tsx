@@ -1,4 +1,5 @@
-import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useId, useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from "react";
 import stil from "./Alan.module.css";
 
 /** Form denetimine (input, select, textarea) verilecek erişilebilirlik özellikleri. */
@@ -65,7 +66,7 @@ export function Alan({ etiket, aciklama, hata, gerekli = false, children }: Prop
   );
 }
 
-/** En sık kullanılan durum: metin kutusu. */
+/** En sık kullanılan durum: metin kutusu. Parola alanında yazılanı gösteren göz düğmesi de olur. */
 export function MetinAlani({
   etiket,
   aciklama,
@@ -75,8 +76,38 @@ export function MetinAlani({
 }: Omit<Props, "children"> & InputHTMLAttributes<HTMLInputElement>) {
   return (
     <Alan etiket={etiket} aciklama={aciklama} hata={hata} gerekli={gerekli}>
-      {(ozellikler) => <input className={stil.denetim} required={gerekli} {...input} {...ozellikler} />}
+      {(ozellikler) =>
+        input.type === "password" ? (
+          <ParolaDenetimi {...input} {...ozellikler} required={gerekli} />
+        ) : (
+          <input className={stil.denetim} required={gerekli} {...input} {...ozellikler} />
+        )
+      }
     </Alan>
+  );
+}
+
+/**
+ * Parola kutusu ve göz düğmesi. Düğme yalnızca görünürlüğü değiştirir; değer, etiket ve hata
+ * kutuda kalır. Adı "Yazılanı göster / gizle": ekran okuyucu düğmeyi alanın hemen ardından okur,
+ * aria-controls hangi kutuyu etkilediğini söyler. Düğme sekme sırasında kutudan sonra gelir.
+ */
+function ParolaDenetimi(input: InputHTMLAttributes<HTMLInputElement>) {
+  const [gorunur, setGorunur] = useState(false);
+  return (
+    <span className={stil.parolaKutusu}>
+      <input className={stil.denetim} {...input} type={gorunur ? "text" : "password"} />
+      <button
+        type="button"
+        className={stil.goz}
+        aria-controls={input.id}
+        aria-label={gorunur ? "Yazılanı gizle" : "Yazılanı göster"}
+        title={gorunur ? "Gizle" : "Göster"}
+        onClick={() => setGorunur((g) => !g)}
+      >
+        {gorunur ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+      </button>
+    </span>
   );
 }
 

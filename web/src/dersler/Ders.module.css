@@ -5,8 +5,8 @@
   max-width: 100%;
   padding: 0.125rem var(--bosluk-3);
   border-radius: 999px;
-  background: var(--ders-rengi, var(--renk-metin-ikincil));
-  color: var(--renk-cip-metin);
+  background: var(--ders-zemin, var(--renk-yuzey-vurgu));
+  color: var(--ders-yazi, var(--renk-metin));
   font-size: var(--yazi-kucuk);
   font-weight: var(--yazi-kalin);
   line-height: 1.5;
@@ -14,7 +14,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;
-  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.12);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ders-yazi, var(--renk-metin)) 14%, transparent);
 }
 
 /* --- renk seçici ---------------------------------------------------------------------- */
@@ -31,7 +31,7 @@
   min-height: 2.25rem;
   padding: var(--bosluk-1) var(--bosluk-3);
   border: 1px solid var(--renk-kenar-alan);
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   background: var(--renk-zemin);
   cursor: pointer;
   font-size: var(--yazi-kucuk);
@@ -46,8 +46,9 @@
 .ornek {
   width: 1.1rem;
   height: 1.1rem;
-  border-radius: 999px;
-  background: var(--ders-rengi);
+  border-radius: var(--kose-hap);
+  background: var(--ders-zemin);
+  box-shadow: inset 0 0 0 1.5px var(--ders-yazi);
   flex-shrink: 0;
 }
 
@@ -78,11 +79,12 @@
   height: 2rem;
   border-radius: 999px;
   border: 2px solid transparent;
-  background: var(--ders-rengi);
+  background: var(--ders-zemin);
+  box-shadow: inset 0 0 0 1.5px var(--ders-yazi);
   cursor: pointer;
   display: grid;
   place-items: center;
-  color: var(--renk-cip-metin);
+  color: var(--ders-yazi);
   transition: transform var(--sure-kisa) var(--egri);
 }
 .secenek:hover {
@@ -90,7 +92,7 @@
 }
 .secenek[aria-checked="true"] {
   border-color: var(--renk-zemin);
-  box-shadow: 0 0 0 2px var(--renk-metin);
+  box-shadow: inset 0 0 0 1.5px var(--ders-yazi), 0 0 0 2px var(--renk-metin);
 }
 .secenek svg {
   width: 1rem;
@@ -103,8 +105,8 @@
   }
 }
 
-/* Renk tekrar edince çipin başındaki ayırt edici işaret (◆ ▲ ●). Zemin yok: beyaz işaret doğrudan
-   ders renginin üzerinde, yani yazıyla aynı kontrastta (her palet renginde en az 4.5:1). */
+/* Renk tekrar edince çipin başındaki ayırt edici işaret (◆ ▲ ●). Zemin yok: işaret yazı renginde,
+   yani yazıyla aynı kontrastta (her palet renginde en az 4.5:1). */
 .isaret {
   font-size: 0.75em;
   line-height: 1;
@@ -171,7 +173,7 @@ td .cip:not(.cipKutusu .cip) {
   min-height: 2.25rem;
   padding: 0 var(--bosluk-3);
   border: 1px solid var(--renk-kenar-alan);
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   background: var(--renk-yuzey);
   color: inherit;
   font: inherit;

@@ -1,6 +1,7 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useDarAlan } from "../bilesenler/darAlan";
 import stil from "./Ders.module.css";
+import { dersRenkStili } from "./dersRengi";
 import { isaretKarakteri } from "./isaret";
 
 type Props = {
@@ -17,15 +18,15 @@ type Props = {
 };
 
 /**
- * Ders çipi: dersin rengi zemin, yazı beyaz. Aynı ders her ekranda aynı renkte görünür (ders
- * listesi, ders dağılımı, şablon, çizelge). Paletteki her rengin beyaz yazıyla en az 4.5:1
- * kontrastlı olduğunu API testi denetler (api/tests/test_ders_renkleri.py).
+ * Ders çipi: dersin rengi pastel zemin ve koyu yazı olarak (koyu temada koyu zemin, açık yazı).
+ * Aynı ders her ekranda aynı renkte görünür (ders listesi, ders dağılımı, şablon, çizelge). Her
+ * palet renginin çiftinin en az 4.5:1 kontrastlı olduğunu stil/ders-renkleri.test.ts denetler.
  *
  * Renk tekrar ediyorsa (ör. 20'den fazla ders) çipin başında küçük bir işaret (◆ ▲ ●) aynı renkli
  * dersleri ayırır. İşaret yalnızca görseldir; ders adı zaten yazılıdır.
  *
- * Renk bir CSS değişkeni olarak verilir (`--ders-rengi`); stil yalnızca belirteçleri ve bu
- * değişkeni kullanır.
+ * Renk CSS değişkenleri olarak verilir (dersRenkStili); stil yalnızca belirteçleri ve bu
+ * değişkenleri kullanır.
  */
 export function DersCipi({ ad, renk, kisaAd, isaret = 0 }: Props) {
   if (kisaAd && kisaAd !== ad) return <SigdirilanCip ad={ad} kisaAd={kisaAd} renk={renk} isaret={isaret} />;
@@ -33,9 +34,8 @@ export function DersCipi({ ad, renk, kisaAd, isaret = 0 }: Props) {
 }
 
 function Cip({ renk, isaret, title, children }: { renk?: string | null; isaret: number; title?: string; children: ReactNode }) {
-  const ozel = renk ? ({ "--ders-rengi": renk } as CSSProperties) : undefined;
   return (
-    <span className={stil.cip} style={ozel} title={title}>
+    <span className={stil.cip} style={dersRenkStili(renk)} title={title}>
       {isaret > 0 && (
         <span aria-hidden="true" className={stil.isaret}>
           {isaretKarakteri(isaret)}

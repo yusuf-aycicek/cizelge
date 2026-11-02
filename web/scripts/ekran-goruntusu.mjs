@@ -11,7 +11,11 @@ import { denemeOkullariniTemizle } from "./deneme-temizle.mjs";
 
 const ADRES = process.env.WEB_ADRES ?? "http://localhost:5173";
 const adim = process.argv[2] ?? "taslak";
-const hedef = resolve("..", "docs", "ekranlar", adim);
+// İkinci argüman "koyu" ise cihaz koyu temada sayılır (prefers-color-scheme: dark); görüntüler
+// docs/ekranlar/<adım>-koyu/ altına gider.
+const koyu = process.argv[3] === "koyu";
+const klasor = koyu ? `${adim}-koyu` : adim;
+const hedef = resolve("..", "docs", "ekranlar", klasor);
 mkdirSync(hedef, { recursive: true });
 
 const MASAUSTU = { width: 1366, height: 820 };
@@ -595,7 +599,7 @@ AKISLAR["giris-sonrasi"] = async (tarayici, kaydet) => {
     // "disabled" sonlu animasyonları bitmiş haline atlatır, sayfa gerçekte nasıl duruyorsa öyle çekilir.
     await s.evaluate(() => window.scrollTo(0, 0));
     await s.screenshot({ path: resolve(hedef, dosya), fullPage: true, animations: "disabled" });
-    console.log(`docs/ekranlar/${adim}/${dosya}`);
+    console.log(`docs/ekranlar/${klasor}/${dosya}`);
   }
   await baglam.close();
 };
@@ -1190,6 +1194,10 @@ if (!liste && !akis) {
 }
 
 const tarayici = await chromium.launch({ channel: "msedge" });
+if (koyu) {
+  const baglamAc = tarayici.newContext.bind(tarayici);
+  tarayici.newContext = (secenek = {}) => baglamAc({ colorScheme: "dark", ...secenek });
+}
 if (akis) {
   try {
     await akis(tarayici, async (sayfa, dosya, tamSayfa = false) => {
@@ -1197,7 +1205,7 @@ if (akis) {
       // Tam sayfa görüntüsünde yapışkan üst çubuk o anki kaydırma yerinde çizilir: önce başa dön.
       if (tamSayfa) await sayfa.evaluate(() => window.scrollTo(0, 0));
       await sayfa.screenshot({ path: resolve(hedef, dosya), fullPage: tamSayfa });
-      console.log(`docs/ekranlar/${adim}/${dosya}`);
+      console.log(`docs/ekranlar/${klasor}/${dosya}`);
     });
   } finally {
     await tarayici.close();
@@ -1222,7 +1230,7 @@ try {
     if (g.eylem) await g.eylem(sayfa);
     await sayfa.waitForTimeout(300);
     await sayfa.screenshot({ path: resolve(hedef, g.dosya), fullPage: Boolean(g.tamSayfa) });
-    console.log(`docs/ekranlar/${adim}/${g.dosya}`);
+    console.log(`docs/ekranlar/${klasor}/${g.dosya}`);
     await sayfa.close();
   }
 } finally {

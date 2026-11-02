@@ -270,7 +270,7 @@
   color: var(--renk-metin);
   background: var(--renk-zemin);
   border: 1px solid var(--renk-kenar);
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   padding: var(--bosluk-2) var(--bosluk-3);
   cursor: pointer;
 }

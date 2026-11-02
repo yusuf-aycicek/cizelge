@@ -1,0 +1,55 @@
+/*
+ * Ders renkleri, pastel: API her derse koyu bir palet rengi verir (api/.../ders_renkleri.py,
+ * GET /api/ders-renkleri). Arayüz o rengi kimlik olarak kullanır ve burada pastel bir zemin ile
+ * okunaklı bir yazı rengine çevirir; koyu temada koyu zemin ve açık yazı. API'nin paleti değişmez.
+ *
+ * Değişken adı palet renginin kodudur: #1d4ed8 -> --ders-1d4ed8-zemin / --ders-1d4ed8-yazi.
+ * dersRenkStili() (dersler/dersRengi.ts) bunları --ders-zemin / --ders-yazi olarak bağlar.
+ * Lacivert, Kiremit, Yeşil, Mor, Camgöbeği ve Hardal tasarımda Matematik, Türk Dili, Fizik, Kimya,
+ * İngilizce ve Tarih için verilen çiftlerdir; kalanlar aynı açıklıkta üretildi. Her çiftin kontrastı en az 4.5:1
+ * (ders-renkleri.test.ts denetler, API'nin bütün palet renklerinin burada olduğunu da).
+ */
+:root {
+  --ders-1d4ed8-zemin: #d3e0ff; --ders-1d4ed8-yazi: #1e3a8a; /* Lacivert */
+  --ders-c2410c-zemin: #ffd9c4; --ders-c2410c-yazi: #8a2c06; /* Kiremit */
+  --ders-15803d-zemin: #cdefd9; --ders-15803d-yazi: #14532d; /* Yeşil */
+  --ders-7e22ce-zemin: #ebd9ff; --ders-7e22ce-yazi: #5b1c99; /* Mor */
+  --ders-0e7490-zemin: #cbedf3; --ders-0e7490-yazi: #0e5566; /* Camgöbeği */
+  --ders-be123c-zemin: #f2d0d8; --ders-be123c-yazi: #850d2a; /* Gül */
+  --ders-a16207-zemin: #fbe7a8; --ders-a16207-yazi: #6b3f05; /* Hardal */
+  --ders-0369a1-zemin: #cde1ec; --ders-0369a1-yazi: #024a71; /* Gök mavisi */
+  --ders-a21caf-zemin: #ecd2ef; --ders-a21caf-yazi: #71147a; /* Eflatun */
+  --ders-4d7c0f-zemin: #dbe5cf; --ders-4d7c0f-yazi: #36570a; /* Zeytin */
+  --ders-7c2d12-zemin: #e5d5d0; --ders-7c2d12-yazi: #571f0d; /* Kahve */
+  --ders-0f766e-zemin: #cfe4e2; --ders-0f766e-yazi: #0a534d; /* Turkuaz */
+  --ders-be185d-zemin: #f2d1df; --ders-be185d-yazi: #851141; /* Pembe */
+  --ders-475569-zemin: #dadde1; --ders-475569-yazi: #323b4a; /* Arduvaz */
+  --ders-312e81-zemin: #d6d5e6; --ders-312e81-yazi: #22205a; /* Çivit */
+  --ders-701a75-zemin: #e2d1e3; --ders-701a75-yazi: #4e1252; /* Mürdüm */
+  --ders-365314-zemin: #d7ddd0; --ders-365314-yazi: #263a0e; /* Haki */
+  --ders-4c1d95-zemin: #dbd2ea; --ders-4c1d95-yazi: #351468; /* Patlıcan */
+  --ders-831843-zemin: #e6d1d9; --ders-831843-yazi: #5c112f; /* Bordo */
+  --ders-dc2626-zemin: #f8d4d4; --ders-dc2626-yazi: #9a1b1b; /* Kırmızı */
+}
+:root[data-tema="koyu"] {
+  --ders-1d4ed8-zemin: #1d2e70; --ders-1d4ed8-yazi: #9eb3ee; /* Lacivert */
+  --ders-c2410c-zemin: #5c2922; --ders-c2410c-yazi: #e5ad97; /* Kiremit */
+  --ders-15803d-zemin: #1a4135; --ders-15803d-yazi: #9ac8ac; /* Yeşil */
+  --ders-7e22ce-zemin: #421d6c; --ders-7e22ce-yazi: #caa4eb; /* Mor */
+  --ders-0e7490-zemin: #173c54; --ders-0e7490-yazi: #97c3cf; /* Camgöbeği */
+  --ders-be123c-zemin: #5a1735; --ders-be123c-yazi: #e49eaf; /* Gül */
+  --ders-a16207-zemin: #4f3520; --ders-a16207-yazi: #d7bb94; /* Hardal */
+  --ders-0369a1-zemin: #13385b; --ders-0369a1-yazi: #93bed7; /* Gök mavisi */
+  --ders-a21caf-zemin: #501b60; --ders-a21caf-yazi: #d9a2de; /* Eflatun */
+  --ders-4d7c0f-zemin: #2f3f23; --ders-4d7c0f-yazi: #b2c798; /* Zeytin */
+  --ders-7c2d12-zemin: #412125; --ders-7c2d12-yazi: #c4a094; /* Kahve */
+  --ders-0f766e-zemin: #183d48; --ders-0f766e-yazi: #98c4c1; /* Turkuaz */
+  --ders-be185d-zemin: #5a1941; --ders-be185d-yazi: #e4a0bd; /* Pembe */
+  --ders-475569-zemin: #2d3046; --ders-475569-yazi: #acb2bc; /* Arduvaz */
+  --ders-312e81-zemin: #25224f; --ders-312e81-yazi: #a6a5c9; /* Çivit */
+  --ders-701a75-zemin: #3d1a4a; --ders-701a75-yazi: #c29dc4; /* Mürdüm */
+  --ders-365314-zemin: #263025; --ders-365314-yazi: #a5b295; /* Haki */
+  --ders-4c1d95-zemin: #2f1b56; --ders-4c1d95-yazi: #b29ed1; /* Patlıcan */
+  --ders-831843-zemin: #441937; --ders-831843-yazi: #ca9cae; /* Bordo */
+  --ders-dc2626-zemin: #661f2c; --ders-dc2626-yazi: #f1a6a6; /* Kırmızı */
+}

@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Çizelge – Okul Ders Programı Oluşturma Sistemi</title>
+    <script>
+      // Tema ilk boyamadan önce (yanlış temada bir kare görünmesin). Mantığı src/stil/tema.ts ile aynı.
+      (function () {
+        var t = null;
+        try {
+          t = localStorage.getItem("tema");
+        } catch (e) {}
+        if (t !== "acik" && t !== "koyu")
+          t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "koyu" : "acik";
+        document.documentElement.setAttribute("data-tema", t);
+      })();
+    </script>
   </head>
   <body>
     <div id="kok"></div>

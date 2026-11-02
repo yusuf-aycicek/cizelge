@@ -3,98 +3,117 @@
  * köşe yuvarlaklıkları YALNIZCA burada tanımlanır. Bileşenler sabit değer yazmaz, bu değişkenleri
  * kullanır (docs/arayuz-plani.md bölüm 3). Bir rengi değiştirmek bütün arayüzü değiştirir.
  *
+ * İki tema vardır: açık "mor" (:root) ve koyu "mor gece" (:root[data-tema="koyu"]). Koyu tema
+ * yalnızca renkleri yeniden tanımlar; adlar aynıdır, bileşenler temayı bilmez. Hangi temanın açık
+ * olduğunu <html data-tema> söyler (index.html ilk boyamadan önce, tema.ts sonra).
+ *
  * Kontrast: metin renkleri kendi zeminlerinde en az WCAG AA (4.5:1). Form alanı kenarı gibi
- * arayüz sınırları en az 3:1. Bunu src/stil/belirtecler.test.ts hesaplayarak denetler.
+ * arayüz sınırları en az 3:1. Bunu src/stil/belirtecler.test.ts iki tema için hesaplayarak denetler.
  */
 :root {
+  color-scheme: light;
+
   /* --- renkler: metin ve zemin --- */
-  --renk-zemin: #ffffff;
-  --renk-yuzey: #f7efe5;          /* menü, kart, tablo başlığı zemini */
-  --renk-yuzey-vurgu: #f1e4d4;    /* üzerine gelinen satır, seçili menü */
-  --renk-metin: #2d241c;
-  --renk-metin-ikincil: #6b5849;
-  --renk-kenar: #ecdfd0;          /* süs çizgileri (bilgi taşımaz) */
-  --renk-kenar-alan: #8f7a67;     /* form alanı ve düğme sınırı: zeminde en az 3:1 */
-  --renk-sayfa: #efe4d6;          /* içerik alanının zemini; kartlar bunun üstünde durur */
+  --renk-zemin: #ffffff;          /* kart */
+  --renk-yuzey: #f4f1fe;          /* tablo başlığı, kart içi bölüm, açık vurgu */
+  --renk-yuzey-vurgu: #e9e4f7;    /* üzerine gelinen satır, seçili öğe */
+  --renk-panel: #d9d1f2;          /* tanıtım paneli gibi büyük renkli alanlar */
+  --renk-metin: #1e1838;
+  --renk-metin-ikincil: #575075;
+  --renk-kenar: #d6d0ec;          /* süs çizgileri (bilgi taşımaz) */
+  --renk-kenar-alan: #857ca8;     /* form alanı ve düğme sınırı: zeminde en az 3:1 */
+  --renk-sayfa: #f5f3fb;          /* sayfa zemini; aşağı doğru --renk-sayfa-2'ye geçer */
+  --renk-sayfa-2: #e9e4f7;
 
   /* --- renkler: çerçeve (üst çubuk ve koyu menü) --- */
-  --renk-ust-zemin: #efe4d6;
-  --renk-ust-metin: #2d241c;
-  --renk-ust-vurgu: #e4d3bf;      /* üst çubukta üzerine gelinen düğme */
-  --renk-menu-zemin: #33251c;     /* koyu espresso; aşağı doğru --renk-menu-zemin-alt'a koyulaşır */
-  --renk-menu-zemin-alt: #241a14;
-  --renk-menu-metin: #ecdcc9;
-  --renk-menu-vurgu: #46352a;     /* üzerine gelinen menü öğesi */
-  --renk-menu-aktif-zemin: #a83a0d; /* seçili öğe: kiremitten turuncuya geçiş */
-  --renk-menu-aktif-zemin-2: #c44c0e;
+  --renk-ust-zemin: #f5f3fb;
+  --renk-ust-metin: #1e1838;
+  --renk-ust-vurgu: #e9e4f7;      /* üst çubukta üzerine gelinen düğme */
+  --renk-menu-zemin: #1e1838;
+  --renk-menu-zemin-alt: #17122d;
+  --renk-menu-metin: #e4e0f5;
+  --renk-menu-vurgu: #2e2752;     /* üzerine gelinen menü öğesi */
+  --renk-menu-aktif-zemin: #5b3fd9;
+  --renk-menu-aktif-zemin-2: #5b3fd9;
   --renk-menu-aktif-metin: #ffffff;
+  --renk-menu-aktif-cizgi: transparent;
 
   /* --- renkler: sayfa başlığı bandı (dolu geçiş, beyaz yazı). Her durakta yazı en az 4.5:1. --- */
-  --renk-bant-baslangic: #9a3412;
-  --renk-bant-orta: #c2410c;
-  --renk-bant-bitis: #b44c0b;
+  --renk-bant-baslangic: #4329b0;
+  --renk-bant-orta: #5b3fd9;
+  --renk-bant-bitis: #4c33c4;
   --renk-bant-metin: #ffffff;
-  --renk-bant-metin-ikincil: #fdf0e3;
+  --renk-bant-metin-ikincil: #ece8ff;
 
   /* --- renkler: ana sayfanın sayı kartları (pastel zemin, koyu ikon) --- */
-  --renk-kart-1: #fde3d3;         /* şeftali */
-  --renk-kart-1-vurgu: #9a3412;
-  --renk-kart-2: #dcebd9;         /* adaçayı */
-  --renk-kart-2-vurgu: #2f6b3a;
-  --renk-kart-3: #d9e7f3;         /* gök mavisi */
-  --renk-kart-3-vurgu: #1e4a8a;
-  --renk-kart-4: #e8def3;         /* lavanta */
-  --renk-kart-4-vurgu: #5b3a99;
+  --renk-kart-1: #ebe6fd;         /* lavanta */
+  --renk-kart-1-vurgu: #4329b0;
+  --renk-kart-2: #d8f3e6;         /* nane */
+  --renk-kart-2-vurgu: #166534;
+  --renk-kart-3: #dbe8fd;         /* gök mavisi */
+  --renk-kart-3-vurgu: #1e3a8a;
+  --renk-kart-4: #ffe4d4;         /* şeftali */
+  --renk-kart-4-vurgu: #8a2c06;
   --renk-cip-metin: #ffffff;
   /* öğretmen rozetleri: baş harfler beyaz (--renk-cip-metin); kimlikten kararlı seçilir */
-  --renk-rozet-1: #9a3412;
+  --renk-rozet-1: #5b3fd9;
   --renk-rozet-2: #9f1239;
   --renk-rozet-3: #6d28d9;
   --renk-rozet-4: #0f766e;
   --renk-rozet-5: #1e40af;
   --renk-rozet-6: #166534;
   --renk-rozet-7: #86198f;
-  --renk-rozet-8: #92400e;      /* ders çipindeki yazı; API paleti bununla denetlenir (CIP_METNI) */
-  --renk-menu-aktif-cizgi: transparent;
+  --renk-rozet-8: #92400e;
 
-  /* --- renkler: giriş sayfasının tanıtım paneli (koyu kahve, açık yazı) --- */
-  --renk-tanitim-zemin: #3b2a20;
-  --renk-tanitim-metin: #f7ece0;
-  --renk-tanitim-ikincil: #d6c1ad;
-  --renk-tanitim-ikon-zemin: #4d382b;
-  --renk-tanitim-nokta: #f0782f;   /* "program hazırlanıyor" yanıp sönen nokta */
-  /* tanıtımdaki örnek çizelgenin ders kartları: yumuşak zemin, koyu yazı (4.5:1) */
-  --renk-ders-mat: #fde3d3;
-  --renk-ders-mat-metin: #8a2f0c;
-  --renk-ders-fizik: #d9e7f3;
-  --renk-ders-fizik-metin: #1e4a8a;
-  --renk-ders-turkce: #dcebd9;
-  --renk-ders-turkce-metin: #2f6b3a;
-  --renk-ders-tarih: #f6e3b4;
-  --renk-ders-tarih-metin: #7a4a00;
-  --renk-ders-ing: #e8def3;
-  --renk-ders-ing-metin: #5b3a99;
-  --renk-ders-kimya: #f7d9e3;
-  --renk-ders-kimya-metin: #8f1d4a;
+  /* --- renkler: giriş sayfasının tanıtım paneli (koyu mor, açık yazı) --- */
+  --renk-tanitim-zemin: #1e1838;
+  --renk-tanitim-metin: #f2f0fa;
+  --renk-tanitim-ikincil: #c9c3e3;
+  --renk-tanitim-ikon-zemin: #2e2752;
+  --renk-tanitim-nokta: #a78bfa;   /* "program hazırlanıyor" yanıp sönen nokta */
+  /* tanıtımdaki örnek çizelgenin ders kartları: pastel zemin, koyu yazı (4.5:1) */
+  --renk-ders-mat: #d3e0ff;
+  --renk-ders-mat-metin: #1e3a8a;
+  --renk-ders-fizik: #cdefd9;
+  --renk-ders-fizik-metin: #14532d;
+  --renk-ders-turkce: #ffd9c4;
+  --renk-ders-turkce-metin: #8a2c06;
+  --renk-ders-tarih: #fbe7a8;
+  --renk-ders-tarih-metin: #6b3f05;
+  --renk-ders-ing: #cbedf3;
+  --renk-ders-ing-metin: #0e5566;
+  --renk-ders-kimya: #ebd9ff;
+  --renk-ders-kimya-metin: #5b1c99;
 
   /* --- renkler: anlam --- */
-  --renk-birincil: #b53c0b;       /* koyulaşan sayfa zemininde (#efe4d6) bağlantı yazısı 4.5:1 kalsın */
-  --renk-birincil-koyu: #9a3412;
+  --renk-birincil: #5b3fd9;       /* vurgu: dolu düğme, bağlantı, seçili */
+  --renk-birincil-koyu: #4329b0;  /* düğmenin üzerine gelince dolan renk */
   --renk-birincil-metin: #ffffff;
+  --renk-vurgu-acik: #f4f1fe;     /* vurgunun çok açık hali: seçili satır, rozet zemini */
+  --renk-parlak: #a78bfa;         /* süs: ışıltı, hale (metin taşımaz) */
   --renk-tehlike: #b42318;
   --renk-tehlike-koyu: #8f1c13;
   --renk-tehlike-metin: #ffffff;
-  --renk-odak: #c2410c;
+  --renk-basari: #166534;
+  --renk-odak: #5b3fd9;
 
   /* bildirim ve uyarı kutuları: koyu metin, açık zemin */
-  --renk-basari-zemin: #eaf5ec;
-  --renk-basari-metin: #1d5c36;
+  --renk-basari-zemin: #e3f6ea;
+  --renk-basari-metin: #166534;
   --renk-hata-zemin: #fdebe7;
   --renk-hata-metin: #8f1c13;
-  --renk-uyari-zemin: #fff1d9;
+  --renk-uyari-zemin: #fff3d6;
   --renk-uyari-metin: #7a3d00;
-  --renk-bilgi-zemin: #e9f1fb;
-  --renk-bilgi-metin: #1e4a8a;
+  --renk-bilgi-zemin: #ebe7fd;
+  --renk-bilgi-metin: #4329b0;
+
+  /* gölgeler ve perde (temaya göre) */
+  --golge: 0 1px 2px rgb(40 24 100 / 0.06), 0 4px 12px rgb(40 24 100 / 0.07);
+  --golge-pencere: 0 24px 56px rgb(30 24 56 / 0.28);
+  --golge-kart: 0 2px 4px rgb(40 24 100 / 0.04), 0 10px 28px rgb(40 24 100 / 0.08);
+  --golge-uzerine: 0 8px 22px rgb(67 41 176 / 0.28); /* üzerine gelinen kart ve düğme */
+  --renk-perde: rgb(20 14 50 / 0.45);               /* onay penceresinin arkası */
+  --renk-izgara: color-mix(in srgb, var(--renk-metin) 5%, transparent); /* arka plan ızgarası */
 
   /* --- boşluklar (4 px ızgarası) --- */
   --bosluk-1: 0.25rem;
@@ -105,8 +124,10 @@
   --bosluk-6: 2rem;
   --bosluk-7: 3rem;
 
-  /* --- yazı --- */
+  /* --- yazı: metin Nunito, başlık Bricolage Grotesque, logo JetBrains Mono (main.tsx) --- */
   --yazi-ailesi: "Nunito Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --yazi-baslik-ailesi: "Bricolage Grotesque Variable", var(--yazi-ailesi);
+  --yazi-logo-ailesi: "JetBrains Mono", ui-monospace, monospace;
   --yazi-kucuk: 0.875rem;
   --yazi-normal: 1rem;
   --yazi-buyuk: 1.125rem;
@@ -114,20 +135,20 @@
   --yazi-sayfa-basligi: 1.75rem;
   --yazi-kalin: 600;
   --yazi-baslik-agirligi: 800;
+  --yazi-ara-baslik-agirligi: 600;
+  --yazi-baslik-aralik: -0.02em;
   --tablo-baslik-donusumu: none;  /* tablo sütun başlıkları: none ya da uppercase */
   --tablo-baslik-aralik: normal;
   --satir-yuksekligi: 1.5;
 
-  /* --- köşe, gölge, ölçü --- */
+  /* --- köşe, ölçü --- */
   --kose-kucuk: 8px;
   --kose: 12px;
-  --kose-buyuk: 18px;
-  --golge: 0 1px 2px rgb(120 72 32 / 0.06), 0 4px 12px rgb(120 72 32 / 0.07);
-  --golge-pencere: 0 24px 56px rgb(80 48 20 / 0.24);
-  --golge-kart: 0 2px 4px rgb(120 72 32 / 0.04), 0 10px 28px rgb(120 72 32 / 0.08);
-  --golge-uzerine: 0 6px 18px rgb(120 72 32 / 0.16); /* üzerine gelinen kart ve düğme */
-  --renk-perde: rgb(60 36 16 / 0.4);              /* onay penceresinin arkası */
-  --odak-halkasi: 0 0 0 3px var(--renk-zemin), 0 0 0 5px var(--renk-odak);
+  --kose-buyuk: 24px;             /* kart */
+  --kose-kart: 24px;
+  --kose-pencere: 28px;           /* onay penceresi */
+  --kose-hap: 999px;              /* düğme, metin kutusu, açılır kutu, rozet, sekme, çip */
+  --odak-halkasi: 0 0 0 2px var(--renk-zemin), 0 0 0 5px var(--renk-odak);
   --dokunma-hedefi: 2.75rem;      /* 44 px: telefonda parmakla rahat basılır */
   --menu-genisligi: 15rem;
   --icerik-genisligi: 72rem;
@@ -136,5 +157,92 @@
   --sure-kisa: 150ms;   /* üzerine gelme, basma */
   --sure: 200ms;        /* bildirim, pencere, sekme */
   --sure-uzun: 250ms;   /* sayfa geçişi, satır ekleme ve silme */
+  --sure-dolum: 350ms;  /* düğmenin soldan sağa dolması */
   --egri: cubic-bezier(0.2, 0.8, 0.2, 1); /* hızlı başlar, yumuşak durur */
+}
+
+/* --- koyu tema: "mor gece" ------------------------------------------------------------------- */
+:root[data-tema="koyu"] {
+  color-scheme: dark;
+
+  --renk-zemin: #1d1a30;
+  --renk-yuzey: #1f1a3a;
+  --renk-yuzey-vurgu: #2a2448;
+  --renk-panel: #24203c;
+  --renk-metin: #f2f0fa;
+  --renk-metin-ikincil: #aba5c4;
+  --renk-kenar: #373152;
+  --renk-kenar-alan: #7d76a0;
+  --renk-sayfa: #131120;
+  --renk-sayfa-2: #1a1730;
+
+  --renk-ust-zemin: #131120;
+  --renk-ust-metin: #f2f0fa;
+  --renk-ust-vurgu: #24203c;
+  --renk-menu-zemin: #100e1c;
+  --renk-menu-zemin-alt: #0b0a14;
+  --renk-menu-metin: #e4e0f5;
+  --renk-menu-vurgu: #221e38;
+  --renk-menu-aktif-zemin: #8b73f5;
+  --renk-menu-aktif-zemin-2: #8b73f5;
+  --renk-menu-aktif-metin: #120d2a;
+
+  --renk-bant-baslangic: #3a2795;
+  --renk-bant-orta: #4a35b5;
+  --renk-bant-bitis: #3f2ea0;
+  --renk-bant-metin: #ffffff;
+  --renk-bant-metin-ikincil: #e6e1ff;
+
+  --renk-kart-1: #2a2350;
+  --renk-kart-1-vurgu: #c2b5ff;
+  --renk-kart-2: #15302a;
+  --renk-kart-2-vurgu: #6ee7a8;
+  --renk-kart-3: #1a2a4a;
+  --renk-kart-3-vurgu: #a9c3ff;
+  --renk-kart-4: #3a2218;
+  --renk-kart-4-vurgu: #ffb38a;
+
+  --renk-tanitim-zemin: #100e1c;
+  --renk-tanitim-metin: #f2f0fa;
+  --renk-tanitim-ikincil: #aba5c4;
+  --renk-tanitim-ikon-zemin: #24203c;
+  --renk-tanitim-nokta: #a78bfa;
+  --renk-ders-mat: #1d2e70;
+  --renk-ders-mat-metin: #9eb3ee;
+  --renk-ders-fizik: #1a4135;
+  --renk-ders-fizik-metin: #9ac8ac;
+  --renk-ders-turkce: #5c2922;
+  --renk-ders-turkce-metin: #e5ad97;
+  --renk-ders-tarih: #4f3520;
+  --renk-ders-tarih-metin: #d7bb94;
+  --renk-ders-ing: #173c54;
+  --renk-ders-ing-metin: #97c3cf;
+  --renk-ders-kimya: #421d6c;
+  --renk-ders-kimya-metin: #caa4eb;
+
+  --renk-birincil: #8b73f5;
+  --renk-birincil-koyu: #c2b5ff;
+  --renk-birincil-metin: #120d2a;
+  --renk-vurgu-acik: #1f1a3a;
+  --renk-parlak: #a78bfa;
+  --renk-tehlike: #ff9b8f;
+  --renk-tehlike-koyu: #ffc2ba;
+  --renk-tehlike-metin: #2a0a06;
+  --renk-basari: #6ee7a8;
+  --renk-odak: #a78bfa;
+
+  --renk-basari-zemin: #12301f;
+  --renk-basari-metin: #6ee7a8;
+  --renk-hata-zemin: #3a1715;
+  --renk-hata-metin: #ff9b8f;
+  --renk-uyari-zemin: #33270c;
+  --renk-uyari-metin: #f5c870;
+  --renk-bilgi-zemin: #221d42;
+  --renk-bilgi-metin: #c2b5ff;
+
+  --golge: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 12px rgb(0 0 0 / 0.25);
+  --golge-pencere: 0 24px 56px rgb(0 0 0 / 0.55);
+  --golge-kart: 0 2px 4px rgb(0 0 0 / 0.2), 0 10px 28px rgb(0 0 0 / 0.3);
+  --golge-uzerine: 0 8px 22px rgb(139 115 245 / 0.3);
+  --renk-perde: rgb(5 4 12 / 0.6);
 }

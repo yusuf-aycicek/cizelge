@@ -75,5 +75,5 @@
   color: var(--renk-bilgi-metin);
 }
 .kapat:hover {
-  background: rgb(0 0 0 / 0.06);
+  background: color-mix(in srgb, currentColor 10%, transparent);
 }

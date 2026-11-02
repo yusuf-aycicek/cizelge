@@ -67,6 +67,10 @@
   gap: var(--bosluk-4);
   min-width: 0;
 }
+/* Çerçeve üst çubuğun yazı renginden: iki temada da görünür. */
+.temaDugmesi {
+  border-color: color-mix(in srgb, currentColor 30%, transparent);
+}
 .okulAdi {
   font-weight: var(--yazi-kalin);
   white-space: nowrap;
@@ -78,7 +82,7 @@
   white-space: nowrap;
   text-decoration: none;
   padding: var(--bosluk-1) var(--bosluk-2);
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   transition: background-color var(--sure-kisa) var(--egri);
 }
 .hesap:hover {
@@ -94,7 +98,7 @@
   min-height: var(--dokunma-hedefi);
   padding: 0 var(--bosluk-3);
   border: 1px solid var(--renk-kenar);
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   background: transparent;
   color: inherit;
   cursor: pointer;
@@ -111,7 +115,7 @@
   min-height: var(--dokunma-hedefi);
   padding: 0 var(--bosluk-3);
   border: 1px solid var(--renk-kenar);
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   background: transparent;
   color: inherit;
   cursor: pointer;
@@ -144,7 +148,7 @@
   gap: var(--bosluk-3);
   min-height: var(--dokunma-hedefi);
   padding: 0 var(--bosluk-3);
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   color: var(--renk-menu-metin);
   text-decoration: none;
   transition: background-color var(--sure-kisa) var(--egri), color var(--sure-kisa) var(--egri),

@@ -1,0 +1,33 @@
+.dugme {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--dokunma-hedefi);
+  height: var(--dokunma-hedefi);
+  padding: 0;
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-hap);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color var(--sure-kisa) var(--egri), border-color var(--sure-kisa) var(--egri);
+}
+.dugme:hover {
+  background: var(--renk-ust-vurgu);
+  border-color: var(--renk-kenar-alan);
+}
+
+.ikon {
+  display: grid;
+  animation: don 450ms var(--egri);
+}
+.ikon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+@keyframes don {
+  from {
+    opacity: 0;
+    transform: rotate(-120deg) scale(0.6);
+  }
+}

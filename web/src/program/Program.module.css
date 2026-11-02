@@ -338,7 +338,7 @@
   gap: var(--bosluk-2);
   min-height: var(--dokunma-hedefi);
   padding: var(--bosluk-2) var(--bosluk-4);
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   background: var(--renk-birincil);
   color: var(--renk-birincil-metin);
   font-weight: var(--yazi-kalin);
@@ -565,7 +565,7 @@ ul.celiskiGrubu {
   min-height: var(--dokunma-hedefi);
   padding: 0 var(--bosluk-2);
   border: 1px solid var(--renk-kenar-alan);
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
   font: inherit;
 }
 

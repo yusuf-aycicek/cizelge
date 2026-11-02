@@ -69,6 +69,22 @@ describe("MetinAlani", () => {
     await userEvent.click(screen.getByText("Ad"));
     expect(screen.getByRole("textbox", { name: "Ad" })).toHaveFocus();
   });
+
+  it("parola alanında yazılan klavyeyle gösterilip gizlenir", async () => {
+    const kullanici = userEvent.setup();
+    render(<MetinAlani etiket="Parola" type="password" />);
+    const alan = screen.getByLabelText("Parola");
+    expect(alan).toHaveAttribute("type", "password");
+    await kullanici.tab();
+    await kullanici.tab();
+    const goz = screen.getByRole("button", { name: "Yazılanı göster" });
+    expect(goz).toHaveFocus();
+    await kullanici.keyboard("{Enter}");
+    expect(alan).toHaveAttribute("type", "text");
+    expect(screen.getByRole("button", { name: "Yazılanı gizle" })).toBeInTheDocument();
+    await kullanici.keyboard("{Enter}");
+    expect(alan).toHaveAttribute("type", "password");
+  });
 });
 
 describe("Tablo", () => {
