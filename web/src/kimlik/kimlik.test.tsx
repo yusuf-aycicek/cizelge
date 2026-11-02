@@ -4,7 +4,7 @@
  */
 import { screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { BEN_ORNEK, oturumGerekli, oturumYok, sunucu } from "../test/sunucu";
 import { uygulamayiCiz } from "../test/yardimcilar";
 import { SURE_DOLDU_MESAJI } from "./KorumaliAlan";
@@ -45,15 +45,51 @@ describe("korumalı sayfalar ve giriş", () => {
     expect(screen.getByRole("link", { name: /Ayşe Yılmaz/ })).toHaveAttribute("href", "/hesabim");
   });
 
-  it("boş alanlar sunucuya gitmeden işaretlenir ve ilk hatalı alana odaklanılır", async () => {
+  it("boş alanla sunucuya gidilmez: mesaj düğmenin üstünde, ilk boş alana odaklanılır", async () => {
     const govdeler = girisiKabulEt();
     const { kullanici } = uygulamayiCiz("/giris");
-    await kullanici.click(await screen.findByRole("button", { name: "Giriş yap" }));
-    const eposta = screen.getByLabelText(/E-posta/);
-    expect(eposta).toHaveAccessibleDescription("E-posta adresinizi girin");
-    expect(screen.getByLabelText(/Parola/)).toHaveAccessibleDescription("Parolanızı girin");
-    expect(eposta).toHaveFocus();
+    const dugme = await screen.findByRole("button", { name: "Giriş yap" });
+    await kullanici.click(dugme);
+    const mesaj = screen.getByText("E-posta ve parolanızı yazın.");
+    expect(mesaj).toHaveAttribute("role", "alert");
+    // Mesaj düğmeden önce gelir (DOCUMENT_POSITION_FOLLOWING: düğme mesajın ardında).
+    expect(mesaj.compareDocumentPosition(dugme) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByLabelText(/E-posta/)).toHaveFocus();
+
+    // Yalnızca parola boşsa odak parolaya gider.
+    await kullanici.type(screen.getByLabelText(/E-posta/), "ayse@okul.test");
+    await kullanici.click(dugme);
+    expect(screen.getByLabelText(/Parola/)).toHaveFocus();
     expect(govdeler).toEqual([]);
+  });
+
+  it("giriş sayfasında logo, tema düğmesi ve imza var", async () => {
+    oturumYok();
+    uygulamayiCiz("/giris");
+    expect(await screen.findByRole("button", { name: /temaya geç/ })).toBeInTheDocument();
+    expect(screen.getByText("Yusuf Ayçiçek tarafından geliştirildi")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Yusuf Ayçiçek/ })).not.toBeInTheDocument();
+    // ">ya" imza logosu yalnızca imzada; ürünün logosu takvim ikonu.
+    const imzaLogolari = [...document.querySelectorAll("svg text")].filter((t) => t.textContent === ">ya");
+    expect(imzaLogolari).toHaveLength(1);
+    expect(screen.getByText("Yusuf Ayçiçek tarafından geliştirildi")).toContainElement(imzaLogolari[0] as HTMLElement);
+  });
+
+  it("hareket açıksa başarılı girişte önce 'Hoş geldiniz' görünür, sonra yönlendirilir", async () => {
+    girisiKabulEt();
+    // jsdom matchMedia bilmez (hareket azaltılmış sayılır); burada hareket açık bir cihaz taklit edilir.
+    vi.stubGlobal("matchMedia", () => ({ matches: false, addEventListener: () => {}, removeEventListener: () => {} }));
+    try {
+      const { kullanici } = uygulamayiCiz("/giris");
+      await kullanici.type(await screen.findByLabelText(/E-posta/), "ayse@okul.test");
+      await kullanici.type(screen.getByLabelText(/Parola/), PAROLA);
+      await kullanici.click(screen.getByRole("button", { name: "Giriş yap" }));
+      expect(await screen.findByRole("button", { name: "Hoş geldiniz" })).toBeInTheDocument();
+      expect(screen.getByText("Giriş başarılı. Hoş geldiniz.")).toHaveAttribute("role", "status");
+      expect(await screen.findByRole("heading", { level: 1, name: "Hoş geldiniz" }, { timeout: 3000 })).toBeInTheDocument();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it.each([

@@ -1,0 +1,22 @@
+.logo {
+  flex: none;
+  display: block;
+}
+.kare {
+  fill: var(--renk-metin);
+}
+.yazi {
+  fill: var(--renk-zemin);
+  font-family: var(--yazi-logo-ailesi);
+  font-weight: 800;
+  font-size: 26px;
+}
+.imlec {
+  fill: var(--renk-zemin);
+  animation: yanip 1.1s steps(1) infinite;
+}
+@keyframes yanip {
+  50% {
+    opacity: 0;
+  }
+}

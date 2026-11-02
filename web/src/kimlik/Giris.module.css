@@ -6,7 +6,7 @@
   grid-template-columns: 26.25rem minmax(0, 1fr); /* 420 px */
   gap: var(--bosluk-4);
   padding: var(--bosluk-4);
-  /* Zemin ve ızgara body'den (temel.css); üstünde vurgu renginden hafif bir ışık. */
+  /* Zemin ve ızgara kökten (temel.css); üstünde vurgu renginden hafif bir ışık. */
   background: radial-gradient(50rem 30rem at -10% -10%, color-mix(in srgb, var(--renk-parlak) 18%, transparent), transparent);
 }
 
@@ -19,24 +19,31 @@
 .marka {
   display: flex;
   align-items: center;
-  gap: var(--bosluk-2);
+  gap: var(--bosluk-3);
   padding: var(--bosluk-2) var(--bosluk-3);
   color: var(--renk-metin);
-  font-weight: var(--yazi-baslik-agirligi);
   font-size: var(--yazi-buyuk);
 }
+/* Ürün logosu: takvim ikonu, vurgu renginde. (">ya" yalnızca alttaki imzadadır.) */
 .logo {
   flex: none;
-  width: 2.1rem;
-  height: 2.1rem;
-  padding: 0.4rem;
-  border-radius: var(--kose);
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0.45rem;
+  border-radius: 12px;
   background: var(--renk-birincil);
   color: var(--renk-birincil-metin);
+}
+.markaAdi {
+  flex: 1;
+  min-width: 0;
 }
 .urunAdi {
   display: block;
   line-height: 1.2;
+  font-family: var(--yazi-baslik-ailesi);
+  font-weight: 800;
+  letter-spacing: var(--yazi-baslik-aralik);
 }
 .urunAciklamasi {
   display: block;
@@ -48,7 +55,9 @@
 .kartAlani {
   flex: 1;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--bosluk-4);
   padding: var(--bosluk-5) 0;
 }
 
@@ -66,6 +75,23 @@
     transform: translateY(0.75rem);
   }
 }
+/* Hata ya da boş alanla gönderim: kart kısa bir an sağa sola sallanır. */
+.kart.sallan {
+  animation: salla 0.45s var(--egri);
+}
+@keyframes salla {
+  15%,
+  55% {
+    transform: translateX(-8px);
+  }
+  35%,
+  75% {
+    transform: translateX(8px);
+  }
+  90% {
+    transform: translateX(-3px);
+  }
+}
 
 .baslik {
   margin: 0 0 var(--bosluk-1);
@@ -76,17 +102,38 @@
   color: var(--renk-metin-ikincil);
 }
 
-/* Form alanları: 48 px, 12 px köşe; odakta turuncu çerçeve ve hafif halka. */
 /* Form alanları kartın genişliğinde ve 48 px; köşe, odak ve göz düğmesi Alan bileşeninden. */
 .form input {
   min-height: 3rem;
   max-width: none;
+}
+/* Hata ve boş alan mesajı düğmenin hemen üstünde. */
+.form :global([role="alert"]) {
+  margin: 0 0 var(--bosluk-3);
 }
 
 .genisDugme {
   width: 100%;
   min-height: 3rem;
   font-size: var(--yazi-normal);
+}
+/* Başarılı giriş: yeşil, onay işaretiyle; yönlendirmeye kadar yerinde durur. */
+.basarili,
+.basarili:hover:not(:disabled) {
+  background: var(--renk-basari);
+  color: var(--renk-basari-dugme-metin);
+  transform: none;
+  box-shadow: none;
+  cursor: default;
+}
+.basarili svg {
+  animation: onay 0.35s var(--egri);
+}
+@keyframes onay {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
 }
 
 .ayirici {
@@ -104,6 +151,56 @@
   border-top: 1px solid var(--renk-kenar);
 }
 
+/* "Demo ile dene": arkasında 4 sn'de bir dönen renkli halka. Dönen şey bir açı değişkenidir
+   (`--aci`); halka konik bir geçiştir, düğme onu 2 px'lik çerçeve kadar açıkta bırakır.
+   Hareket azaltılmışsa halka durur, renkleri yine görünür. */
+@property --aci {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes isilti {
+  to {
+    --aci: 360deg;
+  }
+}
+.demoCercevesi {
+  position: relative;
+  display: block;
+  padding: 2px;
+  border-radius: var(--kose-hap);
+  isolation: isolate;
+}
+.demoCercevesi::before,
+.demoCercevesi::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--aci),
+    var(--renk-birincil),
+    var(--renk-parlak),
+    transparent 35%,
+    transparent 65%,
+    var(--renk-birincil)
+  );
+  animation: isilti 4s linear infinite;
+}
+/* Işıltının geçmediği yerde çerçeve vurgu renginde kalır: halka hiçbir anda kopuk görünmez. */
+.demoCercevesi::before {
+  background-color: var(--renk-birincil);
+}
+.demoCercevesi::after {
+  filter: blur(10px);
+  opacity: 0.55;
+}
+.demoDugmesi {
+  border-color: transparent;
+  background-color: var(--renk-zemin);
+}
+
 .not {
   margin: var(--bosluk-2) 0 0;
   text-align: center;
@@ -114,6 +211,21 @@
 .alt {
   margin: var(--bosluk-5) 0 0;
   text-align: center;
+}
+/* Bağlantı kendi içinde bölünmez; sığmazsa yalnızca soru alt satıra geçer. */
+.alt a {
+  white-space: nowrap;
+}
+
+/* İmza: yalnızca giriş sayfasında, kartın altında. */
+.imza {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bosluk-2);
+  margin: 0;
+  font-size: 0.8125rem; /* 13 px */
+  color: var(--renk-metin-ikincil);
 }
 
 .bilgi {
@@ -131,36 +243,359 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* dikeyde ortada */
-  padding: clamp(var(--bosluk-5), 4vw, 3.5rem);
-  border-radius: 28px;
-  background: var(--renk-tanitim-zemin);
-  color: var(--renk-tanitim-metin);
+  justify-content: center;
+  padding: clamp(var(--bosluk-5), 3vw, 3rem);
+  border-radius: var(--kose-pencere);
+  overflow: hidden;
+  color: var(--renk-metin);
+  background-color: var(--renk-panel);
+  background-image:
+    linear-gradient(var(--renk-izgara) 1px, transparent 1px),
+    linear-gradient(90deg, var(--renk-izgara) 1px, transparent 1px);
+  background-size: 56px 56px;
 }
-/* Etiket, başlık, çizelge ve maddeler tek grup: en geniş parçası (maddeler) kadar genişler ve
-   panelin içinde yatayda ortalanır. Parçaların kendi genişlik sınırları ve sola hizası korunur. */
+/* İçerik tek grup, panelin ortasında; yazılar da ortalı. */
 .panelIcerik {
   width: 100%;
-  max-width: 44rem;
+  max-width: 48rem;
   margin-inline: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--bosluk-5);
+  align-items: center;
+  gap: var(--bosluk-4);
+  text-align: center;
 }
 
 .etiket {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--bosluk-2);
   margin: 0;
   font-size: 0.75rem;
-  font-weight: var(--yazi-baslik-agirligi);
-  letter-spacing: 0.08em;
+  font-weight: var(--yazi-kalin);
+  letter-spacing: 0.12em;
+  color: var(--renk-metin-ikincil);
+}
+.panelBasligi {
+  margin: 0;
+  max-width: 36rem;
+  font-size: clamp(1.625rem, 1rem + 1.6vw, 2.5rem); /* 26–40 px */
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+/* Sahne: telefonlar ve arkalarındaki hale. Eğilme için derinlik (perspective) buradadır. */
+.sahne {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-block: var(--bosluk-3);
+  perspective: 1200px;
+}
+.hale {
+  position: absolute;
+  inset: 10% 15%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--renk-parlak) 55%, transparent), transparent);
+  filter: blur(30px);
+  animation: nefes 6s ease-in-out infinite;
+}
+@keyframes nefes {
+  50% {
+    transform: scale(1.12);
+    opacity: 0.65;
+  }
+}
+
+/* Fare panelin üstünde gezince TanitimPaneli `--rx` / `--ry`'yi değiştirir. */
+.telefonlar {
+  --rx: 0deg;
+  --ry: 0deg;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transform-style: preserve-3d;
+  transition: transform 0.4s var(--egri);
+}
+
+.telefon {
+  flex: none;
+  width: 250px;
+  height: 520px;
+  padding: 9px;
+  border-radius: 40px;
+  background: var(--renk-telefon-cerceve);
+  box-shadow: 0 30px 60px color-mix(in srgb, var(--renk-telefon-cerceve) 35%, transparent);
+  animation: suzul 7s ease-in-out infinite;
+  font-size: 12px;
+  text-align: start;
+}
+.yanTelefon {
+  width: 210px;
+  height: 440px;
+  margin-top: 60px;
+  border-radius: 34px;
+  font-size: 11px;
+}
+.solTelefon {
+  animation-delay: -2.3s;
+}
+.sagTelefon {
+  animation-delay: -4.6s;
+}
+@keyframes suzul {
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+.ekran {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+  padding: 0.6em 1em 1em;
+  border-radius: 31px;
+  overflow: hidden;
+  background: var(--renk-zemin);
+  color: var(--renk-metin);
+}
+.yanTelefon .ekran {
+  border-radius: 26px;
+}
+.durumCubugu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85em;
+  font-weight: var(--yazi-kalin);
+}
+.centik {
+  width: 34%;
+  height: 1.5em;
+  border-radius: var(--kose-hap);
+  background: var(--renk-telefon-cerceve);
+}
+
+/* Ders satırı: ortadaki ve soldaki telefonda ortak. */
+.dersSatiri {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.55em 0.7em;
+  border-radius: 12px;
+}
+.dersSaati {
+  flex: none;
+  width: 1.8em;
+  height: 1.8em;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  font-weight: 800;
+}
+.dersBilgisi {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+.dersBilgisi strong {
+  font-weight: 800;
+}
+
+/* Ders renkleri: belirtecler.css'teki pastel çiftler. */
+.dersSatiri[data-ders="mat"],
+.kare[data-ders="mat"] {
+  background: var(--renk-ders-mat);
+  color: var(--renk-ders-mat-metin);
+}
+.dersSatiri[data-ders="fizik"],
+.kare[data-ders="fizik"] {
+  background: var(--renk-ders-fizik);
+  color: var(--renk-ders-fizik-metin);
+}
+.dersSatiri[data-ders="turkce"],
+.kare[data-ders="turkce"] {
+  background: var(--renk-ders-turkce);
+  color: var(--renk-ders-turkce-metin);
+}
+.dersSatiri[data-ders="tarih"],
+.kare[data-ders="tarih"] {
+  background: var(--renk-ders-tarih);
+  color: var(--renk-ders-tarih-metin);
+}
+.dersSatiri[data-ders="ing"],
+.kare[data-ders="ing"] {
+  background: var(--renk-ders-ing);
+  color: var(--renk-ders-ing-metin);
+}
+.dersSatiri[data-ders="kimya"],
+.kare[data-ders="kimya"] {
+  background: var(--renk-ders-kimya);
+  color: var(--renk-ders-kimya-metin);
+}
+
+/* Ortadaki telefon: haftalık program yavaşça yukarı kayar. Liste iki kopyadır; yarısı kadar
+   kayınca başa döner ve dönüş görünmez. Hareket azaltılmışsa haftanın başında durur. */
+.ekranBasligi {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+}
+.ekranBasligi strong {
+  font-family: var(--yazi-baslik-ailesi);
+  font-size: 1.9em;
+  font-weight: 800;
+  letter-spacing: var(--yazi-baslik-aralik);
+}
+.ekranBasligi span {
+  color: var(--renk-metin-ikincil);
+}
+.kaydirmaAlani {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(transparent, #000 4%, #000 90%, transparent);
+}
+.kayanListe {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+  animation: kay 24s linear infinite;
+}
+@keyframes kay {
+  to {
+    transform: translateY(calc(-50% - 0.45em));
+  }
+}
+.gunGrubu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+.gunAdi {
+  margin: 0;
+  font-size: 0.85em;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--renk-metin-ikincil);
+}
+
+/* Soldaki telefon: öğretmenin kendi ekranı. */
+.selam {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.selam span {
+  color: var(--renk-metin-ikincil);
+}
+.selam strong {
+  font-family: var(--yazi-baslik-ailesi);
+  font-size: 1.55em;
+  font-weight: 800;
+  letter-spacing: var(--yazi-baslik-aralik);
+}
+.bugun {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45em;
+  padding: 0.8em;
+  border-radius: 16px;
+  background: var(--renk-yuzey);
+}
+.bugun > span {
+  color: var(--renk-metin-ikincil);
+}
+.bugun > strong {
+  font-size: 1.2em;
+  font-weight: 800;
+}
+.bosGunKarti {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 0.8em;
+  border-radius: 16px;
+  background: var(--renk-basari-zemin);
+  color: var(--renk-basari-metin);
+}
+.bosGunKarti svg {
+  flex: none;
+  width: 1.8em;
+  height: 1.8em;
+}
+.bosGunKarti > span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.bosGunKarti strong {
+  font-weight: 800;
+}
+.haftaSeridi {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+}
+.haftaSeridi span {
+  width: 2.6em;
+  padding: 0.35em 0;
+  border-radius: var(--kose-hap);
+  text-align: center;
+  font-weight: var(--yazi-kalin);
+  background: var(--renk-yuzey);
+}
+.haftaSeridi .bugunGun {
+  background: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+}
+.haftaSeridi .bosGun {
+  background: var(--renk-basari-zemin);
+  color: var(--renk-basari-metin);
+}
+
+/*
+ * Sağdaki telefon: program hazırlanıyor. Kareler bir zaman sayacına (`--zaman`, 0 → 6 sn) göre
+ * kendi anlarında (`--d`) düşer, 5.5 sn'den sonra hepsi solar ve döngü baştan başlar; ilerleme
+ * çubuğu aynı sayaçla dolar. Tek animasyon hepsini aynı döngüde tutar (kare başına gecikme her
+ * karenin döngüsünü kaydırırdı). Hareket azaltılmışsa sayaç başlangıç değerinde (4.5) kalır:
+ * kareler yerinde, çubuk dolu. @property'yi tanımayan tarayıcıda hesap geçersiz olur, kareler
+ * yine yerinde görünür.
+ */
+@property --zaman {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 4.5;
+}
+@keyframes zaman {
+  from {
+    --zaman: 0;
+  }
+  to {
+    --zaman: 6;
+  }
+}
+.koyuEkran {
+  background: var(--renk-tanitim-zemin);
+  color: var(--renk-tanitim-metin);
+  animation: zaman 6s linear infinite;
+}
+.hazirlaniyor {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0.4em 0 0;
+  font-size: 0.85em;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   color: var(--renk-tanitim-ikincil);
 }
 .nokta {
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 0.6em;
+  height: 0.6em;
   border-radius: 50%;
   background: var(--renk-tanitim-nokta);
   animation: yanipSon 1.4s ease-in-out infinite;
@@ -170,189 +605,93 @@
     opacity: 0.25;
   }
 }
-
-.panelBasligi {
-  margin: 0;
-  max-width: 36rem;
-  font-size: clamp(1.5rem, 1rem + 1.8vw, 2.5rem);
-  line-height: 1.2;
-  font-weight: var(--yazi-baslik-agirligi);
-  color: var(--renk-tanitim-metin);
-}
-
-.ornek {
-  margin: 0;
-  max-width: 34rem;
-  padding: var(--bosluk-4);
-  border-radius: 18px;
-  background: var(--renk-yuzey);
-  color: var(--renk-metin);
-}
-.ornekBasligi {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--bosluk-2);
-  margin-bottom: var(--bosluk-3);
-  font-size: var(--yazi-kucuk);
-}
-.rozet {
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  background: var(--renk-basari-zemin);
-  color: var(--renk-basari-metin);
-  font-weight: var(--yazi-baslik-agirligi);
-  font-size: 0.75rem;
-}
-
-/*
- * Örnek çizelgenin hareketi. Izgara 9 sn'lik bir zaman sayacı (`--zaman`, 0 → 9) oynatır, kartlar
- * onu miras alır ve konumlarını kendi düşme anlarından (`--d`, sn) hesaplar: önce yukarıda ve
- * görünmez, `--d` anında yarım saniyede düşer, 7.7 sn'den sonra hepsi birlikte solar. Böylece tek
- * bir animasyon bütün kartları aynı döngüde tutar (kart başına gecikme her kartın döngüsünü
- * kaydırırdı).
- *
- * Hareket azaltılmışsa temel.css animasyonu kapatır: `--zaman` başlangıç değerinde (6) kalır ve
- * çizelge dolu görünür. @property'yi tanımayan tarayıcıda hesap geçersiz olur, kartlar yine yerinde.
- */
-@property --zaman {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 6;
-}
-@keyframes zaman {
-  from {
-    --zaman: 0;
-  }
-  to {
-    --zaman: 9;
-  }
-}
-
-.izgara {
+/* Kareler ızgaranın üst kenarından girer; dışarı taşıp başlığın üstünden geçmez. */
+.kareler {
   display: grid;
-  grid-template-columns: 2rem repeat(5, minmax(0, 1fr));
-  grid-auto-rows: minmax(2.1rem, auto);
-  gap: 0.3rem;
-  overflow: hidden;
-  animation: zaman 9s linear infinite;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.45em;
+  overflow: clip;
 }
-.gun,
-.saat {
-  display: grid;
-  place-items: center;
-  font-size: 0.7rem;
-  font-weight: var(--yazi-baslik-agirligi);
-  color: var(--renk-metin-ikincil);
-}
-.gun {
-  min-height: 1.5rem;
-}
-.bosHucre {
-  border: 1.5px dashed var(--renk-kenar-alan);
-  border-radius: 8px;
-  opacity: 0.5;
-}
-.hucre {
-  display: grid;
-}
-
-.dersKarti {
-  --k: clamp(0, calc((var(--d) + 0.5 - var(--zaman)) / 0.5), 1); /* 1 = yukarıda, 0 = yerinde */
+.kare {
+  --k: clamp(0, calc((var(--d) + 0.35 - var(--zaman)) / 0.35), 1); /* 1 = yukarıda, 0 = yerinde */
   --s: calc(1 - var(--k));
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: var(--yazi-baslik-agirligi);
-  white-space: nowrap;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  transform: translateY(calc((1 - var(--s) * var(--s)) * -160%)); /* yerçekimi gibi hızlanarak */
+  opacity: min(calc(var(--s) * 3), clamp(0, calc((5.9 - var(--zaman)) / 0.4), 1));
+}
+.ilerleme {
+  height: 0.55em;
+  border-radius: var(--kose-hap);
+  background: var(--renk-tanitim-ikon-zemin);
   overflow: hidden;
-  text-overflow: ellipsis;
-  transform: translateY(calc((1 - var(--s) * var(--s)) * -180%)); /* yerçekimi gibi hızlanarak */
-  opacity: min(calc(var(--s) * 3), clamp(0, calc((8.3 - var(--zaman)) / 0.6), 1));
 }
-.dersKarti[data-ders="mat"] {
-  background: var(--renk-ders-mat);
-  color: var(--renk-ders-mat-metin);
+.ilerleme span {
+  display: block;
+  height: 100%;
+  width: calc(clamp(0, var(--zaman) / 4, 1) * 100%);
+  border-radius: inherit;
+  background: var(--renk-tanitim-nokta);
 }
-.dersKarti[data-ders="fizik"] {
-  background: var(--renk-ders-fizik);
-  color: var(--renk-ders-fizik-metin);
+.olcumler {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  margin: auto 0 0;
 }
-.dersKarti[data-ders="turkce"] {
-  background: var(--renk-ders-turkce);
-  color: var(--renk-ders-turkce-metin);
+.olcumler div {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.55em 0.8em;
+  border-radius: 12px;
+  background: var(--renk-tanitim-ikon-zemin);
 }
-.dersKarti[data-ders="tarih"] {
-  background: var(--renk-ders-tarih);
-  color: var(--renk-ders-tarih-metin);
+.olcumler dt {
+  color: var(--renk-tanitim-ikincil);
 }
-.dersKarti[data-ders="ing"] {
-  background: var(--renk-ders-ing);
-  color: var(--renk-ders-ing-metin);
-}
-.dersKarti[data-ders="kimya"] {
-  background: var(--renk-ders-kimya);
-  color: var(--renk-ders-kimya-metin);
+.olcumler dd {
+  margin: 0;
+  font-weight: 800;
 }
 
-.ozellikler {
+/* Alttaki üç hap etiket. */
+.etiketler {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--bosluk-4);
-  max-width: 44rem;
-}
-.ozellikler li {
   display: flex;
-  flex-direction: column;
-  gap: var(--bosluk-1);
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--bosluk-2);
+}
+.etiketler li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  padding: var(--bosluk-2) var(--bosluk-4);
+  border-radius: var(--kose-hap);
+  background: var(--renk-zemin);
+  color: var(--renk-metin);
   font-size: var(--yazi-kucuk);
-  color: var(--renk-tanitim-ikincil);
+  font-weight: var(--yazi-kalin);
+  box-shadow: var(--golge);
 }
-.ozellikler strong {
-  color: var(--renk-tanitim-metin);
-  font-size: var(--yazi-normal);
-}
-.ozellikIkonu {
-  display: grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  margin-bottom: var(--bosluk-1);
-  border-radius: 12px;
-  background: var(--renk-tanitim-ikon-zemin);
-  color: var(--renk-tanitim-nokta);
-}
-.ozellikIkonu svg {
-  width: 1.3rem;
-  height: 1.3rem;
+.etiketler svg {
+  width: 1.1em;
+  height: 1.1em;
+  color: var(--renk-birincil);
 }
 
-/* Tablet: panel dar kalır; özellikler alt alta, çizelge sıkışır ki ders adları sığsın. */
-@media (max-width: 64rem) {
-  .ozellikler {
-    grid-template-columns: 1fr;
-  }
-  .ornek {
-    padding: var(--bosluk-3);
-  }
-  .izgara {
-    grid-template-columns: 1rem repeat(5, minmax(0, 1fr));
-    gap: 0.2rem;
-  }
-  .dersKarti {
-    font-size: 0.65rem;
+/* 1280 px altı: telefonlar %85. */
+@media (max-width: 80rem) {
+  .telefonlar {
+    zoom: 0.85;
   }
 }
-
-/* Tablet ile telefon arası (720 px üstü, yan yana) en dar hâl. */
-@media (max-width: 56rem) {
-  .panel {
-    padding: var(--bosluk-4);
+/* 1080 px altı: yalnızca ortadaki telefon. */
+@media (max-width: 67.5rem) {
+  .yanTelefon {
+    display: none;
   }
 }
 
@@ -369,18 +708,7 @@
     padding: var(--bosluk-3) 0 var(--bosluk-2);
   }
   .panel {
-    border-radius: 22px;
-    padding: var(--bosluk-5);
-  }
-  /* Panel tam genişlikte: tabletteki sıkıştırma geri alınır. */
-  .ornek {
-    padding: var(--bosluk-4);
-  }
-  .izgara {
-    grid-template-columns: 1.5rem repeat(5, minmax(0, 1fr));
-    gap: 0.3rem;
-  }
-  .dersKarti {
-    font-size: 0.75rem;
+    border-radius: var(--kose-kart);
+    padding: var(--bosluk-5) var(--bosluk-4);
   }
 }

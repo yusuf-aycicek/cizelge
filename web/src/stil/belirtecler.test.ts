@@ -90,6 +90,12 @@ const METIN_CIFTLERI: [string, string][] = [
   ["renk-tanitim-metin", "renk-tanitim-zemin"],
   ["renk-tanitim-ikincil", "renk-tanitim-zemin"],
   ["renk-tanitim-metin", "renk-tanitim-ikon-zemin"],
+  ["renk-tanitim-ikincil", "renk-tanitim-ikon-zemin"], // hazırlanan programın ölçümleri
+  ["renk-metin", "renk-panel"],
+  ["renk-metin-ikincil", "renk-panel"],
+  ["renk-basari-dugme-metin", "renk-basari"], // "Hoş geldiniz" düğmesi
+  ["renk-birincil-metin", "renk-birincil"],
+  ["renk-metin-ikincil", "renk-yuzey"], // öğretmen telefonundaki "Bugün" kutusu
   ...["mat", "fizik", "turkce", "tarih", "ing", "kimya"].map((d): [string, string] => [`renk-ders-${d}-metin`, `renk-ders-${d}`]),
 ];
 

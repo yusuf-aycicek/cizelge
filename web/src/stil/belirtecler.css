@@ -95,6 +95,8 @@
   --renk-tehlike-koyu: #8f1c13;
   --renk-tehlike-metin: #ffffff;
   --renk-basari: #166534;
+  --renk-basari-dugme-metin: #ffffff; /* başarı rengindeki düğmenin yazısı */
+  --renk-telefon-cerceve: #1e1838; /* tanıtımdaki telefonların kasası */
   --renk-odak: #5b3fd9;
 
   /* bildirim ve uyarı kutuları: koyu metin, açık zemin */
@@ -229,6 +231,8 @@
   --renk-tehlike-koyu: #ffc2ba;
   --renk-tehlike-metin: #2a0a06;
   --renk-basari: #6ee7a8;
+  --renk-basari-dugme-metin: #0b2a18;
+  --renk-telefon-cerceve: #0b0a14;
   --renk-odak: #a78bfa;
 
   --renk-basari-zemin: #12301f;

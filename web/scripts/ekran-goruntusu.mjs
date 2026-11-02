@@ -539,7 +539,6 @@ AKISLAR["giris"] = async (tarayici, kaydet) => {
     const s = await baglam.newPage();
     await s.goto(ADRES + "/giris");
     await s.getByRole("heading", { name: "Tekrar hoş geldiniz" }).waitFor();
-    if (!secenek.reducedMotion) await s.waitForTimeout(6000); // kartlar yerleşsin, solmadan önce
     await kaydet(s, dosya, viewport === TELEFON);
     await baglam.close();
   }
@@ -1204,7 +1203,9 @@ if (akis) {
       await sayfa.waitForTimeout(300);
       // Tam sayfa görüntüsünde yapışkan üst çubuk o anki kaydırma yerinde çizilir: önce başa dön.
       if (tamSayfa) await sayfa.evaluate(() => window.scrollTo(0, 0));
-      await sayfa.screenshot({ path: resolve(hedef, dosya), fullPage: tamSayfa });
+      // "disabled": sonsuz animasyonlar durur, öğeler animasyonsuz (son, dolu) hâlleriyle çekilir;
+      // sonlular bitmiş hâline atlar. Uygulamadaki animasyon değişmez, yalnızca görüntü sabitlenir.
+      await sayfa.screenshot({ path: resolve(hedef, dosya), fullPage: tamSayfa, animations: "disabled" });
       console.log(`docs/ekranlar/${klasor}/${dosya}`);
     });
   } finally {
