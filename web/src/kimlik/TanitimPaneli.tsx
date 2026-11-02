@@ -45,61 +45,64 @@ const OZELLIKLER = [
 export function TanitimPaneli() {
   return (
     <aside className={stil.panel} aria-label="Çizelge'nin tanıtımı">
-      <p className={stil.etiket}>
-        <span className={stil.nokta} aria-hidden="true" />
-        PROGRAM HAZIRLANIYOR
-      </p>
-      <h2 className={stil.panelBasligi}>Dersleri girin, çakışmasız haftalık program saniyeler içinde yerleşsin.</h2>
+      {/* İçerik grubu panelin içinde ortalanır; yazılar soldan hizalı kalır. */}
+      <div className={stil.panelIcerik}>
+        <p className={stil.etiket}>
+          <span className={stil.nokta} aria-hidden="true" />
+          PROGRAM HAZIRLANIYOR
+        </p>
+        <h2 className={stil.panelBasligi}>Dersleri girin, çakışmasız haftalık program saniyeler içinde yerleşsin.</h2>
 
-      <figure className={stil.ornek}>
-        <figcaption className={stil.ornekBasligi}>
-          <span>
-            <strong>9-A Şubesi</strong> · Haftalık program
-          </span>
-          <span className={stil.rozet}>Çakışma yok</span>
-        </figcaption>
-        <div className={stil.izgara} role="img" aria-label="Örnek haftalık program: 5 gün, günde 5 ders saati, çakışma yok">
-          <span aria-hidden="true" />
-          {GUNLER.map((g) => (
-            <span key={g} className={stil.gun} aria-hidden="true">
-              {g}
+        <figure className={stil.ornek}>
+          <figcaption className={stil.ornekBasligi}>
+            <span>
+              <strong>9-A Şubesi</strong> · Haftalık program
             </span>
-          ))}
-          {CIZELGE.map((satir, s) => [
-            <span key={`s${s}`} className={stil.saat} aria-hidden="true">
-              {s + 1}
-            </span>,
-            ...satir.map((ders, g) => {
-              const hucre = s * 5 + g;
-              if (!ders) return <span key={hucre} className={stil.bosHucre} aria-hidden="true" />;
-              const d = ILK_DUSUS_SN + (SIRA[hucre] ?? 0) * DUSUS_ARALIGI_SN;
-              return (
-                <span key={hucre} className={stil.hucre} aria-hidden="true">
-                  <span
-                    className={stil.dersKarti}
-                    data-ders={ders}
-                    style={{ "--d": d.toFixed(2) } as CSSProperties}
-                  >
-                    {DERS_ADLARI[ders]}
+            <span className={stil.rozet}>Çakışma yok</span>
+          </figcaption>
+          <div className={stil.izgara} role="img" aria-label="Örnek haftalık program: 5 gün, günde 5 ders saati, çakışma yok">
+            <span aria-hidden="true" />
+            {GUNLER.map((g) => (
+              <span key={g} className={stil.gun} aria-hidden="true">
+                {g}
+              </span>
+            ))}
+            {CIZELGE.map((satir, s) => [
+              <span key={`s${s}`} className={stil.saat} aria-hidden="true">
+                {s + 1}
+              </span>,
+              ...satir.map((ders, g) => {
+                const hucre = s * 5 + g;
+                if (!ders) return <span key={hucre} className={stil.bosHucre} aria-hidden="true" />;
+                const d = ILK_DUSUS_SN + (SIRA[hucre] ?? 0) * DUSUS_ARALIGI_SN;
+                return (
+                  <span key={hucre} className={stil.hucre} aria-hidden="true">
+                    <span
+                      className={stil.dersKarti}
+                      data-ders={ders}
+                      style={{ "--d": d.toFixed(2) } as CSSProperties}
+                    >
+                      {DERS_ADLARI[ders]}
+                    </span>
                   </span>
-                </span>
-              );
-            }),
-          ])}
-        </div>
-      </figure>
+                );
+              }),
+            ])}
+          </div>
+        </figure>
 
-      <ul className={stil.ozellikler}>
-        {OZELLIKLER.map(({ ikon: Ikon, baslik, metin }) => (
-          <li key={baslik}>
-            <span className={stil.ozellikIkonu} aria-hidden="true">
-              <Ikon strokeWidth={1.75} />
-            </span>
-            <strong>{baslik}</strong>
-            <span>{metin}</span>
-          </li>
-        ))}
-      </ul>
+        <ul className={stil.ozellikler}>
+          {OZELLIKLER.map(({ ikon: Ikon, baslik, metin }) => (
+            <li key={baslik}>
+              <span className={stil.ozellikIkonu} aria-hidden="true">
+                <Ikon strokeWidth={1.75} />
+              </span>
+              <strong>{baslik}</strong>
+              <span>{metin}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </aside>
   );
 }
