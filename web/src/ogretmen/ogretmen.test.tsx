@@ -96,7 +96,7 @@ describe("öğretmen sayfası", () => {
   it("öğretmen listesinde ad, öğretmenin sayfasına bağlantıdır", async () => {
     apiKur();
     uygulamayiCiz("/ogretmenler");
-    // Üst çubuktaki "Hesabım" bağlantısı da (giriş yapan müdürün adı) Ayşe Yılmaz: tablonun içine bakılır.
+    // Giriş yapan müdürün adı da Ayşe Yılmaz (üst çubuktaki hesap menüsü): tablonun içine bakılır.
     const tablo = await screen.findByRole("table", { name: "Öğretmenler" });
     expect(await within(tablo).findByRole("link", { name: /Ayşe Yılmaz/ })).toHaveAttribute("href", "/ogretmenler/o1");
   });

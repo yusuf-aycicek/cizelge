@@ -71,6 +71,9 @@ const METIN_CIFTLERI: [string, string][] = [
   ["renk-menu-metin", "renk-menu-zemin"],
   ["renk-menu-metin", "renk-menu-zemin-alt"],
   ["renk-menu-metin", "renk-menu-vurgu"],
+  ["renk-menu-baslik", "renk-menu-zemin"],
+  ["renk-menu-baslik", "renk-menu-zemin-alt"],
+  ["renk-metin-ikincil", "renk-ust-zemin"], // üst çubuktaki okul adı
   ["renk-menu-aktif-metin", "renk-menu-aktif-zemin"],
   ["renk-menu-aktif-metin", "renk-menu-aktif-zemin-2"],
   // Sayfa başlığı bandı: geçişin her durağında beyaz yazı okunaklı.

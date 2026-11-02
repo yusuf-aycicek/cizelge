@@ -7,7 +7,7 @@
  * yeniden hesaplar, önizlemedekinden farklıysa (veri arada değiştiyse) kaydetmez.
  */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Download, FileUp } from "lucide-react";
+import { Download } from "lucide-react";
 import { useRef, useState } from "react";
 import { cagir, hataMetni } from "../api/hata";
 import { api } from "../api/istemci";
@@ -120,7 +120,7 @@ export function IceAktarmaSayfasi() {
 
   return (
     <>
-      <SayfaBasligi ikon={FileUp} baslik="Excel'den içe aktar">
+      <SayfaBasligi baslik="Excel'den içe aktar">
         Öğretmenleri, sınıfları, dersleri ve ders dağılımını bir Excel dosyasından ekleyin ya da güncelleyin.
       </SayfaBasligi>
 

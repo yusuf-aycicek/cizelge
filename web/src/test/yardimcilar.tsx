@@ -1,5 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { sorguIstemcisiOlustur } from "../sorgu";
@@ -20,4 +20,15 @@ export function uygulamayiCiz(adres = "/") {
     </MemoryRouter>,
   );
   return { kullanici, ...sonuc };
+}
+
+/** Üst çubuktaki hesap menüsünü (baş harfli düğme) açar; Hesabım ve Çıkış oradadır. */
+export async function hesapMenusunuAc(kullanici: ReturnType<typeof userEvent.setup>) {
+  await kullanici.click(await screen.findByRole("button", { name: /^Hesap: / }));
+}
+
+/** Hesap menüsünden çıkış yapar. */
+export async function cikisYap(kullanici: ReturnType<typeof userEvent.setup>) {
+  await hesapMenusunuAc(kullanici);
+  await kullanici.click(screen.getByRole("button", { name: "Çıkış" }));
 }

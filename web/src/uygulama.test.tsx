@@ -3,7 +3,7 @@ import { screen, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import { BAGLANTI_HATASI } from "./api/hata";
-import { MENU } from "./cerceve/Cerceve";
+import { MENU } from "./cerceve/menu";
 import { oturumYok, sunucu } from "./test/sunucu";
 import { uygulamayiCiz } from "./test/yardimcilar";
 import { readFileSync } from "node:fs";
@@ -85,6 +85,36 @@ describe("çerçeve", () => {
     expect(dugme).toHaveAttribute("aria-expanded", "true");
     await kullanici.click(screen.getByRole("link", { name: "Dersler" }));
     expect(dugme).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("menü OKUL, DAĞITIM ve PROGRAM bölümlerine ayrılır; sayfa başlığının etiketi bölümdür", async () => {
+    uygulamayiCiz("/ders-dagilimi");
+    const menu = await screen.findByRole("navigation", { name: "Ana menü" });
+    const okul = within(menu).getByRole("list", { name: "OKUL" });
+    expect(within(okul).getAllByRole("link").map((b) => b.textContent)).toEqual(["Okul ayarları", "Öğretmenler", "Sınıflar", "Dersler", "Excel'den aktar"]);
+    expect(within(within(menu).getByRole("list", { name: "DAĞITIM" })).getAllByRole("link")).toHaveLength(2);
+    expect(within(within(menu).getByRole("list", { name: "PROGRAM" })).getAllByRole("link")).toHaveLength(2);
+    // Ana sayfa en üstte, Kullanıcılar en altta
+    const baglantilar = within(menu).getAllByRole("link");
+    expect(baglantilar[0]).toHaveTextContent("Ana sayfa");
+    expect(baglantilar[baglantilar.length - 1]).toHaveTextContent("Kullanıcılar");
+    const baslik = await screen.findByRole("heading", { level: 1, name: "Ders dağılımı" });
+    expect(baslik.previousElementSibling).toHaveTextContent("DAĞITIM");
+  });
+
+  it("hesap menüsü baş harfli düğmeyle açılır, Esc kapatır ve odağı düğmeye geri verir", async () => {
+    const { kullanici } = uygulamayiCiz("/");
+    const avatar = await screen.findByRole("button", { name: "Hesap: Ayşe Yılmaz" });
+    expect(avatar).toHaveTextContent("AY");
+    expect(screen.queryByRole("link", { name: "Hesabım" })).not.toBeInTheDocument();
+    await kullanici.click(avatar);
+    expect(avatar).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("link", { name: "Hesabım" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Çıkış" })).toBeInTheDocument();
+    await kullanici.keyboard("{Escape}");
+    expect(avatar).toHaveAttribute("aria-expanded", "false");
+    expect(avatar).toHaveFocus();
+    expect(screen.queryByRole("link", { name: "Hesabım" })).not.toBeInTheDocument();
   });
 
   it("bilinmeyen adres anlaşılır sayfa gösterir", async () => {

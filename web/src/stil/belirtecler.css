@@ -29,10 +29,11 @@
   --renk-ust-zemin: #f5f3fb;
   --renk-ust-metin: #1e1838;
   --renk-ust-vurgu: #e9e4f7;      /* üst çubukta üzerine gelinen düğme */
-  --renk-menu-zemin: #1e1838;
-  --renk-menu-zemin-alt: #17122d;
-  --renk-menu-metin: #e4e0f5;
-  --renk-menu-vurgu: #2e2752;     /* üzerine gelinen menü öğesi */
+  --renk-menu-zemin: #fbfaff;     /* yan menü: sayfadan bir ton açık */
+  --renk-menu-zemin-alt: #f5f3fb;
+  --renk-menu-metin: #2d2650;
+  --renk-menu-baslik: #6a6388;    /* OKUL, DAĞITIM, PROGRAM bölüm başlıkları */
+  --renk-menu-vurgu: #ece8f8;     /* üzerine gelinen menü öğesi */
   --renk-menu-aktif-zemin: #5b3fd9;
   --renk-menu-aktif-zemin-2: #5b3fd9;
   --renk-menu-aktif-metin: #ffffff;
@@ -181,10 +182,11 @@
   --renk-ust-zemin: #131120;
   --renk-ust-metin: #f2f0fa;
   --renk-ust-vurgu: #24203c;
-  --renk-menu-zemin: #100e1c;
-  --renk-menu-zemin-alt: #0b0a14;
-  --renk-menu-metin: #e4e0f5;
-  --renk-menu-vurgu: #221e38;
+  --renk-menu-zemin: #16142a;
+  --renk-menu-zemin-alt: #131120;
+  --renk-menu-metin: #d6d1ec;
+  --renk-menu-baslik: #9a93b8;
+  --renk-menu-vurgu: #24203c;
   --renk-menu-aktif-zemin: #8b73f5;
   --renk-menu-aktif-zemin-2: #8b73f5;
   --renk-menu-aktif-metin: #120d2a;

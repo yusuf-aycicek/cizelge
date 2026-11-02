@@ -110,6 +110,7 @@ const AKISLAR = {
     await s.getByText("Mevcut parola hatalı").waitFor();
     await kaydet(s, "6-hesabim-hatali-parola.png", true);
 
+    await s.getByRole("button", { name: /^Hesap: / }).click();
     await s.getByRole("button", { name: "Çıkış" }).click();
     await s.getByText("Çıkış yaptınız.").waitFor();
     await kaydet(s, "7-cikis.png");

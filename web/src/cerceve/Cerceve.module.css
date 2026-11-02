@@ -1,6 +1,6 @@
 /* Masaüstü: solda menü, üstte ince çubuk. Dar ekran (< 48rem): menü düğmeyle açılır. */
 .cerceve {
-  --ust-yuksekligi: 3.75rem;
+  --ust-yuksekligi: 4rem;
   display: grid;
   /* minmax(0, 1fr): 1fr'nin alt sınırı içeriktir; geniş bir tablo içerik sütununu ve sayfayı taşırırdı. */
   grid-template-columns: var(--menu-genisligi) minmax(0, 1fr);
@@ -18,11 +18,13 @@
   z-index: 200;
   background: var(--renk-zemin);
   padding: var(--bosluk-2) var(--bosluk-4);
-  border-radius: var(--kose);
+  border-radius: var(--kose-hap);
 }
 .icerigeGec:focus {
   top: var(--bosluk-2);
 }
+
+/* --- üst çubuk --------------------------------------------------------------------------------- */
 
 .ust {
   grid-area: ust;
@@ -31,7 +33,8 @@
   gap: var(--bosluk-3);
   padding: var(--bosluk-2) var(--bosluk-5);
   min-height: var(--ust-yuksekligi);
-  background: var(--renk-ust-zemin);
+  background: color-mix(in srgb, var(--renk-ust-zemin) 85%, transparent);
+  backdrop-filter: blur(10px);
   color: var(--renk-ust-metin);
   border-bottom: 1px solid var(--renk-kenar);
   position: sticky;
@@ -43,14 +46,19 @@
   display: inline-flex;
   align-items: center;
   gap: var(--bosluk-2);
-  font-weight: var(--yazi-baslik-agirligi);
+  color: inherit;
+  text-decoration: none;
+  font-family: var(--yazi-baslik-ailesi);
+  font-weight: 800;
+  letter-spacing: var(--yazi-baslik-aralik);
   font-size: var(--yazi-buyuk);
+  border-radius: var(--kose-hap);
 }
 .urunIkonu {
-  width: 1.9rem;
-  height: 1.9rem;
-  padding: 0.35rem;
-  border-radius: var(--kose);
+  width: 2rem;
+  height: 2rem;
+  padding: 0.4rem;
+  border-radius: 10px;
   background: var(--renk-birincil);
   color: var(--renk-birincil-metin);
 }
@@ -64,7 +72,7 @@
   margin-inline-start: auto;
   display: flex;
   align-items: center;
-  gap: var(--bosluk-4);
+  gap: var(--bosluk-3);
   min-width: 0;
 }
 /* Çerçeve üst çubuğun yazı renginden: iki temada da görünür. */
@@ -76,36 +84,91 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--renk-metin-ikincil);
 }
-.hesap {
-  color: inherit;
-  white-space: nowrap;
-  text-decoration: none;
-  padding: var(--bosluk-1) var(--bosluk-2);
-  border-radius: var(--kose-hap);
-  transition: background-color var(--sure-kisa) var(--egri);
+
+/* Baş harfli yuvarlak düğme ve açılan hesap menüsü. */
+.hesapKutusu {
+  position: relative;
 }
-.hesap:hover {
-  background: var(--renk-ust-vurgu);
+.avatar {
+  display: grid;
+  place-items: center;
+  width: var(--dokunma-hedefi);
+  height: var(--dokunma-hedefi);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--renk-birincil);
+  color: var(--renk-birincil-metin);
+  font-weight: 800;
+  font-size: var(--yazi-kucuk);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform var(--sure-kisa) var(--egri), box-shadow var(--sure-kisa) var(--egri);
 }
-.rol {
-  opacity: 0.8;
+.avatar:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--golge-uzerine);
 }
-.cikis {
-  display: inline-flex;
+.avatar[aria-expanded="true"] {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--renk-birincil) 30%, transparent);
+}
+.hesapPaneli {
+  position: absolute;
+  top: calc(100% + var(--bosluk-2));
+  right: 0;
+  z-index: 60;
+  min-width: 14rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-1);
+  padding: var(--bosluk-2);
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose-kart);
+  background: var(--renk-zemin);
+  color: var(--renk-metin);
+  box-shadow: var(--golge-pencere);
+  animation: panelAcil var(--sure) var(--egri);
+}
+.hesapPaneli[hidden] {
+  display: none;
+}
+@keyframes panelAcil {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+.hesapAdi {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 var(--bosluk-1);
+  padding: var(--bosluk-2) var(--bosluk-3) var(--bosluk-3);
+  border-bottom: 1px solid var(--renk-kenar);
+  line-height: 1.3;
+}
+.hesapAdi span {
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-metin-ikincil);
+}
+.hesapOgesi {
+  display: flex;
   align-items: center;
-  gap: var(--bosluk-2);
+  gap: var(--bosluk-3);
   min-height: var(--dokunma-hedefi);
   padding: 0 var(--bosluk-3);
-  border: 1px solid var(--renk-kenar);
+  border: 0;
   border-radius: var(--kose-hap);
   background: transparent;
   color: inherit;
+  font: inherit;
+  text-decoration: none;
+  text-align: start;
   cursor: pointer;
-  transition: background-color var(--sure-kisa) var(--egri);
 }
-.cikis:hover {
-  background: var(--renk-ust-vurgu);
+.hesapOgesi:hover {
+  background: var(--renk-yuzey);
 }
 
 .menuDugmesi {
@@ -121,32 +184,53 @@
   cursor: pointer;
 }
 
+/* --- yan menü ---------------------------------------------------------------------------------- */
+
 .menu {
   grid-area: menu;
   background: linear-gradient(180deg, var(--renk-menu-zemin), var(--renk-menu-zemin-alt));
   color: var(--renk-menu-metin);
+  border-inline-end: 1px solid var(--renk-kenar);
   padding: var(--bosluk-4) var(--bosluk-3);
 }
-.menu ul {
+/* Masaüstünde sayfa kaydırılınca menü görünümde kalır. Menü sütunu (zemini, kenarı) sayfa boyu
+   uzar; yapışan yalnızca içerik. Üst çubuğun altında durur; ekrandan uzunsa kendi içinde kayar. */
+.menuIcerik {
+  position: sticky;
+  top: calc(var(--ust-yuksekligi) + var(--bosluk-4));
+  max-height: calc(100vh - var(--ust-yuksekligi) - 2 * var(--bosluk-4));
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-4);
+}
+.bolum ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--bosluk-1);
-  /* Masaüstünde sayfa kaydırılınca menü görünümde kalır. Menü sütunu (zemini, kenarı) sayfa boyu
-     uzar; yapışan yalnızca liste. Üst çubuğun altında durur; ekrandan uzunsa kendi içinde kayar. */
-  position: sticky;
-  top: calc(var(--ust-yuksekligi) + var(--bosluk-4));
-  max-height: calc(100vh - var(--ust-yuksekligi) - 2 * var(--bosluk-4));
-  overflow-y: auto;
+  gap: 2px;
+}
+.bolumBasligi {
+  margin: 0 0 var(--bosluk-1);
+  padding: 0 var(--bosluk-3);
+  font-size: 0.7rem;
+  font-weight: var(--yazi-kalin);
+  letter-spacing: 0.12em;
+  color: var(--renk-menu-baslik);
+}
+/* Kullanıcılar menünün altında, ince bir çizgiyle ayrı. */
+.altBolum {
+  padding-top: var(--bosluk-3);
+  border-top: 1px solid var(--renk-kenar);
 }
 
 .baglanti {
   display: flex;
   align-items: center;
   gap: var(--bosluk-3);
-  min-height: var(--dokunma-hedefi);
+  min-height: 2.5rem;
   padding: 0 var(--bosluk-3);
   border-radius: var(--kose-hap);
   color: var(--renk-menu-metin);
@@ -161,11 +245,13 @@
   transform: scale(0.98);
 }
 .baglanti[aria-current="page"] {
-  background: linear-gradient(90deg, var(--renk-menu-aktif-zemin), var(--renk-menu-aktif-zemin-2));
+  background: var(--renk-menu-aktif-zemin);
   color: var(--renk-menu-aktif-metin);
   font-weight: var(--yazi-kalin);
-  box-shadow: inset 3px 0 0 var(--renk-menu-aktif-cizgi), 0 2px 8px rgb(0 0 0 / 0.35);
+  box-shadow: var(--golge-uzerine);
 }
+
+/* --- içerik ------------------------------------------------------------------------------------ */
 
 .icerik {
   grid-area: icerik;
@@ -177,14 +263,14 @@
   outline: none;
 }
 
-/* Sayfa geçişi: yeni sayfa hafifçe solarak ve yukarı kayarak gelir. */
+/* Sayfa geçişi: yeni sayfa 0.2 sn'de solarak ve hafifçe yukarı kayarak gelir. */
 .sayfa {
-  animation: sayfaGir var(--sure-uzun) var(--egri);
+  animation: sayfaGir 0.2s var(--egri);
 }
 @keyframes sayfaGir {
   from {
     opacity: 0;
-    transform: translateY(0.375rem);
+    transform: translateY(8px);
   }
 }
 
@@ -204,11 +290,13 @@
   }
   .menu {
     display: none;
+    border-inline-end: 0;
+    border-bottom: 1px solid var(--renk-kenar);
   }
   .menu.acik {
     display: block;
   }
-  .menu ul {
+  .menuIcerik {
     position: static;
     max-height: none;
   }
@@ -217,10 +305,7 @@
   }
   .ust {
     padding-inline: var(--bosluk-4);
-    flex-wrap: wrap;
   }
-  .urun,
-  .rol,
   .okulAdi {
     display: none;
   }

@@ -6,7 +6,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it, vi } from "vitest";
 import { BEN_ORNEK, oturumGerekli, oturumYok, sunucu } from "../test/sunucu";
-import { uygulamayiCiz } from "../test/yardimcilar";
+import { cikisYap, hesapMenusunuAc, uygulamayiCiz } from "../test/yardimcilar";
 import { SURE_DOLDU_MESAJI } from "./KorumaliAlan";
 
 const PAROLA = "dogru-at-pil-zimba";
@@ -42,7 +42,8 @@ describe("korumalı sayfalar ve giriş", () => {
     expect(govdeler).toEqual([{ email: "ayse@okul.test", sifre: PAROLA }]);
     // Üst çubukta okul ve kullanıcı
     expect(screen.getByText("Çizelge Örnek Anadolu Lisesi")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Ayşe Yılmaz/ })).toHaveAttribute("href", "/hesabim");
+    await hesapMenusunuAc(kullanici);
+    expect(screen.getByRole("link", { name: "Hesabım" })).toHaveAttribute("href", "/hesabim");
   });
 
   it("boş alanla sunucuya gidilmez: mesaj düğmenin üstünde, ilk boş alana odaklanılır", async () => {
@@ -179,7 +180,7 @@ describe("oturum süresinin dolması ve çıkış", () => {
       }),
     );
     const { kullanici } = uygulamayiCiz("/");
-    await kullanici.click(await screen.findByRole("button", { name: "Çıkış" }));
+    await cikisYap(kullanici);
     expect(await screen.findByText("Çıkış yaptınız.")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1, name: "Tekrar hoş geldiniz" })).toBeInTheDocument();
   });
@@ -187,7 +188,8 @@ describe("oturum süresinin dolması ve çıkış", () => {
   it("sunucuya ulaşılamasa da çıkış yapılmış sayılır", async () => {
     sunucu.use(http.post("/api/cikis", () => HttpResponse.error()));
     const { kullanici } = uygulamayiCiz("/");
-    const cikis = await screen.findByRole("button", { name: "Çıkış" });
+    await hesapMenusunuAc(kullanici);
+    const cikis = screen.getByRole("button", { name: "Çıkış" });
     oturumYok(); // bundan sonra sunucu kullanıcıyı tanımıyor
     await kullanici.click(cikis);
     expect(await screen.findByRole("heading", { level: 1, name: "Tekrar hoş geldiniz" })).toBeInTheDocument();

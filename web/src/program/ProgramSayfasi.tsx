@@ -1,8 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  CalendarRange, Check, CircleAlert, CircleX, History, Hourglass, LoaderCircle, RotateCcw, Share2, Sparkles, TableProperties, WandSparkles,
-  X,
-} from "lucide-react";
+import { Check, CircleAlert, CircleX, History, Hourglass, LoaderCircle, RotateCcw, Share2, Sparkles, TableProperties, WandSparkles, X } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { hataMetni } from "../api/hata";
@@ -63,7 +60,7 @@ export function ProgramSayfasi() {
 
   return (
     <>
-      <SayfaBasligi ikon={CalendarRange} baslik="Program">
+      <SayfaBasligi baslik="Program">
         Ders dağılımına ve kurallara göre, hiçbir öğretmenin ve şubenin aynı saatte iki yerde olmadığı haftalık
         programı oluşturun.
       </SayfaBasligi>

@@ -4,7 +4,6 @@ import { OgretmenAdi } from "../bilesenler/OgretmenRozeti";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router";
 import stil from "./Liste.module.css";
-import { BookOpen, GraduationCap, School } from "lucide-react";
 import { hataMetni } from "../api/hata";
 import { useBildirim } from "../bilesenler/Bildirim";
 import { DersCipi } from "../dersler/DersCipi";
@@ -42,7 +41,6 @@ export function OgretmenlerSayfasi() {
           </Link>
         ) : undefined
       }
-      ikon={GraduationCap}
       baslik="Öğretmenler"
       aciklama="Okulunuzdaki öğretmenler. Bir öğretmenin adına tıklayınca kişisel ayarları ve müsaitlik çizelgesi açılır. Hangi derse kimin gireceğini Ders dağılımı sayfasında seçeceksiniz."
       tekil="Öğretmen"
@@ -72,7 +70,6 @@ export function SiniflarSayfasi() {
         },
       ]}
       ekBolum={<SubeGruplariBolumu siniflar={siniflar.data ?? []} />}
-      ikon={School}
       baslik="Sınıflar"
       aciklama="Okulunuzdaki şubeler. Seviye, seviye şablonunu aynı seviyedeki bütün şubelere uygulamak için kullanılır. Aynı seviyede farklı dersler okuyan şubeleri (ör. 11 Sayısal, 11 Sözel) aşağıda gruplayabilirsiniz."
       tekil="Sınıf"
@@ -133,7 +130,6 @@ export function DerslerSayfasi() {
             ) : null,
         },
       ]}
-      ikon={BookOpen}
       baslik="Dersler"
       aciklama="Okulunuzda okutulan dersler. Her derse otomatik bir renk verilir; dersin her ekranda aynı renkte görünür, isterseniz değiştirebilirsiniz. Dağılım şekli dersin haftalık saatlerinin nasıl bloklara bölüneceğini söyler (ör. 5 saat: 2+2+1, her blok ayrı bir günde art arda); okulun önerisi Okul ayarlarındadır."
       tekil="Ders"

@@ -211,7 +211,7 @@ function LinklerBolumu() {
 export function YayinSayfasi() {
   return (
     <>
-      <SayfaBasligi ikon={Share2} baslik="Yayın ve paylaşım">
+      <SayfaBasligi baslik="Yayın ve paylaşım">
         Programı yayınlayın; öğretmenler ve şubeler kendi programlarını linkle, giriş yapmadan telefondan görsün.
       </SayfaBasligi>
       <YayinBolumu />

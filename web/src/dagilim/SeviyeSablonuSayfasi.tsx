@@ -2,7 +2,6 @@ import { dersIsaretleri } from "../dersler/isaret";
 import { Illustrasyon } from "../bilesenler/Illustrasyon";
 import { DersCipi } from "../dersler/DersCipi";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
-import { Layers } from "lucide-react";
 import { Plus, RotateCcw, WandSparkles, X } from "lucide-react";
 import { Iskelet } from "../bilesenler/Iskelet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -141,7 +140,7 @@ export function SeviyeSablonuSayfasi() {
 
   return (
     <>
-      <SayfaBasligi ikon={Layers} baslik="Seviye şablonu">
+      <SayfaBasligi baslik="Seviye şablonu">
         Bir seviyenin derslerini ve haftalık saatlerini bir kez girin, o seviyedeki bütün şubelere tek seferde
         uygulayın. Öğretmenleri sonra Ders dağılımı sayfasında seçersiniz.
       </SayfaBasligi>

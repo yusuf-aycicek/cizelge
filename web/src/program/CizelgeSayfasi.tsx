@@ -1,6 +1,6 @@
 import { dersIsaretleri } from "../dersler/isaret";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, CalendarRange, Lock } from "lucide-react";
+import { ArrowLeft, Lock } from "lucide-react";
 import { Fragment, useRef, type CSSProperties, type DragEvent, type ReactNode } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import { hataMetni } from "../api/hata";
@@ -61,7 +61,7 @@ export function CizelgeSayfasi() {
   const hatali = sorgular.find((s) => s.isError) ?? (yerlesimler.isError ? yerlesimler : undefined);
 
   const baslik = (
-    <SayfaBasligi ikon={CalendarRange} baslik="Haftalık çizelge">
+    <SayfaBasligi baslik="Haftalık çizelge">
       {program.data ? `“${program.data.ad}” programı. ` : ""}Bir şube ya da öğretmen seçin.
     </SayfaBasligi>
   );

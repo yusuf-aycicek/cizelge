@@ -1,5 +1,4 @@
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
-import { UserRound } from "lucide-react";
 import { KeyRound } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useRef, useState, type FormEvent } from "react";
@@ -55,7 +54,7 @@ export function HesabimSayfasi() {
 
   return (
     <>
-      <SayfaBasligi ikon={UserRound} baslik="Hesabım">Bilgileriniz ve parolanız.</SayfaBasligi>
+      <SayfaBasligi baslik="Hesabım">Bilgileriniz ve parolanız.</SayfaBasligi>
       <section className={stil.kart} aria-labelledby="bilgilerim">
         <h2 id="bilgilerim">Bilgilerim</h2>
         <dl className={stil.durumListesi}>

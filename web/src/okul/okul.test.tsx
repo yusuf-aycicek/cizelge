@@ -3,7 +3,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 import { BEN_ORNEK, ORNEK_KURALLAR, sunucu } from "../test/sunucu";
-import { uygulamayiCiz } from "../test/yardimcilar";
+import { cikisYap, uygulamayiCiz } from "../test/yardimcilar";
 
 const ETKILER = [
   "3 müsaitlik kaydı yeni ayarların dışında kalıyor ve silinecek (2 öğretmen; ör. Ayşe Yılmaz, Cuma 1. saat).",
@@ -393,7 +393,7 @@ describe("çıkışta bildirimler temizlenir", () => {
     const { kullanici } = await ac();
     await kullanici.click(screen.getByRole("button", { name: "Kaydet" }));
     expect(await screen.findByText("Okul bilgileri kaydedildi.")).toBeInTheDocument();
-    await kullanici.click(screen.getByRole("button", { name: "Çıkış" }));
+    await cikisYap(kullanici);
     await waitFor(() => expect(screen.queryByText("Okul bilgileri kaydedildi.")).not.toBeInTheDocument());
   });
 });

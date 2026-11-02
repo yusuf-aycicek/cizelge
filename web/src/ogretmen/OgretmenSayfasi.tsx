@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ChevronLeft, ChevronRight, GraduationCap } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, Navigate, useNavigate, useParams } from "react-router";
 import { cagir, hataMetni } from "../api/hata";
 import { api } from "../api/istemci";
@@ -43,7 +43,7 @@ export function OgretmenSayfasi() {
   if (!ogretmen) {
     return (
       <>
-        <SayfaBasligi ikon={GraduationCap} baslik="Öğretmen bulunamadı">
+        <SayfaBasligi baslik="Öğretmen bulunamadı">
           Bu öğretmen silinmiş ya da başka bir okula ait olabilir.
         </SayfaBasligi>
         <Link to="/ogretmenler">Öğretmen listesine dön</Link>
@@ -55,7 +55,7 @@ export function OgretmenSayfasi() {
 
   return (
     <>
-      <SayfaBasligi ikon={GraduationCap} baslik={ogretmen.ad}>
+      <SayfaBasligi baslik={ogretmen.ad}>
         {ogretmen.brans ? `${ogretmen.brans}. ` : ""}Kişisel ayarlar ve müsaitlik.
       </SayfaBasligi>
       <nav aria-label="Öğretmenler arasında geçiş" className={stil.gecis}>

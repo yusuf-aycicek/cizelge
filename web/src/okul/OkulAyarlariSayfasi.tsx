@@ -1,5 +1,4 @@
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
-import { Settings } from "lucide-react";
 import { Iskelet } from "../bilesenler/Iskelet";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fragment, useState, type FormEvent } from "react";
@@ -54,7 +53,7 @@ export function OkulAyarlariSayfasi() {
 
   return (
     <>
-      <SayfaBasligi ikon={Settings} baslik="Okul ayarları">
+      <SayfaBasligi baslik="Okul ayarları">
         Okulunuzun haftalık düzeni ve program hazırlanırken uyulacak kurallar.
       </SayfaBasligi>
       {(okul.isPending || kurallar.isPending) && <Iskelet satir={4} kart />}

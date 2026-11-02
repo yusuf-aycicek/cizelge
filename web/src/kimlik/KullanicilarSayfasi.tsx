@@ -7,7 +7,7 @@
  * başka bir müdür rol değiştirirse sunucunun 409 mesajı bildirim olarak gösterilir.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { KeyRound, Plus, ShieldCheck, ShieldMinus, Trash2, UserCog } from "lucide-react";
+import { KeyRound, Plus, ShieldCheck, ShieldMinus, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { cagir, hataMetni } from "../api/hata";
@@ -78,7 +78,7 @@ export function KullanicilarSayfasi() {
 
   return (
     <>
-      <SayfaBasligi ikon={UserCog} baslik="Kullanıcılar">
+      <SayfaBasligi baslik="Kullanıcılar">
         Okulun programını düzenleyebilen yöneticiler.
       </SayfaBasligi>
       <section className={sayfaStili.kart} aria-labelledby="yoneticiler">
