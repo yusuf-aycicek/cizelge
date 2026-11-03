@@ -72,3 +72,6 @@ class Ayarlar(BaseSettings):
     # Varsayılan boş: tarayıcıdan gelen hiçbir yazma isteği kabul edilmez; ortam açıkça belirtir.
     # Örnek (geliştirme): OKULAPI_IZINLI_KOKENLER='["http://localhost:5173","http://localhost:8000"]'
     izinli_kokenler: list[str] = []
+    # Derlenmiş arayüzün dizini (web/dist). Verilirse API onu aynı adresten sunar (ADR 0028);
+    # Docker imajı /app/arayuz verir. Boşsa yalnızca API çalışır (geliştirmede arayüzü Vite sunar).
+    arayuz_dizini: str | None = None

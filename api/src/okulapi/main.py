@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 import okulapi.cekirdek.kiraci  # noqa: F401  (okul filtresi olayları kaydolur)
 from okulapi.ayarlar import Ayarlar
 from okulapi.cekirdek import saglik
+from okulapi.cekirdek.arayuz import arayuzu_bagla
 from okulapi.cekirdek.dogrulama_hatalari import dogrulama_hatasi_isleyici, openapi_semasini_uyarla
 from okulapi.cekirdek.api import ROUTERLAR as CEKIRDEK_ROUTERLARI
 from okulapi.cekirdek.modul import modulleri_yukle
@@ -77,4 +78,6 @@ def uygulama_olustur(ayarlar: Ayarlar | None = None) -> FastAPI:
     uygulama.state.modul_adlari = [m.ad for m in moduller]
     uygulama.state.moduller = moduller  # çekirdek kancaları sorar (ADR 0014)
     openapi_semasini_uyarla(uygulama)
+    # En sonda: bilinmeyen her yolu yakalar, API yolları ondan önce eşleşir (ADR 0028).
+    arayuzu_bagla(uygulama, ayarlar.arayuz_dizini)
     return uygulama

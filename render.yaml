@@ -1,5 +1,6 @@
-# Render Blueprint: yayındaki API (ADR 0026). Render panelinde New > Blueprint ile bu dosyadan
-# kurulur. Arayüz Cloudflare Pages'tedir, veritabanı Neon'dadır; burada yalnızca API ve kuyruk var.
+# Render Blueprint: yayındaki servis (ADR 0026, 0028). Render panelinde New > Blueprint ile bu
+# dosyadan kurulur. Arayüz, API ve worker tek web servisinde (imaj arayüzü de derler); veritabanı
+# Neon'dadır.
 #
 # sync: false olan değerler depoya yazılmaz; Render kurulumda panelde sorar (parolalar burada).
 
@@ -36,7 +37,8 @@ services:
         sync: false
       - key: OKULAPI_DEMO_PAROLA  # demo@cizelge.test hesabının parolası; en az 12 karakter. "Demo ile dene" düğmesini de açar (ADR 0027)
         sync: false
-      # Veri değiştiren isteklerde kabul edilen kökenler (JSON listesi): Pages adresi ve yerel.
+      # Veri değiştiren isteklerde kabul edilen kökenler (JSON listesi): servisin kendi adresi
+      # (arayüz buradan sunulur), Pages adresi ve yerel.
       - key: OKULAPI_IZINLI_KOKENLER
         sync: false
       # 512 MB bellek: çözücü 8 yerine 2 iş parçacığıyla çalışır.

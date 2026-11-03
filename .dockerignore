@@ -8,3 +8,7 @@ scripts/sonuclar
 **/node_modules
 .env
 *.zip
+web/dist
+web/test-results
+web/playwright-report
+**/tsconfig.tsbuildinfo

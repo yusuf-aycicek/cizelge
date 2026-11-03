@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://cizelge.pages.dev"><b>Canlı demo: cizelge.pages.dev</b></a>
+  <a href="https://cizelge-api.onrender.com"><b>Canlı demo: cizelge-api.onrender.com</b></a>
 </p>
 
 <p align="center">
@@ -58,7 +58,7 @@ PDF ve Excel olarak alır.
 
 ```
 Tarayıcı (React)
-     |  aynı köken: /api
+     |  aynı köken: sayfalar ve /api
      v
 API (FastAPI, modüler monolit)  ---->  PostgreSQL (satır düzeyi güvenlik)
      |                                     ^
@@ -67,6 +67,7 @@ Kuyruk (Redis + RQ)  ---->  Worker  ---->  Çözücü (saf Python, OR-Tools CP-S
 ```
 
 - **Arayüz** yalnızca API ile konuşur. Arayüz ve API tarayıcıya aynı kökenden görünür; CORS yoktur.
+  Yayında derlenmiş arayüzü API'nin kendisi sunar: tek adres, tek servis.
 - **API** kimlik doğrulamayı, okul verisini ve program üretme isteklerini yönetir; çözücüyü kendisi
   çalıştırmaz. Üretim isteği kuyruğa girer, arayüz durumu birkaç saniyede bir sorar.
 - **Worker** kuyruktan işi alır, veriyi okur, çözücüyü çalıştırır ve sonucu veritabanına yazar.
@@ -85,8 +86,7 @@ Kuyruk (Redis + RQ)  ---->  Worker  ---->  Çözücü (saf Python, OR-Tools CP-S
 
 | Parça | Nerede |
 |---|---|
-| Arayüz | Cloudflare Pages. `/api` istekleri bir Pages Function ile API'ye iletilir, aynı köken korunur |
-| API ve worker | Render, tek Docker servisi |
+| Arayüz, API ve worker | Render, tek Docker servisi. İmaj iki aşamalı: Node aşaması arayüzü derler, son imaja yalnızca derlenmiş dosyalar girer |
 | Kuyruk | Render Key Value (Redis uyumlu) |
 | Veritabanı | Neon (PostgreSQL) |
 
@@ -103,7 +103,7 @@ kayıtları (ADR) olarak tutulur.
 | Kuyruk | Redis, RQ |
 | Çözücü | Google OR-Tools (CP-SAT) |
 | Test | pytest, Vitest, Testing Library, MSW, Playwright |
-| Çalıştırma | Docker Compose (yerel), Cloudflare Pages, Render, Neon (canlı) |
+| Çalıştırma | Docker Compose (yerel), Render ve Neon (canlı) |
 
 ## Yerelde çalıştırma
 
@@ -178,7 +178,7 @@ Linux ve macOS'ta `.venv/Scripts/` yerine `.venv/bin/` kullanılır.
 cozucu/    Saf Python çözücü paketi (OR-Tools CP-SAT) ve testleri
 api/       FastAPI uygulaması: çekirdek (okul, kullanıcı, öğretmen, şube, ders) + modüller
 worker/    Kuyruk işçisi
-web/       Arayüz (React + TypeScript + Vite); web/functions: Cloudflare Pages API iletimi
+web/       Arayüz (React + TypeScript + Vite)
 docker/    Konteyner başlangıç betikleri
 docs/      Rapor, UML diyagramları, mimari karar kayıtları, planlar, ölçümler, ekran görüntüleri
 veri/      Test veri setleri (mini, gerçekçi, büyük; adlar uydurmadır)
@@ -204,9 +204,10 @@ exists, the system explains why in plain language.
 
 The stack is React + TypeScript on the front end, a FastAPI modular monolith with PostgreSQL
 (row-level security for tenant isolation), and a Redis/RQ worker that runs the solver outside the
-API. The live demo runs on Cloudflare Pages, Render and Neon. Try it at
-[cizelge.pages.dev](https://cizelge.pages.dev) with the **Demo ile dene** ("Try the demo") button, no
-password needed. The UI is in Turkish.
+API. The live demo runs on Render (one service serves both the UI and the API) and Neon. Try it at
+[cizelge-api.onrender.com](https://cizelge-api.onrender.com) with the **Demo ile dene** ("Try the
+demo") button, no password needed; the first load may take a minute while the free server wakes up.
+The UI is in Turkish.
 
 ---
 

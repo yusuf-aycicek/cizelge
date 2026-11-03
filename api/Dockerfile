@@ -1,6 +1,18 @@
 # Yapı bağlamı depo köküdür (docker-compose.yml: context: .): API, depodaki çözücü paketine
 # (/cozucu) bağımlıdır. Worker aynı imajı kullanır, yalnızca komutu farklıdır (python -m okulworker):
 # iş fonksiyonları okulapi modüllerinde olduğu için worker'ın API ile aynı kodu çalıştırması gerekir.
+#
+# İki aşama (ADR 0028): ilk aşama Node ile arayüzü derler, son imaja yalnızca derlenmiş dosyalar
+# (web/dist, birkaç MB) geçer. Node, npm ve node_modules son imajda yoktur.
+
+FROM node:22-slim AS arayuz
+WORKDIR /web
+# Önce yalnızca bağımlılık listesi: package*.json değişmedikçe npm ci katmanı önbellekten gelir.
+COPY web/package.json web/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY web/ ./
+RUN npm run build
+
 FROM python:3.14-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
@@ -31,6 +43,11 @@ ENV OKULAPI_VERI_DIZINI=/app/veri
 # Yayındaki tek servis başlangıcı (Render: migration, demo okul, worker, API; docker/yayin-baslat.sh).
 # Docker Compose kendi komutunu verir, bunu kullanmaz.
 COPY docker/yayin-baslat.sh /app/yayin-baslat.sh
+
+# Derlenmiş arayüz: API onu aynı adresten sunar (okulapi/cekirdek/arayuz.py). En sonda: arayüz
+# değişince yalnızca bu katman yenilenir.
+COPY --from=arayuz /web/dist /app/arayuz
+ENV OKULAPI_ARAYUZ_DIZINI=/app/arayuz
 
 EXPOSE 8000
 # Port, barındırma ortamının verdiği PORT değişkeninden (Render); yoksa 8000.

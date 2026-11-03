@@ -1,6 +1,7 @@
 # ADR 0026: Ücretsiz yayın: Cloudflare Pages + Render + Neon
 
-Durum: Kabul edildi (2026-10-26, kullanıcının kararıyla).
+Durum: Kabul edildi (2026-10-26, kullanıcının kararıyla). Arayüzün yeri ADR 0028 ile değişti:
+arayüz de Render'daki servisten sunulur (`*.pages.dev` Türkiye'den erişilemiyor).
 
 ## Bağlam
 
