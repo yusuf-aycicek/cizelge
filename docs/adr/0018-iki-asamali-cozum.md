@@ -1,6 +1,6 @@
 # ADR 0018: İki aşamalı çözüm ve "süre yetmedi" durumu
 
-Durum: Kabul edildi (2026-10-24; kullanıcı yokken verildi, gerekçe aşağıda ve `docs/gece-raporu.md`).
+Durum: Kabul edildi (2026-10-24; kullanıcı yokken verildi, gerekçe aşağıda).
 
 ## Bağlam
 

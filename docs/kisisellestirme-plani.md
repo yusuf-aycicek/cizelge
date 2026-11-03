@@ -290,7 +290,7 @@ Bunların `anlatim.py`'de Türkçe karşılıkları olur. Çelişen grupların a
   "Evet" bir `almaz` istisnası yazar. Şube sayfasında istisnalar listelenir ve geri alınabilir.
 - **Şablon raporu (5.4):** "atlanan (istisna)" sayısını da gösterir.
 
-**K5'te netleşen ayrıntılar** (kullanıcı yokken verilen kararlar; gerekçeleri `docs/gece-raporu.md`):
+**K5'te netleşen ayrıntılar** (kullanıcı yokken verilen kararlar):
 - **Hangi şube hangi şablonu kullanır** tek kuraldır (`servisler.sablon_kaynaklari`, arayüzde aynısı
   `kullananSubeler` / `subeninSablonu`): şubenin grubunun şablonunda en az bir ders varsa grubunki,
   yoksa seviyesininki. Grup şablonu seviye şablonunun **yerine** geçer (üstüne eklenmez); ortak dersler
