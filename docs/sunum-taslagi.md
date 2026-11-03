@@ -1,6 +1,6 @@
 # Sunum taslağı: Çizelge – Okul Ders Programı Oluşturma Sistemi
 
-Yazılım Tasarımı ve Mimarisi dönem projesi · Yusuf Ayçiçek · 240541155
+Yazılım Tasarımı ve Mimarisi dönem projesi · Yusuf Ayçiçek
 
 12 slayt, 5-7 dakika. Her slaytta başlık, maddeler ve konulacak görsel; konuşma notları en sonda
 (slayt başına süreyle). Görsellerin yolları depo köküne göredir; diyagramların hepsi A3 olarak
@@ -11,7 +11,7 @@ Yazılım Tasarımı ve Mimarisi dönem projesi · Yusuf Ayçiçek · 240541155
 ## Slayt 1 · Çizelge: okullar için çakışmasız ders programı
 
 - Yazılım Tasarımı ve Mimarisi dönem projesi
-- Yusuf Ayçiçek · 240541155
+- Yusuf Ayçiçek
 - Fırat Üniversitesi Teknoloji Fakültesi, Yazılım Mühendisliği
 
 **Görsel:** `docs/ekranlar/teslim/03-cizelge-sube.png` (arka planda, soluk)

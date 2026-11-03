@@ -6,7 +6,7 @@
 
 <p class="kapak-ders">Yazılım Tasarımı ve Mimarisi<br>Dönem Projesi Raporu</p>
 
-<p class="kapak-yazar">Yusuf Ayçiçek<br>240541155</p>
+<p class="kapak-yazar">Yusuf Ayçiçek</p>
 
 <p class="kapak-tarih">Ekim 2026</p>
 
