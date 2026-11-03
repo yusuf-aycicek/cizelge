@@ -13,6 +13,7 @@ import { TemaDugmesi } from "../bilesenler/TemaDugmesi";
 import { UYGULAMA_ACIKLAMASI, UYGULAMA_ADI } from "../urun";
 import type { GirisDurumu } from "./KorumaliAlan";
 import { BEN_ANAHTARI, type Ben } from "./oturum";
+import { SuzulenKartlar } from "./SuzulenKartlar";
 import { TanitimPaneli } from "./TanitimPaneli";
 import stil from "./Giris.module.css";
 
@@ -99,6 +100,7 @@ export function GirisSayfasi() {
 
   return (
     <div className={stil.sayfa}>
+      <SuzulenKartlar />
       <div className={stil.sol}>
         <header className={stil.marka}>
           <CalendarDays aria-hidden="true" className={stil.logo} />

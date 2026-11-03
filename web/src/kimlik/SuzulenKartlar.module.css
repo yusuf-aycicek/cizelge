@@ -1,0 +1,102 @@
+/* Giriş ekranının arka planında alttan üste süzülen ders kartları (SuzulenKartlar.tsx).
+
+   Akıcılık için yalnızca transform ve opaklık, anahtar karelerde (keyframes) de yalnızca sabit
+   değerler var: değişken (var()) kullanan anahtar kareleri tarayıcı ekran kartına veremiyor, her
+   kareyi ana iş parçacığında yeniden hesaplıyor (ölçüldü: her karede stil ve yerleşim).
+
+   Yolun uzunluğu: her kart, katman boyunda bir "ray"ın içindedir. translateY'deki yüzde rayın
+   kendi yüksekliğidir, yani katmanın gerçek yüksekliği: translateY(100%) görünür alanın hemen
+   altı, translateY(-52px) üstünün hemen dışı. Ekran boyu ne olursa olsun yol alttan üste tamdır. */
+.katman {
+  --tur: 20s;
+  position: absolute;
+  inset: 0;
+  z-index: -1; /* .sayfa isolation: isolate; zeminin üstünde, içeriğin altında */
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ray {
+  /* g: yolun neresinde (0 = en alt, 1 = en üst). Hareket kapalıyken kart orada sabit durur. */
+  --g: var(--p);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--x) * (100% - 118px));
+  width: 118px;
+  transform: translate3d(0, calc((1 - var(--g)) * 100% - var(--g) * 52px), 0);
+  opacity: 0.55;
+  animation: suzul var(--tur) linear infinite;
+  animation-delay: calc(var(--g) * var(--tur) * -1);
+  will-change: transform, opacity;
+}
+
+.kart {
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  white-space: nowrap;
+  font-family: var(--yazi-ailesi); /* Nunito */
+  font-weight: 800;
+  font-size: 15px;
+  background: color-mix(in srgb, var(--renk-birincil) 16%, var(--renk-sayfa));
+  color: var(--renk-birincil-koyu);
+  box-shadow: 0 12px 28px rgb(40 24 100 / 0.05);
+  /* Hareket kapalıyken yolun o noktasındaki açı: a'dan -a'ya doğrusal. */
+  transform: rotate(calc(var(--a) * (1 - 2 * var(--g))));
+  animation: don10 var(--tur) linear infinite; /* açı sınıfı (aşağıda) adı değiştirir */
+  animation-delay: inherit;
+  will-change: transform;
+}
+
+/* Opaklık başta hızla 0.55'e çıkar, sonda 0'a iner: kartlar arka planda kalır, yazılarla yarışmaz. */
+@keyframes suzul {
+  0% {
+    transform: translate3d(0, 100%, 0);
+    opacity: 0;
+  }
+  6% {
+    opacity: 0.55;
+  }
+  90% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate3d(0, -52px, 0);
+    opacity: 0;
+  }
+}
+
+/* Dönüş: a'dan ters yöne (-a). Açılar sabit olsun diye altı küme; kart sınıfıyla seçilir
+   (SuzulenKartlar.tsx DONUSLER). */
+.donEksi10 { animation-name: donEksi10; }
+.donEksi6 { animation-name: donEksi6; }
+.donEksi3 { animation-name: donEksi3; }
+.don3 { animation-name: don3; }
+.don6 { animation-name: don6; }
+.don10 { animation-name: don10; }
+@keyframes donEksi10 { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
+@keyframes donEksi6 { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+@keyframes donEksi3 { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+@keyframes don3 { from { transform: rotate(3deg); } to { transform: rotate(-3deg); } }
+@keyframes don6 { from { transform: rotate(6deg); } to { transform: rotate(-6deg); } }
+@keyframes don10 { from { transform: rotate(10deg); } to { transform: rotate(-10deg); } }
+
+/* Telefon (720 px altı): 10 kart, gecikmeler 10'a göre eşit aralıklı. */
+@media (max-width: 45rem) {
+  .ray {
+    --g: var(--p-tel);
+  }
+  .ray:nth-child(n + 11) {
+    display: none;
+  }
+}
+
+/* Hareket azaltılmışsa temel.css animasyonları kapatır; kartlar yollarına dağılmış, sabit durur. */
+@media (prefers-reduced-motion: reduce) {
+  .ray,
+  .kart {
+    will-change: auto;
+  }
+}

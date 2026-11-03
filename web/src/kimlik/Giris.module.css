@@ -6,8 +6,18 @@
   grid-template-columns: 26.25rem minmax(0, 1fr); /* 420 px */
   gap: var(--bosluk-4);
   padding: var(--bosluk-4);
-  /* Zemin ve ızgara kökten (temel.css); üstünde vurgu renginden hafif bir ışık. */
-  background: radial-gradient(50rem 30rem at -10% -10%, color-mix(in srgb, var(--renk-parlak) 18%, transparent), transparent);
+  /* Kökteki ızgarayı (temel.css) örter: giriş ekranında yalnızca hafif geçiş ve vurgu renginden
+     bir ışık var, ızgara yok. İç sayfalar kökün ızgarasını görmeye devam eder. */
+  background:
+    radial-gradient(50rem 30rem at -10% -10%, color-mix(in srgb, var(--renk-parlak) 18%, transparent), transparent),
+    linear-gradient(180deg, var(--renk-sayfa), var(--renk-sayfa-2));
+  /* Süzülen kartlar (SuzulenKartlar) bu kutunun içinde, içeriğin altında. */
+  position: relative;
+  isolation: isolate;
+  /* Zemin renginde yumuşak hale: arkadan bir kart geçerken de yazı net okunur. Görünür kutu yok;
+     yalnızca harflerin çevresi zemin rengine döner. */
+  --yazi-halesi: 0 0 2px var(--renk-sayfa), 0 0 6px var(--renk-sayfa), 0 0 10px var(--renk-sayfa),
+    0 0 16px var(--renk-sayfa);
 }
 
 .sol {
@@ -23,6 +33,7 @@
   padding: var(--bosluk-2) var(--bosluk-3);
   color: var(--renk-metin);
   font-size: var(--yazi-buyuk);
+  text-shadow: var(--yazi-halesi);
 }
 /* Ürün logosu: takvim ikonu, vurgu renginde. (">ya" yalnızca alttaki imzadadır.) */
 .logo {
@@ -245,14 +256,10 @@
   flex-direction: column;
   justify-content: center;
   padding: clamp(var(--bosluk-5), 3vw, 3rem);
-  border-radius: var(--kose-pencere);
   overflow: hidden;
   color: var(--renk-metin);
-  background-color: var(--renk-panel);
-  background-image:
-    linear-gradient(var(--renk-izgara) 1px, transparent 1px),
-    linear-gradient(90deg, var(--renk-izgara) 1px, transparent 1px);
-  background-size: 56px 56px;
+  /* Şeffaf: telefonlar doğrudan sayfa zemininin (ve süzülen kartların) üstünde durur. */
+  background: none;
 }
 /* İçerik tek grup, panelin ortasında; yazılar da ortalı. */
 .panelIcerik {
@@ -272,6 +279,7 @@
   font-weight: var(--yazi-kalin);
   letter-spacing: 0.12em;
   color: var(--renk-metin-ikincil);
+  text-shadow: var(--yazi-halesi);
 }
 .panelBasligi {
   margin: 0;
@@ -279,6 +287,7 @@
   font-size: clamp(1.625rem, 1rem + 1.6vw, 2.5rem); /* 26–40 px */
   line-height: 1.15;
   font-weight: 800;
+  text-shadow: var(--yazi-halesi);
 }
 
 /* Sahne: telefonlar ve arkalarındaki hale. Eğilme için derinlik (perspective) buradadır. */
@@ -675,6 +684,8 @@
   font-size: var(--yazi-kucuk);
   font-weight: var(--yazi-kalin);
   box-shadow: var(--golge);
+  /* Çipin kendi zemini dolu; hale de onun renginde (sayfa zemininde değil), çipte iz bırakmaz. */
+  text-shadow: 0 0 2px var(--renk-zemin), 0 0 6px var(--renk-zemin), 0 0 16px var(--renk-zemin);
 }
 .etiketler svg {
   width: 1.1em;
@@ -708,7 +719,6 @@
     padding: var(--bosluk-3) 0 var(--bosluk-2);
   }
   .panel {
-    border-radius: var(--kose-kart);
     padding: var(--bosluk-5) var(--bosluk-4);
   }
 }
