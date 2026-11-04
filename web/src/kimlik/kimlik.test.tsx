@@ -65,6 +65,12 @@ describe("korumalı sayfalar ve giriş", () => {
     expect(govdeler).toEqual([]);
   });
 
+  it("parolasını unutan kullanıcıya ne yapacağı söylenir", async () => {
+    oturumYok();
+    uygulamayiCiz("/giris");
+    expect(await screen.findByLabelText(/Parola/)).toHaveAccessibleDescription("Parolanızı unuttuysanız okul yöneticinize başvurun.");
+  });
+
   it("giriş sayfasında logo, tema düğmesi ve imza var", async () => {
     oturumYok();
     uygulamayiCiz("/giris");

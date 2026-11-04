@@ -605,3 +605,19 @@ ul.celiskiGrubu {
   align-items: center;
   margin-left: auto;
 }
+
+/* Programın kalitesi: boş gün hedefi tutmayan öğretmenler (KaliteOzeti). */
+.kaliteNotlari {
+  margin-top: var(--bosluk-3);
+}
+.kaliteNotlari > summary {
+  cursor: pointer;
+  font-weight: var(--yazi-kalin);
+}
+.kaliteNotlari ul {
+  margin: var(--bosluk-2) 0;
+  padding-inline-start: var(--bosluk-5);
+}
+.kaliteNotlari li + li {
+  margin-top: var(--bosluk-1);
+}

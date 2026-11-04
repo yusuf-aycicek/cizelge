@@ -29,7 +29,9 @@ describe("Paylaşım sayfası", () => {
     sunucu.use(http.get(YOL, () => HttpResponse.json(ICERIK)));
     uygulamayiCiz("/p/abc");
     expect(await screen.findByRole("heading", { name: /Ayşe Yılmaz/ })).toBeInTheDocument();
-    expect(screen.getByText(/haftada 3 ders saati/)).toBeInTheDocument();
+    const bilgi = screen.getByText(/haftada 3 ders saati/);
+    expect(bilgi).toHaveTextContent(/^\d{2}\.\d{2}\.\d{4} tarihinde yayınlandı · haftada 3 ders saati$/);
+    expect(bilgi).not.toHaveTextContent("Güz Programı"); // programın iç adı öğretmene ve veliye gösterilmez
     const tablo = screen.getByRole("table", { name: "Ayşe Yılmaz haftalık ders programı" });
     expect(within(tablo).getByText("9-A")).toBeInTheDocument();
     expect(within(tablo).getByText("9-B")).toBeInTheDocument();

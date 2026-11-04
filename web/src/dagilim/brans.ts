@@ -26,6 +26,9 @@ function kelimeBasindaGecer(uzun: string, kisa: string): boolean {
 }
 
 export function bransUyar(brans: string | null | undefined, ders: { ad: string; kisa_ad?: string | null }): boolean {
+  // Branş derslerden çoklu seçimdir ("Matematik, Fizik"; ADR 0029): parçalardan biri uyarsa yeter.
+  const parcalar = (brans ?? "").split(",");
+  if (parcalar.length > 1) return parcalar.some((p) => bransUyar(p, ders));
   const b = sade(brans);
   if (!b) return false;
   const ad = sade(ders.ad);

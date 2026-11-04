@@ -259,7 +259,8 @@ describe("kurallar", () => {
     const { kullanici } = await ac();
     const n = await screen.findByLabelText("Aynı dersin günlük sınırı");
     expect(n).toHaveValue(2);
-    expect(n).toHaveAccessibleDescription("Aynı ders bir sınıfa günde en fazla bu kadar saat konur. Varsayılan: 2.");
+    expect(n).toHaveAccessibleDescription(
+      "Aynı ders bir sınıfa günde en fazla bu kadar saat konur (ör. 2: Matematik bir günde en çok 2 saat). Varsayılan: 2.");
 
     await kullanici.clear(n);
     await kullanici.type(n, "0");

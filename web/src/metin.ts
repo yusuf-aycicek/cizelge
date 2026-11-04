@@ -24,3 +24,8 @@ export function turkceSirala<T>(ogeler: readonly T[], metin: (oge: T) => string)
 export function turkceIcerir(metin: string, aranan: string): boolean {
   return metin.toLocaleLowerCase("tr").includes(aranan.trim().toLocaleLowerCase("tr"));
 }
+
+/** Gün tarihi, Türkçe sayısal: "04.11.2026". */
+export function gunTarihi(iso: string): string {
+  return new Date(iso).toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit", year: "numeric" });
+}

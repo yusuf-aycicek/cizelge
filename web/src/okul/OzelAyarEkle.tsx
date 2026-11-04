@@ -52,15 +52,36 @@ export function gecerliKapsamlar(kural: Pick<Kural, "kapsamlar" | "zorunlu_eksen
 
 /** Kuralın özel değeri: hangi parametre, nasıl sorulur. Burada olmayan kural listelenmez. */
 type DegerTipi = "sayi" | "bos_gun" | "desen" | "saat_tercihi" | "acik_kapali" | "esikler";
-const DEGERLER: Record<string, { parametre: string; etiket: string; tip: DegerTipi }> = {
-  gunluk_ders_siniri: { parametre: "n", etiket: "Aynı ders günde en çok kaç saat", tip: "sayi" },
-  ogretmen_gunluk_siniri: { parametre: "m", etiket: "Günde en çok kaç saat derse girer", tip: "sayi" },
-  bos_gun: { parametre: "hedef_bos_gun", etiket: "Haftada kaç boş gün", tip: "bos_gun" },
-  blok_deseni: { parametre: "desen", etiket: "Dağılım şekli", tip: "desen" },
+/** Her değer alanı: etiketi ve altında ne işe yaradığını kısa bir örnekle anlatan cümle. */
+const DEGERLER: Record<string, { parametre: string; etiket: string; tip: DegerTipi; aciklama?: string }> = {
+  gunluk_ders_siniri: {
+    parametre: "n", etiket: "Aynı ders günde en çok kaç saat", tip: "sayi",
+    aciklama: "Bu ders bir şubeye bir günde en fazla bu kadar saat konur. Ör. 2: Matematik bir günde en çok 2 saat.",
+  },
+  ogretmen_gunluk_siniri: {
+    parametre: "m", etiket: "Günde en çok kaç saat derse girer", tip: "sayi",
+    aciklama: "Öğretmen bir günde bundan fazla derse girmez. Ör. 6: 8 saatlik günde en az 2 saati boş kalır.",
+  },
+  bos_gun: {
+    parametre: "hedef_bos_gun", etiket: "Haftada kaç boş gün", tip: "bos_gun",
+    aciklama: "Okula gelmeyeceği gün sayısı (hedef). Ör. 1: 5 günlük okulda haftada 4 gün gelir. Esnek kuraldır.",
+  },
+  blok_deseni: {
+    parametre: "desen", etiket: "Dağılım şekli", tip: "desen",
+    aciklama: "Dersin haftalık saatleri art arda bloklara bölünür, her blok ayrı bir günde. Ör. 5 saatlik derste "
+      + "2+2+1: iki gün ikişer saat art arda, bir gün tek saat. “blok yok”: saatler serbestçe dağılır. Toplamı dersin "
+      + "haftalık saatine eşit olmalı; uymayan şube program sayfasında söylenir.",
+  },
   // İkincil kurallar (K6).
   ders_saat_tercihi: { parametre: "saatler", etiket: "Saatler", tip: "saat_tercihi" },
-  gunluk_en_az_ders: { parametre: "k", etiket: "Geldiği günde en az kaç ders (1: sınır yok)", tip: "sayi" },
-  ders_yayilimi: { parametre: "yayilsin", etiket: "Art arda günler", tip: "acik_kapali" },
+  gunluk_en_az_ders: {
+    parametre: "k", etiket: "Geldiği günde en az kaç ders (1: sınır yok)", tip: "sayi",
+    aciklama: "Öğretmen okula geldiği günde en az bu kadar derse girer. Ör. 2: bir saatlik ders için gelmez.",
+  },
+  ders_yayilimi: {
+    parametre: "yayilsin", etiket: "Art arda günler", tip: "acik_kapali",
+    aciklama: "Ör. haftada 2 saatlik Fizik pazartesi ve salıya değil, pazartesi ve perşembeye konmaya çalışılır.",
+  },
   haftalik_yuk: { parametre: "alt", etiket: "Haftalık ders yükü", tip: "esikler" },
 };
 
@@ -228,17 +249,17 @@ export function OzelAyarEkle({ kurallar, gunlukDersSaati, ogleArasiSonra, onKapa
         ))}
         {d?.tip === "sayi" && (
           <MetinAlani etiket={d.etiket} type="number" inputMode="numeric" min={1} max={gunlukDersSaati} value={deger}
-            onChange={(o) => setDeger(o.target.value)} />
+            aciklama={d.aciklama} onChange={(o) => setDeger(o.target.value)} />
         )}
         {d?.tip === "bos_gun" && (
-          <SecimAlani etiket={d.etiket} value={deger} onChange={(o) => setDeger(o.target.value)}>
+          <SecimAlani etiket={d.etiket} value={deger} aciklama={d.aciklama} onChange={(o) => setDeger(o.target.value)}>
             <option value="0">Boş günü olmasın (0)</option>
             <option value="1">1 boş gün</option>
             <option value="2">2 boş gün</option>
           </SecimAlani>
         )}
         {d?.tip === "acik_kapali" && (
-          <SecimAlani etiket={d.etiket} value={deger} onChange={(o) => setDeger(o.target.value)}>
+          <SecimAlani etiket={d.etiket} value={deger} aciklama={d.aciklama} onChange={(o) => setDeger(o.target.value)}>
             <option value="true">Art arda günlere konmasın (günlere yayılsın)</option>
             <option value="false">Art arda günlere konabilir</option>
           </SecimAlani>
@@ -253,7 +274,7 @@ export function OzelAyarEkle({ kurallar, gunlukDersSaati, ogleArasiSonra, onKapa
         )}
         {d?.tip === "desen" && (
           <MetinAlani etiket={d.etiket} placeholder="2+2+1 ya da blok yok" value={deger}
-            aciklama="Toplamı dersin haftalık saatine eşit olmalı; uymayan şube program sayfasında söylenir."
+            aciklama={d.aciklama}
             onChange={(o) => setDeger(o.target.value)} />
         )}
       </div>

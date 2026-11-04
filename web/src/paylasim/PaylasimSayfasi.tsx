@@ -15,6 +15,7 @@ import { api } from "../api/istemci";
 import type { components } from "../api/sema";
 import { BosDurum } from "../bilesenler/BosDurum";
 import { dersRenkStili } from "../dersler/dersRengi";
+import { gunTarihi } from "../metin";
 import { UYGULAMA_ADI } from "../urun";
 import stil from "./Paylasim.module.css";
 
@@ -205,9 +206,9 @@ export function PaylasimSayfasi() {
           <p className={stil.okul}>{icerik.okul}</p>
           <h1>{secili.ad} <span className={stil.altBaslik}>haftalık ders programı</span></h1>
           <p className={stil.bilgi}>
-            {icerik.program}
-            {icerik.yayin_zamani && ` · ${new Date(icerik.yayin_zamani).toLocaleDateString("tr-TR")} tarihinde yayınlandı`}
-            {` · haftada ${secili.hucreler.reduce((t, h) => t + h.uzunluk, 0)} ders saati`}
+            {/* Programın iç adı ("Program 2") öğretmene ve veliye bir şey anlatmaz; yalnızca tarih. */}
+            {icerik.yayin_zamani && `${gunTarihi(icerik.yayin_zamani)} tarihinde yayınlandı · `}
+            {`haftada ${secili.hucreler.reduce((t, h) => t + h.uzunluk, 0)} ders saati`}
           </p>
           <div className={stil.eylemler}>
             {cizelgeler.length > 1 && <Secici icerik={icerik} secili={secili} onSec={setSecim} />}

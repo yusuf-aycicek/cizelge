@@ -860,6 +860,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ders-programi/seviye-sablonlari/toplu": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Sablonu Toplu Kaydet
+         * @description Şablonu tek seferde kaydeder (ders tablosundaki bütün saatler). Saati 0 olan ders çıkar.
+         */
+        put: operations["sablonu_toplu_kaydet_api_ders_programi_seviye_sablonlari_toplu_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ders-programi/seviye-sablonlari/uygula": {
         parameters: {
             query?: never;
@@ -874,6 +894,26 @@ export interface paths {
          * @description Seviyenin şablonunu o seviyedeki her şubeye uygular (öğretmeni boş atamalar).
          */
         post: operations["sablonu_uygula_api_ders_programi_seviye_sablonlari_uygula_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ders-programi/seviye-sablonlari/uygula-hepsi": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sablonlari Uygula
+         * @description Dolu bütün şablonları (seviye ve şube grubu) şubelerine uygular; rapor şablon şablon.
+         */
+        post: operations["sablonlari_uygula_api_ders_programi_seviye_sablonlari_uygula_hepsi_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1981,6 +2021,11 @@ export interface components {
             /** Ders Saati */
             ders_saati: number;
             /**
+             * Hedefli Kapasite
+             * @description Boş gün hedefi tutarsa yaklaşık kapasite (hedef yoksa boş); uyarı değildir
+             */
+            hedefli_kapasite?: number | null;
+            /**
              * Kullanilabilir Saat
              * @description Günlük ders sınırıyla birlikte derse girebileceği en fazla saat
              */
@@ -2314,6 +2359,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Notlar */
+            notlar?: components["schemas"]["CeliskiYanit"][] | null;
             /** Olcumler */
             olcumler: {
                 [key: string]: number;
@@ -2339,6 +2386,31 @@ export interface components {
              * @enum {string}
              */
             rol: "mudur" | "mudur_yardimcisi";
+        };
+        /** SablonSatiri */
+        SablonSatiri: {
+            /**
+             * Ders Id
+             * Format: uuid
+             */
+            ders_id: string;
+            /**
+             * Haftalik Saat
+             * @description 0: ders şablondan çıkar
+             */
+            haftalik_saat: number;
+        };
+        /**
+         * SablonTopluKaydet
+         * @description Şablonun tamamı: listede olmayan ya da saati 0 olan ders şablondan çıkar.
+         */
+        SablonTopluKaydet: {
+            /** Satirlar */
+            satirlar: components["schemas"]["SablonSatiri"][];
+            /** Seviye */
+            seviye: number;
+            /** Sube Grubu Id */
+            sube_grubu_id?: string | null;
         };
         /** SablonUygula */
         SablonUygula: {
@@ -2421,6 +2493,22 @@ export interface components {
             id: string;
             /** Seviye */
             seviye: number;
+            /** Sube Grubu Id */
+            sube_grubu_id: string | null;
+        };
+        /**
+         * SeviyeUygulamaRaporu
+         * @description "Tüm seviyelere uygula"da bir şablonun raporu.
+         */
+        SeviyeUygulamaRaporu: {
+            /**
+             * Sablon
+             * @description Şablonun adı: "9. sınıflar" ya da şube grubunun adı
+             */
+            sablon: string;
+            /** Seviye */
+            seviye: number;
+            sonuc: components["schemas"]["SablonUygulamaSonucu"];
             /** Sube Grubu Id */
             sube_grubu_id: string | null;
         };
@@ -4634,6 +4722,39 @@ export interface operations {
             };
         };
     };
+    sablonu_toplu_kaydet_api_ders_programi_seviye_sablonlari_toplu_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SablonTopluKaydet"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeviyeSablonuYanit"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     sablonu_uygula_api_ders_programi_seviye_sablonlari_uygula_post: {
         parameters: {
             query?: never;
@@ -4663,6 +4784,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sablonlari_uygula_api_ders_programi_seviye_sablonlari_uygula_hepsi_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeviyeUygulamaRaporu"][];
                 };
             };
         };

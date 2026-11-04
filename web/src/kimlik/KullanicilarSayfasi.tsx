@@ -79,7 +79,8 @@ export function KullanicilarSayfasi() {
   return (
     <>
       <SayfaBasligi baslik="Kullanıcılar">
-        Okulun programını düzenleyebilen yöneticiler.
+        Okulun programını düzenleyebilen yöneticiler. Parolasını unutan kullanıcının parolasını müdür buradan
+        yeniler (“Parola”); okulda tek müdür varsa en az bir kişiyi daha müdür yapmanız önerilir.
       </SayfaBasligi>
       <section className={sayfaStili.kart} aria-labelledby="yoneticiler">
         <h2 id="yoneticiler">Yöneticiler</h2>

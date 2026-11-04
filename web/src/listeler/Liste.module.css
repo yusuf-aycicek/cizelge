@@ -84,13 +84,100 @@
 
 /* Öğretmen adı, öğretmenin sayfasına bağlantı: metin rengi korunur, bağlantı olduğu altı çizili. */
 .ogretmenBaglantisi {
-  color: inherit;
+  color: var(--renk-birincil-koyu, var(--renk-birincil));
+  font-weight: var(--yazi-kalin);
   text-decoration: underline;
-  text-decoration-color: var(--renk-kenar-alan);
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
   text-underline-offset: 0.2em;
 }
 .ogretmenBaglantisi:hover {
   text-decoration-color: currentColor;
+}
+
+/* Satırda öğretmenin sayfasına giden görünür bağlantı (küçük ikincil düğme görünümünde). */
+.ayarBaglantisi {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-1);
+  min-height: 2.25rem;
+  padding: var(--bosluk-1) var(--bosluk-3);
+  border: 1px solid var(--renk-kenar-alan);
+  border-radius: var(--kose-hap);
+  color: var(--renk-birincil-koyu, var(--renk-birincil));
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ayarBaglantisi:hover {
+  border-color: currentColor;
+}
+.ayarBaglantisi svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+/* Branş: derslerden çoklu seçim (BransSecici). */
+.bransAlani {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-1);
+  margin-bottom: var(--bosluk-4);
+}
+.bransEtiketi {
+  font-weight: var(--yazi-kalin);
+}
+.bransSecici {
+  position: relative;
+  max-width: 28rem;
+}
+.bransOzeti,
+.bransSecici > summary.satirDenetimi {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bosluk-2);
+  cursor: pointer;
+  list-style: none;
+}
+.bransOzeti {
+  min-height: var(--dokunma-hedefi);
+  padding: var(--bosluk-2) var(--bosluk-4);
+  border: 1.5px solid var(--renk-kenar-alan);
+  border-radius: var(--kose-hap);
+  background: var(--renk-zemin);
+}
+.bransSecici > summary::-webkit-details-marker {
+  display: none;
+}
+.bransSecici > summary svg {
+  flex: none;
+  width: 1.1em;
+  height: 1.1em;
+}
+.bransSecici > summary > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bransListesi {
+  position: absolute;
+  z-index: 5;
+  inset-inline: 0;
+  margin: var(--bosluk-1) 0 0;
+  padding: var(--bosluk-2) var(--bosluk-3);
+  max-height: 16rem;
+  overflow: auto;
+  border: 1px solid var(--renk-kenar);
+  border-radius: var(--kose);
+  background: var(--renk-zemin);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+  min-width: 12rem;
+}
+.bransSecenegi {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  min-height: 2rem;
+  cursor: pointer;
 }
 
 /* Dar tablo kutusunda (ör. 800 px'te menü yanda) düzenle/sil yalnızca ikon: düğmelerin erişilebilir

@@ -18,7 +18,7 @@ import { BosDurum } from "../bilesenler/BosDurum";
 import { Dugme } from "../bilesenler/Dugme";
 import { OnayPenceresi } from "../bilesenler/OnayPenceresi";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
-import { turkceSirala } from "../metin";
+import { gunTarihi, turkceSirala } from "../metin";
 import { PROGRAMLAR, useProgramlar } from "../program/veri";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
 import stil from "./Yayin.module.css";
@@ -30,9 +30,6 @@ export const YAYIN = ["yayin"] as const;
 export const LINKLER = ["paylasim-linkleri"] as const;
 
 export const linkAdresi = (jeton: string) => `${globalThis.location?.origin ?? ""}/p/${jeton}`;
-
-const tarih = (iso: string) =>
-  new Date(iso).toLocaleString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
 function YayinBolumu() {
   const istemci = useQueryClient();
@@ -71,7 +68,8 @@ function YayinBolumu() {
       ) : y ? (
         <>
           <p className={stil.yayinda}>
-            <strong>“{y.program_adi}”</strong> {tarih(y.yayin_zamani)} tarihinde yayınlandı.
+            {/* Öğretmen ve veli için yalnızca tarih: programın iç adı ("Program 2") bir şey anlatmaz. */}
+            <strong>{gunTarihi(y.yayin_zamani)}</strong> tarihinde yayınlandı.
             {y.program_id && <> <Link to={`/program/${y.program_id}`}>Programı aç</Link></>}
           </p>
           {y.uyarilar.length > 0 && (

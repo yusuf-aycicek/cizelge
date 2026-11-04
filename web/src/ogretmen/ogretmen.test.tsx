@@ -98,7 +98,10 @@ describe("öğretmen sayfası", () => {
     uygulamayiCiz("/ogretmenler");
     // Giriş yapan müdürün adı da Ayşe Yılmaz (üst çubuktaki hesap menüsü): tablonun içine bakılır.
     const tablo = await screen.findByRole("table", { name: "Öğretmenler" });
-    expect(await within(tablo).findByRole("link", { name: /Ayşe Yılmaz/ })).toHaveAttribute("href", "/ogretmenler/o1");
+    expect(await within(tablo).findByRole("link", { name: "Ayşe Yılmaz" })).toHaveAttribute("href", "/ogretmenler/o1");
+    // Satırda görünür bir bağlantı da var (ad tek başına tıklanabilir görünmüyordu).
+    expect(within(tablo).getByRole("link", { name: "Ayşe Yılmaz: müsaitlik ve kişisel ayarlar" }))
+      .toHaveAttribute("href", "/ogretmenler/o1");
   });
 
   it("menüde ayrı müsaitlik sayfası yok; eski adres ilk öğretmenin sayfasına gider", async () => {
@@ -127,18 +130,21 @@ describe("kişisel ayarlar", () => {
   it("okul varsayılanı seçili başlar; özel değer kaydedilir, 'özel' rozeti çıkar; varsayılana dönülür", async () => {
     const { ozelIstekleri } = apiKur();
     const { kullanici } = await ac();
-    const bosGun = screen.getByRole("combobox", { name: "Boş gün hedefi" });
+    const bosGun = screen.getByRole("combobox", { name: "Okula gelmeyeceği gün sayısı (hedef)" });
     expect(bosGun).toHaveDisplayValue("Okul varsayılanı (1 gün)");
+    // Seçimin sonucu anında: okul varsayılanı 1 boş gün, 5 günlük okulda 4 gün gelir.
+    expect(bosGun).toHaveAccessibleDescription(expect.stringContaining("→ haftada 4 gün okula gelir"));
     expect(screen.getByRole("combobox", { name: "Günde en çok ders" })).toHaveDisplayValue("Okul varsayılanı (8 saat)");
     expect(screen.queryByText("özel")).toBeNull();
 
     await kullanici.selectOptions(bosGun, "0 (boş gün istemiyor)");
-    expect(await screen.findByText("Boş gün hedefi: 0 (boş gün istemiyor) kaydedildi.")).toBeInTheDocument();
+    expect(await screen.findByText("Okula gelmeyeceği gün sayısı (hedef): 0 (boş gün istemiyor) kaydedildi.")).toBeInTheDocument();
     expect(ozelIstekleri).toEqual([{ yontem: "PUT", yol: "bos_gun", govde: { kapsam: { ogretmen_id: "o1" }, parametreler: { hedef_bos_gun: 0 } } }]);
     expect(await screen.findByText("özel")).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: /Boş gün hedefi/ })).toHaveDisplayValue("0 (boş gün istemiyor)");
+    expect(screen.getByRole("combobox", { name: /Okula gelmeyeceği/ })).toHaveDisplayValue("0 (boş gün istemiyor)");
+    expect(screen.getByText("→ haftada 5 gün (her gün) okula gelir")).toBeInTheDocument();
 
-    await kullanici.selectOptions(screen.getByRole("combobox", { name: /Boş gün hedefi/ }), "Okul varsayılanı (1 gün)");
+    await kullanici.selectOptions(screen.getByRole("combobox", { name: /Okula gelmeyeceği/ }), "Okul varsayılanı (1 gün)");
     await waitFor(() => expect(ozelIstekleri.at(-1)).toEqual({ yontem: "DELETE", yol: "bos_gun?ogretmen_id=o1" }));
     await waitFor(() => expect(screen.queryByText("özel")).toBeNull());
   });

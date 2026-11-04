@@ -1716,6 +1716,18 @@
             "title": "Ders Saati",
             "type": "integer"
           },
+          "hedefli_kapasite": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Boş gün hedefi tutarsa yaklaşık kapasite (hedef yoksa boş); uyarı değildir",
+            "title": "Hedefli Kapasite"
+          },
           "kullanilabilir_saat": {
             "description": "Günlük ders sınırıyla birlikte derse girebileceği en fazla saat",
             "title": "Kullanilabilir Saat",
@@ -2677,6 +2689,20 @@
             "title": "Id",
             "type": "string"
           },
+          "notlar": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/CeliskiYanit"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notlar"
+          },
           "olcumler": {
             "anyOf": [
               {
@@ -2769,6 +2795,65 @@
           "rol"
         ],
         "title": "RolDegistir",
+        "type": "object"
+      },
+      "SablonSatiri": {
+        "properties": {
+          "ders_id": {
+            "format": "uuid",
+            "title": "Ders Id",
+            "type": "string"
+          },
+          "haftalik_saat": {
+            "description": "0: ders şablondan çıkar",
+            "maximum": 99.0,
+            "minimum": 0.0,
+            "title": "Haftalik Saat",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ders_id",
+          "haftalik_saat"
+        ],
+        "title": "SablonSatiri",
+        "type": "object"
+      },
+      "SablonTopluKaydet": {
+        "description": "Şablonun tamamı: listede olmayan ya da saati 0 olan ders şablondan çıkar.",
+        "properties": {
+          "satirlar": {
+            "items": {
+              "$ref": "#/components/schemas/SablonSatiri"
+            },
+            "maxItems": 500,
+            "title": "Satirlar",
+            "type": "array"
+          },
+          "seviye": {
+            "maximum": 12.0,
+            "minimum": 1.0,
+            "title": "Seviye",
+            "type": "integer"
+          },
+          "sube_grubu_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sube Grubu Id"
+          }
+        },
+        "required": [
+          "seviye",
+          "satirlar"
+        ],
+        "title": "SablonTopluKaydet",
         "type": "object"
       },
       "SablonUygula": {
@@ -2988,6 +3073,43 @@
           "haftalik_saat"
         ],
         "title": "SeviyeSablonuYanit",
+        "type": "object"
+      },
+      "SeviyeUygulamaRaporu": {
+        "description": "\"Tüm seviyelere uygula\"da bir şablonun raporu.",
+        "properties": {
+          "sablon": {
+            "description": "Şablonun adı: \"9. sınıflar\" ya da şube grubunun adı",
+            "title": "Sablon",
+            "type": "string"
+          },
+          "seviye": {
+            "title": "Seviye",
+            "type": "integer"
+          },
+          "sonuc": {
+            "$ref": "#/components/schemas/SablonUygulamaSonucu"
+          },
+          "sube_grubu_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sube Grubu Id"
+          }
+        },
+        "required": [
+          "seviye",
+          "sube_grubu_id",
+          "sablon",
+          "sonuc"
+        ],
+        "title": "SeviyeUygulamaRaporu",
         "type": "object"
       },
       "SifreBelirle": {
@@ -6425,6 +6547,52 @@
         ]
       }
     },
+    "/api/ders-programi/seviye-sablonlari/toplu": {
+      "put": {
+        "description": "Şablonu tek seferde kaydeder (ders tablosundaki bütün saatler). Saati 0 olan ders çıkar.",
+        "operationId": "sablonu_toplu_kaydet_api_ders_programi_seviye_sablonlari_toplu_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SablonTopluKaydet"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SeviyeSablonuYanit"
+                  },
+                  "title": "Response Sablonu Toplu Kaydet Api Ders Programi Seviye Sablonlari Toplu Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sablonu Toplu Kaydet",
+        "tags": [
+          "seviye şablonu"
+        ]
+      }
+    },
     "/api/ders-programi/seviye-sablonlari/uygula": {
       "post": {
         "description": "Seviyenin şablonunu o seviyedeki her şubeye uygular (öğretmeni boş atamalar).",
@@ -6462,6 +6630,32 @@
           }
         },
         "summary": "Sablonu Uygula",
+        "tags": [
+          "seviye şablonu"
+        ]
+      }
+    },
+    "/api/ders-programi/seviye-sablonlari/uygula-hepsi": {
+      "post": {
+        "description": "Dolu bütün şablonları (seviye ve şube grubu) şubelerine uygular; rapor şablon şablon.",
+        "operationId": "sablonlari_uygula_api_ders_programi_seviye_sablonlari_uygula_hepsi_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SeviyeUygulamaRaporu"
+                  },
+                  "title": "Response Sablonlari Uygula Api Ders Programi Seviye Sablonlari Uygula Hepsi Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Sablonlari Uygula",
         "tags": [
           "seviye şablonu"
         ]

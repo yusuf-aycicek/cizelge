@@ -83,6 +83,7 @@ export function dagilimApisiKur(
     istisnalar?: Sema["SubeIstisnasiYanit"][];
     ozetGuncelle?: (durum: SahteDurum) => void;
     uygulamaSonucu?: Sema["SablonUygulamaSonucu"];
+    topluSonuc?: Sema["SeviyeUygulamaRaporu"][];
   } = {},
 ) {
   const durum: SahteDurum = {
@@ -163,6 +164,20 @@ export function dagilimApisiKur(
       return new HttpResponse(null, { status: 204 });
     }),
 
+    http.put("/api/ders-programi/seviye-sablonlari/toplu", async ({ request }) => {
+      const govde = (await kaydet("PUT", "seviye-sablonlari/toplu", request)) as Sema["SablonTopluKaydet"];
+      const grup = govde.sube_grubu_id ?? null;
+      const baska = durum.sablon.filter((s) => !(s.seviye === govde.seviye && (s.sube_grubu_id ?? null) === grup));
+      const yeniler = govde.satirlar.filter((r) => r.haftalik_saat > 0).map((r, i) => ({
+        id: `ss-toplu-${i}-${r.ders_id}`, seviye: govde.seviye, sube_grubu_id: grup, ders_id: r.ders_id, haftalik_saat: r.haftalik_saat,
+      }));
+      durum.sablon = [...baska, ...yeniler];
+      return HttpResponse.json(yeniler);
+    }),
+    http.post("/api/ders-programi/seviye-sablonlari/uygula-hepsi", async () => {
+      await kaydet("POST", "seviye-sablonlari/uygula-hepsi");
+      return HttpResponse.json(secenekler.topluSonuc ?? []);
+    }),
     http.post("/api/ders-programi/seviye-sablonlari/uygula", async ({ request }) => {
       await kaydet("POST", "seviye-sablonlari/uygula", request);
       return HttpResponse.json(secenekler.uygulamaSonucu ?? bosRapor());

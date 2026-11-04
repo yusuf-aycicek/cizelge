@@ -175,6 +175,47 @@ def test_sablon_seviyedeki_subelere_uygulanir_ve_coğaltmaz(istemci, okul):
     assert len(istemci.get(f"{DP}/atamalar", headers=b).json()) == 4
 
 
+def test_sablon_tek_seferde_kaydedilir(istemci, okul):
+    """Toplu kayıt şablonun tamamıdır: yeni ders eklenir, saati değişen güncellenir, 0 ya da listede
+    olmayan ders çıkar; başka seviyenin şablonuna dokunulmaz."""
+    b = okul["baslik"]
+    istemci.post(f"{DP}/seviye-sablonlari", json={"seviye": 10, "ders_id": okul["mat"], "haftalik_saat": 4}, headers=b)
+
+    def kaydet(satirlar):
+        return istemci.put(f"{DP}/seviye-sablonlari/toplu", headers=b, json={
+            "seviye": 9, "satirlar": [{"ders_id": okul[d], "haftalik_saat": s} for d, s in satirlar]})
+
+    yanit = kaydet([("mat", 6), ("fiz", 3)])
+    assert yanit.status_code == 200, yanit.text
+    assert sorted((r["ders_id"], r["haftalik_saat"]) for r in yanit.json()) == sorted([(okul["mat"], 6), (okul["fiz"], 3)])
+    assert kaydet([("mat", 5), ("fiz", 0)]).status_code == 200
+    sablon = istemci.get(f"{DP}/seviye-sablonlari", headers=b).json()
+    assert sorted((r["seviye"], r["haftalik_saat"]) for r in sablon) == [(9, 5), (10, 4)]
+    assert kaydet([]).status_code == 200
+    assert [r["seviye"] for r in istemci.get(f"{DP}/seviye-sablonlari", headers=b).json()] == [10]
+
+    assert kaydet([("mat", 2), ("mat", 3)]).status_code == 422  # aynı ders iki kez
+    yabanci = istemci.put(f"{DP}/seviye-sablonlari/toplu", headers=b, json={
+        "seviye": 9, "satirlar": [{"ders_id": str(uuid.uuid4()), "haftalik_saat": 2}]})
+    assert yabanci.status_code == 422 and "bulunamadı" in yabanci.json()["detail"]
+    assert [r["seviye"] for r in istemci.get(f"{DP}/seviye-sablonlari", headers=b).json()] == [10]  # hiçbiri yazılmadı
+
+
+def test_sablonlar_tum_seviyelere_uygulanir(istemci, okul):
+    b = okul["baslik"]
+    for seviye, ders, saat in ((9, "mat", 6), (10, "fiz", 3)):
+        istemci.post(f"{DP}/seviye-sablonlari", json={"seviye": seviye, "ders_id": okul[ders], "haftalik_saat": saat},
+                     headers=b)
+    yanit = istemci.post(f"{DP}/seviye-sablonlari/uygula-hepsi", headers=b)
+    assert yanit.status_code == 200, yanit.text
+    rapor = yanit.json()
+    assert [(r["seviye"], r["sablon"], r["sonuc"]["subeler"], r["sonuc"]["olusturulan"]) for r in rapor] == [
+        (9, "9. sınıflar", ["9-A", "9-B"], 2), (10, "10. sınıflar", ["10-A"], 1)]
+    assert len(istemci.get(f"{DP}/atamalar", headers=b).json()) == 3
+    tekrar = istemci.post(f"{DP}/seviye-sablonlari/uygula-hepsi", headers=b).json()
+    assert [r["sonuc"]["olusturulan"] for r in tekrar] == [0, 0]
+
+
 # --- program ve yerleşim: silme davranışları (veritabanı düzeyi) ------------------------------
 
 

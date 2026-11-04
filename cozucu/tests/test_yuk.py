@@ -4,6 +4,7 @@ from cozucu import (
     CozumGirdisi,
     Ders,
     DersAtama,
+    Kapsam,
     KisitTanimi,
     Musaitlik,
     MusaitlikDurumu,
@@ -147,3 +148,21 @@ def test_on_kontrol_ayni_hesabi_ve_mesaji_kullanir():
     assert len(beklenen) == 2
     kapasite = {s.mesaj for s in on_kontrol(g) if s.tur in ("ogretmen_kapasitesi", "sinif_kapasitesi")}
     assert kapasite == beklenen
+
+
+def test_hedefli_kapasite_bos_gun_hedefini_hesaba_katar():
+    # 5 gün x 6 saat: okul geneli hedef 1 boş gün -> en geniş 4 gün = 24 (kullanılabilir 30).
+    assert YukHesabi(girdi()).hedefli_kapasite("o-ayse") == 24
+    # Öğretmene özel hedef 4 boş gün -> 1 gün; pazartesi bütün gün gelemez, salı 2 saat gelemez.
+    ozel = KisitTanimi("bos_gun", {"hedef_bos_gun": 4}, zorunlu=False, kapsam=Kapsam(ogretmen_id="o-ayse"))
+    g = girdi(kisitlar=[ozel], musaitlikler=[*gelemez("o-ayse", 0, range(6)), *gelemez("o-ayse", 1, [0, 1])])
+    assert YukHesabi(g).hedefli_kapasite("o-ayse") == 6
+    # Günlük sınır da sayılır (m = 4): 4 gün x 4.
+    assert YukHesabi(girdi(kisitlar=[KisitTanimi("ogretmen_gunluk_siniri", {"m": 4})])).hedefli_kapasite("o-ayse") == 16
+
+
+def test_hedefli_kapasite_hedef_yoksa_bos():
+    sifir = KisitTanimi("bos_gun", {"hedef_bos_gun": 0}, zorunlu=False, agirlik=4)
+    assert YukHesabi(girdi(kisitlar=[sifir])).hedefli_kapasite("o-ayse") is None
+    kapali = KisitTanimi("bos_gun", {"hedef_bos_gun": 1}, zorunlu=False, agirlik=0)
+    assert YukHesabi(girdi(kisitlar=[kapali])).hedefli_kapasite("o-ayse") is None

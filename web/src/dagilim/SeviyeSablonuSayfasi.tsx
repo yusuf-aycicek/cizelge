@@ -2,13 +2,15 @@ import { dersIsaretleri } from "../dersler/isaret";
 import { Illustrasyon } from "../bilesenler/Illustrasyon";
 import { DersCipi } from "../dersler/DersCipi";
 import { SayfaBasligi } from "../bilesenler/SayfaBasligi";
-import { Plus, RotateCcw, WandSparkles, X } from "lucide-react";
+import { Copy, Layers, RotateCcw, Save, WandSparkles } from "lucide-react";
 import { Iskelet } from "../bilesenler/Iskelet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router";
 import { hataMetni } from "../api/hata";
-import { MetinAlani, SecimAlani } from "../bilesenler/Alan";
+import { SecimAlani } from "../bilesenler/Alan";
+import { FormHatasi } from "../bilesenler/form";
+import { OnayPenceresi } from "../bilesenler/OnayPenceresi";
 import { useBildirim } from "../bilesenler/Bildirim";
 import { Dugme } from "../bilesenler/Dugme";
 import { Tablo } from "../bilesenler/Tablo";
@@ -16,9 +18,8 @@ import { dersKaynagi, sinifKaynagi, type Ders, type Sinif } from "../listeler/ka
 import { turkceSirala } from "../metin";
 import sayfaStili from "../sayfalar/Sayfa.module.css";
 import stil from "./Dagilim.module.css";
-import { SaatGirdisi } from "./SaatGirdisi";
 import { useSubeGruplari, type SubeGrubu } from "../listeler/SubeGruplari";
-import { atamaApi, sablonApi, SABLON, useAtamalarDegisti, useDagilimOzeti, type SablonRaporu, type SablonSatiri } from "./veri";
+import { atamaApi, sablonApi, SABLON, useAtamalarDegisti, useDagilimOzeti, type SablonRaporu, type SablonSatiri, type Sema } from "./veri";
 
 /**
  * Hangi şube hangi şablonu kullanır: grubunun şablonunda ders varsa grubunkini, yoksa seviyenin.
@@ -122,13 +123,15 @@ export function SeviyeSablonuSayfasi() {
             )}
           </SecimAlani>
         </div>
-        {/* key: şablon değişince ekleme formu ve rapor sıfırlansın. */}
+        {/* key: şablon değişince tablo taslağı ve rapor sıfırlansın. */}
         <SeviyeSablonu
           key={deger(seviye, grup ?? null)}
           seviye={seviye}
           grup={grup ?? null}
           satirlar={sablon.data.filter((s) => s.seviye === seviye && (s.sube_grubu_id ?? null) === grupId)}
+          tumSatirlar={sablon.data}
           dersler={dersler.data}
+          siniflar={siniflar.data}
           subeler={subeler(seviye, grup ?? null)}
           baskaSablonlu={grup ? [] : siniflar.data.filter((s) => s.seviye === seviye && !subeler(seviye, null).includes(s))}
           gruplar={gruplar.data}
@@ -154,7 +157,10 @@ type SablonProps = {
   /** Doluysa grubun şablonu; boşsa seviyenin. */
   grup: SubeGrubu | null;
   satirlar: SablonSatiri[];
+  /** Okulun bütün şablon satırları ("Başka şablondan kopyala" için). */
+  tumSatirlar: SablonSatiri[];
   dersler: Ders[];
+  siniflar: Sinif[];
   /** Bu şablonu kullanan şubeler. */
   subeler: Sinif[];
   /** Seviyenin şablonunda: kendi grubunun şablonunu kullandığı için bu şablonun uygulanmadığı şubeler. */
@@ -163,71 +169,120 @@ type SablonProps = {
   haftalikKapasite: number;
 };
 
-function SeviyeSablonu({ seviye, grup, satirlar, dersler, subeler, baskaSablonlu, gruplar, haftalikKapasite }: SablonProps) {
+type TopluRapor = Sema["SeviyeUygulamaRaporu"][];
+
+/** Şablonun adı: "9. sınıflar" ya da "11 Sayısal grubu". */
+function sablonEtiketi(seviye: number, grupId: string | null, gruplar: SubeGrubu[]): string {
+  const g = grupId ? gruplar.find((x) => x.id === grupId) : undefined;
+  return g ? `${g.ad} grubu` : `${seviye}. sınıflar`;
+}
+
+/** Tablodaki metinden saat: boş = 0 (şablonda yok). Geçersizse null. */
+function saatOku(metin: string): number | null {
+  if (metin.trim() === "") return 0;
+  const n = Number(metin);
+  return Number.isInteger(n) && n >= 0 && n <= 99 ? n : null;
+}
+
+type Taslak = Record<string, string>;
+const taslakOlustur = (dersler: Ders[], satirlar: SablonSatiri[]): Taslak =>
+  Object.fromEntries(
+    dersler.map((d) => {
+      const s = satirlar.find((x) => x.ders_id === d.id);
+      return [d.id, s ? String(s.haftalik_saat) : ""];
+    }),
+  );
+
+const anahtar = (sv: number, g: string | null | undefined) => `${sv}:${g ?? ""}`;
+
+/**
+ * Şablon, okulun bütün dersleri alt alta bir tablodur: saatler yazılır, "Şablonu kaydet" hepsini
+ * tek istekte kaydeder (boş ya da 0: ders şablonda yok). Toplam ve kapasite yazdıkça güncellenir.
+ * Kaydedilmemiş değişiklik varken şubelere uygulanamaz (uygulama kaydedilmiş şablonu kullanır).
+ *
+ * Taslak (yazılan metinler) yerel state'tir; kaydedilince sunucunun yanıtıyla yeniden kurulur.
+ */
+function SeviyeSablonu({ seviye, grup, satirlar, tumSatirlar, dersler, siniflar, subeler, baskaSablonlu, gruplar, haftalikKapasite }: SablonProps) {
   const istemci = useQueryClient();
   const bildirim = useBildirim();
   const atamalarDegisti = useAtamalarDegisti();
-  const [yeni, setYeni] = useState({ ders_id: "", saat: "" });
-  const [yeniHatasi, setYeniHatasi] = useState<string>();
+  const [taslak, setTaslak] = useState<Taslak>(() => taslakOlustur(dersler, satirlar));
+  const [kaydetHatasi, setKaydetHatasi] = useState<string>();
+  const [kaynak, setKaynak] = useState("");
+  const [kopyaOnayi, setKopyaOnayi] = useState(false);
   const [rapor, setRapor] = useState<SablonRaporu | null>(null);
+  const [topluRapor, setTopluRapor] = useState<TopluRapor | null>(null);
 
-  const dersAdi = (id: string) => dersler.find((d) => d.id === id)?.ad ?? "";
-  const sirali = turkceSirala(satirlar, (s) => dersAdi(s.ders_id));
-  const toplam = satirlar.reduce((t, s) => t + s.haftalik_saat, 0);
-  const eklenebilir = turkceSirala(dersler.filter((d) => !satirlar.some((s) => s.ders_id === d.id)), (d) => d.ad);
-  const tazele = () => istemci.invalidateQueries({ queryKey: SABLON });
+  const sirali = turkceSirala(dersler, (d) => d.ad);
+  const saatler = new Map(sirali.map((d) => [d.id, saatOku(taslak[d.id] ?? "")]));
+  const toplam = [...saatler.values()].reduce<number>((t, n) => t + (n ?? 0), 0);
+  const kayitli = taslakOlustur(dersler, satirlar);
+  const degisti = sirali.some((d) => saatler.get(d.id) !== saatOku(kayitli[d.id] ?? ""));
+  const dolu = sirali.some((d) => (saatler.get(d.id) ?? 0) > 0);
 
-  const ekle = useMutation({
-    mutationFn: (d: { ders_id: string; haftalik_saat: number }) =>
-      sablonApi.olustur({ seviye, ...(grup ? { sube_grubu_id: grup.id } : {}), ...d }),
-    onSuccess: async (s) => {
-      await tazele();
-      bildirim("basari", `${dersAdi(s.ders_id)} ${sablonAdi}na eklendi.`);
-      setYeni({ ders_id: "", saat: "" });
+  // Kopyalanabilecek öteki (dolu) şablonlar.
+  const buAnahtar = anahtar(seviye, grup?.id);
+  const kaynaklar = [...new Set(tumSatirlar.map((s) => anahtar(s.seviye, s.sube_grubu_id)))]
+    .filter((k) => k !== buAnahtar)
+    .map((k) => {
+      const [sv, g] = k.split(":");
+      return { anahtar: k, seviye: Number(sv), ad: sablonEtiketi(Number(sv), g || null, gruplar) };
+    })
+    .sort((a, b) => a.seviye - b.seviye || a.ad.localeCompare(b.ad, "tr"));
+
+  const subeAdlari = subeler.map((s) => s.ad).join(", ");
+  const sablonAdi = grup ? `${grup.ad} grubunun şablonu` : `${seviye}. sınıf şablonu`;
+  const grupAdi = (id: string | null | undefined) => gruplar.find((g) => g.id === id)?.ad;
+  const kaynakAdi = kaynaklar.find((k) => k.anahtar === kaynak)?.ad ?? "";
+
+  const kaydet = useMutation({
+    mutationFn: (yeniler: { ders_id: string; haftalik_saat: number }[]) =>
+      sablonApi.topluKaydet({ seviye, ...(grup ? { sube_grubu_id: grup.id } : {}), satirlar: yeniler }),
+    onSuccess: async (yeniler) => {
+      setTaslak(taslakOlustur(dersler, yeniler));
+      await istemci.invalidateQueries({ queryKey: SABLON });
+      const saat = yeniler.reduce((t, s) => t + s.haftalik_saat, 0);
+      bildirim("basari", `${sablonAdi} kaydedildi: ${yeniler.length} ders, haftada ${saat} saat.`);
     },
-    onError: (hata) => setYeniHatasi(hataMetni(hata)),
-  });
-
-  const saatDegistir = useMutation({
-    mutationFn: (d: { satir: SablonSatiri; saat: number }) => sablonApi.guncelle(d.satir.id, d.saat),
-    onSuccess: async (s) => {
-      await tazele();
-      bildirim("basari", `${dersAdi(s.ders_id)}: şablonda haftada ${s.haftalik_saat} saat.`);
-    },
-    onError: (hata) => bildirim("hata", hataMetni(hata)),
-  });
-
-  const cikar = useMutation({
-    mutationFn: (s: SablonSatiri) => sablonApi.sil(s.id),
-    onSuccess: async (_, s) => {
-      await tazele();
-      bildirim("basari", `${dersAdi(s.ders_id)} şablondan çıkarıldı. Şubelerdeki dersler değişmedi.`);
-    },
-    onError: (hata) => bildirim("hata", hataMetni(hata)),
+    onError: (hata) => setKaydetHatasi(hataMetni(hata)),
   });
 
   const uygula = useMutation({
     mutationFn: () => sablonApi.uygula(seviye, grup?.id),
     onSuccess: async (sonuc) => {
       await atamalarDegisti();
+      setTopluRapor(null);
       setRapor(sonuc);
     },
     onError: (hata) => bildirim("hata", hataMetni(hata)),
   });
 
-  function ekleGonder(olay: FormEvent) {
+  const hepsiniUygula = useMutation({
+    mutationFn: sablonApi.hepsiniUygula,
+    onSuccess: async (sonuc) => {
+      await atamalarDegisti();
+      setRapor(null);
+      setTopluRapor(sonuc);
+    },
+    onError: (hata) => bildirim("hata", hataMetni(hata)),
+  });
+
+  function kaydetGonder(olay: FormEvent) {
     olay.preventDefault();
-    const saat = Number(yeni.saat);
-    if (!yeni.ders_id) return setYeniHatasi("Eklenecek dersi seçin.");
-    if (!Number.isInteger(saat) || saat < 1) return setYeniHatasi("Haftalık saat en az 1 olmalı.");
-    setYeniHatasi(undefined);
-    ekle.mutate({ ders_id: yeni.ders_id, haftalik_saat: saat });
+    const hatali = sirali.filter((d) => saatler.get(d.id) === null);
+    if (hatali.length > 0) {
+      setKaydetHatasi(`Haftalık saat 0 ile 99 arasında tam sayı olmalı: ${hatali.map((d) => d.ad).join(", ")}.`);
+      return;
+    }
+    setKaydetHatasi(undefined);
+    kaydet.mutate(sirali.map((d) => ({ ders_id: d.id, haftalik_saat: saatler.get(d.id) ?? 0 })));
   }
 
-  const subeAdlari = subeler.map((s) => s.ad).join(", ");
-  // "9. sınıf şablonuna" / "11 Sayısal grubunun şablonuna"
-  const sablonAdi = grup ? `${grup.ad} grubunun şablonu` : `${seviye}. sınıf şablonu`;
-  const grupAdi = (id: string | null | undefined) => gruplar.find((g) => g.id === id)?.ad;
+  function kopyala() {
+    setTaslak(taslakOlustur(dersler, tumSatirlar.filter((s) => anahtar(s.seviye, s.sube_grubu_id) === kaynak)));
+    setKopyaOnayi(false);
+    bildirim("basari", `${kaynakAdi} şablonu tabloya kopyalandı. Kontrol edip “Şablonu kaydet”e basın.`);
+  }
 
   return (
     <>
@@ -238,7 +293,7 @@ function SeviyeSablonu({ seviye, grup, satirlar, dersler, subeler, baskaSablonlu
             <>
               Bu şablon <strong>{grup.ad}</strong> grubuna ait
               {subeler.length > 0 ? ` (${subeAdlari})` : "; grupta henüz şube yok (Sınıflar sayfasından ekleyin)"}.
-              {sirali.length === 0 && ` Şablon boşken grubun şubeleri ${seviye}. sınıfların şablonunu kullanır.`}
+              {satirlar.length === 0 && ` Şablon boşken grubun şubeleri ${seviye}. sınıfların şablonunu kullanır.`}
             </>
           ) : (
             <>
@@ -246,72 +301,75 @@ function SeviyeSablonu({ seviye, grup, satirlar, dersler, subeler, baskaSablonlu
               {baskaSablonlu.length > 0 &&
                 ` ${baskaSablonlu.map((s) => `${s.ad} (${grupAdi(s.sube_grubu_id)})`).join(", ")} kendi grubunun şablonunu kullanır.`}
             </>
-          )}
+          )}{" "}
+          Okulun bütün dersleri aşağıda: şablondaki derslerin haftalık saatini yazın, olmayanları boş bırakın.
         </p>
-        {sirali.length === 0 ? (
-          <p className={stil.aciklama}>
-            {grup ? "Bu grubun şablonunda henüz ders yok. Aşağıdan ekleyin." : "Bu seviyenin şablonunda henüz ders yok. Aşağıdan ekleyin."}
-          </p>
-        ) : (
-          <Tablo<SablonSatiri>
-            baslik={grup ? `${grup.ad} grubunun şablonu` : `${seviye}. sınıf şablonu`}
+
+        {kaynaklar.length > 0 && (
+          <div className={stil.ekleAlanlari}>
+            <SecimAlani etiket="Başka şablondan kopyala" value={kaynak} onChange={(o) => setKaynak(o.target.value)}
+              aciklama="Saatler tabloya gelir; kaydetmeden önce değiştirebilirsiniz.">
+              <option value="">Şablon seçin</option>
+              {kaynaklar.map((k) => (
+                <option key={k.anahtar} value={k.anahtar}>
+                  {k.ad}
+                </option>
+              ))}
+            </SecimAlani>
+            <Dugme ikon={<Copy />} tur="ikincil" className={stil.ekleDugmesi} disabled={!kaynak}
+              onClick={() => (dolu ? setKopyaOnayi(true) : kopyala())}>
+              Kopyala
+            </Dugme>
+          </div>
+        )}
+
+        <form onSubmit={kaydetGonder} noValidate>
+          <FormHatasi mesaj={kaydetHatasi} />
+          <Tablo<Ders>
+            baslik={sablonAdi}
             satirlar={sirali}
-            satirAnahtari={(s) => s.id}
+            satirAnahtari={(d) => d.id}
             sutunlar={[
               {
                 baslik: "Ders",
-                hucre: (s) => (
-                  <DersCipi ad={dersAdi(s.ders_id)} renk={dersler.find((d) => d.id === s.ders_id)?.renk}
-                    isaret={dersIsaretleri(dersler).get(s.ders_id)} />
-                ),
+                hucre: (d) => <DersCipi ad={d.ad} renk={d.renk} isaret={dersIsaretleri(dersler).get(d.id)} />,
               },
               {
                 baslik: "Haftalık saat",
-                hucre: (s) => (
-                  <SaatGirdisi key={`${s.id}-${s.haftalik_saat}`} etiket={`${dersAdi(s.ders_id)} haftalık saat`}
-                    deger={s.haftalik_saat} onKaydet={(saat) => saatDegistir.mutate({ satir: s, saat })} />
-                ),
-              },
-              {
-                baslik: "İşlemler",
-                baslikGizli: true,
-                hizala: "sag",
-                hucre: (s) => (
-                  <Dugme ikon={<X />} tur="metin" onClick={() => cikar.mutate(s)} aria-label={`${dersAdi(s.ders_id)} dersini şablondan çıkar`}>
-                    Çıkar
-                  </Dugme>
+                hucre: (d) => (
+                  <input type="number" inputMode="numeric" min={0} max={99} placeholder="–"
+                    aria-label={`${d.ad} haftalık saat`} aria-invalid={saatler.get(d.id) === null || undefined}
+                    className={stil.saat} value={taslak[d.id] ?? ""}
+                    onChange={(o) => setTaslak({ ...taslak, [d.id]: o.target.value })} />
                 ),
               },
             ]}
           />
-        )}
-        <p className={toplam > haftalikKapasite ? stil.toplamAsim : stil.toplam}>
-          {toplam > haftalikKapasite && <span aria-hidden="true">⚠ </span>}
-          Haftalık toplam <strong>{toplam} saat</strong>; okulun haftalık kapasitesi {haftalikKapasite} saat.
-          {toplam > haftalikKapasite && " Bu şablonla şubelerin programı üretilemez."}
-        </p>
-
-        <form onSubmit={ekleGonder} className={stil.ekleFormu} noValidate>
-          <h3 className={stil.formBasligi}>Şablona ders ekle</h3>
-          <div className={stil.ekleAlanlari}>
-            <SecimAlani etiket="Ders" value={yeni.ders_id} hata={yeniHatasi}
-              onChange={(o) => setYeni({ ...yeni, ders_id: o.target.value })}>
-              <option value="">Ders seçin</option>
-              {eklenebilir.map((d) => (
-                <option key={d.id} value={d.id}>{d.ad}</option>
-              ))}
-            </SecimAlani>
-            <MetinAlani etiket="Haftalık saat" type="number" inputMode="numeric" min={1} value={yeni.saat}
-              onChange={(o) => setYeni({ ...yeni, saat: o.target.value })} />
-            <Dugme ikon={<Plus />} type="submit" className={stil.ekleDugmesi} yukleniyor={ekle.isPending} yukleniyorMetni="Ekleniyor...">
-              Ekle
+          <p className={toplam > haftalikKapasite ? stil.toplamAsim : stil.toplam}>
+            {toplam > haftalikKapasite && <span aria-hidden="true">⚠ </span>}
+            Haftalık toplam <strong>{toplam} saat</strong>; okulun haftalık kapasitesi {haftalikKapasite} saat.
+            {toplam > haftalikKapasite && " Bu şablonla şubelerin programı üretilemez."}
+          </p>
+          <div className={stil.islemler}>
+            <Dugme ikon={<Save />} type="submit" disabled={!degisti} yukleniyor={kaydet.isPending} yukleniyorMetni="Kaydediliyor...">
+              Şablonu kaydet
             </Dugme>
+            {degisti && (
+              <Dugme tur="metin" onClick={() => { setTaslak(kayitli); setKaydetHatasi(undefined); }}>
+                Değişiklikleri geri al
+              </Dugme>
+            )}
           </div>
         </form>
       </section>
 
       <section aria-labelledby="uygula-baslik" className={sayfaStili.kart}>
         <h2 id="uygula-baslik">Şubelere uygula</h2>
+        {degisti && (
+          <p className={stil.aciklama} role="status">
+            Şablonda kaydedilmemiş değişiklik var; uygulamadan önce kaydedin.
+          </p>
+        )}
         {subeler.length === 0 ? (
           <p className={stil.aciklama}>
             {grup
@@ -319,50 +377,89 @@ function SeviyeSablonu({ seviye, grup, satirlar, dersler, subeler, baskaSablonlu
               : `Okulda bu şablonu kullanan ${seviye}. sınıf şubesi yok. Şube eklenince şablon uygulanabilir.`}
           </p>
         ) : (
-          <>
-            <p className={stil.aciklama}>
-              Şablondaki dersler {subeler.length} şubeye ({subeAdlari}) öğretmeni boş olarak eklenir. Şubede zaten olan
-              dersler değiştirilmez; saati farklı olanlar size gösterilir. Şablonda olmayan dersler şubelerden
-              kaldırılmaz. Bir şubenin almadığı ders (ders dağılımında “Bu şube almaz”) eklenmez.
-            </p>
-            <Dugme ikon={<WandSparkles />} disabled={sirali.length === 0} yukleniyor={uygula.isPending} yukleniyorMetni="Uygulanıyor..."
-              onClick={() => uygula.mutate()}>
+          <p className={stil.aciklama}>
+            Şablondaki dersler {subeler.length} şubeye ({subeAdlari}) öğretmeni boş olarak eklenir. Şubede zaten olan
+            dersler değiştirilmez; saati farklı olanlar size gösterilir. Şablonda olmayan dersler şubelerden
+            kaldırılmaz. Bir şubenin almadığı ders (ders dağılımında “Bu şube almaz”) eklenmez. “Tüm seviyelere
+            uygula” okulun bütün şablonlarını kendi şubelerine aynı kurallarla uygular.
+          </p>
+        )}
+        <div className={stil.islemler}>
+          {subeler.length > 0 && (
+            <Dugme ikon={<WandSparkles />} disabled={satirlar.length === 0 || degisti} yukleniyor={uygula.isPending}
+              yukleniyorMetni="Uygulanıyor..." onClick={() => uygula.mutate()}>
               {grup ? `${grup.ad} şubelerine uygula` : `${seviye}. sınıf şubelerine uygula`}
             </Dugme>
-          </>
+          )}
+          <Dugme ikon={<Layers />} tur="ikincil" disabled={tumSatirlar.length === 0 || degisti}
+            yukleniyor={hepsiniUygula.isPending} yukleniyorMetni="Uygulanıyor..." onClick={() => hepsiniUygula.mutate()}>
+            Tüm seviyelere uygula
+          </Dugme>
+        </div>
+        {rapor && (
+          <UygulamaRaporu baslik="Şablon uygulandı" onKapat={() => setRapor(null)}>
+            <RaporAyrintisi rapor={rapor} siniflar={siniflar} dersler={dersler} />
+          </UygulamaRaporu>
         )}
-        {rapor && <UygulamaRaporu rapor={rapor} subeler={subeler} dersler={dersler} onKapat={() => setRapor(null)} />}
+        {topluRapor && (
+          <UygulamaRaporu baslik={`${topluRapor.length} şablon uygulandı`} onKapat={() => setTopluRapor(null)}>
+            {topluRapor.map((r) => (
+              <section key={anahtar(r.seviye, r.sube_grubu_id)} aria-label={r.sablon} className={stil.raporBolumu}>
+                <h4 className={stil.raporAltBasligi}>{r.sablon}</h4>
+                <RaporAyrintisi rapor={r.sonuc} siniflar={siniflar} dersler={dersler} baskaSablonluGoster={false} />
+              </section>
+            ))}
+          </UygulamaRaporu>
+        )}
       </section>
+
+      <OnayPenceresi
+        acik={kopyaOnayi}
+        baslik={`${sablonAdi} dolu`}
+        mesaj={`Tablodaki saatler ${kaynakAdi} şablonundakilerle değiştirilecek. Kaydetmeden önce kontrol edebilirsiniz; kaydetmezseniz şablon değişmez.`}
+        onaylaMetni="Kopyala"
+        onOnayla={kopyala}
+        onVazgec={() => setKopyaOnayi(false)}
+      />
     </>
   );
 }
 
 /**
- * Şablon uygulamasının sonucu, kullanıcının diliyle. Sunucunun raporu: kaç şube, kaç atama
- * oluşturuldu, kaçı zaten vardı, hangilerinin saati şablondan farklı (değiştirilmedi).
- *
- * Rapor görününce odak başlığına taşınır: düğmeye basan klavye ve ekran okuyucu kullanıcısı sonucu
- * hemen duyar ve tablonun içinde gezinebilir.
+ * Uygulama raporunun çerçevesi. Rapor görününce odak başlığına taşınır: düğmeye basan klavye ve
+ * ekran okuyucu kullanıcısı sonucu hemen duyar ve tablonun içinde gezinebilir.
  */
-function UygulamaRaporu({
-  rapor,
-  subeler,
-  dersler,
-  onKapat,
-}: {
+function UygulamaRaporu({ baslik, onKapat, children }: { baslik: string; onKapat: () => void; children: ReactNode }) {
+  const baslikRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    baslikRef.current?.focus();
+  }, [baslik]);
+  return (
+    <div className={stil.rapor}>
+      <h3 ref={baslikRef} tabIndex={-1} className={stil.raporBasligi}>
+        {baslik}
+      </h3>
+      {children}
+      <Dugme tur="metin" onClick={onKapat}>
+        Raporu kapat
+      </Dugme>
+    </div>
+  );
+}
+
+/**
+ * Bir şablonun uygulama sonucu, kullanıcının diliyle: kaç şube, kaç atama oluşturuldu, kaçı zaten
+ * vardı, hangilerinin saati şablondan farklı (değiştirilmedi; tek tıkla şablondaki saate çekilir).
+ */
+function RaporAyrintisi({ rapor, siniflar, dersler, baskaSablonluGoster = true }: {
   rapor: SablonRaporu;
-  subeler: Sinif[];
+  siniflar: Sinif[];
   dersler: Ders[];
-  onKapat: () => void;
+  baskaSablonluGoster?: boolean;
 }) {
   const bildirim = useBildirim();
   const atamalarDegisti = useAtamalarDegisti();
-  const baslik = useRef<HTMLHeadingElement>(null);
   const [duzeltilen, setDuzeltilen] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    baslik.current?.focus();
-  }, [rapor]);
 
   const sablonaCek = useMutation({
     mutationFn: (f: SablonRaporu["farkli_saatli"][number]) =>
@@ -375,18 +472,17 @@ function UygulamaRaporu({
     onError: (hata) => bildirim("hata", hataMetni(hata)),
   });
 
-  const ilkSube = subeler[0];
+  const ilkSube = siniflar.find((s) => s.ad === rapor.subeler[0]);
   return (
-    <div className={stil.rapor}>
-      <h3 ref={baslik} tabIndex={-1} className={stil.raporBasligi}>
-        Şablon uygulandı
-      </h3>
+    <>
       <ul className={stil.raporListesi}>
         <li>
-          {rapor.olusturulan > 0 ? (
+          {rapor.sube_sayisi === 0 ? (
+            <>Bu şablonu kullanan şube yok.</>
+          ) : rapor.olusturulan > 0 ? (
             <>
               <strong>{rapor.sube_sayisi} şubeye toplam {rapor.olusturulan} ders eklendi</strong> (
-              {subeler.map((s) => s.ad).join(", ")}). Öğretmenleri henüz seçilmedi.{" "}
+              {rapor.subeler.join(", ")}). Öğretmenleri henüz seçilmedi.{" "}
               {ilkSube && <Link to={`/ders-dagilimi?gorunum=sube&sinif=${ilkSube.id}`}>Ders dağılımında öğretmen seçin</Link>}
             </>
           ) : (
@@ -405,7 +501,7 @@ function UygulamaRaporu({
             Şubelerin ek dersleri: {rapor.istisna_ek.map((i) => `${i.sinif} ${i.ders} (${i.haftalik_saat} saat${i.eklendi ? ", eklendi" : ""})`).join(", ")}.
           </li>
         )}
-        {rapor.baska_sablonlu.length > 0 && (
+        {baskaSablonluGoster && rapor.baska_sablonlu.length > 0 && (
           <li>
             Kendi şablonunu kullandığı için dokunulmayan şubeler:{" "}
             {rapor.baska_sablonlu.map((b) => `${b.sinif} (${b.sablon})`).join(", ")}.
@@ -452,9 +548,6 @@ function UygulamaRaporu({
           />
         </>
       )}
-      <Dugme tur="metin" onClick={onKapat}>
-        Raporu kapat
-      </Dugme>
-    </div>
+    </>
   );
 }

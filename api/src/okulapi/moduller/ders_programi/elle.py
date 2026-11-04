@@ -20,7 +20,7 @@ import uuid
 from dataclasses import asdict, replace
 from typing import Any
 
-from cozucu.kalite import agirlikli_ceza, olc
+from cozucu.kalite import agirlikli_ceza, bos_gun_notlari, olc
 from cozucu.kisitlar import etkin_agirliklar
 from cozucu.model import CozumGirdisi
 from cozucu.model import Yerlesim as CYerlesim
@@ -30,6 +30,7 @@ from sqlalchemy import delete, func, select, tuple_
 from okulapi.cekirdek.servisler import GecersizVeri, KayitBulunamadi, KayitCakismasi
 from okulapi.moduller.ders_programi.cozucu_donusturucu import cozum_girdisi_olustur
 from okulapi.moduller.ders_programi.modeller import Program, ProgramIslemi, Yerlesim
+from okulapi.moduller.ders_programi.uretim import not_sozlukleri
 
 YALNIZCA_HAZIR = "Yalnızca hazır (başarıyla üretilmiş) bir program düzeltilebilir"
 GERI_ALINACAK_YOK = "Geri alınacak bir değişiklik yok"
@@ -61,6 +62,7 @@ class ElleDuzeltmeServisi:
         olcum = olc(girdi, yerlesimler)
         program.olcumler = asdict(olcum)
         program.toplam_ceza = agirlikli_ceza(olcum, etkin_agirliklar(girdi))
+        program.notlar = not_sozlukleri(bos_gun_notlari(girdi, yerlesimler))
 
     def _islem_ekle(self, program: Program, tur: str, veri: dict[str, Any]) -> None:
         sira = self.oturum.scalar(select(func.coalesce(func.max(ProgramIslemi.sira), 0)).where(ProgramIslemi.program_id == program.id))
@@ -120,6 +122,10 @@ class ElleDuzeltmeServisi:
         assert d.olcum is not None
         program.olcumler = asdict(d.olcum)
         program.toplam_ceza = agirlikli_ceza(d.olcum, etkin_agirliklar(girdi))
+        self.oturum.flush()
+        program.notlar = not_sozlukleri(bos_gun_notlari(girdi, [
+            CYerlesim(str(y.ders_atama_id), y.gun, y.saat, y.kilitli)
+            for y in self.oturum.scalars(select(Yerlesim).where(Yerlesim.program_id == program.id))]))
         self.oturum.commit()
         return program, list(d.nedenler)
 

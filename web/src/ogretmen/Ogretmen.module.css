@@ -363,3 +363,10 @@
     display: none;
   }
 }
+
+/* Seçimin sonucu ("→ haftada 4 gün okula gelir"): seçimin hemen altında, açıklamadan belirgin. */
+.ayarSonucu {
+  margin: var(--bosluk-1) 0 0;
+  font-weight: var(--yazi-kalin);
+  color: var(--renk-birincil-koyu, var(--renk-birincil));
+}

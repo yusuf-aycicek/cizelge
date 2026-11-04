@@ -49,11 +49,11 @@ ONEM_KARSILIKLARI: dict[str, dict[str, int]] = {
 KURAL_METINLERI: dict[str, tuple[str, str]] = {
     "gunluk_ders_siniri": (
         "Aynı dersin günlük sınırı",
-        "Aynı ders bir sınıfa günde en fazla bu kadar saat konur.",
+        "Aynı ders bir sınıfa günde en fazla bu kadar saat konur (ör. 2: Matematik bir günde en çok 2 saat).",
     ),
     "ogretmen_gunluk_siniri": (
         "Öğretmenin günlük ders sınırı",
-        "Bir öğretmen günde en fazla bu kadar saat derse girer.",
+        "Bir öğretmen günde en fazla bu kadar saat derse girer (ör. 6: 8 saatlik günde en az 2 saati boş).",
     ),
     "haftalik_yuk": (
         "Öğretmenin haftalık ders yükü",
@@ -80,8 +80,8 @@ KURAL_METINLERI: dict[str, tuple[str, str]] = {
     ),
     "bos_gun": (
         "Öğretmene boş gün",
-        "Her öğretmene haftada bu kadar boş gün kazandırılmaya çalışılır. Ders yükü buna izin "
-        "vermeyen öğretmen için zorlanmaz.",
+        "Her öğretmene haftada bu kadar boş gün kazandırılmaya çalışılır (ör. 1: 5 günlük okulda 4 gün "
+        "gelir). Ders yükü buna izin vermeyen öğretmen için zorlanmaz.",
     ),
     "ogretmen_penceresi": (
         "Öğretmenin boş (pencere) saatleri",

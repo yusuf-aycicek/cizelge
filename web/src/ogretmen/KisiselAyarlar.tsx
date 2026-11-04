@@ -19,16 +19,25 @@ type AyarTanimi = {
   aciklama: string;
   secenekler: (okul: { gun_sayisi: number; gunluk_ders_saati: number }) => number[];
   deger: (n: number) => string;
+  /** Seçimin sonucu, seçimin hemen altında: "→ haftada 4 gün okula gelir" (ters anlaşılmasın). */
+  sonuc?: (n: number, okul: { gun_sayisi: number }) => string;
 };
+
+/** Boş gün hedefinin sonucu: kaç gün okula gelir. */
+export function gelecegiGun(hedefBosGun: number, gunSayisi: number): string {
+  const gun = Math.max(0, gunSayisi - hedefBosGun);
+  return hedefBosGun === 0 ? `→ haftada ${gun} gün (her gün) okula gelir` : `→ haftada ${gun} gün okula gelir`;
+}
 
 export const OGRETMEN_AYARLARI: AyarTanimi[] = [
   {
     tur: "bos_gun",
     parametre: "hedef_bos_gun",
-    etiket: "Boş gün hedefi",
-    aciklama: "Haftada kaç gün okula gelmesin. Özel bir değer verilirse hedeften az gelmek de istenmez (0: her gün gelmek istiyor).",
+    etiket: "Okula gelmeyeceği gün sayısı (hedef)",
+    aciklama: "Boş gün hedefi: haftada kaç gün okula gelmesin. Özel bir değer verilirse hedeften az gelmek de istenmez (0: her gün gelmek istiyor). Esnek kuraldır: ders yükü sığmazsa daha çok gün gelir.",
     secenekler: (o) => Array.from({ length: o.gun_sayisi }, (_, i) => i),
     deger: (n) => (n === 0 ? "0 (boş gün istemiyor)" : `${n} gün`),
+    sonuc: (n, okul) => gelecegiGun(n, okul.gun_sayisi),
   },
   {
     tur: "ogretmen_gunluk_siniri",
@@ -96,7 +105,7 @@ export function KisiselAyarlar({ ogretmenId, kurallar, okul }: {
                 className={stil.secim}
                 value={deger === undefined ? "" : String(deger)}
                 disabled={kaydet.isPending}
-                aria-describedby={`${id}-aciklama`}
+                aria-describedby={tanim.sonuc ? `${id}-sonuc ${id}-aciklama` : `${id}-aciklama`}
                 onChange={(o) => kaydet.mutate({ tanim, deger: o.target.value === "" ? null : Number(o.target.value) })}
               >
                 <option value="">Okul varsayılanı ({tanim.deger(okulDegeri)})</option>
@@ -106,6 +115,11 @@ export function KisiselAyarlar({ ogretmenId, kurallar, okul }: {
                   </option>
                 ))}
               </select>
+              {tanim.sonuc && Number.isFinite(okulDegeri) && (
+                <p id={`${id}-sonuc`} className={stil.ayarSonucu} aria-live="polite">
+                  {tanim.sonuc(deger === undefined ? okulDegeri : Number(deger), okul)}
+                </p>
+              )}
               <p id={`${id}-aciklama`} className={stil.ayarAciklama}>
                 {tanim.aciklama}
                 {!kural.zorunlu && kural.agirlik === 0 && " Bu kural okulda kapalı (Okul ayarları > kuralların önemi)."}

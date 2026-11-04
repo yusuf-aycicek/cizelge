@@ -39,8 +39,9 @@ export function EskiVeriUyarisi({ program, onTemelAl }: { program: Program; onTe
     <div className={stil.eskiVeri} role="note">
       <TriangleAlert aria-hidden="true" />
       <p>
-        <strong>Bu program eski verilerle üretildi.</strong> Ders dağılımı, müsaitlik ya da kurallar program
-        üretildikten sonra değişti; program bu değişiklikleri içermiyor.
+        <strong>Ayarlar son programdan sonra değişti, programı yeniden oluşturun.</strong> Ders dağılımı,
+        öğretmen ayarları, müsaitlik ya da kurallar bu program üretildikten sonra değişti; program bu
+        değişiklikleri içermiyor (eski verilerle üretildi).
         {onTemelAl && " Güncel veriyle yeniden üretin; bu programı temel alırsanız program yalnızca gerektiği kadar değişir."}
       </p>
       {onTemelAl && (

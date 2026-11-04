@@ -28,8 +28,10 @@ import time
 import uuid
 from dataclasses import asdict, replace
 from enum import Enum
+from typing import Any
 
 from cozucu import CozumGirdisi, CozumSonucu, CpSatCozucu, ProgramCozucu, dogrula, olc
+from cozucu.kalite import KaliteNotu, bos_gun_notlari
 from cozucu.veri_io import girdi_to_dict
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session, sessionmaker
@@ -81,6 +83,11 @@ def girdi_ozeti(girdi: CozumGirdisi) -> str:
             veri[anahtar] = sorted(deger, key=lambda x: json.dumps(x, sort_keys=True, ensure_ascii=False))
     metin = json.dumps(veri, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
     return hashlib.sha256(metin.encode("utf-8")).hexdigest()
+
+
+def not_sozlukleri(notlar: list[KaliteNotu]) -> list[dict[str, Any]]:
+    """`program.notlar` sütununun biçimi (çelişkilerle aynı: tur, mesaj, ilgili)."""
+    return [{"tur": n.tur, "mesaj": n.mesaj, "ilgili": list(n.ilgili)} for n in notlar]
 
 
 def veri_ozeti(girdi: CozumGirdisi) -> str:
@@ -200,6 +207,7 @@ def _uret(fabrika: sessionmaker, okul_id: uuid.UUID, program_id: uuid.UUID, cozu
                 for y in sonuc.yerlesimler
             ])
             program.olcumler = asdict(olc(girdi, sonuc.yerlesimler))
+            program.notlar = not_sozlukleri(bos_gun_notlari(girdi, sonuc.yerlesimler))
             _bitir(program, "hazir")
         durum = program.durum
         oturum.commit()

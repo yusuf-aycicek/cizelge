@@ -118,7 +118,9 @@ export function GirisSayfasi() {
             {durum.mesaj && !giris.error && <p className={stil.bilgi}>{durum.mesaj}</p>}
             <form ref={formRef} noValidate onSubmit={gonder} className={stil.form}>
               <MetinAlani etiket="E-posta" type="email" autoComplete="email" gerekli hata={sunucu.alanlar.email} {...form.alan("email")} />
-              <MetinAlani etiket="Parola" type="password" autoComplete="current-password" gerekli hata={sunucu.alanlar.sifre} {...form.alan("sifre")} />
+              {/* E-posta altyapısı yok: parolayı okulun yöneticisi Kullanıcılar sayfasından sıfırlar (ADR 0030). */}
+              <MetinAlani etiket="Parola" type="password" autoComplete="current-password" gerekli hata={sunucu.alanlar.sifre}
+                aciklama="Parolanızı unuttuysanız okul yöneticinize başvurun." {...form.alan("sifre")} />
               <FormHatasi mesaj={genelHata} />
               {hosgeldin ? (
                 <Dugme type="button" className={`${stil.genisDugme} ${stil.basarili}`} ikon={<Check />} aria-disabled="true">

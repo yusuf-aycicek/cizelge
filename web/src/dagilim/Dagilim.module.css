@@ -485,3 +485,13 @@
     align-items: flex-end;
   }
 }
+
+/* "Tüm seviyelere uygula" raporunda her şablon ayrı bir bölüm. */
+.raporBolumu + .raporBolumu {
+  border-top: 1px solid var(--renk-kenar);
+  padding-top: var(--bosluk-3);
+}
+.raporAltBasligi {
+  margin: var(--bosluk-3) 0 var(--bosluk-1);
+  font-size: 1rem;
+}

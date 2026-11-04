@@ -11,7 +11,7 @@ import { cagir } from "../api/hata";
 import { api } from "../api/istemci";
 import type { components } from "../api/sema";
 
-type Sema = components["schemas"];
+export type Sema = components["schemas"];
 export type Atama = Sema["DersAtamaYanit"];
 export type SablonSatiri = Sema["SeviyeSablonuYanit"];
 export type SablonRaporu = Sema["SablonUygulamaSonucu"];
@@ -42,6 +42,8 @@ export const sablonApi = {
   guncelle: (id: string, haftalik_saat: number) =>
     cagir(api.PATCH("/api/ders-programi/seviye-sablonlari/{kayit_id}", { ...yol(id), body: { haftalik_saat } })),
   sil: (id: string) => cagir(api.DELETE("/api/ders-programi/seviye-sablonlari/{kayit_id}", yol(id))),
+  topluKaydet: (body: Sema["SablonTopluKaydet"]) => cagir(api.PUT("/api/ders-programi/seviye-sablonlari/toplu", { body })),
+  hepsiniUygula: () => cagir(api.POST("/api/ders-programi/seviye-sablonlari/uygula-hepsi")),
   uygula: (seviye: number, sube_grubu_id?: string) =>
     cagir(api.POST("/api/ders-programi/seviye-sablonlari/uygula", {
       body: sube_grubu_id ? { seviye, sube_grubu_id } : { seviye },
@@ -118,6 +120,11 @@ export function useAtamalarDegisti() {
 }
 
 /** "18 / 24 saat" */
-export function yukMetni(y: { ders_saati: number; kullanilabilir_saat: number }): string {
-  return `${y.ders_saati} / ${y.kullanilabilir_saat} saat`;
+/**
+ * "8 / 35 saat"; boş gün hedefi kapasiteyi daraltıyorsa yaklaşık hedefli kapasite de:
+ * "8 / 35 saat · hedefle ~21" (sunucunun `hedefli_kapasite`i; boş gün esnek kuraldır, uyarı değildir).
+ */
+export function yukMetni(y: { ders_saati: number; kullanilabilir_saat: number; hedefli_kapasite?: number | null }): string {
+  const temel = `${y.ders_saati} / ${y.kullanilabilir_saat} saat`;
+  return y.hedefli_kapasite != null && y.hedefli_kapasite < y.kullanilabilir_saat ? `${temel} · hedefle ~${y.hedefli_kapasite}` : temel;
 }

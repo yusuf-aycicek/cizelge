@@ -12,6 +12,9 @@ function ogretmenApisi(baslangic: Ogretmen[]) {
   let kayitlar = [...baslangic];
   const istekler: { yontem: string; govde?: unknown }[] = [];
   sunucu.use(
+    // Branş, okulun derslerinden seçilir (BransSecici).
+    http.get("/api/dersler", () => HttpResponse.json(["Matematik", "Kimya", "İngilizce", "Almanca"].map((ad, i) => (
+      { id: `d${i}`, ad, kisa_ad: ad.slice(0, 3).toUpperCase(), renk: "#1d4ed8" })))),
     http.get("/api/ogretmenler", () => HttpResponse.json(kayitlar)),
     http.post("/api/ogretmenler", async ({ request }) => {
       const govde = (await request.json()) as Omit<Ogretmen, "id">;
@@ -110,7 +113,12 @@ describe("ekleme", () => {
     const istekler = ogretmenApisi([]);
     const { kullanici } = uygulamayiCiz("/ogretmenler");
     await kullanici.type(await screen.findByLabelText(/Adı soyadı/), "  Şule Kaya ");
-    await kullanici.type(screen.getByLabelText("Branşı"), "Kimya");
+    // Branş: okulun dersleri alt alta, çoklu seçim.
+    await kullanici.click(screen.getByText("Ders seçin"));
+    const secenekler = screen.getByRole("group", { name: "Branşı" });
+    expect(within(secenekler).getAllByRole("checkbox").map((k) => k.parentElement?.textContent))
+      .toEqual(["Almanca", "İngilizce", "Kimya", "Matematik"]);
+    await kullanici.click(within(secenekler).getByRole("checkbox", { name: "Kimya" }));
     await kullanici.click(screen.getByRole("button", { name: "Ekle" }));
 
     expect(await screen.findByText("Şule Kaya eklendi.")).toBeInTheDocument();
@@ -147,17 +155,38 @@ describe("düzenleme", () => {
     const istekler = ogretmenApisi([{ id: "o1", ad: "Ali Çelik", brans: "İngilizce" }]);
     const { kullanici } = uygulamayiCiz("/ogretmenler");
     await kullanici.click(await screen.findByRole("button", { name: "Ali Çelik düzenle" }));
-    const brans = screen.getByRole("textbox", { name: "Branşı (düzenleme)" });
-    await kullanici.clear(brans);
-    await kullanici.type(brans, "Almanca{Enter}");
-    expect(await screen.findByText("Ali Çelik kaydedildi.")).toBeInTheDocument();
-    expect(istekler).toEqual([{ yontem: "PATCH", govde: { ad: "Ali Çelik", brans: "Almanca" } }]);
-    expect(await screen.findByRole("cell", { name: "Almanca" })).toBeInTheDocument();
+    const ad = screen.getByRole("textbox", { name: "Adı soyadı (düzenleme)" });
+    await kullanici.type(ad, " Bey{Enter}");
+    expect(await screen.findByText("Ali Çelik Bey kaydedildi.")).toBeInTheDocument();
+    expect(istekler).toEqual([{ yontem: "PATCH", govde: { ad: "Ali Çelik Bey", brans: "İngilizce" } }]);
 
+    // Branş satırda da çoklu seçim; seçilenler ders sırasıyla virgülle saklanır.
+    await kullanici.click(screen.getByRole("button", { name: "Ali Çelik Bey düzenle" }));
+    const satir = screen.getByRole("row", { name: /Ali Çelik Bey/ });
+    await kullanici.click(within(satir).getByText("İngilizce", { selector: "summary span" }));
+    await kullanici.click(within(satir).getByRole("checkbox", { name: "Almanca" }));
+    await kullanici.click(screen.getByRole("button", { name: "Kaydet" }));
+    expect(await screen.findByRole("cell", { name: "Almanca, İngilizce" })).toBeInTheDocument();
+    expect(istekler.at(-1)).toEqual({ yontem: "PATCH", govde: { ad: "Ali Çelik Bey", brans: "Almanca, İngilizce" } });
+
+    await kullanici.click(screen.getByRole("button", { name: "Ali Çelik Bey düzenle" }));
+    await kullanici.type(screen.getByRole("textbox", { name: "Adı soyadı (düzenleme)" }), "xxx{Escape}");
+    expect(screen.queryByRole("textbox", { name: "Adı soyadı (düzenleme)" })).not.toBeInTheDocument();
+    expect(istekler).toHaveLength(2);
+  });
+
+  it("eski serbest metin branş korunur ve seçimle birlikte saklanır", async () => {
+    const istekler = ogretmenApisi([{ id: "o1", ad: "Ali Çelik", brans: "Fen Bilimleri Öğretmeni" }]);
+    const { kullanici } = uygulamayiCiz("/ogretmenler");
+    expect(await screen.findByRole("cell", { name: "Fen Bilimleri Öğretmeni" })).toBeInTheDocument();
     await kullanici.click(screen.getByRole("button", { name: "Ali Çelik düzenle" }));
-    await kullanici.type(screen.getByRole("textbox", { name: "Branşı (düzenleme)" }), "xxx{Escape}");
-    expect(screen.queryByRole("textbox", { name: "Branşı (düzenleme)" })).not.toBeInTheDocument();
-    expect(istekler).toHaveLength(1);
+    const satir = screen.getByRole("row", { name: /Ali Çelik/ });
+    await kullanici.click(within(satir).getByText("Fen Bilimleri Öğretmeni", { selector: "summary span" }));
+    expect(within(satir).getByRole("checkbox", { name: /Fen Bilimleri Öğretmeni.*eski yazım/ })).toBeChecked();
+    await kullanici.click(within(satir).getByRole("checkbox", { name: "Kimya" }));
+    await kullanici.click(screen.getByRole("button", { name: "Kaydet" }));
+    await waitFor(() => expect(istekler).toEqual([
+      { yontem: "PATCH", govde: { ad: "Ali Çelik", brans: "Kimya, Fen Bilimleri Öğretmeni" } }]));
   });
 });
 

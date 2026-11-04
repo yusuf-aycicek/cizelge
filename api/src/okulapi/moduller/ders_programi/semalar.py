@@ -42,6 +42,19 @@ class SablonUygula(BaseModel):
     sube_grubu_id: uuid.UUID | None = None
 
 
+class SablonSatiri(BaseModel):
+    ders_id: uuid.UUID
+    haftalik_saat: int = Field(ge=0, le=99, description="0: ders şablondan çıkar")
+
+
+class SablonTopluKaydet(BaseModel):
+    """Şablonun tamamı: listede olmayan ya da saati 0 olan ders şablondan çıkar."""
+
+    seviye: int = Field(ge=1, le=12)
+    sube_grubu_id: uuid.UUID | None = None
+    satirlar: list[SablonSatiri] = Field(max_length=500)
+
+
 class FarkliSaat(BaseModel):
     atama_id: uuid.UUID
     sinif: str
@@ -80,6 +93,15 @@ class SablonUygulamaSonucu(BaseModel):
     istisna_atlanan: list[IstisnaAtlanan]
     istisna_ek: list[IstisnaEk]
     baska_sablonlu: list[BaskaSablonlu]
+
+
+class SeviyeUygulamaRaporu(BaseModel):
+    """"Tüm seviyelere uygula"da bir şablonun raporu."""
+
+    seviye: int
+    sube_grubu_id: uuid.UUID | None
+    sablon: str = Field(description="Şablonun adı: \"9. sınıflar\" ya da şube grubunun adı")
+    sonuc: SablonUygulamaSonucu
 
 
 # --- şube istisnaları -------------------------------------------------------------------
@@ -152,6 +174,8 @@ class OgretmenYukuYanit(BaseModel):
     ders_saati: int
     musait_saat: int = Field(description="Haftada gelemez olmadığı saat sayısı")
     kullanilabilir_saat: int = Field(description="Günlük ders sınırıyla birlikte derse girebileceği en fazla saat")
+    hedefli_kapasite: int | None = Field(
+        default=None, description="Boş gün hedefi tutarsa yaklaşık kapasite (hedef yoksa boş); uyarı değildir")
     asim: bool
     mesaj: str | None = Field(description="Aşım varsa ön kontrolün mesajı")
     yuk_uyarisi: str | None = Field(default=None, description="Haftalık yük okulun eşiklerinin dışındaysa uyarı (hata değil)")
@@ -381,6 +405,8 @@ class ProgramYanit(_Yanit):
     toplam_ceza: int | None
     olcumler: dict[str, int] | None
     celiskiler: list[CeliskiYanit] | None
+    # Tutmayan esnek hedefler, kişi kişi (ör. "Hasan Şahin: hedef 4 boş gündü, 3 verilebildi").
+    notlar: list[CeliskiYanit] | None = None
     sure_sn: float | None
     # Hazır programda: üretildiği andaki veri şimdikinden farklı mı (6.3). None: bilinmiyor.
     eski_veri: bool | None = None

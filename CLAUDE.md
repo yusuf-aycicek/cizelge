@@ -171,7 +171,7 @@ Tüm tablolarda `id` (uuid) ve `okul_id` (FK) bulunur. Aşağıda yalnızca diğ
 | `ders_atama` | sinif_id, ders_id, ogretmen_id (boş olabilir), haftalik_saat | Çözücünün asıl girdisi |
 | `musaitlik` | ogretmen_id, gun, saat, durum (gelemez / tercih_etmez) | |
 | `kisit` | tur, parametreler (JSON), zorunlu, agirlik, ders_id, sinif_id, sube_grubu_id, ogretmen_id (kapsam; boş olabilir) | Okul geneli kurallar; kapsam doluysa o derse, şubeye, şube grubuna ya da öğretmene özel ayar (ADR 0016) |
-| `program` | ad, durum, hata_mesaji, temel_program_id (boş olabilir), sure_siniri_sn, olusturma, bitis, veri_ozeti | Her üretim denemesi bir kayıt. `temel_program_id` doluysa en az değişiklikle güncellemedir. `veri_ozeti` şimdiki veriden farklıysa "eski verilerle üretildi" |
+| `program` | ad, durum, hata_mesaji, temel_program_id (boş olabilir), sure_siniri_sn, olusturma, bitis, veri_ozeti, notlar | Her üretim denemesi bir kayıt. `temel_program_id` doluysa en az değişiklikle güncellemedir. `veri_ozeti` şimdiki veriden farklıysa "eski verilerle üretildi". `notlar`: tutmayan esnek hedefler kişi kişi (ör. boş gün) |
 | `yerlesim` | program_id, ders_atama_id, gun, saat, kilitli | Programın hücreleri |
 | `program_islemi` | program_id, sira, tur (tasima / kilit), veri (JSON) | Elle düzeltmenin geri alınabilir adımları (ADR 0019) |
 

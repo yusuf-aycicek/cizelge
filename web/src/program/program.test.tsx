@@ -128,6 +128,17 @@ describe("program oluşturma", () => {
     expect(within(screen.getByRole("table", { name: "Programlar" })).getByText("Hazır")).toBeInTheDocument();
   });
 
+  it("boş gün hedefi tutmayan öğretmenler kişi kişi söylenir", async () => {
+    hazirVeri();
+    programApisi([[{ ...HAZIR, notlar: [
+      { tur: "bos_gun", mesaj: "Hasan Şahin: hedef 4 boş gündü, 3 verilebildi.", ilgili: ["o-hasan"] },
+    ] }]]);
+    uygulamayiCiz("/program");
+    const notlar = await screen.findByText("Boş gün hedefi tutmayan 1 öğretmen");
+    expect(notlar.closest("details")).toHaveAttribute("open");
+    expect(screen.getByText("Hasan Şahin: hedef 4 boş gündü, 3 verilebildi.")).toBeInTheDocument();
+  });
+
   it("başarısızlıkta çelişkiler türüne göre gruplanır, ilgili şubeye bağlantı verilir", async () => {
     hazirVeri();
     programApisi([[program({

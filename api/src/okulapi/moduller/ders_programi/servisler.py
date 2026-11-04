@@ -51,6 +51,7 @@ from okulapi.moduller.ders_programi.modeller import (
     DersAtama,
     Musaitlik,
     Program,
+    SeviyeSablonu,
     SubeDersIstisnasi,
     Yerlesim,
 )
@@ -105,7 +106,50 @@ class SeviyeSablonuServisi(CrudServisi):
             raise GecersizVeri("Şube grubu bu okulda bulunamadı")
         return grup
 
-    def uygula(self, seviye: int, sube_grubu_id: uuid.UUID | None = None) -> dict[str, Any]:
+    def toplu_kaydet(self, seviye: int, sube_grubu_id: uuid.UUID | None,
+                     satirlar: list[dict[str, Any]]) -> list[SeviyeSablonu]:
+        """Şablonu tek seferde kaydeder: şablon tam olarak saati 0'dan büyük satırlar olur. Listede
+        olmayan ya da saati 0 olan ders şablondan çıkar; saati değişen güncellenir. Ya hepsi ya hiçbiri."""
+        if sube_grubu_id is not None and self._grup(sube_grubu_id).seviye != seviye:
+            raise GecersizVeri("Şube grubu bu seviyede değil")
+        istenen: dict[uuid.UUID, int] = {}
+        ders_deposu = DersDeposu(self.oturum)
+        for satir in satirlar:
+            if satir["ders_id"] in istenen:
+                raise GecersizVeri("Aynı ders listede iki kez var")
+            istenen[satir["ders_id"]] = satir["haftalik_saat"]
+            if satir["haftalik_saat"] > 0:
+                _bu_okulda_olmali(ders_deposu, satir["ders_id"], "Ders")
+        mevcut = {s.ders_id: s for s in self.depo.sablonun(seviye, sube_grubu_id)}
+        for ders_id, satir in mevcut.items():
+            saat = istenen.get(ders_id, 0)
+            if saat == 0:
+                self.depo.sil(satir)
+            elif satir.haftalik_saat != saat:
+                satir.haftalik_saat = saat
+        for ders_id, saat in istenen.items():
+            if saat > 0 and ders_id not in mevcut:
+                self.depo.ekle(SeviyeSablonu(seviye=seviye, sube_grubu_id=sube_grubu_id, ders_id=ders_id,
+                                             haftalik_saat=saat))
+        self.oturum.commit()
+        return self.depo.sablonun(seviye, sube_grubu_id)
+
+    def hepsine_uygula(self) -> list[dict[str, Any]]:
+        """Dolu her şablonu (seviye ve şube grubu) şubelerine uygular; rapor seviye seviye. Tek işlem:
+        bir şablon hata verirse hiçbiri uygulanmaz. Şablonların şubeleri ayrık olduğundan
+        (`sablon_kaynaklari`) sıra sonucu değiştirmez."""
+        gruplar = {g.id: g.ad for g in SubeGrubuDeposu(self.oturum).listele()}
+        anahtarlar = sorted({(s.seviye, s.sube_grubu_id) for s in self.depo.listele()},
+                            key=lambda k: (k[0], k[1] is not None, gruplar.get(k[1], "").casefold() if k[1] else ""))
+        raporlar = [
+            {"seviye": seviye, "sube_grubu_id": grup, "sablon": gruplar[grup] if grup else f"{seviye}. sınıflar",
+             "sonuc": self.uygula(seviye, grup, kaydet=False)}
+            for seviye, grup in anahtarlar
+        ]
+        self.oturum.commit()
+        return raporlar
+
+    def uygula(self, seviye: int, sube_grubu_id: uuid.UUID | None = None, kaydet: bool = True) -> dict[str, Any]:
         """Şablonu, onu kullanan şubelere uygular: eksik (sınıf, ders) için öğretmeni boş atama
         oluşturur. Var olan atamalar çoğaltılmaz ve değiştirilmez; saati şablondan farklı olanlar
         raporlanır (kullanıcı bilerek farklı tutmuş olabilir).
@@ -157,7 +201,10 @@ class SeviyeSablonuServisi(CrudServisi):
                     ekle(sinif, ders_id, istisna.haftalik_saat)
                 ek.append({"sinif": sinif.ad, "ders": dersler[ders_id], "haftalik_saat": istisna.haftalik_saat,
                            "eklendi": eklendi})
-        self.oturum.commit()
+        if kaydet:
+            self.oturum.commit()
+        else:
+            self.oturum.flush()
         siralama = lambda d: (d["sinif"].casefold(), d["ders"].casefold())  # noqa: E731
         return {
             "sube_sayisi": len(siniflar), "subeler": sorted(s.ad for s in siniflar), "olusturulan": olusturulan,
@@ -355,7 +402,8 @@ def dagilim_ozeti(oturum) -> dict[str, Any]:
         "ogretmensiz_atama": sum(y.ogretmensiz_atama for y in siniflar),
         "ogretmenler": [
             {"ogretmen_id": y.ogretmen_id, "ders_saati": y.ders_saati, "musait_saat": y.musait_saat,
-             "kullanilabilir_saat": y.kullanilabilir_saat, "asim": y.asim, "mesaj": hesap.ogretmen_mesaji(y),
+             "kullanilabilir_saat": y.kullanilabilir_saat, "hedefli_kapasite": hesap.hedefli_kapasite(y.ogretmen_id),
+             "asim": y.asim, "mesaj": hesap.ogretmen_mesaji(y),
              "yuk_uyarisi": hesap.ogretmen_yuk_uyarisi(y)}
             for y in hesap.ogretmen_yukleri()
         ],

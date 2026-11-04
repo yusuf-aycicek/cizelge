@@ -130,6 +130,21 @@ class YukHesabi:
             atama_idleri=tuple(a.id for a in atamalar),
         )
 
+    def hedefli_kapasite(self, ogretmen_id: str) -> int | None:
+        """Boş gün hedefi tutarsa yaklaşık kapasite: öğretmen (gün sayısı − hedef boş gün) gün gelir
+        (gelebildiği gün sayısıyla sınırlı), en geniş günleri sayılır. Hedef 0 ya da boş gün kuralı
+        kapalıysa None. Yaklaşıktır, uyarı değildir: boş gün esnek kuraldır, yük fazlaysa öğretmen
+        daha çok gün gelir (`bos_gun_hedefi` hedefi yüke göre yükseltir)."""
+        okul = self.girdi._okul_tanimi(BOS_GUN_TURU)
+        if okul is not None and not okul.zorunlu and okul.agirlik == 0:
+            return None
+        hedef_bos = self.girdi.parametre(BOS_GUN_TURU, "hedef_bos_gun", VARSAYILAN_HEDEF_BOS_GUN, ogretmen_id=ogretmen_id)
+        if hedef_bos <= 0:
+            return None
+        m = self.ogretmen_siniri(ogretmen_id)
+        gunluk = sorted((min(s, m) for s in self.musait_saat(ogretmen_id) if s > 0), reverse=True)
+        return sum(gunluk[: max(0, len(self.gun_saatleri) - hedef_bos)])
+
     def ogretmen_mesaji(self, yuk: OgretmenYuku) -> str | None:
         """Aşım varsa kullanıcının diliyle açıklama, yoksa None."""
         if not yuk.asim:

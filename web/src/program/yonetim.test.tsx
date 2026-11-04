@@ -117,7 +117,7 @@ describe("hazır program: fark ve eski veri", () => {
   it("veri değiştiyse eski veri uyarısı ve tek tıkla temel alarak yeniden üretme", async () => {
     api([{ ...EYLUL, eski_veri: true }]);
     const { kullanici } = uygulamayiCiz("/program");
-    const not = await screen.findByText("Bu program eski verilerle üretildi.");
+    const not = await screen.findByText("Ayarlar son programdan sonra değişti, programı yeniden oluşturun.");
     await kullanici.click(within(not.closest("[role=note]") as HTMLElement).getByRole("button", { name: "Temel alarak yeniden üret" }));
     expect(screen.getByText(/“Eylül” temel alınıyor/)).toBeInTheDocument();
   });

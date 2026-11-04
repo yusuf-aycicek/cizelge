@@ -240,6 +240,8 @@ class Program(OkulaAitMixin, Base):
     olcumler: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     # [{"tur": ..., "mesaj": ..., "ilgili": [kimlikler]}]; arayüz ilgili satırları vurgulayabilir.
     celiskiler: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB)
+    # Tutmayan esnek hedefler, kişi kişi (ör. boş gün hedefi); celiskiler ile aynı biçim. Eski programlarda boş.
+    notlar: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB)
     sure_sn: Mapped[float | None]
     # Çözücü girdisinin kanonik JSON'unun SHA-256'sı (hex). Çözüm sırasında veri değişti mi
     # sorusunu yanıtlar (docs/api-plani.md bölüm 14).

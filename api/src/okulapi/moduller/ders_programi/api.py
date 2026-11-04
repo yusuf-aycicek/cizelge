@@ -47,6 +47,19 @@ def sablonu_uygula(veri: semalar.SablonUygula, oturum: OkulOturumu) -> Any:
     return SeviyeSablonuServisi(oturum).uygula(veri.seviye, veri.sube_grubu_id)
 
 
+@sablon_router.put("/toplu", response_model=list[semalar.SeviyeSablonuYanit])
+def sablonu_toplu_kaydet(veri: semalar.SablonTopluKaydet, oturum: OkulOturumu) -> Any:
+    """Şablonu tek seferde kaydeder (ders tablosundaki bütün saatler). Saati 0 olan ders çıkar."""
+    return SeviyeSablonuServisi(oturum).toplu_kaydet(
+        veri.seviye, veri.sube_grubu_id, [s.model_dump() for s in veri.satirlar])
+
+
+@sablon_router.post("/uygula-hepsi", response_model=list[semalar.SeviyeUygulamaRaporu])
+def sablonlari_uygula(oturum: OkulOturumu) -> Any:
+    """Dolu bütün şablonları (seviye ve şube grubu) şubelerine uygular; rapor şablon şablon."""
+    return SeviyeSablonuServisi(oturum).hepsine_uygula()
+
+
 istisna_router = APIRouter(prefix="/istisnalar", tags=["şube istisnası"])
 
 

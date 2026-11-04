@@ -115,6 +115,8 @@ describe("özel ayar ekle", () => {
     await kullanici.selectOptions(form.getByRole("combobox", { name: "Şube grubu" }), "g-fen");
     await kullanici.selectOptions(form.getByRole("combobox", { name: "Ders" }), "d-mat");
     const alan = form.getByRole("textbox", { name: /Dağılım şekli/ });
+    // Alan ne işe yaradığını bir örnekle anlatır.
+    expect(alan).toHaveAccessibleDescription(expect.stringContaining("Ör. 5 saatlik derste 2+2+1: iki gün ikişer saat art arda, bir gün tek saat."));
     await kullanici.type(alan, "3-3");
     await kullanici.click(form.getByRole("button", { name: "Özel ayarı kaydet" }));
     expect(form.getByText(/2\+2\+1 biçiminde/)).toBeInTheDocument();

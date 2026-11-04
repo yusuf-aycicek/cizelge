@@ -52,6 +52,13 @@ describe("bransaGoreGrupla", () => {
     expect(uyan.length + diger.length).toBe(ogretmenler.length);
   });
 
+  it("çoklu branşta parçalardan biri uyarsa yeter (ADR 0029)", () => {
+    expect(bransUyar("Matematik, Fizik", { ad: "Fizik" })).toBe(true);
+    expect(bransUyar("Fizik, Matematik", { ad: "Matematik Uygulamaları" })).toBe(true);
+    expect(bransUyar("Fizik, Kimya", { ad: "Biyoloji" })).toBe(false);
+    expect(bransUyar(", ", { ad: "Fizik" })).toBe(false);
+  });
+
   it("ders yoksa herkes tek grupta", () => {
     const { uyan, diger } = bransaGoreGrupla(ogretmenler, undefined);
     expect(uyan).toEqual([]);

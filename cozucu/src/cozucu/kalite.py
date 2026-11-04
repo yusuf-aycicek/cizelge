@@ -11,8 +11,10 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 
+from cozucu.anlatim import Anlatim
 from cozucu.model import (
     BOS_GUN_TURU,
+    VARSAYILAN_HEDEF_BOS_GUN,
     CozumGirdisi,
     MusaitlikDurumu,
     Yerlesim,
@@ -112,6 +114,65 @@ def ders_gunleri(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> dict[str, 
         if o is not None:
             gunler[o].add(y.gun)
     return {o: len(g) for o, g in gunler.items()}
+
+
+@dataclass(frozen=True)
+class KaliteNotu:
+    """Esnek bir kuralın bir kişi için tutmadığı yer, kullanıcının diliyle (ör. boş gün hedefi)."""
+
+    tur: str
+    mesaj: str
+    ilgili: tuple[str, ...]
+
+
+def bos_gun_notlari(girdi: CozumGirdisi, yerlesimler: list[Yerlesim]) -> list[KaliteNotu]:
+    """Boş gün hedefi tutmayan her öğretmen için bir not: "Hasan Şahin: hedef 4 boş gündü, 3
+    verilebildi." Hedef kullanıcının girdiği sayıdır (okul geneli ya da öğretmene özel); yükü ya
+    da müsaitliği hedefe izin vermiyorsa (`bos_gun_hedefi` hedefi yükseltmişse) nedeni de yazılır,
+    yoksa öteki kurallarla dengelendiği söylenir. Hedeften fazla boş gün yalnızca hedef
+    öğretmene özelse not edilir (kuralla aynı: okul genelinde fazla boş gün ceza değildir).
+    Boş gün kuralı kapalıysa (ağırlık 0) not yoktur."""
+    okul = girdi._okul_tanimi(BOS_GUN_TURU)
+    if okul is not None and not okul.zorunlu and okul.agirlik == 0:
+        return []
+    ad = Anlatim(girdi)
+    gun_sayisi = girdi.ayar.gun_sayisi
+    yuk: dict[str, int] = defaultdict(int)
+    for a in girdi.atamalar:
+        if a.ogretmen_id is not None:
+            yuk[a.ogretmen_id] += a.haftalik_saat
+    gunler = {o: set() for o in yuk}
+    atamalar = {a.id: a for a in girdi.atamalar}
+    for y in yerlesimler:
+        o = atamalar[y.ders_atama_id].ogretmen_id
+        if o is not None:
+            gunler[o].add(y.gun)
+
+    notlar = []
+    for o, saat in yuk.items():
+        istenen = girdi.parametre(BOS_GUN_TURU, "hedef_bos_gun", VARSAYILAN_HEDEF_BOS_GUN, ogretmen_id=o)
+        hedef = bos_gun_hedefi(girdi, o, saat)
+        verilen = gun_sayisi - len(gunler[o])
+        istenen_gun = gun_sayisi - istenen  # hedef tutsaydı geleceği gün
+        if verilen < istenen:
+            neden = (
+                f" Ders yükü ({saat} saat) ve müsaitliği en az {hedef.gun} gün gelmesini gerektiriyor."
+                if hedef.gun > istenen_gun
+                else " Program öteki kurallarla (sınıfların boş saati, tercihler) dengelerken daha fazlasını veremedi."
+            )
+            mesaj = f"{ad.ogretmen(o)}: hedef {istenen} boş gündü, {verilen} verilebildi.{neden}"
+        elif hedef.iki_yonlu and verilen > istenen:
+            neden = (
+                f" Ders yükü ({saat} saat) ya da müsaitliği daha çok gün gelmesine yetmiyor."
+                if hedef.gun < istenen_gun
+                else ""
+            )
+            hedef_metni = "boş gün istemiyordu" if istenen == 0 else f"hedef {istenen} boş gündü"
+            mesaj = f"{ad.ogretmen(o)}: {hedef_metni}, {verilen} boş gün kaldı.{neden}"
+        else:
+            continue
+        notlar.append(KaliteNotu(tur=BOS_GUN_TURU, mesaj=mesaj, ilgili=(o,)))
+    return sorted(notlar, key=lambda n: n.mesaj.casefold())
 
 
 def _bos_gun_sapmasi(girdi: CozumGirdisi, ogretmen_gun: dict[tuple[str, int], set[int]]) -> tuple[int, int]:

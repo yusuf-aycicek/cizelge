@@ -13,7 +13,7 @@ from cozucu import (
     dogrula,
     olc,
 )
-from cozucu.kalite import agirlikli_ceza, ders_gunleri
+from cozucu.kalite import agirlikli_ceza, bos_gun_notlari, ders_gunleri
 from cozucu.kisitlar import KAYIT_DEFTERI, etkin_agirliklar
 from cozucu.yuk import bos_gun_hedefi
 from yardimci import girdi_kur
@@ -121,3 +121,51 @@ def test_butun_gun_gelemezse_o_gun_hedeften_duser():
     # Günün bir saati gelemezse gün hâlâ gelinebilir: hedef 5.
     girdi.musaitlikler.pop()
     assert bos_gun_hedefi(girdi, "o1", 5).gun == 5
+
+
+# --- öğretmen bazında not (sonuç ekranı: "hedef 4 boş gündü, 3 verilebildi") -------------------
+
+
+def gunlere(ogretmen, gunler):
+    """i. dersi gunler[i]. güne, ilk saate koyar (tek saatlik ayrı şubeler: çakışma yok)."""
+    return [Yerlesim(f"{ogretmen}-{i}", g, 0) for i, g in enumerate(gunler)]
+
+
+def test_bos_gun_notu_hedef_tutmayinca_yazilir():
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=tek_saatler(), kisitlar=yalniz(BOS) + [ozel_hedef(4)])
+    notlar = bos_gun_notlari(girdi, gunlere("o1", [0, 0, 0, 1, 1]))
+    assert [n.mesaj for n in notlar] == [
+        "o1: hedef 4 boş gündü, 3 verilebildi. Program öteki kurallarla (sınıfların boş saati, tercihler) "
+        "dengelerken daha fazlasını veremedi."]
+    assert notlar[0].ilgili == ("o1",)
+    assert bos_gun_notlari(girdi, gunlere("o1", [2] * 5)) == []  # hedef tuttu
+
+
+def test_bos_gun_notu_yuk_izin_vermiyorsa_nedenini_soyler():
+    # 10 saat, günde en çok 6: en az 2 gün gelmeli; hedef 4 boş gün (1 gün) olamaz.
+    atamalar = [DersAtama(f"o1-{i}", f"s{i}", "d", "o1", 1) for i in range(10)]
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=atamalar, kisitlar=yalniz(BOS) + [ozel_hedef(4)])
+    yerlesim = [Yerlesim(f"o1-{i}", i // 6, i % 6) for i in range(10)]
+    assert [n.mesaj for n in bos_gun_notlari(girdi, yerlesim)] == [
+        "o1: hedef 4 boş gündü, 3 verilebildi. Ders yükü (10 saat) ve müsaitliği en az 2 gün gelmesini gerektiriyor."]
+
+
+def test_bos_gun_notu_okul_geneli_ve_iki_yonlu():
+    # Okul geneli hedef 1: her gün gelen öğretmen not alır; fazla boş gün okul genelinde not değildir.
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=tek_saatler(), kisitlar=yalniz(BOS))
+    assert [n.mesaj for n in bos_gun_notlari(girdi, gunlere("o1", range(5)))] == [
+        "o1: hedef 1 boş gündü, 0 verilebildi. Program öteki kurallarla (sınıfların boş saati, tercihler) "
+        "dengelerken daha fazlasını veremedi."]
+    assert bos_gun_notlari(girdi, gunlere("o1", [0] * 5)) == []
+    # Öğretmene özel 0 ("boş günüm olmasın"): tek güne toplanınca not.
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=tek_saatler(), kisitlar=yalniz(BOS) + [ozel_hedef(0)])
+    assert [n.mesaj for n in bos_gun_notlari(girdi, gunlere("o1", [0] * 5))] == ["o1: boş gün istemiyordu, 4 boş gün kaldı."]
+    # 3 saat dersi olan öğretmen 5 gün gelemez: nedeni yazılır.
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=tek_saatler(adet=3), kisitlar=yalniz(BOS) + [ozel_hedef(0)])
+    assert [n.mesaj for n in bos_gun_notlari(girdi, gunlere("o1", [0, 1, 2]))] == [
+        "o1: boş gün istemiyordu, 2 boş gün kaldı. Ders yükü (3 saat) ya da müsaitliği daha çok gün gelmesine yetmiyor."]
+
+
+def test_bos_gun_kurali_kapaliysa_not_yok():
+    girdi = girdi_kur(ayar=OkulAyari(5, 6), atamalar=tek_saatler(), kisitlar=yalniz(BOS, agirlik=0) + [ozel_hedef(4)])
+    assert bos_gun_notlari(girdi, gunlere("o1", range(5))) == []

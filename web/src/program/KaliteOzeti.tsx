@@ -28,6 +28,29 @@ export function KaliteOzeti({ program, baslikDuzeyi = 2 }: { program: Program; b
           </li>
         ))}
       </ul>
+      <BosGunNotlari notlar={(program.notlar ?? []).filter((n) => n.tur === "bos_gun")} />
     </section>
+  );
+}
+
+/**
+ * Boş gün hedefi tutmayan öğretmenler, kişi kişi ve nedeniyle ("Hasan Şahin: hedef 4 boş gündü,
+ * 3 verilebildi. ..."). Notlar üretim anında çözücünün `kalite.bos_gun_notlari`ndan gelir. Çoksa
+ * (gerçekçi okulda öğretmenlerin yarısı) kapalı başlar, başlığı sayıyı söyler.
+ */
+function BosGunNotlari({ notlar }: { notlar: readonly { mesaj: string }[] }) {
+  if (notlar.length === 0) return null;
+  return (
+    <details className={stil.kaliteNotlari} open={notlar.length <= 5}>
+      <summary>Boş gün hedefi tutmayan {notlar.length} öğretmen</summary>
+      <ul>
+        {notlar.map((n) => (
+          <li key={n.mesaj}>{n.mesaj}</li>
+        ))}
+      </ul>
+      <p className={stil.kaliteAciklama}>
+        Boş gün esnek bir kuraldır; önemini Okul ayarları &gt; Kurallar bölümünden artırabilirsiniz.
+      </p>
+    </details>
   );
 }

@@ -19,6 +19,9 @@ export function useProgramlar() {
   return useQuery({
     queryKey: PROGRAMLAR,
     queryFn: () => cagir(api.GET("/api/ders-programi/programlar")),
+    // Sayfa her açılışta tazelenir: "eski veri" uyarısı sunucuda hesaplanır, başka sayfada yapılan
+    // değişiklikten (öğretmen ayarı, müsaitlik, dağılım) sonra 30 sn'lik önbellek onu gizliyordu.
+    staleTime: 0,
     refetchInterval: (sorgu) => (sorgu.state.data?.some(etkinMi) ? SORGULAMA_MS : false),
   });
 }
@@ -28,6 +31,7 @@ export function useProgram(id: string) {
   return useQuery({
     queryKey: [...PROGRAMLAR, id],
     queryFn: () => cagir(api.GET("/api/ders-programi/programlar/{program_id}", { params: { path: { program_id: id } } })),
+    staleTime: 0, // eski veri uyarısı güncel olsun (useProgramlar)
     refetchInterval: (sorgu) => (sorgu.state.data && etkinMi(sorgu.state.data) ? SORGULAMA_MS : false),
   });
 }

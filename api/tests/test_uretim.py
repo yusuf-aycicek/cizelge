@@ -169,6 +169,10 @@ def test_mini_set_uretilir_ve_dogrulayicidan_gecer(oturum_fabrikasi, mini):
     assert dogrula(girdi, cozum) == []
     assert program.olcumler == olc(girdi, cozum).__dict__
     assert program.olcumler["sinif_boslugu"] == 0
+    # Boş gün notları: üretildiği anın girdisiyle, öğretmen öğretmen (kalite.bos_gun_notlari).
+    from cozucu.kalite import bos_gun_notlari
+    assert program.notlar == [{"tur": n.tur, "mesaj": n.mesaj, "ilgili": list(n.ilgili)}
+                              for n in bos_gun_notlari(girdi, cozum)]
     assert program.girdi_ozeti == girdi_ozeti(girdi) and len(program.girdi_ozeti) == 64
     assert {y.okul_id for y in yerlesimler} == {okul_id}
 

@@ -35,8 +35,8 @@ type Kural = components["schemas"]["KuralYanit"];
 
 /** API'nin varsayılan kuralları (moduller/ders_programi/kurallar.py ile aynı). */
 export const ORNEK_KURALLAR: Kural[] = [
-  sayili("gunluk_ders_siniri", "Aynı dersin günlük sınırı", "Aynı ders bir sınıfa günde en fazla bu kadar saat konur.", "n", 2),
-  sayili("ogretmen_gunluk_siniri", "Öğretmenin günlük ders sınırı", "Bir öğretmen günde en fazla bu kadar saat derse girer.", "m", 8),
+  sayili("gunluk_ders_siniri", "Aynı dersin günlük sınırı", "Aynı ders bir sınıfa günde en fazla bu kadar saat konur (ör. 2: Matematik bir günde en çok 2 saat).", "n", 2),
+  sayili("ogretmen_gunluk_siniri", "Öğretmenin günlük ders sınırı", "Bir öğretmen günde en fazla bu kadar saat derse girer (ör. 6: 8 saatlik günde en az 2 saati boş).", "m", 8),
   { ...sayili("blok_deseni", "Dağılım şekli (blok dersler)", "Bir dersin haftalık saatleri art arda bloklara bölünür.", "otomatik", 0),
     parametreler: { otomatik: true }, varsayilan_parametreler: { otomatik: true }, kapsamlar: ["ders", "sube", "sube_grubu"], zorunlu_eksenler: ["ders"] },
   esnek("sinif_boslugu", "Sınıfların boş saati olmasın", 30),

@@ -29,6 +29,11 @@ export type ListeAlani = {
   max?: number;
   /** Boş kutuda gösterilen örnek, ör. "9-A". */
   ornek?: string;
+  /**
+   * Metin kutusu yerine özel denetim (ör. branş: derslerden çoklu seçim). Değer yine metindir;
+   * hem ekleme formunda hem satırda düzenlerken kullanılır.
+   */
+  secici?: (p: { etiket: string; deger: string; onDegistir: (yeni: string) => void; hata?: string; satirda: boolean }) => ReactNode;
 };
 
 type Degerler = Record<string, string>;
@@ -194,6 +199,12 @@ export function ListeSayfasi<T extends { id: string }, G>({
       hucre: (satir) => {
         if (duzenlenen?.id !== satir.id) return gorunum?.(a.ad, satir) ?? deger(satir, a.ad);
         const hata = duzenHatalari[a.ad];
+        if (a.secici) {
+          return a.secici({
+            etiket: a.etiket, deger: duzenlenen.degerler[a.ad] ?? "", hata, satirda: true,
+            onDegistir: (v) => setDuzenlenen({ ...duzenlenen, degerler: { ...duzenlenen.degerler, [a.ad]: v } }),
+          });
+        }
         return (
           <span className={stil.duzenAlani}>
             <input
@@ -292,7 +303,12 @@ export function ListeSayfasi<T extends { id: string }, G>({
           <h2 id="yeni-baslik">Yeni {kucukTekil}</h2>
           <FormHatasi mesaj={ekleSunucu.genel} />
           <form ref={ekleFormu} noValidate onSubmit={ekleGonder} className={stil.ekleFormu}>
-            {alanlar.map((a) => (
+            {alanlar.map((a) => a.secici ? (
+              <div key={a.ad}>
+                {a.secici({ etiket: a.etiket, deger: yeni[a.ad] ?? "", hata: yeniHata(a.ad), satirda: false,
+                  onDegistir: (v) => setYeni({ ...yeni, [a.ad]: v }) })}
+              </div>
+            ) : (
               <MetinAlani
                 key={a.ad}
                 etiket={a.etiket}

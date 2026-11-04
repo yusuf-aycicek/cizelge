@@ -2,6 +2,7 @@
 import { dersIsaretleri } from "../dersler/isaret";
 import { OgretmenAdi } from "../bilesenler/OgretmenRozeti";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CalendarClock } from "lucide-react";
 import { Link } from "react-router";
 import stil from "./Liste.module.css";
 import { hataMetni } from "../api/hata";
@@ -13,13 +14,19 @@ import { cagir } from "../api/hata";
 import { api } from "../api/istemci";
 import { KURALLAR_ANAHTARI } from "../okul/OkulAyarlariSayfasi";
 import { dersKaynagi, ogretmenKaynagi, sinifKaynagi, type Ders, type Ogretmen, type Sinif } from "./kaynaklar";
+import { BransSecici } from "./BransSecici";
 import { ListeSayfasi, type ListeAlani } from "./ListeSayfasi";
 import { SubeGrubuSecici, SubeGruplariBolumu, useSubeGruplari } from "./SubeGruplari";
 
 // Alan listeleri bileşenin dışında sabit: her çizimde yeni dizi oluşmasın (useMemo bağımlılığı).
 const OGRETMEN_ALANLARI: ListeAlani[] = [
   { ad: "ad", etiket: "Adı soyadı", gerekli: true, ornek: "Ayşe Yılmaz" },
-  { ad: "brans", etiket: "Branşı", ornek: "Matematik" },
+  {
+    ad: "brans", etiket: "Branşı",
+    secici: ({ etiket, deger, onDegistir, hata, satirda }) => (
+      <BransSecici etiket={etiket} deger={deger} onDegistir={onDegistir} hata={hata} satirda={satirda} />
+    ),
+  },
 ];
 const SINIF_ALANLARI: ListeAlani[] = [
   { ad: "ad", etiket: "Şube", gerekli: true, ornek: "9-A" },
@@ -33,7 +40,8 @@ const DERS_ALANLARI: ListeAlani[] = [
 export function OgretmenlerSayfasi() {
   return (
     <ListeSayfasi<Ogretmen, { ad: string; brans: string }>
-      // Ad, öğretmenin sayfasına (kişisel ayarlar ve müsaitlik) bağlantıdır.
+      // Ad, öğretmenin sayfasına (kişisel ayarlar ve müsaitlik) bağlantıdır; ayrıca satırda görünür
+      // bir "Müsaitlik ve ayarlar" bağlantısı var (ad tek başına tıklanabilir görünmüyordu).
       gorunum={(alan, o) =>
         alan === "ad" ? (
           <Link to={`/ogretmenler/${o.id}`} className={stil.ogretmenBaglantisi}>
@@ -41,8 +49,20 @@ export function OgretmenlerSayfasi() {
           </Link>
         ) : undefined
       }
+      ekSutunlar={[
+        {
+          baslik: "Ayarlar",
+          baslikGizli: true,
+          hucre: (o) => (
+            <Link to={`/ogretmenler/${o.id}`} className={stil.ayarBaglantisi} aria-label={`${o.ad}: müsaitlik ve kişisel ayarlar`}>
+              <CalendarClock aria-hidden="true" />
+              <span className={stil.islemMetni}>Müsaitlik ve ayarlar</span>
+            </Link>
+          ),
+        },
+      ]}
       baslik="Öğretmenler"
-      aciklama="Okulunuzdaki öğretmenler. Bir öğretmenin adına tıklayınca kişisel ayarları ve müsaitlik çizelgesi açılır. Hangi derse kimin gireceğini Ders dağılımı sayfasında seçeceksiniz."
+      aciklama="Okulunuzdaki öğretmenler. Branşı okulun derslerinden seçilir (birden çok olabilir). Bir öğretmenin adına ya da “Müsaitlik ve ayarlar”a tıklayınca kişisel ayarları ve müsaitlik çizelgesi açılır. Hangi derse kimin gireceğini Ders dağılımı sayfasında seçeceksiniz."
       tekil="Öğretmen"
       bos={{
         baslik: "Henüz öğretmen eklenmedi",

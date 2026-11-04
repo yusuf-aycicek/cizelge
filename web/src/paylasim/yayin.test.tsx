@@ -51,6 +51,10 @@ describe("Yayın ve paylaşım", () => {
     const { kullanici } = uygulamayiCiz("/yayin");
     const uyarilar = await screen.findByRole("list", { name: "Yayın güncel değil" });
     expect(uyarilar).toHaveTextContent("eski verilerle üretildi");
+    // Kartta programın iç adı yok, yalnızca tarih (öğretmen ve veli için anlamlı olan).
+    const yayinda = screen.getByText(/tarihinde yayınlandı/);
+    expect(yayinda).toHaveTextContent("24.10.2026 tarihinde yayınlandı.");
+    expect(yayinda).not.toHaveTextContent("Güz Programı");
     const adres = await screen.findByLabelText("Ayşe Yılmaz linki");
     expect(adres).toHaveValue(`${location.origin}/p/jeton-ayse`);
     await kullanici.click(screen.getByRole("button", { name: "Ayşe Yılmaz linkini kopyala" }));
